@@ -1,0 +1,6 @@
+Running integration tests with mcc stub: 
+	Assign variable MCC=./scripts/mcc_stub first
+Flex usage: 
+	flex sample.lex
+Compiling generated lexer with gcc:
+	gcc lex.yy.c -lfl
