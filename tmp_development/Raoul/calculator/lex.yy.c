@@ -444,7 +444,11 @@ int yy_flex_debug = 0;
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
 #line 1 "sample2.l"
-#line 448 "lex.yy.c"
+/* recognize tokens for the calculator and print them out */
+#line 3 "sample2.l"
+# include "sampleParser.tab.h"
+#line 451 "lex.yy.c"
+#line 452 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -661,9 +665,10 @@ YY_DECL
 		}
 
 	{
-#line 1 "sample2.l"
+#line 6 "sample2.l"
 
-#line 667 "lex.yy.c"
+
+#line 672 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -722,56 +727,56 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 2 "sample2.l"
-{ printf("PLUS\n"); }
+#line 8 "sample2.l"
+{ return ADD; }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 3 "sample2.l"
-{ printf("MINUS\n"); }
+#line 9 "sample2.l"
+{ return SUB; }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 4 "sample2.l"
-{ printf("TIMES\n"); }
+#line 10 "sample2.l"
+{ return MUL; }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 5 "sample2.l"
-{ printf("DIVIDE\n"); }
+#line 11 "sample2.l"
+{ return DIV; }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 6 "sample2.l"
-{ printf("ABS\n"); }
+#line 12 "sample2.l"
+{ return ABS; }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 7 "sample2.l"
-{ printf("NUMBER %s\n", yytext); }
+#line 13 "sample2.l"
+{ yylval = atoi(yytext); return NUMBER; }
 	YY_BREAK
 case 7:
 /* rule 7 can match eol */
 YY_RULE_SETUP
-#line 8 "sample2.l"
-{ printf("NEWLINE\n"); }
+#line 14 "sample2.l"
+{ return EOL; }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 9 "sample2.l"
-{ }
+#line 15 "sample2.l"
+{ /* ignore whitespace */ }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 10 "sample2.l"
-{ printf("Mystery character %s\n", yytext); }
+#line 16 "sample2.l"
+{ printf("Mystery character %c\n", *yytext); }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 11 "sample2.l"
+#line 18 "sample2.l"
 ECHO;
 	YY_BREAK
-#line 775 "lex.yy.c"
+#line 780 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1776,5 +1781,5 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 11 "sample2.l"
+#line 18 "sample2.l"
 
