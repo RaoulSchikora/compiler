@@ -6,3 +6,7 @@ Flex tutorial + manual:
 	info flex
 Compiling generated lexer with gcc:
 	gcc lex.yy.c -lfl
+Execute generated output file with:
+    ./a.out
+Use program for example with (Calculator sample):
+    12 + 4
