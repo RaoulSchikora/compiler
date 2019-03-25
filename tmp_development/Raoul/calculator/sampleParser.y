@@ -1,12 +1,14 @@
 /* simplest version of calculator */
 %{
 #include <stdio.h>
+FILE *yyin;
 %}
 
 /* declare tokens */
 %token NUMBER
 %token ADD SUB MUL DIV ABS
 %token EOL
+
 
 %%
 
@@ -32,7 +34,10 @@ term: NUMBER
 
 main(int argc, char **argv)
 {
+    yyin = fopen("inputStream.txt", "r");
     yyparse();
+    fclose(yyin);
+    return 0;
 }
 
 yyerror(char *s)
