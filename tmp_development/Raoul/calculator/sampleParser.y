@@ -37,7 +37,7 @@ term: NUMBER
 main(int argc, char **argv)
 {
     /*declare file to read from */
-    yyin = fopen("inputStream.txt", "r");
+    yyin = fopen(argv[1], "r");
     yyparse();
     fclose(yyin);
     return 0;

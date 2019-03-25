@@ -65,9 +65,11 @@
 #line 2 "sampleParser.y" /* yacc.c:339  */
 
 #include <stdio.h>
+
+/*denotes that you want to read from file */
 FILE *yyin;
 
-#line 71 "sampleParser.tab.c" /* yacc.c:339  */
+#line 73 "sampleParser.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -128,7 +130,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 132 "sampleParser.tab.c" /* yacc.c:358  */
+#line 134 "sampleParser.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -426,8 +428,8 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    15,    15,    16,    19,    20,    21,    24,    25,    26,
-      29,    30
+       0,    17,    17,    18,    21,    22,    23,    26,    27,    28,
+      31,    32
 };
 #endif
 
@@ -1200,43 +1202,43 @@ yyreduce:
   switch (yyn)
     {
         case 3:
-#line 16 "sampleParser.y" /* yacc.c:1646  */
+#line 18 "sampleParser.y" /* yacc.c:1646  */
     { printf("= %d\n", (yyvsp[-1])); }
-#line 1206 "sampleParser.tab.c" /* yacc.c:1646  */
+#line 1208 "sampleParser.tab.c" /* yacc.c:1646  */
     break;
 
   case 5:
-#line 20 "sampleParser.y" /* yacc.c:1646  */
+#line 22 "sampleParser.y" /* yacc.c:1646  */
     { (yyval) = (yyvsp[-2]) + (yyvsp[0]); }
-#line 1212 "sampleParser.tab.c" /* yacc.c:1646  */
+#line 1214 "sampleParser.tab.c" /* yacc.c:1646  */
     break;
 
   case 6:
-#line 21 "sampleParser.y" /* yacc.c:1646  */
+#line 23 "sampleParser.y" /* yacc.c:1646  */
     { (yyval) = (yyvsp[-2]) - (yyvsp[0]); }
-#line 1218 "sampleParser.tab.c" /* yacc.c:1646  */
+#line 1220 "sampleParser.tab.c" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 25 "sampleParser.y" /* yacc.c:1646  */
+#line 27 "sampleParser.y" /* yacc.c:1646  */
     { (yyval) = (yyvsp[-2]) * (yyvsp[0]); }
-#line 1224 "sampleParser.tab.c" /* yacc.c:1646  */
+#line 1226 "sampleParser.tab.c" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 26 "sampleParser.y" /* yacc.c:1646  */
+#line 28 "sampleParser.y" /* yacc.c:1646  */
     { (yyval) = (yyvsp[-2]) / (yyvsp[0]); }
-#line 1230 "sampleParser.tab.c" /* yacc.c:1646  */
+#line 1232 "sampleParser.tab.c" /* yacc.c:1646  */
     break;
 
   case 11:
-#line 30 "sampleParser.y" /* yacc.c:1646  */
+#line 32 "sampleParser.y" /* yacc.c:1646  */
     { (yyval) = (yyvsp[0]) >= 0? (yyvsp[0]) : - (yyvsp[0]); }
-#line 1236 "sampleParser.tab.c" /* yacc.c:1646  */
+#line 1238 "sampleParser.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1240 "sampleParser.tab.c" /* yacc.c:1646  */
+#line 1242 "sampleParser.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1464,12 +1466,13 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 33 "sampleParser.y" /* yacc.c:1906  */
+#line 35 "sampleParser.y" /* yacc.c:1906  */
 
 
 main(int argc, char **argv)
 {
-    yyin = fopen("inputStream.txt", "r");
+    /*declare file to read from */
+    yyin = fopen(argv[1], "r");
     yyparse();
     fclose(yyin);
     return 0;
