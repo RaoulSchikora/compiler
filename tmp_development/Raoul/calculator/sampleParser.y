@@ -1,6 +1,8 @@
 /* simplest version of calculator */
 %{
 #include <stdio.h>
+
+/*denotes that you want to read from file */
 FILE *yyin;
 %}
 
@@ -34,6 +36,7 @@ term: NUMBER
 
 main(int argc, char **argv)
 {
+    /*declare file to read from */
     yyin = fopen("inputStream.txt", "r");
     yyparse();
     fclose(yyin);
