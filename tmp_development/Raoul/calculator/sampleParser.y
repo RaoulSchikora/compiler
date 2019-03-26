@@ -1,12 +1,16 @@
 /* simplest version of calculator */
 %{
 #include <stdio.h>
+
+/*denotes that you want to read from file */
+FILE *yyin;
 %}
 
 /* declare tokens */
 %token NUMBER
 %token ADD SUB MUL DIV ABS
 %token EOL
+
 
 %%
 
@@ -32,7 +36,11 @@ term: NUMBER
 
 main(int argc, char **argv)
 {
+    /*declare file to read from */
+    yyin = fopen(argv[1], "r");
     yyparse();
+    fclose(yyin);
+    return 0;
 }
 
 yyerror(char *s)
