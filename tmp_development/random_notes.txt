@@ -10,3 +10,8 @@ Execute generated output file with:
     ./a.out
 Use program for example with (Calculator sample):
     12 + 4
+
+
+From Bison specification:
+	%left defines associativity and precedence, first occurence of %left has highest precedence
+	%start defines Starting-Nonterminal of the grammar to be used, so that it doesn't have to be the first rule
