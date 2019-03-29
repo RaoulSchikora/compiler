@@ -36,6 +36,36 @@ void BinaryOp_1(CuTest *tc)
 	mcc_ast_delete(expr);
 }
 
+void BinaryOp_2(CuTest *tc)
+{
+	const char input[] = "192 - 3.14";
+	struct mcc_parser_result result = mcc_parse_string(input);
+
+	CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
+
+	struct mcc_ast_expression *expr = result.expression;
+
+	// root
+	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_BINARY_OP, expr->type);
+	CuAssertIntEquals(tc, MCC_AST_BINARY_OP_SUB, expr->op);
+
+	// root -> lhs
+	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_LITERAL, expr->lhs->type);
+
+	// root -> lhs -> literal
+	CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_INT, expr->lhs->literal->type);
+	CuAssertIntEquals(tc, 192, expr->lhs->literal->i_value);
+
+	// root -> rhs
+	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_LITERAL, expr->rhs->type);
+
+	// root -> rhs -> literal
+	CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_FLOAT, expr->rhs->literal->type);
+	CuAssertDblEquals(tc, 3.14, expr->rhs->literal->f_value, EPS);
+
+	mcc_ast_delete(expr);
+}
+
 void NestedExpression_1(CuTest *tc)
 {
 	const char input[] = "42 * (192 + 3.14)";
@@ -119,6 +149,7 @@ void SourceLocation_SingleLineColumn(CuTest *tc)
 
 #define TESTS \
 	TEST(BinaryOp_1) \
+	TEST (BinaryOp_2) \
 	TEST(NestedExpression_1) \
 	TEST(MissingClosingParenthesis_1) \
 	TEST(SourceLocation_SingleLineColumn)

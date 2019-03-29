@@ -1,0 +1,4 @@
+integration_tests/./leap_year.c: In function ‘isLeapYear’:
+integration_tests/./leap_year.c:6:8: warning: implicit declaration of function ‘modulo’ [-Wimplicit-function-declaration]
+   if ((modulo(n,4) == 0 && modulo(n,100) != 0) || (modulo(n,400) == 0)){
+        ^~~~~~
