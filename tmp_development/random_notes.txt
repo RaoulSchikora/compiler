@@ -22,3 +22,4 @@ Bison flags:
 	%parse-param{} defines the arguments that will be passed to the yyparse() - routine, can be arbitrarilly many
 	%code requires {} inserts code into the generated C file ahead of some default definitions and also into the headerfile, but is otherwhise like %{ %}
 	%type <d> NUMBER defines NUMBER to be of type d (in the code example literals are defined to be of type "struct mcc_ast_literal*"
+	%define api.value.type union, definiert Typ der yylval Variable?

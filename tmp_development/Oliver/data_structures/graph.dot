@@ -1,6 +1,8 @@
 digraph {
 	label="AST.h visualisiert"
 	
+	"struct mcc_parser_result"[shape="box", style=rounded];
+	"enum mcc_parser_status"[shape="box",style=rounded];
 	"struct mcc_ast_source_location"[shape="box", style=rounded];
 	"int start_line"[shape="box", style=rounded];
 	"int start_col"[shape="box", style=rounded];
@@ -43,6 +45,8 @@ digraph {
 	"struct mcc_ast_literal" -> "Union 2";
 	"Union 2" -> "long i_value";
 	"Union 2" -> "double f_value";
+	"struct mcc_parser_result" -> "enum mcc_parser_status";
+	"struct mcc_parser_result" -> "struct mcc_ast_expression";
 }
 
 	
