@@ -1,2 +1,0 @@
-Please enter a number: 
-prime(11) = 1

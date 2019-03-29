@@ -1,22 +1,22 @@
-Build started at 2019-03-19T15:58:12.533867
+Build started at 2019-03-29T16:38:42.449555
 Main binary: /usr/bin/python3
 Python system: Linux
 The Meson build system
 Version: 0.45.1
-Source dir: /home/raoul/Documents/Uni/Informatik_Msc/CompilerConstruction/compiler
-Build dir: /home/raoul/Documents/Uni/Informatik_Msc/CompilerConstruction/compiler/builddir
+Source dir: /home/or/Master_Informatik/2.Semester/Compilerbau/PS/compiler
+Build dir: /home/or/Master_Informatik/2.Semester/Compilerbau/PS/compiler/builddir
 Build type: native build
 Project name: mcc
 Sanity testing C compiler: cc
 Is cross compiler: False.
-Sanity check compiler command line: cc /home/raoul/Documents/Uni/Informatik_Msc/CompilerConstruction/compiler/builddir/meson-private/sanitycheckc.c -o /home/raoul/Documents/Uni/Informatik_Msc/CompilerConstruction/compiler/builddir/meson-private/sanitycheckc.exe
+Sanity check compiler command line: cc /home/or/Master_Informatik/2.Semester/Compilerbau/PS/compiler/builddir/meson-private/sanitycheckc.c -o /home/or/Master_Informatik/2.Semester/Compilerbau/PS/compiler/builddir/meson-private/sanitycheckc.exe
 Sanity check compile stdout:
 
 -----
 Sanity check compile stderr:
 
 -----
-Running test binary command: /home/raoul/Documents/Uni/Informatik_Msc/CompilerConstruction/compiler/builddir/meson-private/sanitycheckc.exe
+Running test binary command: /home/or/Master_Informatik/2.Semester/Compilerbau/PS/compiler/builddir/meson-private/sanitycheckc.exe
 Native C compiler: cc (gcc 7.3.0 "cc (Ubuntu 7.3.0-27ubuntu1~18.04) 7.3.0")
 Build machine cpu family: x86_64
 Build machine cpu: x86_64

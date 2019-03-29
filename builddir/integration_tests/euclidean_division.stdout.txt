@@ -1,3 +1,0 @@
-Enter Dividend:
-Enter Divisor:
-15 is divisible by 6 with the remainder 3 and result 2
