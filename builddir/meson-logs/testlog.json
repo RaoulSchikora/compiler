@@ -1,1 +1,1 @@
-{"name": "parser_test", "stdout": "....\n\nOK (4 tests)\n\n", "result": "OK", "duration": 0.0021915435791015625, "returncode": 0, "command": ["/home/raoul/Documents/Uni/Informatik_Msc/CompilerConstruction/compiler/builddir/parser_test"], "env": {}}
+{"name": "parser_test", "stdout": ".....\n\nOK (5 tests)\n\n", "result": "OK", "duration": 0.002644777297973633, "returncode": 0, "command": ["/home/raoul/Documents/Uni/Informatik_Msc/CompilerConstruction/compiler/builddir/parser_test"], "env": {}}

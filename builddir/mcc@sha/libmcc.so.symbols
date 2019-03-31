@@ -9,6 +9,7 @@ mcc_ast_delete_literal T
 mcc_ast_new_expression_binary_op T
 mcc_ast_new_expression_literal T
 mcc_ast_new_expression_parenth T
+mcc_ast_new_expression_unary_op T
 mcc_ast_new_literal_float T
 mcc_ast_new_literal_int T
 mcc_ast_print_binary_op T

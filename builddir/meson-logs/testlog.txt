@@ -1,13 +1,13 @@
-Log of Meson test suite run on 2019-03-19T16:11:44.039582
+Log of Meson test suite run on 2019-03-31T15:31:53.151785
 
 1/1 parser_test                             OK       0.00 s
 
 --- command ---
 /home/raoul/Documents/Uni/Informatik_Msc/CompilerConstruction/compiler/builddir/parser_test
 --- stdout ---
-....
+.....
 
-OK (4 tests)
+OK (5 tests)
 
 -------
 
