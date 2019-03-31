@@ -1,0 +1,9 @@
+# Object files + executables
+*.out
+*.o
+
+# ignoring builddir directory 
+builddir/
+
+# ignore .idea directory
+.idea/

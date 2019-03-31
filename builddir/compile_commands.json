@@ -1,47 +1,56 @@
 [
   {
-    "directory": "/home/raoul/Documents/Uni/Informatik_Msc/CompilerConstruction/compiler/builddir",
-    "command": "cc  -Imcc@sha -I. -I.. -I../include -I../src -fdiagnostics-color=always -pipe -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wextra -Wpedantic -std=c11 -O3 -fPIC -D_POSIX_C_SOURCE=200809L -MD -MQ 'mcc@sha/meson-generated_scanner.c.o' -MF 'mcc@sha/meson-generated_scanner.c.o.d' -o 'mcc@sha/meson-generated_scanner.c.o' -c 'mcc@sha/scanner.c'",
-    "file": "mcc@sha/scanner.c"
+    "directory": "/home/oliver/Oliver/Studium/Master Informatik/2.Semester/Compilerbau/PS/compiler/builddir",
+    "command": "cc -Imcc@sha -I. -I.. -I../include -I../src -fdiagnostics-color=always -pipe -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wextra -Wpedantic -std=c11 -O3 -fPIC -D_POSIX_C_SOURCE=200809L -MD -MQ 'mcc@sha/meson-generated_scanner.c.o' -MF 'mcc@sha/meson-generated_scanner.c.o.d' -o 'mcc@sha/meson-generated_scanner.c.o' -c 'mcc@sha/scanner.c'",
+    "file": "mcc@sha/scanner.c",
+    "output": "mcc@sha/meson-generated_scanner.c.o"
   },
   {
-    "directory": "/home/raoul/Documents/Uni/Informatik_Msc/CompilerConstruction/compiler/builddir",
-    "command": "cc  -Imcc@sha -I. -I.. -I../include -I../src -fdiagnostics-color=always -pipe -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wextra -Wpedantic -std=c11 -O3 -fPIC -D_POSIX_C_SOURCE=200809L -MD -MQ 'mcc@sha/meson-generated_parser.tab.c.o' -MF 'mcc@sha/meson-generated_parser.tab.c.o.d' -o 'mcc@sha/meson-generated_parser.tab.c.o' -c 'mcc@sha/parser.tab.c'",
-    "file": "mcc@sha/parser.tab.c"
+    "directory": "/home/oliver/Oliver/Studium/Master Informatik/2.Semester/Compilerbau/PS/compiler/builddir",
+    "command": "cc -Imcc@sha -I. -I.. -I../include -I../src -fdiagnostics-color=always -pipe -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wextra -Wpedantic -std=c11 -O3 -fPIC -D_POSIX_C_SOURCE=200809L -MD -MQ 'mcc@sha/meson-generated_parser.tab.c.o' -MF 'mcc@sha/meson-generated_parser.tab.c.o.d' -o 'mcc@sha/meson-generated_parser.tab.c.o' -c 'mcc@sha/parser.tab.c'",
+    "file": "mcc@sha/parser.tab.c",
+    "output": "mcc@sha/meson-generated_parser.tab.c.o"
   },
   {
-    "directory": "/home/raoul/Documents/Uni/Informatik_Msc/CompilerConstruction/compiler/builddir",
-    "command": "cc  -Imcc@sha -I. -I.. -I../include -I../src -fdiagnostics-color=always -pipe -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wextra -Wpedantic -std=c11 -O3 -fPIC -D_POSIX_C_SOURCE=200809L -MD -MQ 'mcc@sha/src_ast.c.o' -MF 'mcc@sha/src_ast.c.o.d' -o 'mcc@sha/src_ast.c.o' -c ../src/ast.c",
-    "file": "../src/ast.c"
+    "directory": "/home/oliver/Oliver/Studium/Master Informatik/2.Semester/Compilerbau/PS/compiler/builddir",
+    "command": "cc -Imcc@sha -I. -I.. -I../include -I../src -fdiagnostics-color=always -pipe -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wextra -Wpedantic -std=c11 -O3 -fPIC -D_POSIX_C_SOURCE=200809L -MD -MQ 'mcc@sha/src_ast.c.o' -MF 'mcc@sha/src_ast.c.o.d' -o 'mcc@sha/src_ast.c.o' -c ../src/ast.c",
+    "file": "../src/ast.c",
+    "output": "mcc@sha/src_ast.c.o"
   },
   {
-    "directory": "/home/raoul/Documents/Uni/Informatik_Msc/CompilerConstruction/compiler/builddir",
-    "command": "cc  -Imcc@sha -I. -I.. -I../include -I../src -fdiagnostics-color=always -pipe -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wextra -Wpedantic -std=c11 -O3 -fPIC -D_POSIX_C_SOURCE=200809L -MD -MQ 'mcc@sha/src_ast_print.c.o' -MF 'mcc@sha/src_ast_print.c.o.d' -o 'mcc@sha/src_ast_print.c.o' -c ../src/ast_print.c",
-    "file": "../src/ast_print.c"
+    "directory": "/home/oliver/Oliver/Studium/Master Informatik/2.Semester/Compilerbau/PS/compiler/builddir",
+    "command": "cc -Imcc@sha -I. -I.. -I../include -I../src -fdiagnostics-color=always -pipe -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wextra -Wpedantic -std=c11 -O3 -fPIC -D_POSIX_C_SOURCE=200809L -MD -MQ 'mcc@sha/src_ast_print.c.o' -MF 'mcc@sha/src_ast_print.c.o.d' -o 'mcc@sha/src_ast_print.c.o' -c ../src/ast_print.c",
+    "file": "../src/ast_print.c",
+    "output": "mcc@sha/src_ast_print.c.o"
   },
   {
-    "directory": "/home/raoul/Documents/Uni/Informatik_Msc/CompilerConstruction/compiler/builddir",
-    "command": "cc  -Imcc@sha -I. -I.. -I../include -I../src -fdiagnostics-color=always -pipe -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wextra -Wpedantic -std=c11 -O3 -fPIC -D_POSIX_C_SOURCE=200809L -MD -MQ 'mcc@sha/src_ast_visit.c.o' -MF 'mcc@sha/src_ast_visit.c.o.d' -o 'mcc@sha/src_ast_visit.c.o' -c ../src/ast_visit.c",
-    "file": "../src/ast_visit.c"
+    "directory": "/home/oliver/Oliver/Studium/Master Informatik/2.Semester/Compilerbau/PS/compiler/builddir",
+    "command": "cc -Imcc@sha -I. -I.. -I../include -I../src -fdiagnostics-color=always -pipe -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wextra -Wpedantic -std=c11 -O3 -fPIC -D_POSIX_C_SOURCE=200809L -MD -MQ 'mcc@sha/src_ast_visit.c.o' -MF 'mcc@sha/src_ast_visit.c.o.d' -o 'mcc@sha/src_ast_visit.c.o' -c ../src/ast_visit.c",
+    "file": "../src/ast_visit.c",
+    "output": "mcc@sha/src_ast_visit.c.o"
   },
   {
-    "directory": "/home/raoul/Documents/Uni/Informatik_Msc/CompilerConstruction/compiler/builddir",
-    "command": "cc  -Imcc@exe -I. -I.. -I../include -fdiagnostics-color=always -pipe -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wextra -Wpedantic -std=c11 -O3 -MD -MQ 'mcc@exe/app_mcc.c.o' -MF 'mcc@exe/app_mcc.c.o.d' -o 'mcc@exe/app_mcc.c.o' -c ../app/mcc.c",
-    "file": "../app/mcc.c"
+    "directory": "/home/oliver/Oliver/Studium/Master Informatik/2.Semester/Compilerbau/PS/compiler/builddir",
+    "command": "cc -Imcc@exe -I. -I.. -I../include -fdiagnostics-color=always -pipe -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wextra -Wpedantic -std=c11 -O3 -MD -MQ 'mcc@exe/app_mcc.c.o' -MF 'mcc@exe/app_mcc.c.o.d' -o 'mcc@exe/app_mcc.c.o' -c ../app/mcc.c",
+    "file": "../app/mcc.c",
+    "output": "mcc@exe/app_mcc.c.o"
   },
   {
-    "directory": "/home/raoul/Documents/Uni/Informatik_Msc/CompilerConstruction/compiler/builddir",
-    "command": "cc  -Imc_ast_to_dot@exe -I. -I.. -I../include -fdiagnostics-color=always -pipe -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wextra -Wpedantic -std=c11 -O3 -MD -MQ 'mc_ast_to_dot@exe/app_mc_ast_to_dot.c.o' -MF 'mc_ast_to_dot@exe/app_mc_ast_to_dot.c.o.d' -o 'mc_ast_to_dot@exe/app_mc_ast_to_dot.c.o' -c ../app/mc_ast_to_dot.c",
-    "file": "../app/mc_ast_to_dot.c"
+    "directory": "/home/oliver/Oliver/Studium/Master Informatik/2.Semester/Compilerbau/PS/compiler/builddir",
+    "command": "cc -Imc_ast_to_dot@exe -I. -I.. -I../include -fdiagnostics-color=always -pipe -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wextra -Wpedantic -std=c11 -O3 -MD -MQ 'mc_ast_to_dot@exe/app_mc_ast_to_dot.c.o' -MF 'mc_ast_to_dot@exe/app_mc_ast_to_dot.c.o.d' -o 'mc_ast_to_dot@exe/app_mc_ast_to_dot.c.o' -c ../app/mc_ast_to_dot.c",
+    "file": "../app/mc_ast_to_dot.c",
+    "output": "mc_ast_to_dot@exe/app_mc_ast_to_dot.c.o"
   },
   {
-    "directory": "/home/raoul/Documents/Uni/Informatik_Msc/CompilerConstruction/compiler/builddir",
-    "command": "cc  -Iparser_test@exe -I. -I.. -I../include -I../vendor/cutest -fdiagnostics-color=always -pipe -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wextra -Wpedantic -std=c11 -O3 -MD -MQ 'parser_test@exe/test_unit_parser_test.c.o' -MF 'parser_test@exe/test_unit_parser_test.c.o.d' -o 'parser_test@exe/test_unit_parser_test.c.o' -c ../test/unit/parser_test.c",
-    "file": "../test/unit/parser_test.c"
+    "directory": "/home/oliver/Oliver/Studium/Master Informatik/2.Semester/Compilerbau/PS/compiler/builddir",
+    "command": "cc -Iparser_test@exe -I. -I.. -I../include -I../vendor/cutest -fdiagnostics-color=always -pipe -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wextra -Wpedantic -std=c11 -O3 -MD -MQ 'parser_test@exe/test_unit_parser_test.c.o' -MF 'parser_test@exe/test_unit_parser_test.c.o.d' -o 'parser_test@exe/test_unit_parser_test.c.o' -c ../test/unit/parser_test.c",
+    "file": "../test/unit/parser_test.c",
+    "output": "parser_test@exe/test_unit_parser_test.c.o"
   },
   {
-    "directory": "/home/raoul/Documents/Uni/Informatik_Msc/CompilerConstruction/compiler/builddir",
-    "command": "cc  -Iparser_test@exe -I. -I.. -I../include -I../vendor/cutest -fdiagnostics-color=always -pipe -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wextra -Wpedantic -std=c11 -O3 -MD -MQ 'parser_test@exe/vendor_cutest_CuTest.c.o' -MF 'parser_test@exe/vendor_cutest_CuTest.c.o.d' -o 'parser_test@exe/vendor_cutest_CuTest.c.o' -c ../vendor/cutest/CuTest.c",
-    "file": "../vendor/cutest/CuTest.c"
+    "directory": "/home/oliver/Oliver/Studium/Master Informatik/2.Semester/Compilerbau/PS/compiler/builddir",
+    "command": "cc -Iparser_test@exe -I. -I.. -I../include -I../vendor/cutest -fdiagnostics-color=always -pipe -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wextra -Wpedantic -std=c11 -O3 -MD -MQ 'parser_test@exe/vendor_cutest_CuTest.c.o' -MF 'parser_test@exe/vendor_cutest_CuTest.c.o.d' -o 'parser_test@exe/vendor_cutest_CuTest.c.o' -c ../vendor/cutest/CuTest.c",
+    "file": "../vendor/cutest/CuTest.c",
+    "output": "parser_test@exe/vendor_cutest_CuTest.c.o"
   }
 ]

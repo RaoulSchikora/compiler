@@ -23,10 +23,8 @@
 	yylloc->last_column += yyleng;
 %}
 
-int_literal     [0-9]+
-float_literal   [0-9]+\.[0-9]+
-bool_literal    "true"|"false"
-string_literal  /"[^"]*"/
+int_literal   [0-9]+
+float_literal [0-9]+\.[0-9]+
 
 %%
 
@@ -34,47 +32,13 @@ string_literal  /"[^"]*"/
 
 {float_literal}   { yylval->TK_FLOAT_LITERAL = atof(yytext); return TK_FLOAT_LITERAL; }
 
-
-
-
-"bool"            { return TK_TYPE_BOOL; }
-"int"             { return TK_TYPE_INT; }
-"float"           { return TK_TYPE_STRING; }
-"void"            { return TK_TYPE_VOID; }
-
-"true"            { return TK_BOOL_TRUE; }
-"false"           { return TK_BOOK_FALSE; }
-
-"if"              { return TK_IF; }
-"else"            { return TK_ELSE; }
-"while"           { return TK_WHILE;}
-"return"          { return TK_RETURN; }
-
-
 "+"               { return TK_PLUS; }
 "-"               { return TK_MINUS; }
 "*"               { return TK_ASTER; }
 "/"               { return TK_SLASH; }
 
-"<"               { return TK_LESS_THAN; }
-">"               { return TK_GREATER_THAN; }
-"<="              { return TK_LESS_EQUAL; }
-">="              { return TK_GREATER_EQUAL; }
-
-"!"               { return TK_LOGICAL_NEGATION; }
-"&&"              { return TK_LOGICAL_AND; }
-"||"              { return TK_LOGICAL_OR; }
-"!="              { return TK_NOT_EQUAL; }
-"=="              { return TK_EQUAL; }
-
 "("               { return TK_LPARENTH; }
 ")"               { return TK_RPARENTH; }
-"{"               { return TK_L_CURL_PARENTH; }
-"}"               { return TK_R_CURL_PARENTH; }
-"["               { return TK_L_SQUARE_PARENTH; }
-"]"               { return TK_R_SQUARE_PARENTH; }
-
-";"               { return TK_SEMICOLON; }
 
 [ \t\r\n]+        { /* ignore */ }
 
