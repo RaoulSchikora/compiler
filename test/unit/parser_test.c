@@ -3,6 +3,8 @@
 #include "mcc/ast.h"
 #include "mcc/parser.h"
 
+#include <stdio.h>
+
 // Threshold for floating point comparisions.
 static const double EPS = 1e-3;
 
@@ -147,12 +149,36 @@ void SourceLocation_SingleLineColumn(CuTest *tc)
 	mcc_ast_delete(expr);
 }
 
+
+void UnaryOp_1(CuTest *tc)
+{
+    const char input[] = "-2";
+    struct mcc_parser_result result = mcc_parse_string(input);
+
+    CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
+
+    struct mcc_ast_expression *expr = result.expression;
+
+    CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_UNARY_OP, expr->type);
+    CuAssertIntEquals(tc, MCC_AST_UNARY_OP_MINUS, expr->op);
+
+    //root -> child
+    CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_LITERAL, expr->child->type);
+
+    //root -> child -> literal
+    CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_INT, expr->child->literal->type);
+    CuAssertIntEquals(tc, 2, expr->child->literal->i_value);
+
+    mcc_ast_delete(expr);
+}
+
 #define TESTS \
 	TEST(BinaryOp_1) \
 	TEST(BinaryOp_2) \
 	TEST(NestedExpression_1) \
 	TEST(MissingClosingParenthesis_1) \
-	TEST(SourceLocation_SingleLineColumn)
+	TEST(SourceLocation_SingleLineColumn) \
+	TEST(UnaryOp_1)
 
 #include "main_stub.inc"
 #undef TESTS

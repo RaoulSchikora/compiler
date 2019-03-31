@@ -48,6 +48,11 @@ void mcc_ast_visit_expression(struct mcc_ast_expression *expression, struct mcc_
 		mcc_ast_visit(expression->expression, visitor);
 		visit_if_post_order(expression, visitor->expression_parenth, visitor);
 		break;
+
+	//case MCC_AST_EXPRESSION_UNARY_OP:
+	//TODO
+
+
 	}
 
 	visit_if_post_order(expression, visitor->expression, visitor);

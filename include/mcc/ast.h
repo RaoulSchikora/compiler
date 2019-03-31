@@ -39,12 +39,18 @@ enum mcc_ast_binary_op {
 	MCC_AST_BINARY_OP_DIV,
 };
 
+enum mcc_ast_unary_op {
+    MCC_AST_UNARY_OP_MINUS,
+    MCC_AST_UNARY_OP_EXKL,
+};
+
 // ---------------------------------------------------------------- Expressions
 
 enum mcc_ast_expression_type {
 	MCC_AST_EXPRESSION_TYPE_LITERAL,
 	MCC_AST_EXPRESSION_TYPE_BINARY_OP,
 	MCC_AST_EXPRESSION_TYPE_PARENTH,
+    MCC_AST_EXPRESSION_TYPE_UNARY_OP,
 };
 
 struct mcc_ast_expression {
@@ -64,6 +70,12 @@ struct mcc_ast_expression {
 
 		// MCC_AST_EXPRESSION_TYPE_PARENTH
 		struct mcc_ast_expression *expression;
+
+		// MCC_AST_EXPRESSION_TYPE_UNARY_OP
+		struct {
+		    enum mcc_ast_unary_op u_op;
+		    struct mcc_ast_expression *child;
+		};
 	};
 };
 
@@ -74,6 +86,9 @@ struct mcc_ast_expression *mcc_ast_new_expression_binary_op(enum mcc_ast_binary_
                                                             struct mcc_ast_expression *rhs);
 
 struct mcc_ast_expression *mcc_ast_new_expression_parenth(struct mcc_ast_expression *expression);
+
+struct mcc_ast_expression *mcc_ast_new_expression_unary_op(enum mcc_ast_unary_op u_op,
+                                                            struct mcc_ast_expression *expression);
 
 void mcc_ast_delete_expression(struct mcc_ast_expression *expression);
 

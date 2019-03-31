@@ -52,6 +52,22 @@ struct mcc_ast_expression *mcc_ast_new_expression_parenth(struct mcc_ast_express
 	return expr;
 }
 
+struct mcc_ast_expression *mcc_ast_new_expression_unary_op(enum mcc_ast_unary_op u_op,
+													struct mcc_ast_expression *child)
+{
+	assert(child);
+
+	struct mcc_ast_expression *expr = malloc(sizeof(*expr));
+	if(!expr) {
+		return NULL;
+	}
+
+	expr->type = MCC_AST_EXPRESSION_TYPE_UNARY_OP;
+	expr->u_op = u_op;
+	expr->child = child;
+	return expr;
+}
+
 void mcc_ast_delete_expression(struct mcc_ast_expression *expression)
 {
 	assert(expression);
