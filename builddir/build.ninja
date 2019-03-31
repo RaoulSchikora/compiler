@@ -31,7 +31,7 @@ rule c_LINKER
 
 
 rule SHSYM
- command = /home/oliver/.local/bin/meson --internal symbolextractor $in $out $CROSS
+ command = /home/raoul/.local/bin/meson --internal symbolextractor $in $out $CROSS
  restat = 1
  description = Generating symbol file $out.
 
@@ -50,7 +50,7 @@ rule CUSTOM_COMMAND_DEP
  restat = 1
 
 rule REGENERATE_BUILD
- command = /home/oliver/.local/bin/meson --internal regenerate '/home/oliver/Oliver/Studium/Master$ Informatik/2.Semester/Compilerbau/PS/compiler' '/home/oliver/Oliver/Studium/Master$ Informatik/2.Semester/Compilerbau/PS/compiler/builddir' --backend ninja
+ command = /home/raoul/.local/bin/meson --internal regenerate /home/raoul/Documents/Uni/Informatik_Msc/CompilerConstruction/compiler /home/raoul/Documents/Uni/Informatik_Msc/CompilerConstruction/compiler/builddir --backend ninja
  description = Regenerating build files.
  generator = 1
 
@@ -98,14 +98,14 @@ build mcc@exe/app_mcc.c.o: c_COMPILER ../app/mcc.c || mcc@sha/scanner.h mcc@sha/
  ARGS = -Imcc@exe -I. -I.. -I../include -fdiagnostics-color=always -pipe -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wextra -Wpedantic -std=c11 -O3
 
 build mcc: c_LINKER mcc@exe/app_mcc.c.o | mcc@sha/libmcc.so.symbols
- LINK_ARGS = -Wl,--no-undefined -Wl,--as-needed -Wl,-O1 -Wl,--start-group libmcc.so -Wl,--end-group '-Wl,-rpath,$$ORIGIN/' '-Wl,-rpath-link,/home/oliver/Oliver/Studium/Master$ Informatik/2.Semester/Compilerbau/PS/compiler/builddir/'
+ LINK_ARGS = -Wl,--no-undefined -Wl,--as-needed -Wl,-O1 -Wl,--start-group libmcc.so -Wl,--end-group '-Wl,-rpath,$$ORIGIN/' -Wl,-rpath-link,/home/raoul/Documents/Uni/Informatik_Msc/CompilerConstruction/compiler/builddir/
 
 build mc_ast_to_dot@exe/app_mc_ast_to_dot.c.o: c_COMPILER ../app/mc_ast_to_dot.c || mcc@sha/scanner.h mcc@sha/parser.tab.h
  DEPFILE = mc_ast_to_dot@exe/app_mc_ast_to_dot.c.o.d
  ARGS = -Imc_ast_to_dot@exe -I. -I.. -I../include -fdiagnostics-color=always -pipe -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wextra -Wpedantic -std=c11 -O3
 
 build mc_ast_to_dot: c_LINKER mc_ast_to_dot@exe/app_mc_ast_to_dot.c.o | mcc@sha/libmcc.so.symbols
- LINK_ARGS = -Wl,--no-undefined -Wl,--as-needed -Wl,-O1 -Wl,--start-group libmcc.so -Wl,--end-group '-Wl,-rpath,$$ORIGIN/' '-Wl,-rpath-link,/home/oliver/Oliver/Studium/Master$ Informatik/2.Semester/Compilerbau/PS/compiler/builddir/'
+ LINK_ARGS = -Wl,--no-undefined -Wl,--as-needed -Wl,-O1 -Wl,--start-group libmcc.so -Wl,--end-group '-Wl,-rpath,$$ORIGIN/' -Wl,-rpath-link,/home/raoul/Documents/Uni/Informatik_Msc/CompilerConstruction/compiler/builddir/
 
 build parser_test@exe/test_unit_parser_test.c.o: c_COMPILER ../test/unit/parser_test.c || mcc@sha/scanner.h mcc@sha/parser.tab.h
  DEPFILE = parser_test@exe/test_unit_parser_test.c.o.d
@@ -116,19 +116,19 @@ build parser_test@exe/vendor_cutest_CuTest.c.o: c_COMPILER ../vendor/cutest/CuTe
  ARGS = -Iparser_test@exe -I. -I.. -I../include -I../vendor/cutest -fdiagnostics-color=always -pipe -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wextra -Wpedantic -std=c11 -O3
 
 build parser_test: c_LINKER parser_test@exe/test_unit_parser_test.c.o parser_test@exe/vendor_cutest_CuTest.c.o | mcc@sha/libmcc.so.symbols
- LINK_ARGS = -Wl,--no-undefined -Wl,--as-needed -Wl,-O1 -Wl,--start-group libmcc.so -Wl,--end-group '-Wl,-rpath,$$ORIGIN/' '-Wl,-rpath-link,/home/oliver/Oliver/Studium/Master$ Informatik/2.Semester/Compilerbau/PS/compiler/builddir/'
+ LINK_ARGS = -Wl,--no-undefined -Wl,--as-needed -Wl,-O1 -Wl,--start-group libmcc.so -Wl,--end-group '-Wl,-rpath,$$ORIGIN/' -Wl,-rpath-link,/home/raoul/Documents/Uni/Informatik_Msc/CompilerConstruction/compiler/builddir/
 
 # Test rules
 
 build meson-test: CUSTOM_COMMAND all PHONY
- COMMAND = /home/oliver/.local/bin/meson test --no-rebuild --print-errorlogs
+ COMMAND = /home/raoul/.local/bin/meson test --no-rebuild --print-errorlogs
  DESC = Running$ all$ tests.
  pool = console
 
 build test: phony meson-test
 
 build meson-benchmark: CUSTOM_COMMAND all PHONY
- COMMAND = /home/oliver/.local/bin/meson test --benchmark --logbase benchmarklog --num-processes=1 --no-rebuild
+ COMMAND = /home/raoul/.local/bin/meson test --benchmark --logbase benchmarklog --num-processes=1 --no-rebuild
  DESC = Running$ benchmark$ suite.
  pool = console
 
@@ -138,14 +138,14 @@ build benchmark: phony meson-benchmark
 
 build meson-install: CUSTOM_COMMAND PHONY | all
  DESC = Installing$ files.
- COMMAND = /home/oliver/.local/bin/meson install --no-rebuild
+ COMMAND = /home/raoul/.local/bin/meson install --no-rebuild
  pool = console
 
 build install: phony meson-install
 
 build meson-dist: CUSTOM_COMMAND PHONY
  DESC = Creating$ source$ packages
- COMMAND = /home/oliver/.local/bin/meson --internal dist '/home/oliver/Oliver/Studium/Master$ Informatik/2.Semester/Compilerbau/PS/compiler' '/home/oliver/Oliver/Studium/Master$ Informatik/2.Semester/Compilerbau/PS/compiler/builddir' /home/oliver/.local/bin/meson
+ COMMAND = /home/raoul/.local/bin/meson --internal dist /home/raoul/Documents/Uni/Informatik_Msc/CompilerConstruction/compiler /home/raoul/Documents/Uni/Informatik_Msc/CompilerConstruction/compiler/builddir /home/raoul/.local/bin/meson
  pool = console
 
 build dist: phony meson-dist
@@ -153,13 +153,13 @@ build dist: phony meson-dist
 # Suffix
 
 build meson-scan-build: CUSTOM_COMMAND PHONY
- COMMAND = /home/oliver/.local/bin/meson --internal scanbuild '/home/oliver/Oliver/Studium/Master$ Informatik/2.Semester/Compilerbau/PS/compiler' '/home/oliver/Oliver/Studium/Master$ Informatik/2.Semester/Compilerbau/PS/compiler/builddir' /home/oliver/.local/bin/meson
+ COMMAND = /home/raoul/.local/bin/meson --internal scanbuild /home/raoul/Documents/Uni/Informatik_Msc/CompilerConstruction/compiler /home/raoul/Documents/Uni/Informatik_Msc/CompilerConstruction/compiler/builddir /home/raoul/.local/bin/meson
  pool = console
 
 build scan-build: phony meson-scan-build
 
 build meson-uninstall: CUSTOM_COMMAND PHONY
- COMMAND = /home/oliver/.local/bin/meson --internal uninstall
+ COMMAND = /home/raoul/.local/bin/meson --internal uninstall
  pool = console
 
 build uninstall: phony meson-uninstall

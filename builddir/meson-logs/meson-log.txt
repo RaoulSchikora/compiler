@@ -1,23 +1,23 @@
-Build started at 2019-03-29T18:50:01.349895
+Build started at 2019-03-31T16:28:07.922887
 Main binary: /usr/bin/python3
 Python system: Linux
 The Meson build system
 Version: 0.50.0
-Source dir: /home/oliver/Oliver/Studium/Master Informatik/2.Semester/Compilerbau/PS/compiler
-Build dir: /home/oliver/Oliver/Studium/Master Informatik/2.Semester/Compilerbau/PS/compiler/builddir
+Source dir: /home/raoul/Documents/Uni/Informatik_Msc/CompilerConstruction/compiler
+Build dir: /home/raoul/Documents/Uni/Informatik_Msc/CompilerConstruction/compiler/builddir
 Build type: native build
 Project name: mcc
 Project version: undefined
 Sanity testing C compiler: cc
 Is cross compiler: False.
-Sanity check compiler command line: cc /home/oliver/Oliver/Studium/Master Informatik/2.Semester/Compilerbau/PS/compiler/builddir/meson-private/sanitycheckc.c -o /home/oliver/Oliver/Studium/Master Informatik/2.Semester/Compilerbau/PS/compiler/builddir/meson-private/sanitycheckc.exe
+Sanity check compiler command line: cc /home/raoul/Documents/Uni/Informatik_Msc/CompilerConstruction/compiler/builddir/meson-private/sanitycheckc.c -o /home/raoul/Documents/Uni/Informatik_Msc/CompilerConstruction/compiler/builddir/meson-private/sanitycheckc.exe
 Sanity check compile stdout:
 
 -----
 Sanity check compile stderr:
 
 -----
-Running test binary command: /home/oliver/Oliver/Studium/Master Informatik/2.Semester/Compilerbau/PS/compiler/builddir/meson-private/sanitycheckc.exe
+Running test binary command: /home/raoul/Documents/Uni/Informatik_Msc/CompilerConstruction/compiler/builddir/meson-private/sanitycheckc.exe
 Native C compiler: cc (gcc 7.3.0 "cc (Ubuntu 7.3.0-27ubuntu1~18.04) 7.3.0")
 Build machine cpu family: x86_64
 Build machine cpu: x86_64
@@ -25,10 +25,10 @@ Program flex found: YES (/usr/bin/flex)
 Program bison found: YES (/usr/bin/bison)
 Adding test "parser_test"
 Build targets in project: 4
-Found ninja-1.9.0 at /usr/local/bin/ninja
+Found ninja-1.8.2 at /usr/bin/ninja
 Running compile:
-Working directory:  /tmp/tmpek92sd_n
-Command line:  cc /tmp/tmpek92sd_n/testfile.c -pipe -D_FILE_OFFSET_BITS=64 -c -o /tmp/tmpek92sd_n/output.obj -O0 --print-search-dirs 
+Working directory:  /tmp/tmpp7mbvq3l
+Command line:  cc /tmp/tmpp7mbvq3l/testfile.c -pipe -D_FILE_OFFSET_BITS=64 -c -o /tmp/tmpp7mbvq3l/output.obj -O0 --print-search-dirs 
 
 Code:
  

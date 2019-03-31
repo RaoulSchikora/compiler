@@ -149,7 +149,7 @@ void SourceLocation_SingleLineColumn(CuTest *tc)
 
 #define TESTS \
 	TEST(BinaryOp_1) \
-	TEST BinaryOp_2) \
+	TEST(BinaryOp_2) \
 	TEST(NestedExpression_1) \
 	TEST(MissingClosingParenthesis_1) \
 	TEST(SourceLocation_SingleLineColumn)
