@@ -85,6 +85,11 @@ void mcc_ast_delete_expression(struct mcc_ast_expression *expression)
 	case MCC_AST_EXPRESSION_TYPE_PARENTH:
 		mcc_ast_delete_expression(expression->expression);
 		break;
+
+    case MCC_AST_EXPRESSION_TYPE_UNARY_OP:
+        mcc_ast_delete_expression(expression->child);
+        break;
+
 	}
 
 	free(expression);
