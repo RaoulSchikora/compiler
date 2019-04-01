@@ -44,9 +44,20 @@ float_literal [0-9]+\.[0-9]+
 "*"               { return TK_ASTER; }
 "/"               { return TK_SLASH; }
 "!"               { return TK_EXKLA; }
+
+"<"               { return TK_LT_SIGN; }
+">"               { return TK_GT_SIGN; }
+"<="              { return TK_LT_EQ_SIGN; }
+">="              { return TK_GT_EQ_SIGN; }
+
+"&&"              { return TK_ANDAND; }
+"||"              { return TK_OROR; }
+"=="              { return TK_EQEQ; }
+"!="              { return TK_EXKLA_EQ; }
+
+
 "["               { return TK_SQUARE_OPEN; }
 "]"               { return TK_SQUARE_CLOSE; }
-
 
 "("               { return TK_LPARENTH; }
 ")"               { return TK_RPARENTH; }
