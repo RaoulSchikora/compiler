@@ -148,11 +148,8 @@ static void print_dot_literal_bool(struct mcc_ast_literal *literal, void *data)
 	assert(literal);
 	assert(data);
 
-	char label[LABEL_SIZE] = {0};
-	snprintf(label, sizeof(label), literal->bool_value ? "true" : "false");
-
-	FILE *out = data;
-	print_dot_node(out, literal, label);
+    FILE *out = data;
+    print_dot_node(out, literal, literal->bool_value ? "true" : "false");
 }
 
 /*// Print identifier nodes: Code is experimental
