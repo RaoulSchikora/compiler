@@ -15,7 +15,23 @@ const char *mcc_ast_print_binary_op(enum mcc_ast_binary_op op)
 		return "*";
 	case MCC_AST_BINARY_OP_DIV:
 		return "/";
-	}
+    case MCC_AST_BINARY_OP_SMALLER:
+        return "<";
+    case MCC_AST_BINARY_OP_GREATER:
+        return ">";
+    case MCC_AST_BINARY_OP_SMALLEREQ:
+        return "<=";
+    case MCC_AST_BINARY_OP_GREATEREQ:
+        return ">=";
+    case MCC_AST_BINARY_OP_CONJ:
+        return "&&";
+    case MCC_AST_BINARY_OP_DISJ:
+        return "||";
+    case MCC_AST_BINARY_OP_EQUAL:
+        return "==";
+    case MCC_AST_BINARY_OP_NOTEQUAL:
+        return "!=";
+}
 
 	return "unknown op";
 }
@@ -148,11 +164,8 @@ static void print_dot_literal_bool(struct mcc_ast_literal *literal, void *data)
 	assert(literal);
 	assert(data);
 
-	char label[LABEL_SIZE] = {0};
-	snprintf(label, sizeof(label), literal->bool_value ? "true" : "false");
-
-	FILE *out = data;
-	print_dot_node(out, literal, label);
+    FILE *out = data;
+    print_dot_node(out, literal, literal->bool_value ? "true" : "false");
 }
 
 // Print identifier nodes: Code is experimental

@@ -68,6 +68,94 @@ void BinaryOp_2(CuTest *tc)
 	mcc_ast_delete(expr);
 }
 
+void BinaryOp_3(CuTest *tc)
+{
+    const char input[] = "2 < 3";
+    struct mcc_parser_result result = mcc_parse_string(input);
+
+    CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
+
+    struct mcc_ast_expression *expr = result.expression;
+
+    // root
+    CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_BINARY_OP, expr->type);
+    CuAssertIntEquals(tc, MCC_AST_BINARY_OP_SMALLER, expr->op);
+
+    // root -> lhs
+    CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_LITERAL, expr->lhs->type);
+
+    // root -> lhs -> literal
+    CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_INT, expr->lhs->literal->type);
+    CuAssertIntEquals(tc, 2, expr->lhs->literal->i_value);
+
+    // root -> rhs
+    CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_LITERAL, expr->rhs->type);
+
+    // root -> rhs -> literal
+    CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_INT, expr->lhs->literal->type);
+    CuAssertIntEquals(tc, 3, expr->rhs->literal->i_value);
+
+    mcc_ast_delete(expr);
+}
+
+void BinaryOp_4(CuTest *tc)
+{
+    const char input[] = "((true || false) && (true != false)) == true";
+    struct mcc_parser_result result = mcc_parse_string(input);
+
+    CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
+
+    struct mcc_ast_expression *expr = result.expression;
+
+    // root
+    CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_BINARY_OP, expr->type);
+    CuAssertIntEquals(tc, MCC_AST_BINARY_OP_EQUAL, expr->op);
+
+    // root -> lhs
+    CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_PARENTH, expr->lhs->type);
+
+    // root -> rhs
+    CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_BOOL, expr->rhs->literal->type);
+    CuAssertTrue(tc, expr->rhs->literal->bool_value);
+
+    struct mcc_ast_expression *subexpr1 = expr->lhs->expression;
+
+    // root -> lhs -> subexpr1
+    CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_BINARY_OP, subexpr1->type);
+    CuAssertIntEquals(tc, MCC_AST_BINARY_OP_CONJ, subexpr1->op);
+
+    // root -> lhs -> subexpr1 -> lhs
+    CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_PARENTH, subexpr1->lhs->type);
+
+    struct mcc_ast_expression *subexpr2 = subexpr1->lhs->expression;
+
+    // subexpr2
+    CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_BINARY_OP, subexpr2->type);
+    CuAssertIntEquals(tc, MCC_AST_BINARY_OP_DISJ, subexpr2->op);
+
+    struct mcc_ast_expression *subexpr3 = subexpr1->rhs->expression;
+
+    // subexpr3
+    CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_BINARY_OP, subexpr3->type);
+    CuAssertIntEquals(tc, MCC_AST_BINARY_OP_NOTEQUAL, subexpr3->op);
+
+    // root -> lhs -> subexpr1 -> lhs -> subexpr2 -> lhs -> literal
+    CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_BOOL, subexpr2->lhs->literal->type);
+    CuAssertTrue(tc, subexpr2->lhs->literal->bool_value);
+    // root -> lhs -> subexpr1 -> lhs -> subexpr2 -> rhs -> literal
+    CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_BOOL, subexpr2->rhs->literal->type);
+    CuAssertTrue(tc, !subexpr2->rhs->literal->bool_value);
+
+    // root -> lhs -> subexpr1 -> rhs -> subexpr3 -> lhs -> literal
+    CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_BOOL, subexpr3->lhs->literal->type);
+    CuAssertTrue(tc, subexpr3->lhs->literal->bool_value);
+    // root -> lhs -> subexpr1 -> rhs -> subexpr3 -> rhs -> literal
+    CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_BOOL, subexpr3->rhs->literal->type);
+    CuAssertTrue(tc, !subexpr3->rhs->literal->bool_value);
+
+    mcc_ast_delete(expr);
+}
+
 void Variable(CuTest *tc)
 {
 	const char input[] = "identifier";
@@ -119,6 +207,7 @@ void Array_Element(CuTest *tc){
 	CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_FLOAT, expr->index->rhs->literal->type);
 	CuAssertDblEquals(tc, 5.2, expr->index->rhs->literal->f_value, EPS);
 
+    mcc_ast_delete(expr);
 }
 
 void NestedExpression_1(CuTest *tc)
@@ -250,6 +339,8 @@ void UnaryOp_2(CuTest *tc)
 #define TESTS \
 	TEST(BinaryOp_1) \
 	TEST(BinaryOp_2) \
+	TEST(BinaryOp_3) \
+	TEST(BinaryOp_4) \
 	TEST(NestedExpression_1) \
 	TEST(MissingClosingParenthesis_1) \
 	TEST(SourceLocation_SingleLineColumn) \
