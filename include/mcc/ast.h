@@ -13,10 +13,7 @@
 #ifndef MCC_AST_H
 #define MCC_AST_H
 
-// Forward Declarations
-struct mcc_ast_expression;
-struct mcc_ast_literal;
-
+#include <stdbool.h>
 // ------------------------------------------------------------------- AST Node
 
 struct mcc_ast_source_location {
@@ -41,7 +38,7 @@ enum mcc_ast_binary_op {
 
 enum mcc_ast_unary_op {
     MCC_AST_UNARY_OP_MINUS,
-    MCC_AST_UNARY_OP_EXKL,
+    MCC_AST_UNARY_OP_EXKLA,
 };
 
 // ---------------------------------------------------------------- Expressions
@@ -97,6 +94,7 @@ void mcc_ast_delete_expression(struct mcc_ast_expression *expression);
 enum mcc_ast_literal_type {
 	MCC_AST_LITERAL_TYPE_INT,
 	MCC_AST_LITERAL_TYPE_FLOAT,
+	MCC_AST_LITERAL_TYPE_BOOL,
 };
 
 struct mcc_ast_literal {
@@ -109,12 +107,17 @@ struct mcc_ast_literal {
 
 		// MCC_AST_LITERAL_TYPE_FLOAT
 		double f_value;
+
+		// MCC_AST_LITERAL_TYPE_BOOL
+		bool bool_value;
 	};
 };
 
 struct mcc_ast_literal *mcc_ast_new_literal_int(long value);
 
 struct mcc_ast_literal *mcc_ast_new_literal_float(double value);
+
+struct mcc_ast_literal *mcc_ast_new_literal_bool(bool value);
 
 void mcc_ast_delete_literal(struct mcc_ast_literal *literal);
 

@@ -9,6 +9,7 @@
 #define MCC_PARSER_H
 
 #include <stdio.h>
+#include <stdbool.h>
 
 #include "mcc/ast.h"
 
