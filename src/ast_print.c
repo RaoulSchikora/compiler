@@ -25,7 +25,7 @@ const char *mcc_ast_print_unary_op(enum mcc_ast_unary_op u_op){
 	switch (u_op){
 	case MCC_AST_UNARY_OP_MINUS:
 		return "- ( )";
-	case MCC_AST_UNARY_OP_EXKL:
+	case MCC_AST_UNARY_OP_EXKLA:
 		return "!";
 	}
 
@@ -143,6 +143,18 @@ static void print_dot_literal_float(struct mcc_ast_literal *literal, void *data)
 	print_dot_node(out, literal, label);
 }
 
+static void print_dot_literal_bool(struct mcc_ast_literal *literal, void *data)
+{
+	assert(literal);
+	assert(data);
+
+	char label[LABEL_SIZE] = {0};
+	snprintf(label, sizeof(label), "%s", literal->bool_value);
+
+	FILE *out = data;
+	print_dot_node(out, literal, label);
+}
+
 /*// Print identifier nodes: Code is experimental
 
 static void print_dot_expression_identifier(struct mcc_ast_expression *expression, void *data){
@@ -186,6 +198,7 @@ static struct mcc_ast_visitor print_dot_visitor(FILE *out)
 
 	    .literal_int = print_dot_literal_int,
 	    .literal_float = print_dot_literal_float,
+	    .literal_bool = print_dot_literal_bool;
 	};
 }
 

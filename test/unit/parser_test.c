@@ -225,13 +225,36 @@ void UnaryOp_1(CuTest *tc)
     mcc_ast_delete(expr);
 }
 
+void UnaryOp_2(CuTest *tc)
+{
+    const char input[] = "!false";
+    struct mcc_parser_result result = mcc_parse_string(input);
+
+    CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
+
+    struct mcc_ast_expression *expr = result.expression;
+
+    CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_UNARY_OP, expr->type);
+    CuAssertIntEquals(tc, MCC_AST_UNARY_OP_EXKLA, expr->op);
+
+    //root -> child
+    CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_LITERAL, expr->child->type);
+
+    //root -> child -> literal
+    CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_BOOL, expr->child->literal->type);
+    CuAssertTrue(tc, !expr->child->literal->bool_value);
+
+    mcc_ast_delete(expr);
+}
+
 #define TESTS \
 	TEST(BinaryOp_1) \
 	TEST(BinaryOp_2) \
 	TEST(NestedExpression_1) \
 	TEST(MissingClosingParenthesis_1) \
 	TEST(SourceLocation_SingleLineColumn) \
-	TEST(UnaryOp_1)
+	TEST(UnaryOp_1) \
+	TEST(UnaryOp_2)
 
 #include "main_stub.inc"
 #undef TESTS

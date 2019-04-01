@@ -11,6 +11,7 @@
 
 %{
 #include "parser.tab.h"
+#include <stdbool.h>
 
 #define YYSTYPE MCC_PARSER_STYPE
 #define YYLTYPE MCC_PARSER_LTYPE
@@ -33,12 +34,16 @@ float_literal [0-9]+\.[0-9]+
 
 {float_literal}   { yylval->TK_FLOAT_LITERAL = atof(yytext); return TK_FLOAT_LITERAL; }
 
+"true"    { yylval->TK_BOOL_LITERAL = true; return TK_BOOL_LITERAL; }
+"false"   { yylval->TK_BOOL_LITERAL = false; return TK_BOOL_LITERAL; }
+
 {identifier}      { yylval->TK_IDENTIFIER = yytext; return TK_IDENTIFIER; }
 
 "+"               { return TK_PLUS; }
 "-"               { return TK_MINUS; }
 "*"               { return TK_ASTER; }
 "/"               { return TK_SLASH; }
+"!"               { return TK_EXKLA; }
 "["               { return TK_SQUARE_OPEN; }
 "]"               { return TK_SQUARE_CLOSE; }
 
