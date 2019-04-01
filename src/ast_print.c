@@ -149,7 +149,7 @@ static void print_dot_literal_bool(struct mcc_ast_literal *literal, void *data)
 	assert(data);
 
 	char label[LABEL_SIZE] = {0};
-	snprintf(label, sizeof(label), "%s", literal->bool_value);
+	snprintf(label, sizeof(label), literal->bool_value ? "true" : "false");
 
 	FILE *out = data;
 	print_dot_node(out, literal, label);
@@ -198,7 +198,7 @@ static struct mcc_ast_visitor print_dot_visitor(FILE *out)
 
 	    .literal_int = print_dot_literal_int,
 	    .literal_float = print_dot_literal_float,
-	    .literal_bool = print_dot_literal_bool;
+	    .literal_bool = print_dot_literal_bool,
 	};
 }
 
