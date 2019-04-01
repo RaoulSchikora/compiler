@@ -168,17 +168,17 @@ static void print_dot_literal_bool(struct mcc_ast_literal *literal, void *data)
     print_dot_node(out, literal, literal->bool_value ? "true" : "false");
 }
 
-/*// Print identifier nodes: Code is experimental
-
+// Print identifier nodes: Code is experimental
+/*
 static void print_dot_expression_identifier(struct mcc_ast_expression *expression, void *data){
 	assert(expression);
 	assert(data);
 
-	char label[LABEL_SIZE] = "identifier";
-	snprintf(label, sizeof(label), "%s", expression->indentifier);
+	char label[LABEL_SIZE] = {0};
+	snprintf(label, sizeof(label), "%s", expression->identifier);
 
 	FILE *out = data;
-	print_dot_node(out, literal, label);
+	print_dot_node(out, expression->identifier, label);
 }
 
 static void print_dot_expression_array_element(struct mcc_ast_expression *expression, void *data)
@@ -189,8 +189,8 @@ static void print_dot_expression_array_element(struct mcc_ast_expression *expres
 	FILE *out = data;
 	print_dot_node(out, expression, "[ ]");
 	print_dot_edge(out, expression, expression->expression, "expression");
-}*/
-
+}
+*/
 
 
 // Setup an AST Visitor for printing.
