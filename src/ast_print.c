@@ -208,7 +208,6 @@ static struct mcc_ast_visitor print_dot_visitor(FILE *out)
 	    .expression_binary_op = print_dot_expression_binary_op,
 	    .expression_parenth = print_dot_expression_parenth,
 	    .expression_unary_op = print_dot_expression_unary_op,
-	    .expression_identifier = print_dot_expression_identifier,
 
 	    .literal_int = print_dot_literal_int,
 	    .literal_float = print_dot_literal_float,
