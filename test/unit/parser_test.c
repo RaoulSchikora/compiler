@@ -158,7 +158,7 @@ void BinaryOp_4(CuTest *tc)
 
 void Variable(CuTest *tc)
 {
-	const char input[] = "identifier";
+	const char input[] = "teststring";
 	struct mcc_parser_result result = mcc_parse_string(input);
 
 	CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
@@ -168,8 +168,12 @@ void Variable(CuTest *tc)
 	// root
 	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_VARIABLE, expr->type);
 
+    printf("%%%%%%%%%%%%%%%%%%%%%%%%\n");
+	printf("%s",expr->identifier);
+	printf("%%%%%%%%%%%%%%%%%%%%%%%%\n");
+
 	// root -> identifier
-	CuAssertStrEquals(tc, "identifier", expr->identifier);
+	CuAssertStrEquals(tc, "teststring", expr->identifier);
 
 	mcc_ast_delete(expr);
 }
