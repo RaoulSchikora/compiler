@@ -302,7 +302,7 @@ void UnaryOp_1(CuTest *tc)
     struct mcc_ast_expression *expr = result.expression;
 
     CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_UNARY_OP, expr->type);
-    CuAssertIntEquals(tc, MCC_AST_UNARY_OP_MINUS, expr->op);
+    CuAssertIntEquals(tc, MCC_AST_UNARY_OP_NEGATIV, expr->op);
 
     //root -> child
     CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_LITERAL, expr->child->type);
@@ -324,7 +324,7 @@ void UnaryOp_2(CuTest *tc)
     struct mcc_ast_expression *expr = result.expression;
 
     CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_UNARY_OP, expr->type);
-    CuAssertIntEquals(tc, MCC_AST_UNARY_OP_EXKLA, expr->op);
+    CuAssertIntEquals(tc, MCC_AST_UNARY_OP_NOT, expr->op);
 
     //root -> child
     CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_LITERAL, expr->child->type);

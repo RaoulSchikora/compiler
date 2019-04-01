@@ -45,8 +45,8 @@ enum mcc_ast_binary_op {
 };
 
 enum mcc_ast_unary_op {
-    MCC_AST_UNARY_OP_MINUS,
-    MCC_AST_UNARY_OP_EXKLA,
+    MCC_AST_UNARY_OP_NEGATIV,
+    MCC_AST_UNARY_OP_NOT,
 };
 
 // ---------------------------------------------------------------- Expressions

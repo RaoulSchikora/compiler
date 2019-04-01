@@ -39,9 +39,9 @@ const char *mcc_ast_print_binary_op(enum mcc_ast_binary_op op)
 const char *mcc_ast_print_unary_op(enum mcc_ast_unary_op u_op){
 
 	switch (u_op){
-	case MCC_AST_UNARY_OP_MINUS:
+	case MCC_AST_UNARY_OP_NEGATIV:
 		return "- ( )";
-	case MCC_AST_UNARY_OP_EXKLA:
+	case MCC_AST_UNARY_OP_NOT:
 		return "!";
 	}
 
