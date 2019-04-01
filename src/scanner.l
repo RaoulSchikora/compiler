@@ -23,6 +23,7 @@
 	yylloc->last_column += yyleng;
 %}
 
+identifier    [a-zA-Z_][a-zA-Z0-9_]*
 int_literal   [0-9]+
 float_literal [0-9]+\.[0-9]+
 
@@ -32,10 +33,15 @@ float_literal [0-9]+\.[0-9]+
 
 {float_literal}   { yylval->TK_FLOAT_LITERAL = atof(yytext); return TK_FLOAT_LITERAL; }
 
+{identifier}      { yylval->TK_IDENTIFIER = yytext; return TK_IDENTIFIER; }
+
 "+"               { return TK_PLUS; }
 "-"               { return TK_MINUS; }
 "*"               { return TK_ASTER; }
 "/"               { return TK_SLASH; }
+"["               { return TK_SQUARE_OPEN; }
+"]"               { return TK_SQUARE_CLOSE; }
+
 
 "("               { return TK_LPARENTH; }
 ")"               { return TK_RPARENTH; }

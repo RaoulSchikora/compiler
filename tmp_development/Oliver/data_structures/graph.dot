@@ -23,7 +23,11 @@ digraph {
 	"Union 2"[shape="box",style=rounded];
 	"long i_value"[shape="box",style=rounded];
 	"double f_value"[shape="box",style=rounded];
-	
+	"enum mcc_ast_unary_op"[shape="box",style=rounded];
+	"struct mcc_ast_expression CHILD"[shape="box",style=rounded];
+	"Anonymous struct 2"[shape="box", style=rounded];
+
+
 	"struct mcc_ast_source_location" -> "int start_line";
 	"struct mcc_ast_source_location" -> "int start_col";	
 	"struct mcc_ast_source_location" -> "int end_line";
@@ -37,6 +41,9 @@ digraph {
 	"Union" -> "struct mcc_ast_literal";	
 	"Union" -> "Anonymous struct";
 	"Union" -> "struct mcc_ast_expression No. 2";
+	"Union" -> "Anonymous struct 2"
+	"Anonymous struct 2" -> "enum mcc_ast_unary_op";
+	"Anonymous struct 2" -> "struct mcc_ast_expression CHILD";
 	"Anonymous struct" -> "enum mcc_ast_binary_op";
 	"Anonymous struct" -> "struct mcc_ast_expression LHS";
 	"Anonymous struct" -> "struct mcc_ast_expression RHS";

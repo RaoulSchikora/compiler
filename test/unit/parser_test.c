@@ -68,6 +68,59 @@ void BinaryOp_2(CuTest *tc)
 	mcc_ast_delete(expr);
 }
 
+void Variable(CuTest *tc)
+{
+	const char input[] = "identifier";
+	struct mcc_parser_result result = mcc_parse_string(input);
+
+	CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
+
+	struct mcc_ast_expression *expr = result.expression;
+
+	// root
+	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_VARIABLE, expr->type);
+
+	// root -> identifier
+	CuAssertStrEquals(tc, "identifier", expr->identifier);
+
+	mcc_ast_delete(expr);
+}
+
+void Array_Element(CuTest *tc){
+
+	const char input[] = "identifier [ 2 + 5.2]";
+	struct mcc_parser_result result = mcc_parse_string(input);
+
+	CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
+
+	struct mcc_ast_expression *expr = result.expression;
+
+	// root
+	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_ARRAY_ELEMENT, expr->type);
+
+	// root -> array_identifier
+	CuAssertStrEquals(tc, "identifier", expr->array_identifier);
+
+	// root -> index
+	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_BINARY_OP, expr->index->type);
+	CuAssertIntEquals(tc, MCC_AST_BINARY_OP_ADD, expr->index->op);
+
+	// root -> index -> lhs
+	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_LITERAL, expr->index->lhs->type);
+
+	// root -> index -> lhs -> literal
+	CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_INT, expr->index->lhs->literal->type);
+	CuAssertIntEquals(tc, 2, expr->lhs->literal->i_value);
+
+	// root -> index ->rhs
+	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_LITERAL, expr->index->rhs->type);
+
+	// root -> index -> rhs -> literal
+	CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_FLOAT, expr->index->rhs->literal->type);
+	CuAssertDblEquals(tc, 5.2, expr->index->rhs->literal->f_value, EPS);
+
+}
+
 void NestedExpression_1(CuTest *tc)
 {
 	const char input[] = "42 * (192 + 3.14)";

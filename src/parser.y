@@ -31,6 +31,7 @@ void mcc_parser_error();
 
 %token <long>   INT_LITERAL   "integer literal"
 %token <double> FLOAT_LITERAL "float literal"
+%token <char*> 	IDENTIFIER    "identifier"
 
 %token LPARENTH "("
 %token RPARENTH ")"
@@ -39,6 +40,8 @@ void mcc_parser_error();
 %token MINUS "-"
 %token ASTER "*"
 %token SLASH "/"
+%token SQUARE_OPEN "["
+%token SQUARE_CLOSE "]"
 
 %left PLUS MINUS
 %left ASTER SLASH
@@ -60,6 +63,8 @@ expression : literal                      { $$ = mcc_ast_new_expression_literal(
            | expression SLASH expression  { $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_DIV, $1, $3); loc($$, @1); }
            | LPARENTH expression RPARENTH { $$ = mcc_ast_new_expression_parenth($2);                              loc($$, @1); }
            | MINUS expression 		  { $$ = mcc_ast_new_expression_unary_op(MCC_AST_UNARY_OP_MINUS, $2);	  loc($$, @1); }
+           | IDENTIFIER			  { $$ = mcc_ast_new_expression_variable($1);				  loc($$, @1); }
+           | IDENTIFIER SQUARE_OPEN expression SQUARE_CLOSE {$$ = mcc_ast_new_expression_array_element($1,$3);    loc($$, @1); }
            ;
 
 literal : INT_LITERAL   { $$ = mcc_ast_new_literal_int($1);   loc($$, @1); }

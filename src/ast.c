@@ -52,8 +52,7 @@ struct mcc_ast_expression *mcc_ast_new_expression_parenth(struct mcc_ast_express
 	return expr;
 }
 
-struct mcc_ast_expression *mcc_ast_new_expression_unary_op(enum mcc_ast_unary_op u_op,
-													struct mcc_ast_expression *child)
+struct mcc_ast_expression *mcc_ast_new_expression_unary_op(enum mcc_ast_unary_op u_op, struct mcc_ast_expression *child)
 {
 	assert(child);
 
@@ -66,6 +65,41 @@ struct mcc_ast_expression *mcc_ast_new_expression_unary_op(enum mcc_ast_unary_op
 	expr->u_op = u_op;
 	expr->child = child;
 	return expr;
+}
+
+struct mcc_ast_expression *mcc_ast_new_expression_variable(char* identifier){
+
+	assert(identifier);
+
+	struct mcc_ast_expression *expr = malloc(sizeof(*expr));
+	if (!expr) {
+		return NULL;
+	}
+
+	expr->type = MCC_AST_EXPRESSION_TYPE_VARIABLE;
+	expr->identifier = identifier;
+	return expr;
+
+
+}
+
+struct mcc_ast_expression *mcc_ast_new_expression_array_element(char* identifier, struct mcc_ast_expression *index){
+
+	assert(identifier);
+	assert(index);
+
+	struct mcc_ast_expression *expr = malloc(sizeof(*expr));
+	if (!expr) {
+		return NULL;
+	}
+
+	expr->type = MCC_AST_EXPRESSION_TYPE_ARRAY_ELEMENT;
+	expr->array_identifier = identifier;
+	expr->index = index;
+
+	return expr;
+
+
 }
 
 void mcc_ast_delete_expression(struct mcc_ast_expression *expression)
@@ -90,10 +124,18 @@ void mcc_ast_delete_expression(struct mcc_ast_expression *expression)
         mcc_ast_delete_expression(expression->child);
         break;
 
+	case MCC_AST_EXPRESSION_TYPE_VARIABLE:
+		break;
+
+	case MCC_AST_EXPRESSION_TYPE_ARRAY_ELEMENT:
+		mcc_ast_delete_expression(expression->index);
+		break;
+
 	}
 
 	free(expression);
 }
+
 
 // ------------------------------------------------------------------- Literals
 

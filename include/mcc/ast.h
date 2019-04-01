@@ -51,6 +51,8 @@ enum mcc_ast_expression_type {
 	MCC_AST_EXPRESSION_TYPE_BINARY_OP,
 	MCC_AST_EXPRESSION_TYPE_PARENTH,
     MCC_AST_EXPRESSION_TYPE_UNARY_OP,
+    MCC_AST_EXPRESSION_TYPE_VARIABLE,
+    MCC_AST_EXPRESSION_TYPE_ARRAY_ELEMENT,
 };
 
 struct mcc_ast_expression {
@@ -76,6 +78,17 @@ struct mcc_ast_expression {
 		    enum mcc_ast_unary_op u_op;
 		    struct mcc_ast_expression *child;
 		};
+
+		// MCC_AST_EXPRESSION_TYPE_VARIABLE
+		struct {
+			char* identifier;
+		};
+
+		// MCC AST_EXPRESSION_TYPE_ARRAY_ELEMENT
+		struct {
+			char* array_identifier;
+			struct mcc_ast_expression *index;
+		};
 	};
 };
 
@@ -89,6 +102,10 @@ struct mcc_ast_expression *mcc_ast_new_expression_parenth(struct mcc_ast_express
 
 struct mcc_ast_expression *mcc_ast_new_expression_unary_op(enum mcc_ast_unary_op u_op,
                                                             struct mcc_ast_expression *expression);
+
+struct mcc_ast_expression *mcc_ast_new_expression_variable(char* identifier);
+
+struct mcc_ast_expression *mcc_ast_new_expression_array_element(char* identifier, struct mcc_ast_expression* index);
 
 void mcc_ast_delete_expression(struct mcc_ast_expression *expression);
 
