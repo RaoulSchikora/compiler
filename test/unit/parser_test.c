@@ -156,6 +156,49 @@ void BinaryOp_4(CuTest *tc)
     mcc_ast_delete(expr);
 }
 
+void BinaryPrecedenceAssociativity(CuTest *tc)
+{
+    const char input[] = "2 < 3 + 4 || true";
+    struct mcc_parser_result result = mcc_parse_string(input);
+
+    CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
+
+    struct mcc_ast_expression *expr = result.expression;
+
+    // root
+    CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_BINARY_OP, expr->type);
+    CuAssertIntEquals(tc, MCC_AST_BINARY_OP_DISJ, expr->op);
+
+    struct mcc_ast_expression *subexpr1 = expr->lhs;
+
+    // root -> lhs
+    CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_BINARY_OP, subexpr1->type);
+    CuAssertIntEquals(tc, MCC_AST_BINARY_OP_SMALLER, subexpr1->op);
+
+    // root -> rhs
+    CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_BOOL, expr->rhs->literal->type);
+    CuAssertTrue(tc, expr->rhs->literal->bool_value);
+
+    // root -> lhs -> lhs
+    CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_INT, subexpr1->lhs->literal->type);
+    CuAssertIntEquals(tc, 2, subexpr1->lhs->literal->i_value);
+
+    struct mcc_ast_expression *subexpr2 = subexpr1->rhs;
+
+    // root -> lhs -> subexpr1 -> rhs ->subexpr2
+    CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_BINARY_OP, subexpr2->type);
+    CuAssertIntEquals(tc, MCC_AST_BINARY_OP_ADD, subexpr2->op);
+
+    // root -> lhs -> subexpr1 -> rhs -> subexpr2 -> lhs
+    CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_INT, subexpr2->lhs->literal->type);
+    CuAssertIntEquals(tc, 3, subexpr2->lhs->literal->i_value);
+
+    // root -> lhs -> subexpr1 -> rhs -> subexpr2 -> rhs
+    CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_INT, subexpr2->rhs->literal->type);
+    CuAssertIntEquals(tc, 4, subexpr2->rhs->literal->i_value);
+
+}
+
 void Variable(CuTest *tc)
 {
 	// debugging purpose:
@@ -348,6 +391,7 @@ void UnaryOp_2(CuTest *tc)
 	TEST(BinaryOp_2) \
 	TEST(BinaryOp_3) \
 	TEST(BinaryOp_4) \
+	TEST(BinaryPrecedenceAssociativity) \
 	TEST(NestedExpression_1) \
 	TEST(MissingClosingParenthesis_1) \
 	TEST(SourceLocation_SingleLineColumn) \

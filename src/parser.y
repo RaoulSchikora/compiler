@@ -66,6 +66,8 @@ void mcc_parser_error();
 %token EQEQ "=="
 %token EXKLA_EQ "!="
 
+%left ANDAND OROR
+%left LT_SIGN GT_SIGN LT_EQ_SIGN GT_EQ_SIGN EQEQ EXKLA_EQ
 %left PLUS MINUS
 %left ASTER SLASH
 
