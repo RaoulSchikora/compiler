@@ -43,6 +43,8 @@ void mcc_parser_error();
 %token <char*> 	IDENTIFIER    "identifier"
 %token <bool>   BOOL_LITERAL  "bool literal"
 
+%token <enum mcc_ast_types> TYPE "type"
+
 %token LPARENTH "("
 %token RPARENTH ")"
 
@@ -71,12 +73,14 @@ void mcc_parser_error();
 
 %type <struct mcc_ast_expression *> expression
 %type <struct mcc_ast_literal *> literal
+%type <struct mcc_ast_variable_declaration *> variable_declaration
 
 %start toplevel
 
 %%
 
 toplevel : expression { *result = $1; }
+	 | variable_declaration
          ;
 
 expression : literal                      { $$ = mcc_ast_new_expression_literal($1);                              loc($$, @1); }
@@ -98,6 +102,9 @@ expression : literal                      { $$ = mcc_ast_new_expression_literal(
            | IDENTIFIER			  { $$ = mcc_ast_new_expression_variable($1);				  loc($$, @1); }
            | IDENTIFIER SQUARE_OPEN expression SQUARE_CLOSE {$$ = mcc_ast_new_expression_array_element($1,$3);    loc($$, @1); }
            ;
+
+variable_declaration : TYPE IDENTIFIER { $$ = mcc_ast_new_variable_declaration($1,$2); loc ($$, @1);}
+	    ;
 
 literal : INT_LITERAL   { $$ = mcc_ast_new_literal_int($1);   loc($$, @1); }
         | FLOAT_LITERAL { $$ = mcc_ast_new_literal_float($1); loc($$, @1); }
