@@ -72,7 +72,7 @@ struct mcc_ast_expression *mcc_ast_new_expression_unary_op(enum mcc_ast_unary_op
 	return expr;
 }
 
-struct mcc_ast_expression *mcc_ast_new_expression_variable(char* identifier){
+struct mcc_ast_expression *mcc_ast_new_expression_variable(char *identifier){
 
 	assert(identifier);
 
@@ -81,8 +81,10 @@ struct mcc_ast_expression *mcc_ast_new_expression_variable(char* identifier){
 		return NULL;
 	}
 
+	struct mcc_ast_identifier *id = mcc_ast_new_identifier(identifier);
+
 	expr->type = MCC_AST_EXPRESSION_TYPE_VARIABLE;
-	expr->identifier = identifier;
+	expr->identifier = id;
 
 	return expr;
 
@@ -107,42 +109,67 @@ struct mcc_ast_expression *mcc_ast_new_expression_array_element(char* array_iden
 
 }
 
+
 void mcc_ast_delete_expression(struct mcc_ast_expression *expression)
 {
 	assert(expression);
 
 	switch (expression->type) {
-	case MCC_AST_EXPRESSION_TYPE_LITERAL:
-		mcc_ast_delete_literal(expression->literal);
-		break;
+		case MCC_AST_EXPRESSION_TYPE_LITERAL:
+			mcc_ast_delete_literal(expression->literal);
+			break;
 
-	case MCC_AST_EXPRESSION_TYPE_BINARY_OP:
-		mcc_ast_delete_expression(expression->lhs);
-		mcc_ast_delete_expression(expression->rhs);
-		break;
+		case MCC_AST_EXPRESSION_TYPE_BINARY_OP:
+			mcc_ast_delete_expression(expression->lhs);
+			mcc_ast_delete_expression(expression->rhs);
+			break;
 
-	case MCC_AST_EXPRESSION_TYPE_PARENTH:
-		mcc_ast_delete_expression(expression->expression);
-		break;
+		case MCC_AST_EXPRESSION_TYPE_PARENTH:
+			mcc_ast_delete_expression(expression->expression);
+			break;
 
-    case MCC_AST_EXPRESSION_TYPE_UNARY_OP:
-        mcc_ast_delete_expression(expression->child);
-        break;
+		case MCC_AST_EXPRESSION_TYPE_UNARY_OP:
+			mcc_ast_delete_expression(expression->child);
+			break;
 
-	case MCC_AST_EXPRESSION_TYPE_VARIABLE:
-		mcc_ast_delete_identifier(expression->identifier);
-		break;
+		case MCC_AST_EXPRESSION_TYPE_VARIABLE:
+			mcc_ast_delete_identifier(expression->identifier);
+			break;
 
-	case MCC_AST_EXPRESSION_TYPE_ARRAY_ELEMENT:
-		mcc_ast_delete_identifier(expression->array_identifier);
-		mcc_ast_delete_expression(expression->index);
-		break;
+		case MCC_AST_EXPRESSION_TYPE_ARRAY_ELEMENT:
+			//mcc_ast_delete_identifier(expression->array_identifier);
+			mcc_ast_delete_expression(expression->index);
+			break;
 
 	}
 
 	free(expression);
 }
 
+
+// ------------------------------------------------------------------ Identifier
+
+
+struct mcc_ast_identifier *mcc_ast_new_identifier(char *identifier){
+	assert(identifier);
+
+	struct mcc_ast_identifier *expr = malloc(sizeof(*expr));
+	if (!expr) {
+		return NULL;
+	}
+
+	expr->identifier_name = identifier;
+
+	return expr;
+}
+
+void mcc_ast_delete_identifier(struct mcc_ast_identifier *identifier){
+	assert(identifier);
+	assert(identifier->identifier_name);
+	free(identifier->identifier_name);
+	free(identifier);
+
+}
 
 // ------------------------------------------------------------------- Literals
 
@@ -180,11 +207,6 @@ struct mcc_ast_literal *mcc_ast_new_literal_bool(bool value)
 	lit->type = MCC_AST_LITERAL_TYPE_BOOL;
 	lit->bool_value = value;
 	return lit;
-}
-
-void mcc_ast_delete_identifier(char *identifier){
-	assert(identifier);
-	free(identifier);
 }
 
 void mcc_ast_delete_literal(struct mcc_ast_literal *literal)

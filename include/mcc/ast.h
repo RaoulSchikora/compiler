@@ -86,7 +86,7 @@ struct mcc_ast_expression {
 
 		// MCC_AST_EXPRESSION_TYPE_VARIABLE
 		struct {
-			char* identifier;
+			struct mcc_ast_identifier *identifier;
 		};
 
 		// MCC AST_EXPRESSION_TYPE_ARRAY_ELEMENT
@@ -108,13 +108,50 @@ struct mcc_ast_expression *mcc_ast_new_expression_parenth(struct mcc_ast_express
 struct mcc_ast_expression *mcc_ast_new_expression_unary_op(enum mcc_ast_unary_op u_op,
                                                             struct mcc_ast_expression *expression);
 
-struct mcc_ast_expression *mcc_ast_new_expression_variable(char* identifier);
+struct mcc_ast_expression *mcc_ast_new_expression_variable(char *identifier);
+
+struct mcc_ast_identifier *mcc_ast_new_identifier(char *identifier);
 
 struct mcc_ast_expression *mcc_ast_new_expression_array_element(char* identifier, struct mcc_ast_expression* index);
 
-void mcc_ast_delete_identifier(char *identifier);
+void mcc_ast_delete_identifier(struct mcc_ast_identifier *identifier);
 
 void mcc_ast_delete_expression(struct mcc_ast_expression *expression);
+
+// ------------------------------------------------------------------- Types
+/*
+struct mcc_ast_type{
+
+	struct mcc_ast_node *node;
+
+	enum{
+		INT,
+		FLOAT,
+		BOOL,
+		STRING,
+	};
+};
+
+
+// ------------------------------------------------------------------- Declarations
+
+struct mcc_ast_variable_declaration{
+
+	struct mcc_ast_node node;
+
+	struct{
+		struct mcc_ast_type type;
+	};
+};
+
+//-------------------------------------------------------------------- Identifier
+*/
+struct mcc_ast_identifier{
+
+	struct mcc_ast_node node;
+	char* identifier_name;
+};
+
 
 // ------------------------------------------------------------------- Literals
 
