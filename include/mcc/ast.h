@@ -119,18 +119,24 @@ void mcc_ast_delete_identifier(struct mcc_ast_identifier *identifier);
 void mcc_ast_delete_expression(struct mcc_ast_expression *expression);
 
 // ------------------------------------------------------------------- Types
-/*
+
+
+
+enum mcc_ast_types{
+    INT,
+    FLOAT,
+    BOOL,
+    STRING,
+};
+
 struct mcc_ast_type{
 
 	struct mcc_ast_node *node;
+    enum mcc_ast_types type_value;
 
-	enum{
-		INT,
-		FLOAT,
-		BOOL,
-		STRING,
-	};
 };
+
+void mcc_ast_delete_type(struct mcc_ast_type *type);
 
 
 // ------------------------------------------------------------------- Declarations
@@ -140,12 +146,17 @@ struct mcc_ast_variable_declaration{
 	struct mcc_ast_node node;
 
 	struct{
-		struct mcc_ast_type type;
+		struct mcc_ast_type *type;
+		struct mcc_ast_identifier *identifier;
 	};
 };
 
+struct mcc_ast_variable_declaration *mcc_ast_new_variable_declaration(enum mcc_ast_types, char* identifier);
+
+void mcc_ast_delete_variable_declaration(struct mcc_ast_variable_declaration* decl);
+
 //-------------------------------------------------------------------- Identifier
-*/
+
 struct mcc_ast_identifier{
 
 	struct mcc_ast_node node;

@@ -148,6 +148,52 @@ void mcc_ast_delete_expression(struct mcc_ast_expression *expression)
 	free(expression);
 }
 
+// ------------------------------------------------------------------ Types
+
+void mcc_ast_delete_type(struct mcc_ast_type *type){
+    assert(type);
+    assert(type->node);
+    free(type->node),
+    free(type);
+}
+
+struct mcc_ast_type *mcc_ast_new_type(enum mcc_ast_types type){
+	struct mcc_ast_type *newtype = malloc (sizeof(*newtype));
+	if(!newtype){
+		return NULL;
+	}
+	newtype->type_value = type;
+	return newtype;
+}
+
+// ------------------------------------------------------------------ Declarations
+
+struct mcc_ast_variable_declaration *mcc_ast_new_variable_declaration(enum mcc_ast_types type, char* identifier){
+
+	assert(identifier);
+
+	struct mcc_ast_variable_declaration *decl = malloc (sizeof(*decl));
+	if (!decl) {
+		return NULL;
+	}
+
+	struct mcc_ast_identifier *id = mcc_ast_new_identifier(identifier);
+
+	struct mcc_ast_type *newtype = mcc_ast_new_type(type);
+
+	decl->type = newtype;
+	decl->identifier = id;
+
+	return decl;
+}
+
+void mcc_ast_delete_variable_declaration(struct mcc_ast_variable_declaration* decl){
+    assert(decl);
+    mcc_ast_delete_identifier(decl->identifier);
+    mcc_ast_delete_type(decl->type);
+    free(decl);
+}
+
 
 // ------------------------------------------------------------------ Identifier
 
