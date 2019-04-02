@@ -37,6 +37,11 @@ float_literal [0-9]+\.[0-9]+
 "true"    { yylval->TK_BOOL_LITERAL = true; return TK_BOOL_LITERAL; }
 "false"   { yylval->TK_BOOL_LITERAL = false; return TK_BOOL_LITERAL; }
 
+"int"     { yylval->TK_TYPE = INT; return TK_TYPE;}
+"float"   { yylval->TK_TYPE = FLOAT; return TK_TYPE;}
+"bool"    { yylval->TK_TYPE = BOOL; return TK_TYPE;}
+"string"  { yylval->TK_TYPE = STRING; return TK_TYPE;}
+
 {identifier}      { yylval->TK_IDENTIFIER = strdup(yytext); return TK_IDENTIFIER; }
 
 "+"               { return TK_PLUS; }
