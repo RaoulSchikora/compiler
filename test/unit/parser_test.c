@@ -220,7 +220,7 @@ void Variable(CuTest *tc)
 
 void Array_Element(CuTest *tc){
 
-	const char input[] = "identifier [ 2 + 5.2]";
+	const char input[] = "test [2.3 + 3]";
 	struct mcc_parser_result result = mcc_parse_string(input);
 
 	CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
@@ -231,25 +231,26 @@ void Array_Element(CuTest *tc){
 	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_ARRAY_ELEMENT, expr->type);
 
 	// root -> array_identifier
-	CuAssertStrEquals(tc, "identifier", expr->array_identifier);
+	CuAssertStrEquals(tc, "test", expr->array_identifier);
 
-	// root -> index
-	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_BINARY_OP, expr->index->type);
-	CuAssertIntEquals(tc, MCC_AST_BINARY_OP_ADD, expr->index->op);
+	// root -> index = Binary_op
+	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_BINARY_OP,expr->index->type);
+	CuAssertIntEquals(tc, MCC_AST_BINARY_OP_ADD,expr->index->op);
+
 
 	// root -> index -> lhs
 	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_LITERAL, expr->index->lhs->type);
 
 	// root -> index -> lhs -> literal
-	CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_INT, expr->index->lhs->literal->type);
-	CuAssertIntEquals(tc, 2, expr->lhs->literal->i_value);
+	CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_FLOAT, expr->index->lhs->literal->type);
+	CuAssertDblEquals(tc, 2.3, expr->index->lhs->literal->f_value,EPS);
 
-	// root -> index ->rhs
+	// root -> index -> rhs
 	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_LITERAL, expr->index->rhs->type);
 
 	// root -> index -> rhs -> literal
-	CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_FLOAT, expr->index->rhs->literal->type);
-	CuAssertDblEquals(tc, 5.2, expr->index->rhs->literal->f_value, EPS);
+	CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_INT, expr->index->rhs->literal->type);
+	CuAssertIntEquals(tc, 3, expr->index->rhs->literal->i_value);
 
     mcc_ast_delete(expr);
 }
@@ -391,8 +392,8 @@ void UnaryOp_2(CuTest *tc)
 	TEST(SourceLocation_SingleLineColumn) \
 	TEST(UnaryOp_1) \
 	TEST(UnaryOp_2) \
-	TEST(Variable)
-	//TEST(Array_Element)
+	TEST(Variable) \
+	TEST(Array_Element)
 
 #include "main_stub.inc"
 #undef TESTS

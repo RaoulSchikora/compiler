@@ -26,8 +26,6 @@
 int mcc_parser_lex();
 void mcc_parser_error();
 
-
-
 #define loc(ast_node, ast_sloc) \
 	(ast_node)->node.sloc.start_col = (ast_sloc).first_column;
 
@@ -116,8 +114,6 @@ literal : INT_LITERAL   { $$ = mcc_ast_new_literal_int($1);   loc($$, @1); }
 // Enabling verbose debugging that shows state of the parser:
 
 /*
-
-
 #ifdef YYDEBUG
   yydebug = 1;
 #endif

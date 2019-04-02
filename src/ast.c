@@ -89,9 +89,9 @@ struct mcc_ast_expression *mcc_ast_new_expression_variable(char* identifier){
 
 }
 
-struct mcc_ast_expression *mcc_ast_new_expression_array_element(char* identifier, struct mcc_ast_expression *index){
+struct mcc_ast_expression *mcc_ast_new_expression_array_element(char* array_identifier, struct mcc_ast_expression *index){
 
-	assert(identifier);
+	assert(array_identifier);
 	assert(index);
 
 	struct mcc_ast_expression *expr = malloc(sizeof(*expr));
@@ -100,11 +100,10 @@ struct mcc_ast_expression *mcc_ast_new_expression_array_element(char* identifier
 	}
 
 	expr->type = MCC_AST_EXPRESSION_TYPE_ARRAY_ELEMENT;
-	expr->array_identifier = identifier;
+	expr->array_identifier = array_identifier;
 	expr->index = index;
 
 	return expr;
-
 
 }
 
@@ -135,6 +134,7 @@ void mcc_ast_delete_expression(struct mcc_ast_expression *expression)
 		break;
 
 	case MCC_AST_EXPRESSION_TYPE_ARRAY_ELEMENT:
+		mcc_ast_delete_identifier(expression->array_identifier);
 		mcc_ast_delete_expression(expression->index);
 		break;
 
