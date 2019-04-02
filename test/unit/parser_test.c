@@ -217,7 +217,7 @@ void Variable(CuTest *tc)
 	mcc_ast_delete(expr);
 
 }
-/*
+
 void Array_Element(CuTest *tc){
 
 	const char input[] = "test [2.3 + 3]";
@@ -230,8 +230,8 @@ void Array_Element(CuTest *tc){
 	// root
 	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_ARRAY_ELEMENT, expr->type);
 
-	// root -> array_identifier
-	CuAssertStrEquals(tc, "test", expr->array_identifier);
+	// root -> array_identifier -> identifier_name
+	CuAssertStrEquals(tc, "test", expr->array_identifier->identifier_name);
 
 	// root -> index = Binary_op
 	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_BINARY_OP,expr->index->type);
@@ -254,7 +254,7 @@ void Array_Element(CuTest *tc){
 
     mcc_ast_delete(expr);
 }
-*/
+
 void NestedExpression_1(CuTest *tc)
 {
 	const char input[] = "42 * (192 + 3.14)";
