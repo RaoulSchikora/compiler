@@ -26,6 +26,11 @@ digraph {
 	"enum mcc_ast_unary_op"[shape="box",style=rounded];
 	"struct mcc_ast_expression CHILD"[shape="box",style=rounded];
 	"Anonymous struct 2"[shape="box", style=rounded];
+	"Anonymous struct 3"[shape="box", style=rounded];
+	"Anonymous struct 4"[shape="box", style=rounded];
+	"char* array_identifier"[shape="box", style=rounded];
+	"struct mcc_ast_expression* index"[shape="box", style=rounded];
+	"char* identifier"[shape="box", style=rounded];
 
 
 	"struct mcc_ast_source_location" -> "int start_line";
@@ -54,6 +59,11 @@ digraph {
 	"Union 2" -> "double f_value";
 	"struct mcc_parser_result" -> "enum mcc_parser_status";
 	"struct mcc_parser_result" -> "struct mcc_ast_expression";
+	"Union" -> "Anonymous struct 3";
+	"Union" -> "Anonymous struct 4";
+	"Anonymous struct 3" -> "char* identifier";
+	"Anonymous struct 4" -> "char* array_identifier";
+	"Anonymous struct 4" -> "struct mcc_ast_expression* index";
 }
 
 	
