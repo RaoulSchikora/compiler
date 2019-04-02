@@ -349,7 +349,6 @@ void UnaryOp_2(CuTest *tc)
 	TEST(BinaryOp_3) \
 	TEST(BinaryOp_4) \
 	TEST(NestedExpression_1) \
-	TEST(NestedExpression_Fail) \
 	TEST(MissingClosingParenthesis_1) \
 	TEST(SourceLocation_SingleLineColumn) \
 	TEST(UnaryOp_1) \
