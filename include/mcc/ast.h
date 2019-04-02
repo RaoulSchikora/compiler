@@ -112,6 +112,8 @@ struct mcc_ast_expression *mcc_ast_new_expression_variable(char* identifier);
 
 struct mcc_ast_expression *mcc_ast_new_expression_array_element(char* identifier, struct mcc_ast_expression* index);
 
+void mcc_ast_delete_identifier(char *identifier);
+
 void mcc_ast_delete_expression(struct mcc_ast_expression *expression);
 
 // ------------------------------------------------------------------- Literals

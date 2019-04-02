@@ -10,9 +10,9 @@
 // Enabling printer of the state of the parser for debugging purposes:
 
 
-// %printer { fprintf (yyo, "Semantic string value:'%s'", $$); } <char*>
-// %printer { fprintf (yyo, "Semantic float value:'%ld'", $$); } <double>
-// %printer { fprintf (yyo, "Semantic int value:'%f'", $$); } <long>
+//%printer { fprintf (yyo, "Semantic string value:'%s'", $$); } <char*>
+//%printer { fprintf (yyo, "Semantic float value:'%ld'", $$); } <long>
+//%printer { fprintf (yyo, "Semantic int value:'%f'", $$); } <double>
 
 
 
@@ -117,11 +117,13 @@ literal : INT_LITERAL   { $$ = mcc_ast_new_literal_int($1);   loc($$, @1); }
 
 /*
 
+
 #ifdef YYDEBUG
   yydebug = 1;
 #endif
-
 */
+
+
 
 
 void mcc_parser_error(struct MCC_PARSER_LTYPE *yylloc, yyscan_t *scanner, const char *msg)

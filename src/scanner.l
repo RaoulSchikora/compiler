@@ -37,7 +37,7 @@ float_literal [0-9]+\.[0-9]+
 "true"    { yylval->TK_BOOL_LITERAL = true; return TK_BOOL_LITERAL; }
 "false"   { yylval->TK_BOOL_LITERAL = false; return TK_BOOL_LITERAL; }
 
-{identifier}      { yylval->TK_IDENTIFIER = yytext; return TK_IDENTIFIER; }
+{identifier}      { yylval->TK_IDENTIFIER = strdup(yytext); return TK_IDENTIFIER; }
 
 "+"               { return TK_PLUS; }
 "-"               { return TK_MINUS; }
