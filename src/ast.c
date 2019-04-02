@@ -131,6 +131,7 @@ void mcc_ast_delete_expression(struct mcc_ast_expression *expression)
         break;
 
 	case MCC_AST_EXPRESSION_TYPE_VARIABLE:
+		mcc_ast_delete_identifier(expression->identifier);
 		break;
 
 	case MCC_AST_EXPRESSION_TYPE_ARRAY_ELEMENT:
@@ -179,6 +180,11 @@ struct mcc_ast_literal *mcc_ast_new_literal_bool(bool value)
 	lit->type = MCC_AST_LITERAL_TYPE_BOOL;
 	lit->bool_value = value;
 	return lit;
+}
+
+void mcc_ast_delete_identifier(char *identifier){
+	assert(identifier);
+	free(identifier);
 }
 
 void mcc_ast_delete_literal(struct mcc_ast_literal *literal)
