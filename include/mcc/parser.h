@@ -21,6 +21,12 @@ enum mcc_parser_status {
 
 struct mcc_parser_result {
 	enum mcc_parser_status status;
+	/*
+	union{
+		struct mcc_ast_expression *expression;
+		struct mcc_ast_variable_declaration *variable_declaration;
+	};
+	*/
 	struct mcc_ast_expression *expression;
 };
 
