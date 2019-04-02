@@ -158,7 +158,10 @@ void BinaryOp_4(CuTest *tc)
 
 void Variable(CuTest *tc)
 {
-	const char input[] = "teststring";
+	// debugging purpose:
+	// fprintf(stderr,"555555555 Starting Variable Unit Test 5555555555555\n");
+
+	const char input[] = "teststring ";
 	struct mcc_parser_result result = mcc_parse_string(input);
 
 	CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
@@ -168,14 +171,14 @@ void Variable(CuTest *tc)
 	// root
 	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_VARIABLE, expr->type);
 
-    printf("%%%%%%%%%%%%%%%%%%%%%%%%\n");
-	printf("%s",expr->identifier);
-	printf("%%%%%%%%%%%%%%%%%%%%%%%%\n");
-
 	// root -> identifier
-	CuAssertStrEquals(tc, "teststring", expr->identifier);
+	CuAssertStrEquals(tc, "teststring ", expr->identifier);
 
 	mcc_ast_delete(expr);
+
+
+	//debugging purpose:
+	// fprintf(stderr,"555555555 Ending Variable Unit Test 5555555555555\n");
 }
 
 void Array_Element(CuTest *tc){
@@ -351,6 +354,7 @@ void UnaryOp_2(CuTest *tc)
 	TEST(SourceLocation_SingleLineColumn) \
 	TEST(UnaryOp_1) \
 	TEST(UnaryOp_2)
+	// TEST(Variable)
 
 #include "main_stub.inc"
 #undef TESTS
