@@ -7,6 +7,15 @@
 %define parse.trace
 %define parse.error verbose
 
+// Enabling printer of the state of the parser for debugging purposes:
+
+
+// %printer { fprintf (yyo, "Semantic string value:'%s'", $$); } <char*>
+// %printer { fprintf (yyo, "Semantic float value:'%ld'", $$); } <double>
+// %printer { fprintf (yyo, "Semantic int value:'%f'", $$); } <long>
+
+
+
 %code requires {
 #include "mcc/parser.h"
 }
@@ -16,6 +25,8 @@
 
 int mcc_parser_lex();
 void mcc_parser_error();
+
+
 
 #define loc(ast_node, ast_sloc) \
 	(ast_node)->node.sloc.start_col = (ast_sloc).first_column;
@@ -99,6 +110,17 @@ literal : INT_LITERAL   { $$ = mcc_ast_new_literal_int($1);   loc($$, @1); }
 
 #include "scanner.h"
 #include "utils/unused.h"
+
+// Enabling verbose debugging that shows state of the parser:
+
+/*
+
+#ifdef YYDEBUG
+  yydebug = 1;
+#endif
+
+*/
+
 
 void mcc_parser_error(struct MCC_PARSER_LTYPE *yylloc, yyscan_t *scanner, const char *msg)
 {
