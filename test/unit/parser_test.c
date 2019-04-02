@@ -217,7 +217,7 @@ void Variable(CuTest *tc)
 	mcc_ast_delete(expr);
 
 }
-
+/*
 void Array_Element(CuTest *tc){
 
 	const char input[] = "test [2.3 + 3]";
@@ -254,7 +254,7 @@ void Array_Element(CuTest *tc){
 
     mcc_ast_delete(expr);
 }
-
+*/
 void NestedExpression_1(CuTest *tc)
 {
 	const char input[] = "42 * (192 + 3.14)";

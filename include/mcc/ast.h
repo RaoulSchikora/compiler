@@ -91,7 +91,7 @@ struct mcc_ast_expression {
 
 		// MCC AST_EXPRESSION_TYPE_ARRAY_ELEMENT
 		struct {
-			char* array_identifier;
+			struct mcc_ast_identifier* array_identifier;
 			struct mcc_ast_expression *index;
 		};
 	};
