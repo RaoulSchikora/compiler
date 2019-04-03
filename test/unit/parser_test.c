@@ -272,6 +272,29 @@ void VariableDeclaration(CuTest *tc){
 
 }
 
+void ArrayDeclaration(CuTest *tc){
+	const char input[] = "bool [13] my_array";
+	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_ARRAY_DECLARATION);
+
+
+	CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
+
+	struct mcc_ast_array_declaration *array_decl = result.array_declaration;
+
+	// root -> identifier -> identifier_name
+	CuAssertStrEquals(tc, "my_array", array_decl->identifier->identifier_name);
+
+	// root -> type -> type_value
+	CuAssertIntEquals(tc, BOOL, array_decl->type->type_value);
+
+	// root -> size -> type
+	CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_INT,array_decl->size->type);
+
+	// root -> size -> i_value
+	CuAssertIntEquals(tc, 13,array_decl->size->i_value);
+
+}
+
 void NestedExpression_1(CuTest *tc)
 {
 	const char input[] = "42 * (192 + 3.14)";
@@ -430,7 +453,8 @@ void UnaryOp_2(CuTest *tc)
 	TEST(UnaryOp_2) \
 	TEST(Variable) \
 	TEST(Array_Element) \
-	TEST(VariableDeclaration)
+	TEST(VariableDeclaration) \
+	TEST(ArrayDeclaration)
 
 #include "main_stub.inc"
 #undef TESTS

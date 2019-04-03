@@ -113,7 +113,7 @@ expression : literal                      { $$ = mcc_ast_new_expression_literal(
 variable_declaration : TYPE IDENTIFIER { $$ = mcc_ast_new_variable_declaration($1,$2); loc ($$, @1);}
 	    	     ;
 
-array_declaration : TYPE SQUARE_OPEN INT_LITERAL SQUARE_CLOSE IDENTIFIER { $$ = mcc_ast_new_array_declaration($1, $3, $5); loc($$, @1);}
+array_declaration : TYPE SQUARE_OPEN INT_LITERAL SQUARE_CLOSE IDENTIFIER { $$ = mcc_ast_new_array_declaration($1, mcc_ast_new_literal_int($3), $5); loc($$, @1);}
 		  ;
 
 literal : INT_LITERAL   { $$ = mcc_ast_new_literal_int($1);   loc($$, @1); }
