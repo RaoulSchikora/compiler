@@ -2,7 +2,7 @@
 
 %define api.pure full
 %lex-param   {void *scanner}
-%parse-param {void *scanner} {struct mcc_ast_expression** result}
+%parse-param {void *scanner} {struct mcc_parser_result* result}
 
 %define parse.trace
 %define parse.error verbose
@@ -84,8 +84,8 @@ void mcc_parser_error();
 toplevel : TILDE unit_test TILDE {}
          ;
 
-unit_test  : expression { *result = $1; }
-	   | variable_declaration { *result = $1; }
+unit_test  : expression { result->expression = $1; }
+	   | variable_declaration { result->variable_declaration = $1; }
 	   ;
 
 expression : literal                      { $$ = mcc_ast_new_expression_literal($1);                              loc($$, @1); }
@@ -145,12 +145,20 @@ void mcc_parser_error(struct MCC_PARSER_LTYPE *yylloc, yyscan_t *scanner, const 
 struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_parser_entry_point entry_point)
 {
 	assert(input_string);
+
 	char* input;
 
+
 	if (entry_point != MCC_PARSER_ENTRY_POINT_PROGRAM){
-		char* input = mcc_transform_into_unit_test(input_string);
+		input = (char*) malloc ((strlen(input_string) + 2)*sizeof(char));
+		if(!input){
+			return (struct mcc_parser_result){
+				.status = MCC_PARSER_STATUS_UNKNOWN_ERROR,
+			};
+		}
+		mcc_transform_into_unit_test(input_string,input);
 	} else {
-		char* input = malloc (sizeof(*input_string));
+		input = (char*) malloc (strlen(input_string)*sizeof(char));
 		if(!input){
 			return (struct mcc_parser_result){
 				.status = MCC_PARSER_STATUS_UNKNOWN_ERROR,
@@ -191,13 +199,13 @@ struct mcc_parser_result mcc_parse_file(FILE *input, enum mcc_parser_entry_point
 	switch (entry_point) {
 
 	case MCC_PARSER_ENTRY_POINT_EXPRESSION:
-		if (yyparse(scanner, &result.expression) != 0) {
+		if (yyparse(scanner, &result) != 0) {
 			result.status = MCC_PARSER_STATUS_UNKNOWN_ERROR;
 		}
 		break;
 
 	case MCC_PARSER_ENTRY_POINT_VARIABLE_DECLARATION:
-		if (yyparse(scanner, &result.variable_declaration) != 0) {
+		if (yyparse(scanner, &result) != 0) {
 			result.status = MCC_PARSER_STATUS_UNKNOWN_ERROR;
 		}
 		break;
@@ -208,22 +216,23 @@ struct mcc_parser_result mcc_parse_file(FILE *input, enum mcc_parser_entry_point
 	return result;
 }
 
-char* mcc_transform_into_unit_test ( char* unit_test_string ) {
+void mcc_transform_into_unit_test (const char* in, char* out ) {
 
   char* mcc_unit_test_input;
-  mcc_unit_test_input = (char*) malloc ((strlen(unit_test_string) + 2)*sizeof(char));
+  mcc_unit_test_input = (char*) malloc ((strlen(in) + 2)*sizeof(char));
 
-  if(!mcc_unit_test_input) {
+  if(mcc_unit_test_input == NULL) {
   	return NULL;
   }
 
   *mcc_unit_test_input = '~';
-  strcpy (mcc_unit_test_input + 1, unit_test_string);
-  *(mcc_unit_test_input + strlen(unit_test_string)+1) = '~';
-  *(mcc_unit_test_input + strlen(unit_test_string)+2) = '\0';
+  strcpy (mcc_unit_test_input + 1,in);
+  *(mcc_unit_test_input + strlen(in)+1) = '~';
+  *(mcc_unit_test_input + strlen(in)+2) = '\0';
 
+  strcpy(out,in);
 
-  return mcc_unit_test_input;
+  free(mcc_unit_test_input);
 
 }
 
