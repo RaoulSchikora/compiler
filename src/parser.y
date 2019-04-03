@@ -48,6 +48,8 @@ void mcc_parser_error();
 %token LPARENTH "("
 %token RPARENTH ")"
 
+%token TILDE "~"
+
 %token PLUS  "+"
 %token MINUS "-"
 %token ASTER "*"
@@ -79,9 +81,12 @@ void mcc_parser_error();
 
 %%
 
-toplevel : expression { *result = $1; }
-	 | variable_declaration
+toplevel : TILDE unit_test TILDE {}
          ;
+
+unit_test  : expression { *result = $1; }
+	   | variable_declaration { *result = $1 }
+	   ;
 
 expression : literal                      { $$ = mcc_ast_new_expression_literal($1);                              loc($$, @1); }
            | expression PLUS  expression  { $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_ADD, $1, $3); loc($$, @1); }
@@ -104,7 +109,7 @@ expression : literal                      { $$ = mcc_ast_new_expression_literal(
            ;
 
 variable_declaration : TYPE IDENTIFIER { $$ = mcc_ast_new_variable_declaration($1,$2); loc ($$, @1);}
-	    ;
+	    	     ;
 
 literal : INT_LITERAL   { $$ = mcc_ast_new_literal_int($1);   loc($$, @1); }
         | FLOAT_LITERAL { $$ = mcc_ast_new_literal_float($1); loc($$, @1); }
