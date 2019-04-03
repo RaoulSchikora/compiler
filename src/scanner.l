@@ -73,6 +73,11 @@ string_literal \"[^"]*\"
 "("               { return TK_LPARENTH; }
 ")"               { return TK_RPARENTH; }
 
+"if"              { return TK_IF; }
+"else"            { return TK_ELSE; }
+
+";"               { return TK_SEMICOLON; }
+
 
 [ \t\r\n]+        { /* ignore */ }
 

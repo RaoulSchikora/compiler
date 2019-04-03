@@ -26,6 +26,7 @@ enum mcc_parser_entry_point{
 	MCC_PARSER_ENTRY_POINT_ARRAY_DECLARATION,
 	MCC_PARSER_ENTRY_POINT_VARIABLE_ASSIGNMENT,
 	MCC_PARSER_ENTRY_POINT_ARRAY_ASSIGNMENT,
+	MCC_PARSER_ENTRY_POINT_STATEMENT,
 };
 
 struct mcc_parser_result {
@@ -42,6 +43,8 @@ struct mcc_parser_result {
 		struct mcc_ast_variable_assignment *variable_assignment;
 		// MCC_PARSER_ENTRY_POINT_ARRAY_ASSIGNMENT
 		struct mcc_ast_array_assignment *array_assignment;
+		// MCC_PARSER_ENTRY_POINT_STATEMENT
+		struct mcc_ast_statement *statement;
 	};
 };
 

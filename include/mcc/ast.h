@@ -202,6 +202,44 @@ struct mcc_ast_identifier{
 	char* identifier_name;
 };
 
+//-------------------------------------------------------------------- Statements
+
+enum mcc_ast_statement_type {
+	MCC_AST_STATEMENT_TYPE_IF_STMT,
+	MCC_AST_STATEMENT_TYPE_IF_ELSE_STMT,
+	MCC_AST_STATEMENT_TYPE_EXPRESSION,
+};
+
+struct mcc_ast_statement {
+	struct mcc_ast_node node;
+
+	enum mcc_ast_statement_type type;
+
+	union {
+		// MCC_AST_STATEMENT_TYPE_IF_STMT,
+		struct {
+			struct mcc_ast_expression *if_condition;
+			struct mcc_ast_statement *if_on_true;
+		};
+		// MCC_AST_STATEMENT_TYPE_IF_ELSE_STMT
+		struct {
+			struct mcc_ast_expression *if_else_condition;
+			struct mcc_ast_statement *if_else_on_true;
+			struct mcc_ast_statement *if_else_on_false;
+		};
+		// MCC_AST_STATEMENT_TYPE_EXPRESSION
+		struct mcc_ast_expression *stmt_expression;
+	};
+};
+
+struct mcc_ast_statement *mcc_ast_new_statement_if_stmt( struct mcc_ast_expression *condition,
+														struct mcc_ast_statement *on_true);
+
+struct mcc_ast_statement *mcc_ast_new_statement_if_else_stmt( struct mcc_ast_expression *condition,
+															 struct mcc_ast_statement *on_true,
+															 struct mcc_ast_statement *on_false);
+
+struct mcc_ast_statement *mcc_ast_new_statement_expression( struct mcc_ast_expression *expression);
 
 // ------------------------------------------------------------------- Literals
 

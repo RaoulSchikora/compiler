@@ -138,10 +138,10 @@ void mcc_ast_delete_expression(struct mcc_ast_expression *expression)
 		mcc_ast_delete_identifier(expression->identifier);
 		break;
 
-		case MCC_AST_EXPRESSION_TYPE_ARRAY_ELEMENT:
-			mcc_ast_delete_identifier(expression->array_identifier);
-			mcc_ast_delete_expression(expression->index);
-			break;
+	case MCC_AST_EXPRESSION_TYPE_ARRAY_ELEMENT:
+		mcc_ast_delete_identifier(expression->array_identifier);
+		mcc_ast_delete_expression(expression->index);
+		break;
 
 	}
 
@@ -277,6 +277,64 @@ void mcc_ast_delete_identifier(struct mcc_ast_identifier *identifier){
 	free(identifier);
 
 }
+
+// ------------------------------------------------------------------- Statements
+
+struct mcc_ast_statement *mcc_ast_new_statement_if_stmt( struct mcc_ast_expression *condition,
+													    struct mcc_ast_statement *on_true)
+{
+	assert(condition);
+	assert(on_true);
+
+	struct mcc_ast_statement *statement = malloc(sizeof(*statement));
+	if(!statement) {
+		return NULL;
+	}
+
+	statement->type = MCC_AST_STATEMENT_TYPE_IF_STMT;
+	statement->if_condition = condition;
+	statement->if_on_true = on_true;
+
+	return statement;
+}
+
+struct mcc_ast_statement *mcc_ast_new_statement_if_else_stmt( struct mcc_ast_expression *condition,
+										   struct mcc_ast_statement *on_true,
+										   struct mcc_ast_statement *on_false)
+{
+	assert(condition);
+	assert(on_true);
+	assert(on_false);
+
+	struct mcc_ast_statement *statement = malloc(sizeof(*statement));
+	if(!statement) {
+		return NULL;
+	}
+
+	statement->type = MCC_AST_STATEMENT_TYPE_IF_ELSE_STMT;
+	statement->if_else_condition = condition;
+	statement->if_else_on_true = on_true;
+	statement->if_else_on_false = on_false;
+
+	return statement;
+}
+
+struct mcc_ast_statement *mcc_ast_new_statement_expression( struct mcc_ast_expression *expression)
+{
+	assert(expression);
+
+	struct mcc_ast_statement *statement = malloc(sizeof(*statement));
+	if(!statement) {
+		return NULL;
+	}
+
+	statement->type = MCC_AST_STATEMENT_TYPE_EXPRESSION;
+	statement->stmt_expression = expression;
+
+	return statement;
+}
+
+//TODO mcc_ast_delete_statement()
 
 // ------------------------------------------------------------------- Literals
 
