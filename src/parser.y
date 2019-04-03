@@ -85,7 +85,7 @@ toplevel : TILDE unit_test TILDE {}
          ;
 
 unit_test  : expression { *result = $1; }
-	   | variable_declaration { *result = $1 }
+	   | variable_declaration { *result = $1; }
 	   ;
 
 expression : literal                      { $$ = mcc_ast_new_expression_literal($1);                              loc($$, @1); }

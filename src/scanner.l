@@ -69,7 +69,7 @@ float_literal [0-9]+\.[0-9]+
 
 [ \t\r\n]+        { /* ignore */ }
 
-"~"               { return TK_TILDE /*only for UnitTest purpose*/ }
+"~"               { return TK_TILDE; /*only for UnitTest purpose*/ }
 
 <<EOF>>           { return TK_END; }
 
