@@ -19,11 +19,19 @@ enum mcc_parser_status {
 	MCC_PARSER_STATUS_UNKNOWN_ERROR,
 };
 
+enum mcc_parser_entry_point{
+    MCC_PARSER_ENTRY_POINT_EXPRESSION,
+    MCC_PARSER_ENRTY_POINT_VARIABLE_DECLARATION,
+    MCC_PARSER_ENTRY_POINT_PROGRAM,
+};
+
 struct mcc_parser_result {
 	enum mcc_parser_status status;
 
-	union{ // entry point
+	union{
+	    // MCC_PARSER_ENTRY_POINT_EXPRESSION
 		struct mcc_ast_expression *expression;
+		// MCC_PARSER_ENTRY_POINT_VARIABLE_DECLARATION
 		struct mcc_ast_variable_declaration *variable_declaration;
 	};
 };
