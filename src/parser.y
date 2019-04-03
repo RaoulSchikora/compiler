@@ -85,7 +85,7 @@ toplevel : TILDE unit_test TILDE {}
          ;
 
 unit_test  : expression { *result = $1; }
-	   | variable_declaration { *result = $1 }
+	   | variable_declaration { *result = $1; }
 	   ;
 
 expression : literal                      { $$ = mcc_ast_new_expression_literal($1);                              loc($$, @1); }
@@ -142,9 +142,21 @@ void mcc_parser_error(struct MCC_PARSER_LTYPE *yylloc, yyscan_t *scanner, const 
 	UNUSED(msg);
 }
 
-struct mcc_parser_result mcc_parse_string(const char *input)
+struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_parser_entry_point entry_point)
 {
-	assert(input);
+	assert(input_string);
+
+	if (entry_point != MCC_PARSER_ENTRY_POINT_PROGRAM){
+		char* input = mcc_transform_into_unit_test(input_string);
+	} else {
+		char* input = malloc (sizeof(*input_string));
+		if(!input){
+			return (struct mcc_parser_result){
+				.status = MCC_PARSER_STATUS_UNKNOWN_ERROR;
+			};
+		}
+		strcpy (input, input_string);
+	}
 
 	FILE *in = fmemopen((void *)input, strlen(input), "r");
 	if (!in) {
@@ -153,14 +165,16 @@ struct mcc_parser_result mcc_parse_string(const char *input)
 		};
 	}
 
-	struct mcc_parser_result result = mcc_parse_file(in);
+	free(input);
+
+	struct mcc_parser_result result = mcc_parse_file(in,entry_point);
 
 	fclose(in);
 
 	return result;
 }
 
-struct mcc_parser_result mcc_parse_file(FILE *input)
+struct mcc_parser_result mcc_parse_file(FILE *input, enum mcc_parser_entry_point entry_point)
 {
 	assert(input);
 
@@ -172,11 +186,44 @@ struct mcc_parser_result mcc_parse_file(FILE *input)
 	    .status = MCC_PARSER_STATUS_OK,
 	};
 
-	if (yyparse(scanner, &result.expression) != 0) {
-		result.status = MCC_PARSER_STATUS_UNKNOWN_ERROR;
-	}
 
+	switch (entry_point) {
+
+	case MCC_PARSER_ENTRY_POINT_EXPRESSION:
+		if (yyparse(scanner, &result.expression) != 0) {
+			result.status = MCC_PARSER_STATUS_UNKNOWN_ERROR;
+		}
+		break;
+
+	case MCC_PARSER_ENTRY_POINT_VARIABLE_DECLARATION:
+		if (yyparse(scanner, &result.variable_declaration) != 0) {
+			result.status = MCC_PARSER_STATUS_UNKNOWN_ERROR;
+		}
+		break;
+
+	}
 	mcc_parser_lex_destroy(scanner);
 
 	return result;
 }
+
+char* mcc_transform_into_unit_test ( char* unit_test_string ) {
+
+  char* mcc_unit_test_input;
+  mcc_unit_test_input = (char*) malloc ((strlen(unit_test_string) + 2)*sizeof(char));
+
+  if(!mcc_unit_test_input) {
+  	return NULL;
+  }
+
+  *mcc_unit_test_input = '~';
+  strcpy (mcc_unit_test_input + 1, unit_test_string);
+  *(mcc_unit_test_input + strlen(unit_test_string)+1) = '~';
+  *(mcc_unit_test_input + strlen(unit_test_string)+2) = '\0';
+
+
+  return mcc_unit_test_input;
+
+}
+
+
