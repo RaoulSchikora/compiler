@@ -336,7 +336,7 @@ void NestedExpression_1(CuTest *tc)
 
 	// subexpr -> rhs -> literal
 	CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_FLOAT, subexpr->rhs->literal->type);
-	CuAssertIntEquals(tc, 3.14, subexpr->rhs->literal->f_value);
+	CuAssertDblEquals(tc, 3.14, subexpr->rhs->literal->f_value,EPS);
 
 	mcc_ast_delete(expr);
 }
@@ -461,6 +461,58 @@ void StringLiteral(CuTest *tc)
 
 }
 
+void VariableAssignment(CuTest *tc)
+{
+	const char input[] = "myVariable2 = 4.23";
+	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_EXPRESSION);
+
+	CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
+
+	struct mcc_ast_variable_assignment *variable_assignment = result.variable_assignment;
+
+	//root -> identifier -> identifier_name
+	CuAssertStrEquals(tc, "myVariable2", variable_assignment->identifier->identifier_name);
+
+	// root -> assigned_value -> type
+	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_LITERAL, variable_assignment->assigned_value->type);
+
+	// root -> assigned_value -> literal -> type
+	CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_FLOAT, variable_assignment->assigned_value->literal->type);
+
+	// root -> assigned_value -> literal -> f_value
+	CuAssertDblEquals(tc, 4.23, variable_assignment->assigned_value->literal->f_value,EPS);
+
+}
+
+
+void ArrayAssignment(CuTest *tc)
+{
+	const char input[] = "myVariable [12] = true";
+	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_EXPRESSION);
+
+	CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
+
+	struct mcc_ast_array_assignment *array_assignment = result.array_assignment;
+
+	//root -> identifier -> identifier_name
+	CuAssertStrEquals(tc, "myVariable", array_assignment->identifier->identifier_name);
+
+	// root -> assigned_value -> type
+	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_LITERAL, array_assignment->assigned_value->type);
+
+	// root -> assigned_value -> literal -> type
+	CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_BOOL, array_assignment->assigned_value->literal->type);
+
+	// root -> assigned_value -> literal -> bool_value
+	CuAssertTrue(tc, array_assignment->assigned_value->literal->bool_value);
+
+	// root -> index -> literal -> type
+	CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_INT, array_assignment->index->literal->type);
+
+	// root -> index -> literal -> f_value
+	CuAssertIntEquals(tc, 12, array_assignment->index->literal->i_value);
+}
+
 #define TESTS \
 	TEST(BinaryOp_1) \
 	TEST(BinaryOp_2) \
@@ -476,7 +528,8 @@ void StringLiteral(CuTest *tc)
 	TEST(Array_Element) \
 	TEST(VariableDeclaration) \
 	TEST(ArrayDeclaration) \
-	TEST(StringLiteral)
+	TEST(StringLiteral) \
+	TEST(VariableAssignment)
 
 #include "main_stub.inc"
 #undef TESTS
