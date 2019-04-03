@@ -10,9 +10,9 @@
 // Enabling printer of the state of the parser for debugging purposes:
 
 
-//%printer { fprintf (yyo, "Semantic string value:'%s'", $$); } <char*>
-//%printer { fprintf (yyo, "Semantic float value:'%ld'", $$); } <long>
-//%printer { fprintf (yyo, "Semantic int value:'%f'", $$); } <double>
+%printer { fprintf (yyo, "Semantic string value:'%s'", $$); } <char*>
+%printer { fprintf (yyo, "Semantic float value:'%ld'", $$); } <long>
+%printer { fprintf (yyo, "Semantic int value:'%f'", $$); } <double>
 
 
 
@@ -125,11 +125,11 @@ literal : INT_LITERAL   { $$ = mcc_ast_new_literal_int($1);   loc($$, @1); }
 
 // Enabling verbose debugging that shows state of the parser:
 
-/*
+
 #ifdef YYDEBUG
   yydebug = 1;
 #endif
-*/
+
 
 
 
@@ -164,8 +164,12 @@ struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_par
 				.status = MCC_PARSER_STATUS_UNKNOWN_ERROR,
 			};
 		}
-		strcpy (input, input_string);
+		strcpy (input,input_string);
 	}
+
+	// DEBUG:
+	printf("handing string %s to the parser.\n",input);
+
 
 	FILE *in = fmemopen((void *)input, strlen(input), "r");
 	if (!in) {
@@ -216,24 +220,13 @@ struct mcc_parser_result mcc_parse_file(FILE *input, enum mcc_parser_entry_point
 	return result;
 }
 
+// TODO: transfer allocation into function
+
 void mcc_transform_into_unit_test (const char* in, char* out ) {
-
-  char* mcc_unit_test_input;
-  mcc_unit_test_input = (char*) malloc ((strlen(in) + 2)*sizeof(char));
-
-  if(mcc_unit_test_input == NULL) {
-  	return NULL;
-  }
-
-  *mcc_unit_test_input = '~';
-  strcpy (mcc_unit_test_input + 1,in);
-  *(mcc_unit_test_input + strlen(in)+1) = '~';
-  *(mcc_unit_test_input + strlen(in)+2) = '\0';
-
-  strcpy(out,in);
-
-  free(mcc_unit_test_input);
-
+  *out = '~';
+  strcpy (out + 1,in);
+  *(out + strlen(in)+1) = '~';
+  *(out + strlen(in)+2) = '\0';
 }
 
 
