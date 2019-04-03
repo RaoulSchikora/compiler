@@ -54,6 +54,7 @@ string_literal \"[^"]*\"
 "*"               { return TK_ASTER; }
 "/"               { return TK_SLASH; }
 "!"               { return TK_EXKLA; }
+"="               { return TK_EQ;  }
 
 "<"               { return TK_LT_SIGN; }
 ">"               { return TK_GT_SIGN; }

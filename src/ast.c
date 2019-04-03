@@ -223,6 +223,37 @@ void mcc_ast_delete_array_declaration(struct mcc_ast_array_declaration* array_de
 	free(array_decl);
 }
 
+// ------------------------------------------------------------------ Assignments
+
+
+struct mcc_ast_variable_assignment *mcc_ast_new_variable_assignment (char *identifier, struct mcc_ast_expression *assigned_value){
+	assert(identifier);
+	assert(assigned_value);
+	struct mcc_ast_variable_assignment *variable_assignment = malloc(sizeof(*variable_assignment));
+	if(variable_assignment == NULL){
+		return NULL;
+	}
+	variable_assignment->identifier = mcc_ast_new_identifier(identifier);
+	variable_assignment->assigned_value = assigned_value;
+	return variable_assignment;
+}
+
+
+struct mcc_ast_array_assignment *mcc_ast_new_array_assignment (char *identifier, struct mcc_ast_expression *index, struct mcc_ast_expression *assigned_value){
+
+	assert(identifier);
+	assert(assigned_value);
+	assert(index);
+	struct mcc_ast_array_assignment *array_assignment = malloc(sizeof(sizeof(*array_assignment)));
+	if(array_assignment == NULL){
+		return NULL;
+	}
+	array_assignment->identifier = mcc_ast_new_identifier(identifier);
+	array_assignment->assigned_value = assigned_value;
+	array_assignment->index = index;
+	return array_assignment;
+}
+
 // ------------------------------------------------------------------ Identifier
 
 
