@@ -14,6 +14,7 @@
 #define MCC_AST_H
 
 #include <stdbool.h>
+#include <string.h>
 // ------------------------------------------------------------------- AST Node
 
 struct mcc_ast_source_location {
@@ -171,6 +172,27 @@ struct mcc_ast_array_declaration *mcc_ast_new_array_declaration(enum mcc_ast_typ
 
 void mcc_ast_delete_array_declaration(struct mcc_ast_array_declaration* array_decl);
 
+// ------------------------------------------------------------------ Assignments
+
+struct mcc_ast_variable_assignment {
+
+	struct mcc_ast_node node;
+	struct mcc_ast_identifier *identifier;
+	struct mcc_ast_expression *assigned_value;
+};
+
+struct mcc_ast_array_assignment {
+
+	struct mcc_ast_node node;
+	struct mcc_ast_identifier *identifier;
+	struct mcc_ast_expression *index;
+	struct mcc_ast_expression *assigned_value;
+};
+
+struct mcc_ast_variable_assignment *mcc_ast_new_variable_assignment (char *identifier, struct mcc_ast_expression *assigned_value);
+
+struct mcc_ast_array_assignment *mcc_ast_new_array_assignment (char *identifier, struct mcc_ast_expression *index, struct mcc_ast_expression *assigned_value);
+
 
 //-------------------------------------------------------------------- Identifier
 
@@ -187,6 +209,7 @@ enum mcc_ast_literal_type {
 	MCC_AST_LITERAL_TYPE_INT,
 	MCC_AST_LITERAL_TYPE_FLOAT,
 	MCC_AST_LITERAL_TYPE_BOOL,
+	MCC_AST_LITERAL_TYPE_STRING,
 };
 
 struct mcc_ast_literal {
@@ -202,12 +225,19 @@ struct mcc_ast_literal {
 
 		// MCC_AST_LITERAL_TYPE_BOOL
 		bool bool_value;
+
+		// MCC_AST_LITERAL_TYPE_STRING
+		char* string_value;
 	};
 };
 
 struct mcc_ast_literal *mcc_ast_new_literal_int(long value);
 
 struct mcc_ast_literal *mcc_ast_new_literal_float(double value);
+
+struct mcc_ast_literal *mcc_ast_new_literal_string(char* value);
+
+char* mcc_remove_quotes_from_string(char* string);
 
 struct mcc_ast_literal *mcc_ast_new_literal_bool(bool value);
 

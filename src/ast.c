@@ -223,6 +223,37 @@ void mcc_ast_delete_array_declaration(struct mcc_ast_array_declaration* array_de
 	free(array_decl);
 }
 
+// ------------------------------------------------------------------ Assignments
+
+
+struct mcc_ast_variable_assignment *mcc_ast_new_variable_assignment (char *identifier, struct mcc_ast_expression *assigned_value){
+	assert(identifier);
+	assert(assigned_value);
+	struct mcc_ast_variable_assignment *variable_assignment = malloc(sizeof(*variable_assignment));
+	if(variable_assignment == NULL){
+		return NULL;
+	}
+	variable_assignment->identifier = mcc_ast_new_identifier(identifier);
+	variable_assignment->assigned_value = assigned_value;
+	return variable_assignment;
+}
+
+
+struct mcc_ast_array_assignment *mcc_ast_new_array_assignment (char *identifier, struct mcc_ast_expression *index, struct mcc_ast_expression *assigned_value){
+
+	assert(identifier);
+	assert(assigned_value);
+	assert(index);
+	struct mcc_ast_array_assignment *array_assignment = malloc(sizeof(sizeof(*array_assignment)));
+	if(array_assignment == NULL){
+		return NULL;
+	}
+	array_assignment->identifier = mcc_ast_new_identifier(identifier);
+	array_assignment->assigned_value = assigned_value;
+	array_assignment->index = index;
+	return array_assignment;
+}
+
 // ------------------------------------------------------------------ Identifier
 
 
@@ -273,6 +304,30 @@ struct mcc_ast_literal *mcc_ast_new_literal_float(double value)
 	return lit;
 }
 
+struct mcc_ast_literal *mcc_ast_new_literal_string(char* value)
+{
+	struct mcc_ast_literal *lit = malloc(sizeof(*lit));
+	if (!lit) {
+		return NULL;
+	}
+
+	lit->type = MCC_AST_LITERAL_TYPE_STRING;
+	lit->string_value = mcc_remove_quotes_from_string(value);
+
+
+	return lit;
+}
+
+char* mcc_remove_quotes_from_string(char* string){
+
+	assert(string);
+	char* intermediate = (char*) malloc (strlen(string)*sizeof(char));
+	strncpy (intermediate, string+1, strlen(string)-2);
+	return intermediate;
+
+}
+
+
 struct mcc_ast_literal *mcc_ast_new_literal_bool(bool value)
 {
 	struct mcc_ast_literal *lit = malloc(sizeof(*lit));
@@ -288,5 +343,8 @@ struct mcc_ast_literal *mcc_ast_new_literal_bool(bool value)
 void mcc_ast_delete_literal(struct mcc_ast_literal *literal)
 {
 	assert(literal);
+	if(literal->type == MCC_AST_LITERAL_TYPE_STRING){
+		free(literal->string_value);
+	}
 	free(literal);
 }
