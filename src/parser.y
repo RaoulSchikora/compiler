@@ -84,8 +84,8 @@ void mcc_parser_error();
 toplevel : TILDE unit_test TILDE {}
          ;
 
-unit_test  : expression { result->expression = $1; }
-	   | variable_declaration { result->variable_declaration = $1; }
+unit_test  : expression { result->expression = $1;  }
+	   | variable_declaration { result->variable_declaration = $1;}
 	   ;
 
 expression : literal                      { $$ = mcc_ast_new_expression_literal($1);                              loc($$, @1); }
@@ -167,8 +167,6 @@ struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_par
 		strcpy (input,input_string);
 	}
 
-	// DEBUG:
-	printf("handing string %s to the parser.\n",input);
 
 
 	FILE *in = fmemopen((void *)input, strlen(input), "r");
