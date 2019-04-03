@@ -262,13 +262,13 @@ void VariableDeclaration(CuTest *tc){
 	CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
 
 
-	// struct mcc_ast_variable_declaration *decl = result.variable_declaration;
+	struct mcc_ast_variable_declaration *decl = result.variable_declaration;
 
 	// root -> identifier -> identifier_name
-	//CuAssertStrEquals(tc, "a", decl->identifier->identifier_name);
+	CuAssertStrEquals(tc, "a", decl->identifier->identifier_name);
 
 	// root -> type -> type_value
-	// CuAssertIntEquals(tc, FLOAT, decl->type->type_value);
+	CuAssertIntEquals(tc, FLOAT, decl->type->type_value);
 
 
 }
