@@ -145,6 +145,7 @@ void mcc_parser_error(struct MCC_PARSER_LTYPE *yylloc, yyscan_t *scanner, const 
 struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_parser_entry_point entry_point)
 {
 	assert(input_string);
+	char* input;
 
 	if (entry_point != MCC_PARSER_ENTRY_POINT_PROGRAM){
 		char* input = mcc_transform_into_unit_test(input_string);
@@ -152,7 +153,7 @@ struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_par
 		char* input = malloc (sizeof(*input_string));
 		if(!input){
 			return (struct mcc_parser_result){
-				.status = MCC_PARSER_STATUS_UNKNOWN_ERROR;
+				.status = MCC_PARSER_STATUS_UNKNOWN_ERROR,
 			};
 		}
 		strcpy (input, input_string);
