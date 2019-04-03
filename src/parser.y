@@ -40,8 +40,11 @@ void mcc_parser_error();
 
 %token <long>   INT_LITERAL   "integer literal"
 %token <double> FLOAT_LITERAL "float literal"
-%token <char*> 	IDENTIFIER    "identifier"
 %token <bool>   BOOL_LITERAL  "bool literal"
+%token <char*> 	STRING_LITERAL"string literal"
+
+
+%token <char*> 	IDENTIFIER    "identifier"
 
 %token <enum mcc_ast_types> TYPE "type"
 
@@ -116,9 +119,10 @@ variable_declaration : TYPE IDENTIFIER { $$ = mcc_ast_new_variable_declaration($
 array_declaration : TYPE SQUARE_OPEN INT_LITERAL SQUARE_CLOSE IDENTIFIER { $$ = mcc_ast_new_array_declaration($1, mcc_ast_new_literal_int($3), $5); loc($$, @1);}
 		  ;
 
-literal : INT_LITERAL   { $$ = mcc_ast_new_literal_int($1);   loc($$, @1); }
-        | FLOAT_LITERAL { $$ = mcc_ast_new_literal_float($1); loc($$, @1); }
-        | BOOL_LITERAL  { $$ = mcc_ast_new_literal_bool($1);  loc($$, @1); }
+literal : INT_LITERAL    { $$ = mcc_ast_new_literal_int($1);   loc($$, @1); }
+        | FLOAT_LITERAL  { $$ = mcc_ast_new_literal_float($1); loc($$, @1); }
+        | BOOL_LITERAL   { $$ = mcc_ast_new_literal_bool($1);  loc($$, @1); }
+        | STRING_LITERAL { $$ = mcc_ast_new_literal_string($1);  loc($$, @1);  }
         ;
 
 %%

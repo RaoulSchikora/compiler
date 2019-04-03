@@ -24,15 +24,18 @@
 	yylloc->last_column += yyleng;
 %}
 
-identifier    [a-zA-Z_][a-zA-Z0-9_]*
-int_literal   [0-9]+
-float_literal [0-9]+\.[0-9]+
+identifier     [a-zA-Z_][a-zA-Z0-9_]*
+int_literal    [0-9]+
+float_literal  [0-9]+\.[0-9]+
+string_literal \"[^"]*\"
 
 %%
 
 {int_literal}     { yylval->TK_INT_LITERAL = atol(yytext); return TK_INT_LITERAL; }
 
 {float_literal}   { yylval->TK_FLOAT_LITERAL = atof(yytext); return TK_FLOAT_LITERAL; }
+
+{string_literal}  { yylval->TK_STRING_LITERAL = strdup(yytext); return TK_STRING_LITERAL; }
 
 "true"    { yylval->TK_BOOL_LITERAL = true; return TK_BOOL_LITERAL; }
 "false"   { yylval->TK_BOOL_LITERAL = false; return TK_BOOL_LITERAL; }
@@ -41,6 +44,7 @@ float_literal [0-9]+\.[0-9]+
 "float"   { yylval->TK_TYPE = FLOAT; return TK_TYPE;}
 "bool"    { yylval->TK_TYPE = BOOL; return TK_TYPE;}
 "string"  { yylval->TK_TYPE = STRING; return TK_TYPE;}
+
 
 {identifier}      { yylval->TK_IDENTIFIER = strdup(yytext); return TK_IDENTIFIER; }
 
@@ -66,6 +70,7 @@ float_literal [0-9]+\.[0-9]+
 
 "("               { return TK_LPARENTH; }
 ")"               { return TK_RPARENTH; }
+
 
 [ \t\r\n]+        { /* ignore */ }
 
