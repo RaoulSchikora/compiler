@@ -69,6 +69,8 @@ float_literal [0-9]+\.[0-9]+
 
 [ \t\r\n]+        { /* ignore */ }
 
+"~"               { return TK_TILDE /*only for UnitTest purpose*/ }
+
 <<EOF>>           { return TK_END; }
 
 .                 { fprintf(stderr, "invalid character '%c'\n", yytext[0]); }

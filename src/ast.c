@@ -109,34 +109,34 @@ struct mcc_ast_expression *mcc_ast_new_expression_array_element(char* identifier
 
 	return expr;
 
-}
 
+}
 
 void mcc_ast_delete_expression(struct mcc_ast_expression *expression)
 {
 	assert(expression);
 
 	switch (expression->type) {
-		case MCC_AST_EXPRESSION_TYPE_LITERAL:
-			mcc_ast_delete_literal(expression->literal);
-			break;
+	case MCC_AST_EXPRESSION_TYPE_LITERAL:
+		mcc_ast_delete_literal(expression->literal);
+		break;
 
-		case MCC_AST_EXPRESSION_TYPE_BINARY_OP:
-			mcc_ast_delete_expression(expression->lhs);
-			mcc_ast_delete_expression(expression->rhs);
-			break;
+	case MCC_AST_EXPRESSION_TYPE_BINARY_OP:
+		mcc_ast_delete_expression(expression->lhs);
+		mcc_ast_delete_expression(expression->rhs);
+		break;
 
-		case MCC_AST_EXPRESSION_TYPE_PARENTH:
-			mcc_ast_delete_expression(expression->expression);
-			break;
+	case MCC_AST_EXPRESSION_TYPE_PARENTH:
+		mcc_ast_delete_expression(expression->expression);
+		break;
 
-		case MCC_AST_EXPRESSION_TYPE_UNARY_OP:
-			mcc_ast_delete_expression(expression->child);
-			break;
+    case MCC_AST_EXPRESSION_TYPE_UNARY_OP:
+        mcc_ast_delete_expression(expression->child);
+        break;
 
-		case MCC_AST_EXPRESSION_TYPE_VARIABLE:
-			mcc_ast_delete_identifier(expression->identifier);
-			break;
+	case MCC_AST_EXPRESSION_TYPE_VARIABLE:
+		mcc_ast_delete_identifier(expression->identifier);
+		break;
 
 		case MCC_AST_EXPRESSION_TYPE_ARRAY_ELEMENT:
 			mcc_ast_delete_identifier(expression->array_identifier);

@@ -319,6 +319,26 @@ void NestedExpression_1(CuTest *tc)
 	mcc_ast_delete(expr);
 }
 
+/*void if_stmt_1(CuTest *tc)
+{
+	const char input[] = "if ( true ) 2 " ;
+	struct mcc_parser_result result = mcc_parse_string(input);
+
+	CuAssertTrue(tc, MCC_PARSER_STATUS_OK == result.status);
+
+	struct mcc_ast_statement *stmt = result.statement;
+
+	// root
+	CuAssertIntEquals(tc, MCC_AST_STATEMENT_TYPE_IF_STMT, stmt.type);
+
+	// root -> cond
+	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_LITERAL, stmt->cond);
+
+	// root -> on_true
+	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_LITERAL, stmt->on_true);
+	CuAssertIntEquals(tc, 2, stmt->on_true->literal->i_value);
+}*/
+
 void MissingClosingParenthesis_1(CuTest *tc)
 {
 	// TODO: fix memory leak
@@ -353,7 +373,6 @@ void SourceLocation_SingleLineColumn(CuTest *tc)
 
 	mcc_ast_delete(expr);
 }
-
 
 void UnaryOp_1(CuTest *tc)
 {
