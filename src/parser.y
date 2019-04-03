@@ -76,6 +76,7 @@ void mcc_parser_error();
 %type <struct mcc_ast_expression *> expression
 %type <struct mcc_ast_literal *> literal
 %type <struct mcc_ast_variable_declaration *> variable_declaration
+%type <struct mcc_ast_array_declaration *> array_declaration
 
 %start toplevel
 
@@ -86,6 +87,7 @@ toplevel : TILDE unit_test TILDE {}
 
 unit_test  : expression { result->expression = $1;  }
 	   | variable_declaration { result->variable_declaration = $1;}
+	   | array_declaration {result->array_declaration = $1;}
 	   ;
 
 expression : literal                      { $$ = mcc_ast_new_expression_literal($1);                              loc($$, @1); }
@@ -110,6 +112,9 @@ expression : literal                      { $$ = mcc_ast_new_expression_literal(
 
 variable_declaration : TYPE IDENTIFIER { $$ = mcc_ast_new_variable_declaration($1,$2); loc ($$, @1);}
 	    	     ;
+
+array_declaration : TYPE SQUARE_OPEN INT_LITERAL SQUARE_CLOSE IDENTIFIER { $$ = mcc_ast_new_array_declaration($1, $3, $5); loc($$, @1);}
+		  ;
 
 literal : INT_LITERAL   { $$ = mcc_ast_new_literal_int($1);   loc($$, @1); }
         | FLOAT_LITERAL { $$ = mcc_ast_new_literal_float($1); loc($$, @1); }
@@ -177,7 +182,7 @@ struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_par
 	}
 
 
-	struct mcc_parser_result result = mcc_parse_file(in,entry_point);
+	struct mcc_parser_result result = mcc_parse_file(in);
 
 	free(input);
 
@@ -186,7 +191,7 @@ struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_par
 	return result;
 }
 
-struct mcc_parser_result mcc_parse_file(FILE *input, enum mcc_parser_entry_point entry_point)
+struct mcc_parser_result mcc_parse_file(FILE *input)
 {
 	assert(input);
 
@@ -199,21 +204,10 @@ struct mcc_parser_result mcc_parse_file(FILE *input, enum mcc_parser_entry_point
 	};
 
 
-	switch (entry_point) {
-
-	case MCC_PARSER_ENTRY_POINT_EXPRESSION:
-		if (yyparse(scanner, &result) != 0) {
-			result.status = MCC_PARSER_STATUS_UNKNOWN_ERROR;
-		}
-		break;
-
-	case MCC_PARSER_ENTRY_POINT_VARIABLE_DECLARATION:
-		if (yyparse(scanner, &result) != 0) {
-			result.status = MCC_PARSER_STATUS_UNKNOWN_ERROR;
-		}
-		break;
-
+	if (yyparse(scanner, &result) != 0) {
+		result.status = MCC_PARSER_STATUS_UNKNOWN_ERROR;
 	}
+
 	mcc_parser_lex_destroy(scanner);
 
 	return result;

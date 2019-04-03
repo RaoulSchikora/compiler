@@ -155,6 +155,23 @@ struct mcc_ast_variable_declaration *mcc_ast_new_variable_declaration(enum mcc_a
 
 void mcc_ast_delete_variable_declaration(struct mcc_ast_variable_declaration* decl);
 
+struct mcc_ast_array_declaration{
+
+	struct mcc_ast_node node;
+
+	struct{
+	    struct mcc_ast_literal *size;
+		struct mcc_ast_type *type;
+		struct mcc_ast_identifier *identifier;
+	};
+
+};
+
+struct mcc_ast_array_declaration *mcc_ast_new_array_declaration(enum mcc_ast_types type, struct mcc_ast_literal* size, char* identifier);
+
+void mcc_ast_delete_array_declaration(struct mcc_ast_array_declaration* array_decl);
+
+
 //-------------------------------------------------------------------- Identifier
 
 struct mcc_ast_identifier{

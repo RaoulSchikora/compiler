@@ -23,6 +23,7 @@ enum mcc_parser_entry_point{
     MCC_PARSER_ENTRY_POINT_EXPRESSION,
     MCC_PARSER_ENTRY_POINT_VARIABLE_DECLARATION,
     MCC_PARSER_ENTRY_POINT_PROGRAM,
+	MCC_PARSER_ENTRY_POINT_ARRAY_DECLARATION,
 };
 
 struct mcc_parser_result {
@@ -33,12 +34,14 @@ struct mcc_parser_result {
 		struct mcc_ast_expression *expression;
 		// MCC_PARSER_ENTRY_POINT_VARIABLE_DECLARATION
 		struct mcc_ast_variable_declaration *variable_declaration;
+		// MCC_PARSER_ENTRY_POINT_ARRAY_DECLARATION
+		struct mcc_ast_array_declaration *array_declaration;
 	};
 };
 
 struct mcc_parser_result mcc_parse_string(const char *input, enum mcc_parser_entry_point entry_point);
 
-struct mcc_parser_result mcc_parse_file(FILE *input, enum mcc_parser_entry_point entry_point);
+struct mcc_parser_result mcc_parse_file(FILE *input);
 
 void mcc_transform_into_unit_test (const char* in, char* out );
 

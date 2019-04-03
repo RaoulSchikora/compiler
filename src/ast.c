@@ -194,6 +194,34 @@ void mcc_ast_delete_variable_declaration(struct mcc_ast_variable_declaration* de
     free(decl);
 }
 
+struct mcc_ast_array_declaration *mcc_ast_new_array_declaration(enum mcc_ast_types type, struct mcc_ast_literal* size, char* identifier){
+
+	assert(identifier);
+	assert(size);
+
+	struct mcc_ast_array_declaration *array_decl = malloc (sizeof(*array_decl));
+	if (!array_decl) {
+		return NULL;
+	}
+
+	struct mcc_ast_identifier *id = mcc_ast_new_identifier(identifier);
+
+	struct mcc_ast_type *newtype = mcc_ast_new_type(type);
+
+	array_decl->type = newtype;
+	array_decl->identifier = id;
+	array_decl->size = size;
+
+	return array_decl;
+}
+
+void mcc_ast_delete_array_declaration(struct mcc_ast_array_declaration* array_decl){
+	assert(array_decl);
+	mcc_ast_delete_identifier(array_decl->identifier);
+	mcc_ast_delete_type(array_decl->type);
+	mcc_ast_delete_literal(array_decl->size);
+	free(array_decl);
+}
 
 // ------------------------------------------------------------------ Identifier
 

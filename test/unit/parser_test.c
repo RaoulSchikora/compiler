@@ -270,7 +270,6 @@ void VariableDeclaration(CuTest *tc){
 	// root -> type -> type_value
 	CuAssertIntEquals(tc, FLOAT, decl->type->type_value);
 
-
 }
 
 void NestedExpression_1(CuTest *tc)
