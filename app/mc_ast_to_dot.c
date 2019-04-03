@@ -92,11 +92,11 @@ int main(int argc, char *argv[])
 			input = stdinToString();
 			ast_to_dot_mode = MCC_AST_TO_DOT_MODE_EXPRESSION;
 		} else if (strcmp("-v", argv[1]) == 0){
-			input = stdinToString();
-			ast_to_dot_mode = MCC_AST_TO_DOT_MODE_VARIABLE_DECLARATION;
+//			input = stdinToString();
+//			ast_to_dot_mode = MCC_AST_TO_DOT_MODE_VARIABLE_DECLARATION;
 		} else {
-            input = fileToString(argv[1]);
-            ast_to_dot_mode = MCC_AST_TO_DOT_MODE_PROGRAM;
+//            input = fileToString(argv[1]);
+//            ast_to_dot_mode = MCC_AST_TO_DOT_MODE_PROGRAM;
             }
     } else if (argc == 3) {
         if (strcmp("-h", argv[1]) == 0 || strcmp("--help", argv[1]) == 0){
@@ -106,8 +106,8 @@ int main(int argc, char *argv[])
             input = fileToString(argv[2]);
             ast_to_dot_mode = MCC_AST_TO_DOT_MODE_EXPRESSION;
         } else if (strcmp("-v", argv[1]) == 0){
-            input = fileToString(argv[2]);
-            ast_to_dot_mode = MCC_AST_TO_DOT_MODE_VARIABLE_DECLARATION;
+//            input = fileToString(argv[2]);
+//            ast_to_dot_mode = MCC_AST_TO_DOT_MODE_VARIABLE_DECLARATION;
         } else {
             print_usage(argv[0]);
             return EXIT_FAILURE;
