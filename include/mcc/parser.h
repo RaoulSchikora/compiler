@@ -30,7 +30,7 @@ struct mcc_parser_result {
 	union{
 	    // MCC_PARSER_ENTRY_POINT_EXPRESSION
 		struct mcc_ast_expression *expression;
-		// MCC_PARSER_ENTRY_POINT_VARIABLE_EXPRESSION
+		// MCC_PARSER_ENTRY_POINT_VARIABLE_DECLARATION
 		struct mcc_ast_variable_declaration *variable_declaration;
 	};
 };

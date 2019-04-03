@@ -11,7 +11,7 @@ static const double EPS = 1e-3;
 void BinaryOp_1(CuTest *tc)
 {
 	const char input[] = "192 + 3.14";
-	struct mcc_parser_result result = mcc_parse_string(input);
+	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_EXPRESSION);
 
 	CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
 
@@ -41,7 +41,7 @@ void BinaryOp_1(CuTest *tc)
 void BinaryOp_2(CuTest *tc)
 {
 	const char input[] = "192 - 3.14";
-	struct mcc_parser_result result = mcc_parse_string(input);
+	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_EXPRESSION);
 
 	CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
 
@@ -71,7 +71,7 @@ void BinaryOp_2(CuTest *tc)
 void BinaryOp_3(CuTest *tc)
 {
     const char input[] = "2 < 3";
-    struct mcc_parser_result result = mcc_parse_string(input);
+    struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_EXPRESSION);
 
     CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
 
@@ -101,7 +101,7 @@ void BinaryOp_3(CuTest *tc)
 void BinaryOp_4(CuTest *tc)
 {
     const char input[] = "((true || false) && (true != false)) == true";
-    struct mcc_parser_result result = mcc_parse_string(input);
+    struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_EXPRESSION);
 
     CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
 
@@ -159,7 +159,7 @@ void BinaryOp_4(CuTest *tc)
 void BinaryPrecedenceAssociativity(CuTest *tc)
 {
     const char input[] = "2 < 3 + 4 || true";
-    struct mcc_parser_result result = mcc_parse_string(input);
+    struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_EXPRESSION);
 
     CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
 
@@ -202,7 +202,7 @@ void BinaryPrecedenceAssociativity(CuTest *tc)
 void Variable(CuTest *tc)
 {
 	const char input[] = "teststring";
-	struct mcc_parser_result result = mcc_parse_string(input);
+	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_EXPRESSION);
 
 	CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
 
@@ -221,7 +221,7 @@ void Variable(CuTest *tc)
 void Array_Element(CuTest *tc){
 
 	const char input[] = "test [2.3 + 3]";
-	struct mcc_parser_result result = mcc_parse_string(input);
+	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_EXPRESSION);
 
 	CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
 
@@ -257,7 +257,7 @@ void Array_Element(CuTest *tc){
 
 void VariableDeclaration(CuTest *tc){
 	const char input[] = "float a";
-	struct mcc_parser_result result = mcc_parse_string(input);
+	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_VARIABLE_DECLARATION);
 
 	CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
 
@@ -276,7 +276,7 @@ void VariableDeclaration(CuTest *tc){
 void NestedExpression_1(CuTest *tc)
 {
 	const char input[] = "42 * (192 + 3.14)";
-	struct mcc_parser_result result = mcc_parse_string(input);
+	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_EXPRESSION);
 
 	CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
 
@@ -322,7 +322,7 @@ void NestedExpression_1(CuTest *tc)
 /*void if_stmt_1(CuTest *tc)
 {
 	const char input[] = "if ( true ) 2 " ;
-	struct mcc_parser_result result = mcc_parse_string(input);
+	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_STATEMENT);
 
 	CuAssertTrue(tc, MCC_PARSER_STATUS_OK == result.status);
 
@@ -344,7 +344,7 @@ void MissingClosingParenthesis_1(CuTest *tc)
 	// TODO: fix memory leak
 
 	const char input[] = "(42";
-	struct mcc_parser_result result = mcc_parse_string(input);
+	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_EXPRESSION);
 
 	CuAssertTrue(tc, MCC_PARSER_STATUS_OK != result.status);
 	CuAssertTrue(tc, NULL == result.expression);
@@ -353,7 +353,7 @@ void MissingClosingParenthesis_1(CuTest *tc)
 void SourceLocation_SingleLineColumn(CuTest *tc)
 {
 	const char input[] = "(42 + 192)";
-	struct mcc_parser_result result = mcc_parse_string(input);
+	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_EXPRESSION);
 
 	CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
 
@@ -377,7 +377,7 @@ void SourceLocation_SingleLineColumn(CuTest *tc)
 void UnaryOp_1(CuTest *tc)
 {
     const char input[] = "-2";
-    struct mcc_parser_result result = mcc_parse_string(input);
+    struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_EXPRESSION);
 
     CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
 
@@ -399,7 +399,7 @@ void UnaryOp_1(CuTest *tc)
 void UnaryOp_2(CuTest *tc)
 {
     const char input[] = "!false";
-    struct mcc_parser_result result = mcc_parse_string(input);
+    struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_EXPRESSION);
 
     CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
 
