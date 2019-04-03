@@ -20,17 +20,17 @@ enum mcc_parser_status {
 };
 
 enum mcc_parser_entry_point{
-    MCC_PARSER_ENTRY_EXPRESSION,
-    MCC_PARSER_ENRTY_VARIABLE_DECLARATION,
+    MCC_PARSER_ENTRY_POINT_EXPRESSION,
+    MCC_PARSER_ENRTY_POINT_VARIABLE_DECLARATION,
 };
 
 struct mcc_parser_result {
 	enum mcc_parser_status status;
 
 	union{
-	    // MCC_PARSER_ENTRY_EXPRESSION
+	    // MCC_PARSER_ENTRY_POINT_EXPRESSION
 		struct mcc_ast_expression *expression;
-		// MCC_PARSER_ENTRY_VARIABLE_EXPRESSION
+		// MCC_PARSER_ENTRY_POINT_VARIABLE_EXPRESSION
 		struct mcc_ast_variable_declaration *variable_declaration;
 	};
 };
