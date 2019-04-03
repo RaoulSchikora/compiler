@@ -178,9 +178,10 @@ struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_par
 		};
 	}
 
-	free(input);
 
 	struct mcc_parser_result result = mcc_parse_file(in,entry_point);
+
+	free(input);
 
 	fclose(in);
 
