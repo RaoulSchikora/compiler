@@ -289,6 +289,7 @@ struct mcc_ast_literal *mcc_ast_new_literal_string(char* value)
 
 char* mcc_remove_quotes_from_string(char* string){
 
+	assert(string);
 	char* intermediate = (char*) malloc (strlen(string)*sizeof(char));
 	strncpy (intermediate, string+1, strlen(string)-2);
 	return intermediate;
