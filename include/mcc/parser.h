@@ -22,6 +22,7 @@ enum mcc_parser_status {
 enum mcc_parser_entry_point{
     MCC_PARSER_ENTRY_POINT_EXPRESSION,
     MCC_PARSER_ENRTY_POINT_VARIABLE_DECLARATION,
+    MCC_PARSER_ENTRY_POINT_PROGRAM,
 };
 
 struct mcc_parser_result {
