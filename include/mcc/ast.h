@@ -14,6 +14,7 @@
 #define MCC_AST_H
 
 #include <stdbool.h>
+#include <string.h>
 // ------------------------------------------------------------------- AST Node
 
 struct mcc_ast_source_location {
@@ -214,6 +215,8 @@ struct mcc_ast_literal *mcc_ast_new_literal_int(long value);
 struct mcc_ast_literal *mcc_ast_new_literal_float(double value);
 
 struct mcc_ast_literal *mcc_ast_new_literal_string(char* value);
+
+char* mcc_remove_quotes_from_string(char* string);
 
 struct mcc_ast_literal *mcc_ast_new_literal_bool(bool value);
 

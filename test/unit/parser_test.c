@@ -440,6 +440,27 @@ void UnaryOp_2(CuTest *tc)
     mcc_ast_delete(expr);
 }
 
+void StringLiteral(CuTest *tc)
+{
+    const char input[] = "\"hallo ich bin ein test string\"";
+	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_EXPRESSION);
+
+	CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
+
+	struct mcc_ast_expression *expr = result.expression;
+
+    //root -> type
+    CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_LITERAL, expr->type);
+
+	//root -> literal
+	CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_STRING, expr->literal->type);
+	CuAssertStrEquals(tc, "hallo ich bin ein test string", expr->literal->string_value);
+
+	mcc_ast_delete(expr);
+
+
+}
+
 #define TESTS \
 	TEST(BinaryOp_1) \
 	TEST(BinaryOp_2) \
@@ -454,7 +475,8 @@ void UnaryOp_2(CuTest *tc)
 	TEST(Variable) \
 	TEST(Array_Element) \
 	TEST(VariableDeclaration) \
-	TEST(ArrayDeclaration)
+	TEST(ArrayDeclaration) \
+	TEST(StringLiteral)
 
 #include "main_stub.inc"
 #undef TESTS

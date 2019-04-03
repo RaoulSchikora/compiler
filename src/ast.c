@@ -281,8 +281,18 @@ struct mcc_ast_literal *mcc_ast_new_literal_string(char* value)
 	}
 
 	lit->type = MCC_AST_LITERAL_TYPE_STRING;
-	lit->string_value = value;
+	lit->string_value = mcc_remove_quotes_from_string(value);
+
+
 	return lit;
+}
+
+char* mcc_remove_quotes_from_string(char* string){
+
+	char* intermediate = (char*) malloc (strlen(string)*sizeof(char));
+	strncpy (intermediate, string+1, strlen(string)-2);
+	return intermediate;
+
 }
 
 
@@ -301,5 +311,8 @@ struct mcc_ast_literal *mcc_ast_new_literal_bool(bool value)
 void mcc_ast_delete_literal(struct mcc_ast_literal *literal)
 {
 	assert(literal);
+	if(literal->type == MCC_AST_LITERAL_TYPE_STRING){
+		free(literal->string_value);
+	}
 	free(literal);
 }
