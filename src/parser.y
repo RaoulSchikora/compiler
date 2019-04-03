@@ -213,6 +213,39 @@ struct mcc_parser_result mcc_parse_file(FILE *input)
 	return result;
 }
 
+struct mcc_parser_result mcc_parse_file_enum(FILE *input, enum mcc_parser_entry_point entry_point)
+{
+	assert(input);
+
+	yyscan_t scanner;
+	mcc_parser_lex_init(&scanner);
+	mcc_parser_set_in(input, scanner);
+
+	struct mcc_parser_result result = {
+	    .status = MCC_PARSER_STATUS_OK,
+	};
+
+
+	switch (entry_point) {
+
+	case MCC_PARSER_ENTRY_POINT_EXPRESSION:
+		if (yyparse(scanner, &result) != 0) {
+			result.status = MCC_PARSER_STATUS_UNKNOWN_ERROR;
+		}
+		break;
+
+	case MCC_PARSER_ENTRY_POINT_VARIABLE_DECLARATION:
+		if (yyparse(scanner, &result) != 0) {
+			result.status = MCC_PARSER_STATUS_UNKNOWN_ERROR;
+		}
+		break;
+
+	}
+	mcc_parser_lex_destroy(scanner);
+
+	return result;
+}
+
 // TODO: transfer allocation into function
 
 void mcc_transform_into_unit_test (const char* in, char* out ) {
