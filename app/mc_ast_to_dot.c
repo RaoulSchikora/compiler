@@ -11,6 +11,7 @@
 
 enum mcc_ast_to_dot_mode{
     MCC_AST_TO_DOT_MODE_EXPRESSION,
+    MCC_AST_TO_DOT_MODE_STATEMENT,
 //    MCC_AST_TO_DOT_MODE_PROGRAM,
 //    MCC_AST_TO_DOT_MODE_VARIABLE_DECLARATION,
 };
@@ -94,7 +95,10 @@ int main(int argc, char *argv[])
 		} else if (strcmp("-v", argv[1]) == 0){
 //			input = stdinToString();
 //			ast_to_dot_mode = MCC_AST_TO_DOT_MODE_VARIABLE_DECLARATION;
-		} else {
+		} else if (strcmp("-s", argv[1]) == 0){
+            input = stdinToString();
+            ast_to_dot_mode = MCC_AST_TO_DOT_MODE_STATEMENT;
+		}else {
 //            input = fileToString(argv[1]);
 //            ast_to_dot_mode = MCC_AST_TO_DOT_MODE_PROGRAM;
             }
@@ -108,34 +112,61 @@ int main(int argc, char *argv[])
         } else if (strcmp("-v", argv[1]) == 0){
 //            input = fileToString(argv[2]);
 //            ast_to_dot_mode = MCC_AST_TO_DOT_MODE_VARIABLE_DECLARATION;
+        } else if (strcmp("-s", argv[1]) == 0){
+            input = fileToString(argv[2]);
+            ast_to_dot_mode = MCC_AST_TO_DOT_MODE_STATEMENT;
         } else {
             print_usage(argv[0]);
             return EXIT_FAILURE;
-        }
+            }
     } else {
 	    input = "fail";
+	    printf(input);
+        print_usage(argv[0]);
+        return EXIT_FAILURE;
 	}
 
-	switch (ast_to_dot_mode){
-	// MCC_PASER_ENTRY_POINT_EXPRESSION
-	case MCC_AST_TO_DOT_MODE_EXPRESSION: ;
-	    struct mcc_ast_expression *expr = NULL;
+	switch (ast_to_dot_mode) {
+    // MCC_PASER_ENTRY_POINT_EXPRESSION
+    case MCC_AST_TO_DOT_MODE_EXPRESSION:;
+        struct mcc_ast_expression *expr = NULL;
 
-	// parsing phase
-	{
-		struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_EXPRESSION);
-		if (result.status != MCC_PARSER_STATUS_OK) {
-			return EXIT_FAILURE;
-		}
-		expr = result.expression;
-	}
+        // parsing phase
+        {
+            struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_EXPRESSION);
+            if (result.status != MCC_PARSER_STATUS_OK) {
+                return EXIT_FAILURE;
+            }
+            expr = result.expression;
+        }
 
-    	mcc_ast_print_dot(stdout, expr);
+        mcc_ast_print_dot(stdout, expr);
 
-	    // cleanup
-	    mcc_ast_delete(expr);
+        // cleanup
+        mcc_ast_delete(expr);
 
-	    return EXIT_SUCCESS;
+        return EXIT_SUCCESS;
+    // MCC_PASER_ENTRY_POINT_STATEMENT
+    case MCC_AST_TO_DOT_MODE_STATEMENT: ;
+
+        struct mcc_ast_statement *stmt = NULL;
+
+        // parsing phase
+        {
+            struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_STATEMENT);
+            if (result.status != MCC_PARSER_STATUS_OK) {
+                return EXIT_FAILURE;
+            }
+            stmt = result.statement;
+        }
+
+        mcc_ast_print_dot(stdout, stmt);
+
+        // cleanup
+        mcc_ast_delete(stmt);
+
+        return EXIT_SUCCESS;
+    }
 
 	    //TODO: below
 //	case MCC_AST_TO_DOT_MODE_VARIABLE_DECLARATION: ;
@@ -176,5 +207,5 @@ int main(int argc, char *argv[])
 //		mcc_ast_delete(program);
 //
 //		return EXIT_SUCCESS;
-	}
+//	}
 }

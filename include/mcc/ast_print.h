@@ -16,12 +16,15 @@ const char *mcc_ast_print_binary_op(enum mcc_ast_binary_op op);
 
 void mcc_ast_print_dot_expression(FILE *out, struct mcc_ast_expression *expression);
 
+void mcc_ast_print_dot_statement(FILE *out, struct mcc_ast_statement *statement);
+
 void mcc_ast_print_dot_literal(FILE *out, struct mcc_ast_literal *literal);
 
 // clang-format off
 
 #define mcc_ast_print_dot(out, x) _Generic((x), \
 		struct mcc_ast_expression *: mcc_ast_print_dot_expression, \
+		struct mcc_ast_statement *: mcc_ast_print_dot_statement, \
 		struct mcc_ast_literal *:    mcc_ast_print_dot_literal \
 	)(out, x)
 

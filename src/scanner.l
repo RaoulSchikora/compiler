@@ -47,8 +47,6 @@ string_literal \"[^"]*\"
 "string"  { yylval->TK_TYPE = STRING; return TK_TYPE;}
 
 
-{identifier}      { yylval->TK_IDENTIFIER = strdup(yytext); return TK_IDENTIFIER; }
-
 "+"               { return TK_PLUS; }
 "-"               { return TK_MINUS; }
 "*"               { return TK_ASTER; }
@@ -75,6 +73,8 @@ string_literal \"[^"]*\"
 
 "if"              { return TK_IF; }
 "else"            { return TK_ELSE; }
+
+{identifier}      { yylval->TK_IDENTIFIER = strdup(yytext); return TK_IDENTIFIER; }
 
 ";"               { return TK_SEMICOLON; }
 

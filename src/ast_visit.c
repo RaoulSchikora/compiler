@@ -59,6 +59,35 @@ void mcc_ast_visit_expression(struct mcc_ast_expression *expression, struct mcc_
 	visit_if_post_order(expression, visitor->expression, visitor);
 }
 
+void mcc_ast_visit_statement(struct mcc_ast_statement *statement, struct mcc_ast_visitor *visitor)
+{
+	assert(statement);
+	assert(visitor);
+
+	visit_if_pre_order(statement, visitor->statement, visitor);
+
+	switch(statement->type) {
+	case MCC_AST_STATEMENT_TYPE_IF_STMT:
+		visit_if_pre_order(statement, visitor->statement_if_stmt, visitor);
+		mcc_ast_visit(statement->if_condition, visitor);
+		mcc_ast_visit(statement->if_on_true, visitor);
+		visit_if_post_order(statement, visitor->statement_if_stmt, visitor);
+		break;
+	case MCC_AST_STATEMENT_TYPE_IF_ELSE_STMT:
+		visit_if_pre_order(statement, visitor->statement_if_else_stmt, visitor);
+		mcc_ast_visit(statement->if_else_condition, visitor);
+		mcc_ast_visit(statement->if_else_on_true, visitor);
+		mcc_ast_visit(statement->if_else_on_false, visitor);
+		visit_if_post_order(statement, visitor->statement_if_else_stmt, visitor);
+		break;
+	case MCC_AST_STATEMENT_TYPE_EXPRESSION:
+		visit_if_pre_order(statement, visitor->statement_expression_stmt, visitor);
+		mcc_ast_visit(statement->stmt_expression, visitor);
+		visit_if_post_order(statement, visitor->statement_expression_stmt, visitor);
+		break;
+	}
+}
+
 void mcc_ast_visit_literal(struct mcc_ast_literal *literal, struct mcc_ast_visitor *visitor)
 {
 	assert(literal);

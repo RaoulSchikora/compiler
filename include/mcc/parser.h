@@ -52,8 +52,6 @@ struct mcc_parser_result mcc_parse_string(const char *input, enum mcc_parser_ent
 
 struct mcc_parser_result mcc_parse_file(FILE *input);
 
-struct mcc_parser_result mcc_parse_file_enum(FILE *input, enum mcc_parser_entry_point entry_point);
-
 void mcc_transform_into_unit_test (const char* in, char* out );
 
 #endif // MCC_PARSER_H

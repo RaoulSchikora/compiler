@@ -334,7 +334,26 @@ struct mcc_ast_statement *mcc_ast_new_statement_expression( struct mcc_ast_expre
 	return statement;
 }
 
-//TODO mcc_ast_delete_statement()
+void mcc_ast_delete_statement(struct mcc_ast_statement *statement)
+{
+    assert(statement);
+
+    switch (statement->type){
+    case MCC_AST_STATEMENT_TYPE_IF_STMT:
+        mcc_ast_delete_expression(statement->if_condition);
+        mcc_ast_delete_statement(statement->if_on_true);
+        break;
+	case MCC_AST_STATEMENT_TYPE_IF_ELSE_STMT:
+		mcc_ast_delete_expression(statement->if_else_condition);
+		mcc_ast_delete_statement(statement->if_else_on_true);
+		mcc_ast_delete_statement(statement->if_else_on_false);
+		break;
+	case MCC_AST_STATEMENT_TYPE_EXPRESSION:
+		mcc_ast_delete_expression(statement->stmt_expression);
+		break;
+    }
+    free(statement);
+}
 
 // ------------------------------------------------------------------- Literals
 

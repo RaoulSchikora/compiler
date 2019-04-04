@@ -343,7 +343,7 @@ void NestedExpression_1(CuTest *tc)
 
 void if_stmt_1(CuTest *tc)
 {
-	const char input[] = "if ( true ) 2 " ;
+	const char input[] = "if ( true ) 2 ;" ;
 	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_STATEMENT);
 
 	CuAssertTrue(tc, MCC_PARSER_STATUS_OK == result.status);
@@ -358,7 +358,7 @@ void if_stmt_1(CuTest *tc)
 	CuAssertTrue(tc, stmt->if_condition->literal->bool_value);
 
 	// root -> on_true
-	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_LITERAL, stmt->if_on_true->type);
+	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_LITERAL, stmt->if_on_true->stmt_expression->type);
 	CuAssertIntEquals(tc, 2, stmt->if_on_true->stmt_expression->literal->i_value);
 }
 
@@ -526,6 +526,7 @@ void ArrayAssignment(CuTest *tc)
 	TEST(UnaryOp_1) \
 	TEST(UnaryOp_2) \
 	TEST(Variable) \
+	TEST(if_stmt_1) \
 	TEST(Array_Element) \
 	TEST(VariableDeclaration) \
 	TEST(ArrayDeclaration) \

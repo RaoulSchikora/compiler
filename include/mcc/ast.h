@@ -241,6 +241,8 @@ struct mcc_ast_statement *mcc_ast_new_statement_if_else_stmt( struct mcc_ast_exp
 
 struct mcc_ast_statement *mcc_ast_new_statement_expression( struct mcc_ast_expression *expression);
 
+void mcc_ast_delete_statement(struct mcc_ast_statement *statement);
+
 // ------------------------------------------------------------------- Literals
 
 enum mcc_ast_literal_type {
@@ -287,6 +289,7 @@ void mcc_ast_delete_literal(struct mcc_ast_literal *literal);
 
 #define mcc_ast_delete(x) _Generic((x), \
 		struct mcc_ast_expression *: mcc_ast_delete_expression, \
+		struct mcc_ast_statement *: mcc_ast_delete_statement, \
 		struct mcc_ast_literal *:    mcc_ast_delete_literal \
 	)(x)
 

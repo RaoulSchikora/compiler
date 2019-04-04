@@ -23,6 +23,7 @@ enum mcc_ast_visit_order {
 
 // Callbacks
 typedef void (*mcc_ast_visit_expression_cb)(struct mcc_ast_expression *, void *userdata);
+typedef void (*mcc_ast_visit_statement_cb)(struct mcc_ast_statement *, void *userdata);
 typedef void (*mcc_ast_visit_literal_cb)(struct mcc_ast_literal *, void *userdata);
 
 struct mcc_ast_visitor {
@@ -43,9 +44,16 @@ struct mcc_ast_visitor {
 	mcc_ast_visit_literal_cb literal_int;
 	mcc_ast_visit_literal_cb literal_float;
 	mcc_ast_visit_literal_cb literal_bool;
+
+	mcc_ast_visit_statement_cb statement;
+	mcc_ast_visit_statement_cb statement_if_stmt;
+    mcc_ast_visit_statement_cb statement_if_else_stmt;
+    mcc_ast_visit_statement_cb statement_expression_stmt;
 };
 
 void mcc_ast_visit_expression(struct mcc_ast_expression *expression, struct mcc_ast_visitor *visitor);
+
+void mcc_ast_visit_statement(struct mcc_ast_statement *statement, struct mcc_ast_visitor *visitor);
 
 void mcc_ast_visit_literal(struct mcc_ast_literal *literal, struct mcc_ast_visitor *visitor);
 
@@ -53,6 +61,7 @@ void mcc_ast_visit_literal(struct mcc_ast_literal *literal, struct mcc_ast_visit
 
 #define mcc_ast_visit(x, visitor) _Generic((x), \
 		struct mcc_ast_expression *: mcc_ast_visit_expression, \
+		struct mcc_ast_statement *: mcc_ast_visit_statement, \
 		struct mcc_ast_literal *:    mcc_ast_visit_literal \
 	)(x, visitor)
 
