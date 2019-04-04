@@ -115,35 +115,55 @@ void mcc_ast_visit_declaration(struct mcc_ast_declaration *declaration, struct m
 	assert(declaration);
 	assert(visitor);
 
-	visit_if_pre_order(declaration, visitor->declaration, visitor);
 
 	switch(declaration->declaration_type){
 		case MCC_AST_DECLARATION_TYPE_VARIABLE:
+			visit_if_pre_order(declaration, visitor->variable_declaration, visitor);
 			visit(declaration,visitor->variable_declaration,visitor);
+			visit_if_post_order(declaration,visitor->variable_declaration,visitor);
 			break;
 		case MCC_AST_DECLARATION_TYPE_ARRAY:
+			visit_if_pre_order(declaration, visitor->array_declaration, visitor);
 			visit(declaration,visitor->array_declaration,visitor);
+			visit_if_post_order(declaration,visitor->array_declaration,visitor);
 			break;
 	}
 
-	visit_if_post_order(declaration,visitor->declaration,visitor);
 }
 
 void mcc_ast_visit_assignment(struct mcc_ast_assignment *assignment, struct mcc_ast_visitor *visitor){
 	assert(assignment);
 	assert(visitor);
 
-	visit_if_pre_order(assignment, visitor->assignment, visitor);
 
 	switch(assignment->assignment_type){
 		case MCC_AST_ASSIGNMENT_TYPE_VARIABLE:
+			visit_if_pre_order(assignment, visitor->variable_assignment, visitor);
 			visit(assignment,visitor->variable_assignment,visitor);
+			visit_if_post_order(assignment,visitor->variable_assignment,visitor);
 			break;
 		case MCC_AST_ASSIGNMENT_TYPE_ARRAY:
+			visit_if_pre_order(assignment, visitor->array_assignment, visitor);
 			visit(assignment,visitor->array_assignment,visitor);
+			visit_if_post_order(assignment,visitor->array_assignment,visitor);
 			break;
 	}
 
-	visit_if_post_order(assignment,visitor->assignment,visitor);
+
+}
+
+void mcc_ast_visit_type(struct mcc_ast_type *type, struct mcc_ast_visitor *visitor){
+	assert(type);
+	assert(visitor);
+
+    visit(type,visitor->type,visitor);
+
+}
+
+void mcc_ast_visit_identifier(struct mcc_ast_identifier *identifier, struct mcc_ast_visitor *visitor){
+	assert(identifier);
+	assert(visitor);
+
+	visit(identifier,visitor->identifier,visitor);
 
 }

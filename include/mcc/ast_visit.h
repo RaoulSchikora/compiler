@@ -27,6 +27,8 @@ typedef void (*mcc_ast_visit_statement_cb)(struct mcc_ast_statement *, void *use
 typedef void (*mcc_ast_visit_literal_cb)(struct mcc_ast_literal *, void *userdata);
 typedef void (*mcc_ast_visit_assignment_cb)(struct mcc_ast_assignment *, void *userdata);
 typedef void (*mcc_ast_visit_declaration_cb)(struct mcc_ast_declaration *, void *userdata);
+typedef void (*mcc_ast_visit_type_cb)(struct mcc_ast_type *, void *userdata);
+typedef void (*mcc_ast_visit_identifier_cb)(struct mcc_ast_identifier *, void *userdata);
 
 struct mcc_ast_visitor {
 	enum mcc_ast_visit_traversal traversal;
@@ -53,12 +55,13 @@ struct mcc_ast_visitor {
     mcc_ast_visit_statement_cb statement_if_else_stmt;
     mcc_ast_visit_statement_cb statement_expression_stmt;
 
-	mcc_ast_visit_assignment_cb assignment;
 	mcc_ast_visit_assignment_cb variable_assignment;
 	mcc_ast_visit_assignment_cb array_assignment;
-	mcc_ast_visit_declaration_cb declaration;
 	mcc_ast_visit_declaration_cb variable_declaration;
 	mcc_ast_visit_declaration_cb array_declaration;
+
+	mcc_ast_visit_type_cb type;
+	mcc_ast_visit_identifier_cb identifier;
 
 };
 
@@ -72,6 +75,11 @@ void mcc_ast_visit_declaration(struct mcc_ast_declaration *declaration, struct m
 
 void mcc_ast_visit_assignment(struct mcc_ast_assignment *assignment, struct mcc_ast_visitor *visitor);
 
+void mcc_ast_visit_type(struct mcc_ast_type *type, struct mcc_ast_visitor *visitor);
+
+void mcc_ast_visit_identifier(struct mcc_ast_identifier *identifier, struct mcc_ast_visitor *visitor);
+
+
 // clang-format off
 
 #define mcc_ast_visit(x, visitor) _Generic((x), \
@@ -79,7 +87,9 @@ void mcc_ast_visit_assignment(struct mcc_ast_assignment *assignment, struct mcc_
 		struct mcc_ast_statement *: mcc_ast_visit_statement, \
 		struct mcc_ast_literal *:    mcc_ast_visit_literal, \
 		struct mcc_ast_declaration *: mcc_ast_visit_declaration, \
-		struct mcc_ast_assignment *: mcc_ast_visit_assignment \
+		struct mcc_ast_assignment *: mcc_ast_visit_assignment, \
+		struct mcc_ast_type *: 		mcc_ast_visit_type, \
+		struct mcc_ast_identifier *: mcc_ast_visit_identifier \
 	)(x, visitor)
 
 // clang-format on
