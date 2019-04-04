@@ -43,6 +43,7 @@ struct mcc_ast_visitor {
 	mcc_ast_visit_literal_cb literal_int;
 	mcc_ast_visit_literal_cb literal_float;
 	mcc_ast_visit_literal_cb literal_bool;
+	mcc_ast_visit_literal_cb literal_string;
 };
 
 void mcc_ast_visit_expression(struct mcc_ast_expression *expression, struct mcc_ast_visitor *visitor);
