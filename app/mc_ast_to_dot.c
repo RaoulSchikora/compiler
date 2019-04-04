@@ -86,14 +86,14 @@ static int readInputAndSetMode(int argc, char *argv[])
 {
     if (argc < 2) {
         print_usage(argv[0]);
-        EXIT_FAILURE;
+        return EXIT_FAILURE;
     } else if (argc == 2){
         if (strcmp("-", argv[1]) == 0) {
             input = stdinToString();
             ast_to_dot_mode = MCC_AST_TO_DOT_MODE_EXPRESSION;
         } else if (strcmp("-h", argv[1]) == 0 || strcmp("--help", argv[1]) == 0){
             print_usage(argv[0]);
-            EXIT_FAILURE;
+            return EXIT_FAILURE;
         } else if (strcmp("-e", argv[1]) == 0){
             input = stdinToString();
             ast_to_dot_mode = MCC_AST_TO_DOT_MODE_EXPRESSION;
@@ -110,7 +110,7 @@ static int readInputAndSetMode(int argc, char *argv[])
     } else if (argc == 3) {
         if (strcmp("-h", argv[1]) == 0 || strcmp("--help", argv[1]) == 0){
             print_usage(argv[0]);
-            EXIT_FAILURE;
+            return EXIT_FAILURE;
         } else if (strcmp("-e", argv[1]) == 0){
             input = fileToString(argv[2]);
             ast_to_dot_mode = MCC_AST_TO_DOT_MODE_EXPRESSION;
@@ -122,12 +122,12 @@ static int readInputAndSetMode(int argc, char *argv[])
             ast_to_dot_mode = MCC_AST_TO_DOT_MODE_STATEMENT;
         } else {
             print_usage(argv[0]);
-            EXIT_FAILURE;
+            return EXIT_FAILURE;
         }
     } else {
         printf("error: unkown option");
         print_usage(argv[0]);
-        EXIT_FAILURE;
+        return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
 }
