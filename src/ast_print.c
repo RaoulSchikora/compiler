@@ -151,7 +151,7 @@ static void print_dot_statement_if_else_stmt(struct mcc_ast_statement *statement
 	assert(data);
 
 	FILE *out = data;
-	print_dot_node(out, statement, "if");
+	print_dot_node(out, statement, "if_else");
 	print_dot_edge(out, statement, statement->if_else_condition, "cond");
 	print_dot_edge(out, statement, statement->if_else_on_true, "on_true");
 	print_dot_edge(out, statement, statement->if_else_on_false, "on_false");
@@ -165,6 +165,17 @@ static void print_dot_statement_expression_stmt(struct mcc_ast_statement *statem
 	FILE *out = data;
 	print_dot_node(out, statement, "stmt: exp;");
 	print_dot_edge(out, statement, statement->stmt_expression, "expr");
+}
+
+static void print_dot_statement_while(struct mcc_ast_statement *statement, void *data)
+{
+    assert(statement);
+    assert(data);
+
+    FILE *out = data;
+    print_dot_node(out, statement, "while");
+    print_dot_edge(out, statement, statement->if_condition, "cond");
+    print_dot_edge(out, statement, statement->if_on_true, "on_true");
 }
 
 static void print_dot_literal_int(struct mcc_ast_literal *literal, void *data)
@@ -325,7 +336,7 @@ static struct mcc_ast_visitor print_dot_visitor(FILE *out)
 		.statement_if_stmt = print_dot_statememt_if_stmt,
 		.statement_if_else_stmt = print_dot_statement_if_else_stmt,
 		.statement_expression_stmt = print_dot_statement_expression_stmt,
-
+        .statement_while = print_dot_statement_while,
 
 	    .variable_assignment = print_dot_variable_assignment,
 	    .array_assignment = print_dot_array_assignment,

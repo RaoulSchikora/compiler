@@ -378,6 +378,24 @@ struct mcc_ast_statement *mcc_ast_new_statement_expression( struct mcc_ast_expre
 	return statement;
 }
 
+struct mcc_ast_statement *mcc_ast_new_statement_while( struct mcc_ast_expression *condition,
+													   struct mcc_ast_statement *on_true)
+{
+	assert(condition);
+	assert(on_true);
+
+	struct mcc_ast_statement *statement = malloc(sizeof(*statement));
+	if(!statement) {
+		return NULL;
+	}
+
+	statement->type = MCC_AST_STATEMENT_TYPE_WHILE;
+	statement->while_condition = condition;
+	statement->while_on_true = on_true;
+
+	return statement;
+}
+
 void mcc_ast_delete_statement(struct mcc_ast_statement *statement)
 {
     assert(statement);

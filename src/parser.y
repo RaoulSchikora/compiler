@@ -74,6 +74,7 @@ void mcc_parser_error();
 
 %token IF "if"
 %token ELSE "else"
+%token WHILE "while"
 
 %token SEMICOLON ";"
 
@@ -133,6 +134,7 @@ declaration : TYPE IDENTIFIER { $$ = mcc_ast_new_variable_declaration($1,$2); lo
 statement : IF LPARENTH expression RPARENTH statement 		     { $$ = mcc_ast_new_statement_if_stmt( $3, $5); 	     loc($$, @1);}
 	  | IF LPARENTH expression RPARENTH statement ELSE statement { $$ = mcc_ast_new_statement_if_else_stmt( $3, $5, $7); loc($$, @1);}
 	  | expression SEMICOLON 				     { $$ = mcc_ast_new_statement_expression( $1); 	     loc($$, @1);}
+	  | WHILE LPARENTH expression RPARENTH statement 	     { $$ = mcc_ast_new_statement_while( $3, $5); 	     loc($$, @1);}
 	  ;
 
 literal : INT_LITERAL    { $$ = mcc_ast_new_literal_int($1);   loc($$, @1); }

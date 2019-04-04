@@ -197,6 +197,8 @@ void BinaryPrecedenceAssociativity(CuTest *tc)
     CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_INT, subexpr2->rhs->literal->type);
     CuAssertIntEquals(tc, 4, subexpr2->rhs->literal->i_value);
 
+	mcc_ast_delete(expr);
+
 }
 
 void Variable(CuTest *tc)
@@ -370,6 +372,31 @@ void if_stmt_1(CuTest *tc)
 	// root -> on_true
 	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_LITERAL, stmt->if_on_true->stmt_expression->type);
 	CuAssertIntEquals(tc, 2, stmt->if_on_true->stmt_expression->literal->i_value);
+
+	mcc_ast_delete(stmt);
+}
+
+void while_stmt(CuTest *tc)
+{
+	const char input[] = "while (true) 5;" ;
+	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_STATEMENT);
+
+	CuAssertTrue(tc, MCC_PARSER_STATUS_OK == result.status);
+
+	struct mcc_ast_statement *stmt = result.statement;
+
+	// root
+	CuAssertIntEquals(tc, MCC_AST_STATEMENT_TYPE_WHILE, stmt->type);
+
+	// root -> cond
+	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_LITERAL, stmt->if_condition->type);
+	CuAssertTrue(tc, stmt->if_condition->literal->bool_value);
+
+	// root -> on_true
+	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_LITERAL, stmt->if_on_true->stmt_expression->type);
+	CuAssertIntEquals(tc, 5, stmt->if_on_true->stmt_expression->literal->i_value);
+
+	mcc_ast_delete(stmt);
 }
 
 void MissingClosingParenthesis_1(CuTest *tc)
@@ -468,8 +495,6 @@ void StringLiteral(CuTest *tc)
 	CuAssertStrEquals(tc, "hallo ich bin ein test string", expr->literal->string_value);
 
 	mcc_ast_delete(expr);
-
-
 }
 
 void VariableAssignment(CuTest *tc)
@@ -547,6 +572,7 @@ void ArrayAssignment(CuTest *tc)
 	TEST(UnaryOp_2) \
 	TEST(Variable) \
 	TEST(if_stmt_1) \
+	TEST(while_stmt) \
 	TEST(Array_Element) \
 	TEST(VariableDeclaration) \
 	TEST(ArrayDeclaration) \

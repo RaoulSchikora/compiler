@@ -73,6 +73,7 @@ string_literal \"[^"]*\"
 
 "if"              { return TK_IF; }
 "else"            { return TK_ELSE; }
+"while"           { return TK_WHILE; }
 
 {identifier}      { yylval->TK_IDENTIFIER = strdup(yytext); return TK_IDENTIFIER; }
 

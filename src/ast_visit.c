@@ -85,6 +85,12 @@ void mcc_ast_visit_statement(struct mcc_ast_statement *statement, struct mcc_ast
 		mcc_ast_visit(statement->stmt_expression, visitor);
 		visit_if_post_order(statement, visitor->statement_expression_stmt, visitor);
 		break;
+    case MCC_AST_STATEMENT_TYPE_WHILE:
+        visit_if_pre_order(statement, visitor->statement_while, visitor);
+        mcc_ast_visit(statement->while_condition, visitor);
+        mcc_ast_visit(statement->while_on_true, visitor);
+        visit_if_post_order(statement, visitor->statement_while, visitor);
+        break;
 	}
 }
 

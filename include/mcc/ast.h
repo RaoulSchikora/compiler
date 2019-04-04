@@ -226,6 +226,7 @@ enum mcc_ast_statement_type {
 	MCC_AST_STATEMENT_TYPE_IF_STMT,
 	MCC_AST_STATEMENT_TYPE_IF_ELSE_STMT,
 	MCC_AST_STATEMENT_TYPE_EXPRESSION,
+	MCC_AST_STATEMENT_TYPE_WHILE,
 };
 
 struct mcc_ast_statement {
@@ -247,6 +248,11 @@ struct mcc_ast_statement {
 		};
 		// MCC_AST_STATEMENT_TYPE_EXPRESSION
 		struct mcc_ast_expression *stmt_expression;
+		// MCC_AST_STATEMENT_TYPE_WHILE
+		struct {
+			struct mcc_ast_expression *while_condition;
+			struct mcc_ast_statement *while_on_true;
+		};
 	};
 };
 
@@ -258,6 +264,9 @@ struct mcc_ast_statement *mcc_ast_new_statement_if_else_stmt( struct mcc_ast_exp
 															 struct mcc_ast_statement *on_false);
 
 struct mcc_ast_statement *mcc_ast_new_statement_expression( struct mcc_ast_expression *expression);
+
+struct mcc_ast_statement *mcc_ast_new_statement_while( struct mcc_ast_expression *condition,
+													   struct mcc_ast_statement *on_true);
 
 void mcc_ast_delete_statement(struct mcc_ast_statement *statement);
 
