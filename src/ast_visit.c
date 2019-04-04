@@ -110,3 +110,40 @@ void mcc_ast_visit_literal(struct mcc_ast_literal *literal, struct mcc_ast_visit
 
 	visit_if_post_order(literal, visitor->literal, visitor);
 }
+
+void mcc_ast_visit_declaration(struct mcc_ast_declaration *declaration, struct mcc_ast_visitor *visitor){
+	assert(declaration);
+	assert(visitor);
+
+	visit_if_pre_order(declaration, visitor->declaration, visitor);
+
+	switch(declaration->declaration_type){
+		case MCC_AST_DECLARATION_TYPE_VARIABLE:
+			visit(declaration,visitor->variable_declaration,visitor);
+			break;
+		case MCC_AST_DECLARATION_TYPE_ARRAY:
+			visit(declaration,visitor->array_declaration,visitor);
+			break;
+	}
+
+	visit_if_post_order(declaration,visitor->declaration,visitor);
+}
+
+void mcc_ast_visit_assignment(struct mcc_ast_assignment *assignment, struct mcc_ast_visitor *visitor){
+	assert(assignment);
+	assert(visitor);
+
+	visit_if_pre_order(assignment, visitor->assignment, visitor);
+
+	switch(assignment->assignment_type){
+		case MCC_AST_ASSIGNMENT_TYPE_VARIABLE:
+			visit(assignment,visitor->variable_assignment,visitor);
+			break;
+		case MCC_AST_ASSIGNMENT_TYPE_ARRAY:
+			visit(assignment,visitor->array_assignment,visitor);
+			break;
+	}
+
+	visit_if_post_order(assignment,visitor->assignment,visitor);
+
+}

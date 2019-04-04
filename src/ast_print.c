@@ -213,29 +213,91 @@ static void print_dot_literal_bool(struct mcc_ast_literal *literal, void *data)
     print_dot_node(out, literal, literal->bool_value ? "true" : "false");
 }
 
-// Print identifier nodes: Code is experimental
-/*
-static void print_dot_expression_identifier(struct mcc_ast_expression *expression, void *data){
-	assert(expression);
+static void print_dot_variable_declaration(struct mcc_ast_declaration *declaration, void *data)
+{
+	assert(declaration);
+	assert(data);
+
+	FILE *out = data;
+	print_dot_node(out, declaration, "decl: var;");
+	print_dot_edge(out, declaration, declaration->variable_type, "type");
+	print_dot_edge(out, declaration, declaration->variable_identifier, "id");
+}
+
+
+static void print_dot_array_declaration(struct mcc_ast_declaration *declaration, void *data)
+{
+	assert(declaration);
+	assert(data);
+
+	FILE *out = data;
+	print_dot_node(out, declaration, "decl: array;");
+	print_dot_edge(out, declaration, declaration->array_type, "type");
+	print_dot_edge(out, declaration, declaration->array_identifier, "id");
+	print_dot_edge(out, declaration, declaration->array_size, "size");
+
+
+}
+
+static void print_dot_variable_assignment(struct mcc_ast_assignment *assignment, void *data)
+{
+	assert(assignment);
+	assert(data);
+
+	FILE *out = data;
+	print_dot_node(out, assignment, "assign: var;");
+	print_dot_edge(out, assignment, assignment->variable_assigned_value, "value");
+	print_dot_edge(out, assignment, assignment->variable_identifier, "id");
+
+}
+
+static void print_dot_array_assignment(struct mcc_ast_assignment *assignment, void *data)
+{
+	assert(assignment);
+	assert(data);
+
+	FILE *out = data;
+	print_dot_node(out, assignment, "assign: array;");
+	print_dot_edge(out, assignment, assignment->array_index, "index");
+	print_dot_edge(out, assignment, assignment->array_identifier, "id");
+	print_dot_edge(out, assignment, assignment->array_assigned_value, "value");
+
+
+}
+
+static void print_dot_type(struct mcc_ast_type *type, void *data){
+
+	assert(data);
+	assert(type);
+
+	FILE *out = data;
+	switch(type->type_value){
+		case INT:
+			print_dot_node(out, type, "int");
+			break;
+		case FLOAT:
+			print_dot_node(out, type, "float");
+            break;
+        case BOOL:
+			print_dot_node(out, type, "bool");
+            break;
+		case STRING:
+			print_dot_node(out, type, "string");
+            break;
+	}
+	print_dot_node(out, type, "float");
+}
+
+static void print_dot_expression_identifier(struct mcc_ast_identifier *identifier, void *data){
+	assert(identifier);
 	assert(data);
 
 	char label[LABEL_SIZE] = {0};
-	snprintf(label, sizeof(label), "%s", expression->identifier);
+	snprintf(label, sizeof(label), "%s", identifier->identifier_name);
 
 	FILE *out = data;
-	print_dot_node(out, expression->identifier, label);
+	print_dot_node(out, identifier, label);
 }
-
-static void print_dot_expression_array_element(struct mcc_ast_expression *expression, void *data)
-{
-	assert(expression);
-	assert(data);
-
-	FILE *out = data;
-	print_dot_node(out, expression, "[ ]");
-	print_dot_edge(out, expression, expression->expression, "expression");
-}
-*/
 
 
 // Setup an AST Visitor for printing.
@@ -263,6 +325,12 @@ static struct mcc_ast_visitor print_dot_visitor(FILE *out)
 		.statement_if_stmt = print_dot_statememt_if_stmt,
 		.statement_if_else_stmt = print_dot_statement_if_else_stmt,
 		.statement_expression_stmt = print_dot_statement_expression_stmt,
+
+
+	    .variable_assignment = print_dot_variable_assignment,
+	    .array_assignment = print_dot_array_assignment,
+	    .variable_declaration = print_dot_variable_declaration,
+	    .array_declaration = print_dot_array_declaration,
 	};
 }
 
@@ -291,6 +359,33 @@ void mcc_ast_print_dot_statement(FILE *out, struct mcc_ast_statement *statement)
 
 	print_dot_end(out);
 }
+
+void mcc_ast_print_dot_declaration(FILE *out, struct mcc_ast_declaration *declaration)
+{
+	assert(out);
+	assert(declaration);
+
+	print_dot_begin(out);
+
+	struct mcc_ast_visitor visitor = print_dot_visitor(out);
+	mcc_ast_visit(declaration, &visitor);
+
+	print_dot_end(out);
+}
+
+void mcc_ast_print_dot_assignment(FILE *out, struct mcc_ast_assignment *assignment)
+{
+	assert(out);
+	assert(assignment);
+
+	print_dot_begin(out);
+
+	struct mcc_ast_visitor visitor = print_dot_visitor(out);
+	mcc_ast_visit(assignment, &visitor);
+
+	print_dot_end(out);
+}
+
 
 void mcc_ast_print_dot_literal(FILE *out, struct mcc_ast_literal *literal)
 {

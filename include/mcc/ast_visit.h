@@ -25,6 +25,8 @@ enum mcc_ast_visit_order {
 typedef void (*mcc_ast_visit_expression_cb)(struct mcc_ast_expression *, void *userdata);
 typedef void (*mcc_ast_visit_statement_cb)(struct mcc_ast_statement *, void *userdata);
 typedef void (*mcc_ast_visit_literal_cb)(struct mcc_ast_literal *, void *userdata);
+typedef void (*mcc_ast_visit_assignment_cb)(struct mcc_ast_assignment *, void *userdata);
+typedef void (*mcc_ast_visit_declaration_cb)(struct mcc_ast_declaration *, void *userdata);
 
 struct mcc_ast_visitor {
 	enum mcc_ast_visit_traversal traversal;
@@ -50,6 +52,14 @@ struct mcc_ast_visitor {
 	mcc_ast_visit_statement_cb statement_if_stmt;
     mcc_ast_visit_statement_cb statement_if_else_stmt;
     mcc_ast_visit_statement_cb statement_expression_stmt;
+
+	mcc_ast_visit_assignment_cb assignment;
+	mcc_ast_visit_assignment_cb variable_assignment;
+	mcc_ast_visit_assignment_cb array_assignment;
+	mcc_ast_visit_declaration_cb declaration;
+	mcc_ast_visit_declaration_cb variable_declaration;
+	mcc_ast_visit_declaration_cb array_declaration;
+
 };
 
 void mcc_ast_visit_expression(struct mcc_ast_expression *expression, struct mcc_ast_visitor *visitor);
@@ -58,12 +68,18 @@ void mcc_ast_visit_statement(struct mcc_ast_statement *statement, struct mcc_ast
 
 void mcc_ast_visit_literal(struct mcc_ast_literal *literal, struct mcc_ast_visitor *visitor);
 
+void mcc_ast_visit_declaration(struct mcc_ast_declaration *declaration, struct mcc_ast_visitor *visitor);
+
+void mcc_ast_visit_assignment(struct mcc_ast_assignment *assignment, struct mcc_ast_visitor *visitor);
+
 // clang-format off
 
 #define mcc_ast_visit(x, visitor) _Generic((x), \
 		struct mcc_ast_expression *: mcc_ast_visit_expression, \
 		struct mcc_ast_statement *: mcc_ast_visit_statement, \
-		struct mcc_ast_literal *:    mcc_ast_visit_literal \
+		struct mcc_ast_literal *:    mcc_ast_visit_literal, \
+		struct mcc_ast_declaration *: mcc_ast_visit_declaration, \
+		struct mcc_ast_assignment *: mcc_ast_visit_assignment \
 	)(x, visitor)
 
 // clang-format on

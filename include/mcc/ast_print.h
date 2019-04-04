@@ -20,12 +20,18 @@ void mcc_ast_print_dot_statement(FILE *out, struct mcc_ast_statement *statement)
 
 void mcc_ast_print_dot_literal(FILE *out, struct mcc_ast_literal *literal);
 
+void mcc_ast_print_dot_declaration(FILE *out, struct mcc_ast_declaration *declaration);
+
+void mcc_ast_print_dot_assignment(FILE *out, struct mcc_ast_assignment *assignment);
+
 // clang-format off
 
 #define mcc_ast_print_dot(out, x) _Generic((x), \
 		struct mcc_ast_expression *: mcc_ast_print_dot_expression, \
 		struct mcc_ast_statement *: mcc_ast_print_dot_statement, \
-		struct mcc_ast_literal *:    mcc_ast_print_dot_literal \
+		struct mcc_ast_literal *:    mcc_ast_print_dot_literal, \
+		struct mcc_ast_declaration *: mcc_ast_print_dot_declaration, \
+		struct mcc_ast_assignment *: mcc_ast_print_dot_assignment \
 	)(out, x)
 
 // clang-format on
