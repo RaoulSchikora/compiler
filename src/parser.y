@@ -86,8 +86,7 @@ void mcc_parser_error();
 %type <struct mcc_ast_literal *> literal
 %type <struct mcc_ast_variable_declaration *> variable_declaration
 %type <struct mcc_ast_array_declaration *> array_declaration
-%type <struct mcc_ast_variable_assignment *> variable_assignment
-%type <struct mcc_ast_array_assignment *> array_assignment
+%type <struct mcc_ast_assignment *> assignment
 %type <struct mcc_ast_statement *> statement
 
 %start toplevel
@@ -100,8 +99,7 @@ toplevel : TILDE unit_test TILDE {}
 unit_test  : expression { result->expression = $1;  }
 	   | variable_declaration { result->variable_declaration = $1;}
 	   | array_declaration {result->array_declaration = $1;}
-	   | variable_assignment {result->variable_assignment = $1;}
-	   | array_assignment {result->array_assignment = $1;}
+	   | assignment {result->assignment = $1;}
 	   | statement {result->statement = $1;}
 	   ;
 
@@ -125,17 +123,16 @@ expression : literal                      { $$ = mcc_ast_new_expression_literal(
            | IDENTIFIER SQUARE_OPEN expression SQUARE_CLOSE {$$ = mcc_ast_new_expression_array_element($1,$3);    loc($$, @1); }
            ;
 
+assignment 	:	IDENTIFIER EQ expression { $$ = mcc_ast_new_variable_assignment ($1, $3); loc($$,@1); }
+		|	IDENTIFIER SQUARE_OPEN expression SQUARE_CLOSE EQ expression { $$ = mcc_ast_new_array_assignment ($1, $3, $6); loc($$, @1);}
+		;
+
 variable_declaration : TYPE IDENTIFIER { $$ = mcc_ast_new_variable_declaration($1,$2); loc ($$, @1);}
 	    	     ;
 
 array_declaration : TYPE SQUARE_OPEN INT_LITERAL SQUARE_CLOSE IDENTIFIER { $$ = mcc_ast_new_array_declaration($1, mcc_ast_new_literal_int($3), $5); loc($$, @1);}
 		  ;
 
-variable_assignment : IDENTIFIER EQ expression { $$ = mcc_ast_new_variable_assignment ($1, $3); loc($$,@1); }
-		    ;
-
-array_assignment    : IDENTIFIER SQUARE_OPEN expression SQUARE_CLOSE EQ expression { $$ = mcc_ast_new_array_assignment ($1, $3, $6); loc($$, @1);}
-		    ;
 
 statement : IF LPARENTH expression RPARENTH statement 		     { $$ = mcc_ast_new_statement_if_stmt( $3, $5); 	     loc($$, @1);}
 	  | IF LPARENTH expression RPARENTH statement ELSE statement { $$ = mcc_ast_new_statement_if_else_stmt( $3, $5, $7); loc($$, @1);}

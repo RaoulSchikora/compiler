@@ -226,32 +226,35 @@ void mcc_ast_delete_array_declaration(struct mcc_ast_array_declaration* array_de
 // ------------------------------------------------------------------ Assignments
 
 
-struct mcc_ast_variable_assignment *mcc_ast_new_variable_assignment (char *identifier, struct mcc_ast_expression *assigned_value){
+
+struct mcc_ast_assignment *mcc_ast_new_variable_assignment (char *identifier, struct mcc_ast_expression *assigned_value){
 	assert(identifier);
 	assert(assigned_value);
-	struct mcc_ast_variable_assignment *variable_assignment = malloc(sizeof(*variable_assignment));
-	if(variable_assignment == NULL){
+	struct mcc_ast_assignment *assignment = malloc(sizeof(*assignment));
+	if(assignment == NULL){
 		return NULL;
 	}
-	variable_assignment->identifier = mcc_ast_new_identifier(identifier);
-	variable_assignment->assigned_value = assigned_value;
-	return variable_assignment;
+	assignment->variable_identifier = mcc_ast_new_identifier(identifier);
+	assignment->variable_assigned_value = assigned_value;
+	assignment->assignment_type = MCC_AST_ASSIGNMENT_TYPE_VARIABLE;
+	return assignment;
 }
 
 
-struct mcc_ast_array_assignment *mcc_ast_new_array_assignment (char *identifier, struct mcc_ast_expression *index, struct mcc_ast_expression *assigned_value){
+struct mcc_ast_assignment *mcc_ast_new_array_assignment (char *identifier, struct mcc_ast_expression *index, struct mcc_ast_expression *assigned_value){
 
+	assert(index);
 	assert(identifier);
 	assert(assigned_value);
-	assert(index);
-	struct mcc_ast_array_assignment *array_assignment = malloc(sizeof(sizeof(*array_assignment)));
-	if(array_assignment == NULL){
+	struct mcc_ast_assignment *assignment = malloc(sizeof(*assignment));
+	if(assignment == NULL){
 		return NULL;
 	}
-	array_assignment->identifier = mcc_ast_new_identifier(identifier);
-	array_assignment->assigned_value = assigned_value;
-	array_assignment->index = index;
-	return array_assignment;
+	assignment->array_identifier = mcc_ast_new_identifier(identifier);
+	assignment->array_assigned_value = assigned_value;
+	assignment->array_index = index;
+	assignment->assignment_type = MCC_AST_ASSIGNMENT_TYPE_ARRAY;
+	return assignment;
 }
 
 // ------------------------------------------------------------------ Identifier

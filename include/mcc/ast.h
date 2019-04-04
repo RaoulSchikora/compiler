@@ -174,24 +174,33 @@ void mcc_ast_delete_array_declaration(struct mcc_ast_array_declaration* array_de
 
 // ------------------------------------------------------------------ Assignments
 
-struct mcc_ast_variable_assignment {
-
-	struct mcc_ast_node node;
-	struct mcc_ast_identifier *identifier;
-	struct mcc_ast_expression *assigned_value;
+enum mcc_ast_assignment_type{
+    MCC_AST_ASSIGNMENT_TYPE_VARIABLE,
+    MCC_AST_ASSIGNMENT_TYPE_ARRAY,
 };
 
-struct mcc_ast_array_assignment {
+struct mcc_ast_assignment{
+    struct mcc_ast_node node;
+    enum mcc_ast_assignment_type assignment_type;
+    union{
+        // MCC_AST_ASSIGNMENT_TYPE_VARIABLE
+        struct{
+        	struct mcc_ast_identifier *variable_identifier;
+        	struct mcc_ast_expression *variable_assigned_value;
+        };
+        // MCC_AST_ASSIGNMENT_TYPE_ARRAY
+		struct{
+			struct mcc_ast_identifier *array_identifier;
+			struct mcc_ast_expression *array_index;
+			struct mcc_ast_expression *array_assigned_value;
+		};
 
-	struct mcc_ast_node node;
-	struct mcc_ast_identifier *identifier;
-	struct mcc_ast_expression *index;
-	struct mcc_ast_expression *assigned_value;
+    };
 };
 
-struct mcc_ast_variable_assignment *mcc_ast_new_variable_assignment (char *identifier, struct mcc_ast_expression *assigned_value);
+struct mcc_ast_assignment *mcc_ast_new_variable_assignment (char *identifier, struct mcc_ast_expression *assigned_value);
 
-struct mcc_ast_array_assignment *mcc_ast_new_array_assignment (char *identifier, struct mcc_ast_expression *index, struct mcc_ast_expression *assigned_value);
+struct mcc_ast_assignment *mcc_ast_new_array_assignment (char *identifier, struct mcc_ast_expression *index, struct mcc_ast_expression *assigned_value);
 
 
 //-------------------------------------------------------------------- Identifier

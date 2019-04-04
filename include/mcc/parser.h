@@ -39,10 +39,8 @@ struct mcc_parser_result {
 		struct mcc_ast_variable_declaration *variable_declaration;
 		// MCC_PARSER_ENTRY_POINT_ARRAY_DECLARATION
 		struct mcc_ast_array_declaration *array_declaration;
-		// MCC_PARSER_ENTRY_POINT_VARIABLE_ASSIGNMENT
-		struct mcc_ast_variable_assignment *variable_assignment;
-		// MCC_PARSER_ENTRY_POINT_ARRAY_ASSIGNMENT
-		struct mcc_ast_array_assignment *array_assignment;
+		// MCC_PARSER_ENTRY_POINT_ASSIGNMENT
+		struct mcc_ast_assignment *assignment;
 		// MCC_PARSER_ENTRY_POINT_STATEMENT
 		struct mcc_ast_statement *statement;
 	};

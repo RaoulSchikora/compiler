@@ -469,19 +469,22 @@ void VariableAssignment(CuTest *tc)
 
 	CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
 
-	struct mcc_ast_variable_assignment *variable_assignment = result.variable_assignment;
+	struct mcc_ast_assignment *variable_assignment = result.assignment;
+
+	//root -> assignment_type
+	CuAssertIntEquals(tc, MCC_AST_ASSIGNMENT_TYPE_VARIABLE, variable_assignment->assignment_type);
 
 	//root -> identifier -> identifier_name
-	CuAssertStrEquals(tc, "myVariable2", variable_assignment->identifier->identifier_name);
+	CuAssertStrEquals(tc, "myVariable2", variable_assignment->variable_identifier->identifier_name);
 
 	// root -> assigned_value -> type
-	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_LITERAL, variable_assignment->assigned_value->type);
+	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_LITERAL, variable_assignment->variable_assigned_value->type);
 
 	// root -> assigned_value -> literal -> type
-	CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_FLOAT, variable_assignment->assigned_value->literal->type);
+	CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_FLOAT, variable_assignment->variable_assigned_value->literal->type);
 
 	// root -> assigned_value -> literal -> f_value
-	CuAssertDblEquals(tc, 4.23, variable_assignment->assigned_value->literal->f_value,EPS);
+	CuAssertDblEquals(tc, 4.23, variable_assignment->variable_assigned_value->literal->f_value,EPS);
 
 }
 
@@ -493,25 +496,28 @@ void ArrayAssignment(CuTest *tc)
 
 	CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
 
-	struct mcc_ast_array_assignment *array_assignment = result.array_assignment;
+	struct mcc_ast_assignment *array_assignment = result.assignment;
 
-	//root -> identifier -> identifier_name
-	CuAssertStrEquals(tc, "myVariable", array_assignment->identifier->identifier_name);
+	// root -> assignment_type
+	CuAssertIntEquals(tc, MCC_AST_ASSIGNMENT_TYPE_ARRAY, array_assignment->assignment_type);
+
+	// root -> identifier -> identifier_name
+	CuAssertStrEquals(tc, "myVariable", array_assignment->array_identifier->identifier_name);
 
 	// root -> assigned_value -> type
-	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_LITERAL, array_assignment->assigned_value->type);
+	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_LITERAL, array_assignment->array_assigned_value->type);
 
 	// root -> assigned_value -> literal -> type
-	CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_BOOL, array_assignment->assigned_value->literal->type);
+	CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_BOOL, array_assignment->array_assigned_value->literal->type);
 
 	// root -> assigned_value -> literal -> bool_value
-	CuAssertTrue(tc, array_assignment->assigned_value->literal->bool_value);
+	CuAssertTrue(tc, array_assignment->array_assigned_value->literal->bool_value);
 
 	// root -> index -> literal -> type
-	CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_INT, array_assignment->index->literal->type);
+	CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_INT, array_assignment->array_index->literal->type);
 
 	// root -> index -> literal -> f_value
-	CuAssertIntEquals(tc, 12, array_assignment->index->literal->i_value);
+	CuAssertIntEquals(tc, 12, array_assignment->array_index->literal->i_value);
 }
 
 #define TESTS \
