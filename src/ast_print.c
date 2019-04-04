@@ -331,6 +331,9 @@ static struct mcc_ast_visitor print_dot_visitor(FILE *out)
 	    .array_assignment = print_dot_array_assignment,
 	    .variable_declaration = print_dot_variable_declaration,
 	    .array_declaration = print_dot_array_declaration,
+
+	    .type = print_dot_type,
+	    .identifier = print_dot_expression_identifier,
 	};
 }
 
@@ -396,6 +399,32 @@ void mcc_ast_print_dot_literal(FILE *out, struct mcc_ast_literal *literal)
 
 	struct mcc_ast_visitor visitor = print_dot_visitor(out);
 	mcc_ast_visit(literal, &visitor);
+
+	print_dot_end(out);
+}
+
+void mcc_ast_print_dot_type(FILE *out, struct mcc_ast_type *type)
+{
+	assert(out);
+	assert(type);
+
+	print_dot_begin(out);
+
+	struct mcc_ast_visitor visitor = print_dot_visitor(out);
+	mcc_ast_visit(type, &visitor);
+
+	print_dot_end(out);
+}
+
+void mcc_ast_print_dot_identifier(FILE *out, struct mcc_ast_identifier *identifier)
+{
+	assert(out);
+	assert(identifier);
+
+	print_dot_begin(out);
+
+	struct mcc_ast_visitor visitor = print_dot_visitor(out);
+	mcc_ast_visit(identifier, &visitor);
 
 	print_dot_end(out);
 }
