@@ -256,42 +256,52 @@ void Array_Element(CuTest *tc){
 }
 
 void VariableDeclaration(CuTest *tc){
+
 	const char input[] = "float a";
-	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_VARIABLE_DECLARATION);
+	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_DECLARATION);
 
 	CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
 
 
-	struct mcc_ast_variable_declaration *decl = result.variable_declaration;
+	struct mcc_ast_declaration *decl = result.declaration;
+
+	// root -> declaration_type
+	CuAssertIntEquals(tc, MCC_AST_DECLARATION_TYPE_VARIABLE,decl->declaration_type);
 
 	// root -> identifier -> identifier_name
-	CuAssertStrEquals(tc, "a", decl->identifier->identifier_name);
+	CuAssertStrEquals(tc, "a", decl->variable_identifier->identifier_name);
 
 	// root -> type -> type_value
-	CuAssertIntEquals(tc, FLOAT, decl->type->type_value);
+	CuAssertIntEquals(tc, FLOAT, decl->variable_type->type_value);
 
+	mcc_ast_delete(decl);
 }
 
 void ArrayDeclaration(CuTest *tc){
 	const char input[] = "bool [13] my_array";
-	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_ARRAY_DECLARATION);
+	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_DECLARATION);
 
 
 	CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
 
-	struct mcc_ast_array_declaration *array_decl = result.array_declaration;
+	struct mcc_ast_declaration *array_decl = result.declaration;
+
+	// root -> declaration_type
+	CuAssertIntEquals(tc, MCC_AST_DECLARATION_TYPE_ARRAY,array_decl->declaration_type);
 
 	// root -> identifier -> identifier_name
-	CuAssertStrEquals(tc, "my_array", array_decl->identifier->identifier_name);
+	CuAssertStrEquals(tc, "my_array", array_decl->array_identifier->identifier_name);
 
 	// root -> type -> type_value
-	CuAssertIntEquals(tc, BOOL, array_decl->type->type_value);
+	CuAssertIntEquals(tc, BOOL, array_decl->array_type->type_value);
 
 	// root -> size -> type
-	CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_INT,array_decl->size->type);
+	CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_INT,array_decl->array_size->type);
 
 	// root -> size -> i_value
-	CuAssertIntEquals(tc, 13,array_decl->size->i_value);
+	CuAssertIntEquals(tc, 13,array_decl->array_size->i_value);
+
+	mcc_ast_delete(array_decl);
 
 }
 
@@ -486,6 +496,8 @@ void VariableAssignment(CuTest *tc)
 	// root -> assigned_value -> literal -> f_value
 	CuAssertDblEquals(tc, 4.23, variable_assignment->variable_assigned_value->literal->f_value,EPS);
 
+	mcc_ast_delete(variable_assignment);
+
 }
 
 
@@ -518,6 +530,8 @@ void ArrayAssignment(CuTest *tc)
 
 	// root -> index -> literal -> f_value
 	CuAssertIntEquals(tc, 12, array_assignment->array_index->literal->i_value);
+
+	mcc_ast_delete(array_assignment);
 }
 
 #define TESTS \

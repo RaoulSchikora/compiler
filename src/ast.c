@@ -152,8 +152,6 @@ void mcc_ast_delete_expression(struct mcc_ast_expression *expression)
 
 void mcc_ast_delete_type(struct mcc_ast_type *type){
     assert(type);
-    assert(type->node);
-    free(type->node),
     free(type);
 }
 
@@ -168,11 +166,11 @@ struct mcc_ast_type *mcc_ast_new_type(enum mcc_ast_types type){
 
 // ------------------------------------------------------------------ Declarations
 
-struct mcc_ast_variable_declaration *mcc_ast_new_variable_declaration(enum mcc_ast_types type, char* identifier){
+struct mcc_ast_declaration *mcc_ast_new_variable_declaration(enum mcc_ast_types type, char* identifier){
 
 	assert(identifier);
 
-	struct mcc_ast_variable_declaration *decl = malloc (sizeof(*decl));
+	struct mcc_ast_declaration *decl = malloc (sizeof(*decl));
 	if (!decl) {
 		return NULL;
 	}
@@ -181,25 +179,26 @@ struct mcc_ast_variable_declaration *mcc_ast_new_variable_declaration(enum mcc_a
 
 	struct mcc_ast_type *newtype = mcc_ast_new_type(type);
 
-	decl->type = newtype;
-	decl->identifier = id;
+	decl->variable_type = newtype;
+	decl->variable_identifier = id;
+	decl->declaration_type = MCC_AST_DECLARATION_TYPE_VARIABLE;
 
 	return decl;
 }
 
-void mcc_ast_delete_variable_declaration(struct mcc_ast_variable_declaration* decl){
+void mcc_ast_delete_variable_declaration(struct mcc_ast_declaration* decl){
     assert(decl);
-    mcc_ast_delete_identifier(decl->identifier);
-    mcc_ast_delete_type(decl->type);
+    mcc_ast_delete_identifier(decl->variable_identifier);
+    mcc_ast_delete_type(decl->variable_type);
     free(decl);
 }
 
-struct mcc_ast_array_declaration *mcc_ast_new_array_declaration(enum mcc_ast_types type, struct mcc_ast_literal* size, char* identifier){
+struct mcc_ast_declaration *mcc_ast_new_array_declaration(enum mcc_ast_types type, struct mcc_ast_literal* size, char* identifier){
 
 	assert(identifier);
 	assert(size);
 
-	struct mcc_ast_array_declaration *array_decl = malloc (sizeof(*array_decl));
+	struct mcc_ast_declaration *array_decl = malloc (sizeof(*array_decl));
 	if (!array_decl) {
 		return NULL;
 	}
@@ -208,19 +207,33 @@ struct mcc_ast_array_declaration *mcc_ast_new_array_declaration(enum mcc_ast_typ
 
 	struct mcc_ast_type *newtype = mcc_ast_new_type(type);
 
-	array_decl->type = newtype;
-	array_decl->identifier = id;
-	array_decl->size = size;
+	array_decl->array_type = newtype;
+	array_decl->array_identifier = id;
+	array_decl->array_size = size;
+	array_decl->declaration_type = MCC_AST_DECLARATION_TYPE_ARRAY;
 
 	return array_decl;
 }
 
-void mcc_ast_delete_array_declaration(struct mcc_ast_array_declaration* array_decl){
+void mcc_ast_delete_array_declaration(struct mcc_ast_declaration* array_decl){
 	assert(array_decl);
-	mcc_ast_delete_identifier(array_decl->identifier);
-	mcc_ast_delete_type(array_decl->type);
-	mcc_ast_delete_literal(array_decl->size);
+	mcc_ast_delete_identifier(array_decl->array_identifier);
+	mcc_ast_delete_type(array_decl->array_type);
+	mcc_ast_delete_literal(array_decl->array_size);
 	free(array_decl);
+}
+
+void mcc_ast_delete_declaration(struct mcc_ast_declaration* decl) {
+	assert(decl);
+	switch(decl->declaration_type){
+		case MCC_AST_DECLARATION_TYPE_VARIABLE:
+			mcc_ast_delete_variable_declaration(decl);
+			break;
+		case MCC_AST_DECLARATION_TYPE_ARRAY:
+			mcc_ast_delete_array_declaration(decl);
+			break;
+	}
+
 }
 
 // ------------------------------------------------------------------ Assignments
@@ -255,6 +268,34 @@ struct mcc_ast_assignment *mcc_ast_new_array_assignment (char *identifier, struc
 	assignment->array_index = index;
 	assignment->assignment_type = MCC_AST_ASSIGNMENT_TYPE_ARRAY;
 	return assignment;
+}
+
+void mcc_ast_delete_assignment(struct mcc_ast_assignment* assignment){
+	assert(assignment);
+	switch(assignment->assignment_type){
+		case MCC_AST_ASSIGNMENT_TYPE_VARIABLE:
+			mcc_ast_delete_variable_assignment(assignment);
+			break;
+		case MCC_AST_ASSIGNMENT_TYPE_ARRAY:
+			mcc_ast_delete_array_assignment(assignment);
+			break;
+	}
+}
+
+void mcc_ast_delete_variable_assignment(struct mcc_ast_assignment* assignment){
+	assert(assignment);
+	mcc_ast_delete_identifier(assignment->variable_identifier);
+	mcc_ast_delete_expression(assignment->variable_assigned_value);
+	free(assignment);
+}
+
+void mcc_ast_delete_array_assignment(struct mcc_ast_assignment* assignment){
+	assert(assignment);
+	mcc_ast_delete_identifier(assignment->array_identifier);
+	mcc_ast_delete_expression(assignment->array_assigned_value);
+	mcc_ast_delete_expression(assignment->array_index);
+	free(assignment);
+
 }
 
 // ------------------------------------------------------------------ Identifier
@@ -340,6 +381,8 @@ struct mcc_ast_statement *mcc_ast_new_statement_expression( struct mcc_ast_expre
 //TODO mcc_ast_delete_statement()
 
 // ------------------------------------------------------------------- Literals
+
+// ---------------------------------------------------------------------- Literal
 
 struct mcc_ast_literal *mcc_ast_new_literal_int(long value)
 {
