@@ -14,7 +14,7 @@ enum mcc_ast_to_dot_mode{
     MCC_AST_TO_DOT_MODE_STATEMENT,
     MCC_AST_TO_DOT_MODE_ASSIGNMENT,
 //    MCC_AST_TO_DOT_MODE_PROGRAM,
-//    MCC_AST_TO_DOT_MODE_VARIABLE_DECLARATION,
+    MCC_AST_TO_DOT_MODE_VARIABLE_DECLARATION,
 };
 
 static void print_usage(const char *prg)
@@ -28,6 +28,8 @@ static void print_usage(const char *prg)
     printf("   -h                     show this usage\n");
     printf("   -e                     derivation starts at expression level of the grammar\n");
     printf("   -s                     derivation starts at statement level of the grammar\n");
+    printf("   -a                     derivation starts at assignment level of the grammar\n");
+    printf("   -d                     derivation starts at declaration level of the grammar\n");
 }
 
 // from: https://stackoverflow.com/questions/174531/how-to-read-the-content-of-a-file-to-a-string-in-c
@@ -98,9 +100,9 @@ static int readInputAndSetMode(int argc, char *argv[])
         } else if (strcmp("-e", argv[1]) == 0){
             input = stdinToString();
             ast_to_dot_mode = MCC_AST_TO_DOT_MODE_EXPRESSION;
-        } else if (strcmp("-v", argv[1]) == 0){
+        } else if (strcmp("-d", argv[1]) == 0){
 			input = stdinToString();
-//			ast_to_dot_mode = MCC_AST_TO_DOT_MODE_VARIABLE_DECLARATION;
+			ast_to_dot_mode = MCC_AST_TO_DOT_MODE_VARIABLE_DECLARATION;
         } else if (strcmp("-s", argv[1]) == 0){
             input = stdinToString();
             ast_to_dot_mode = MCC_AST_TO_DOT_MODE_STATEMENT;
@@ -118,9 +120,9 @@ static int readInputAndSetMode(int argc, char *argv[])
         } else if (strcmp("-e", argv[1]) == 0){
             input = fileToString(argv[2]);
             ast_to_dot_mode = MCC_AST_TO_DOT_MODE_EXPRESSION;
-        } else if (strcmp("-v", argv[1]) == 0){
+        } else if (strcmp("-d", argv[1]) == 0){
             input = fileToString(argv[2]);
-//            ast_to_dot_mode = MCC_AST_TO_DOT_MODE_VARIABLE_DECLARATION;
+            ast_to_dot_mode = MCC_AST_TO_DOT_MODE_VARIABLE_DECLARATION;
         } else if (strcmp("-s", argv[1]) == 0){
             input = fileToString(argv[2]);
             ast_to_dot_mode = MCC_AST_TO_DOT_MODE_STATEMENT;
@@ -128,6 +130,7 @@ static int readInputAndSetMode(int argc, char *argv[])
             input = fileToString(argv[2]);
             ast_to_dot_mode = MCC_AST_TO_DOT_MODE_ASSIGNMENT;
         } else {
+            printf("error: unkown option");
             print_usage(argv[0]);
             return EXIT_FAILURE;
         }
@@ -201,28 +204,26 @@ int main(int argc, char *argv[])
         mcc_ast_delete(assignment);
 
         return EXIT_SUCCESS;
+    case MCC_AST_TO_DOT_MODE_VARIABLE_DECLARATION: ;
+	    struct mcc_ast_declaration *variable = NULL;
+
+	    {
+	        struct mcc_parser_result result = mcc_parse_string(input,MCC_PARSER_ENTRY_POINT_VARIABLE_DECLARATION);
+	        if (result.status != MCC_PARSER_STATUS_OK) {
+	            return EXIT_FAILURE;
+	        }
+	        variable = result.declaration;
+	    }
+
+	    mcc_ast_print_dot(stdout, variable);
+
+        // cleanup
+        mcc_ast_delete(variable);
+
+        return EXIT_SUCCESS;
     }
 
 	    //TODO: below
-//	case MCC_AST_TO_DOT_MODE_VARIABLE_DECLARATION: ;
-//	    struct mcc_ast_variable_declaration *variable = NULL;
-//
-//	    {
-//	        struct mcc_parser_result result = mcc_parse_file(in,MCC_PARSER_ENTRY_POINT_VARIABLE_DECLARATION);
-//	        fclose(in);
-//	        if (result.status != MCC_PARSER_STATUS_OK) {
-//	            return EXIT_FAILURE;
-//	        }
-//	        variable = result.variable_declaration;
-//	    }
-//
-//	    mcc_ast_print_dot(stdout, variable);
-//
-//        // cleanup
-//        mcc_ast_delete(variable);
-//
-//        return EXIT_SUCCESS;
-//
 //	// MCC_PARSER_ENTRY_POINT_PROGRAN
 //	case MCC_AST_TO_DOT_MODE_PROGRAM: ;
 //		struct mcc_ast_program *program = NULL;
