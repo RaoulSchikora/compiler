@@ -16,14 +16,22 @@ enum mcc_ast_to_dot_mode{
 //    MCC_AST_TO_DOT_MODE_VARIABLE_DECLARATION,
 };
 
-void print_usage(const char *prg)
+static void print_usage(const char *prg)
 {
-	printf("usage: %s <FILE>\n\n", prg);
-	printf("  <FILE>        Input filepath or - for stdin\n");
+    printf("usage: %s <FILE>\n\n", prg);
+    printf("   or: %s <FILE>            open specified .mc-program\n", prg);
+    printf("   or: %s -                 read .mc-program from stdin\n", prg);
+    printf("   or: %s <OPTION> <FILE>   open specified file with chosen option\n", prg);
+    printf("   or: %s <OPTION> -        read text from stdin with chosen option\n\n", prg);
+    printf("Options:\n");
+    printf("   -h                     show this usage\n");
+    printf("   -t                     open in test mode (Can display parts of .mc-programs.\n");
+    printf("                          As root node choose a later derivation step of the\n");
+    printf("                          grammar like 'expression' or 'statement'.)\n");
 }
 
 // from: https://stackoverflow.com/questions/174531/how-to-read-the-content-of-a-file-to-a-string-in-c
-char *fileToString(char *filename) {
+static char *fileToString(char *filename) {
     FILE *f = fopen(filename, "rt");
     assert(f);
     fseek(f, 0, SEEK_END);
@@ -37,7 +45,7 @@ char *fileToString(char *filename) {
 }
 
 //from: https://stackoverflow.com/questions/2496668/how-to-read-the-standard-input-into-string-variable-until-eof-in-c
-char* stdinToString(){
+static char *stdinToString(){
     char buffer[BUF_SIZE];
     size_t contentSize = 1; // includes NULL
     /* Preallocate space. */
@@ -72,61 +80,65 @@ char* stdinToString(){
     return content;
 }
 
-int main(int argc, char *argv[])
+static enum mcc_ast_to_dot_mode ast_to_dot_mode;
+static char* input;
+
+static int readInputAndSetMode(int argc, char *argv[])
 {
-
-	enum mcc_ast_to_dot_mode ast_to_dot_mode;
-	char* input;
-
-	if (argc < 2) {
-		print_usage(argv[0]);
-		return EXIT_FAILURE;
-	}
-	if (argc == 2){
-		if (strcmp("-", argv[1]) == 0) {
+    if (argc < 2) {
+        print_usage(argv[0]);
+        EXIT_FAILURE;
+    } else if (argc == 2){
+        if (strcmp("-", argv[1]) == 0) {
+            input = stdinToString();
+            ast_to_dot_mode = MCC_AST_TO_DOT_MODE_EXPRESSION;
+        } else if (strcmp("-h", argv[1]) == 0 || strcmp("--help", argv[1]) == 0){
+            print_usage(argv[0]);
+            EXIT_FAILURE;
+        } else if (strcmp("-e", argv[1]) == 0){
+            input = stdinToString();
+            ast_to_dot_mode = MCC_AST_TO_DOT_MODE_EXPRESSION;
+        } else if (strcmp("-v", argv[1]) == 0){
 			input = stdinToString();
-			ast_to_dot_mode = MCC_AST_TO_DOT_MODE_EXPRESSION;
-		} else if (strcmp("-h", argv[1]) == 0 || strcmp("--help", argv[1]) == 0){
-	        print_usage(argv[0]);
-	        return EXIT_FAILURE;
-	    } else if (strcmp("-e", argv[1]) == 0){
-			input = stdinToString();
-			ast_to_dot_mode = MCC_AST_TO_DOT_MODE_EXPRESSION;
-		} else if (strcmp("-v", argv[1]) == 0){
-//			input = stdinToString();
 //			ast_to_dot_mode = MCC_AST_TO_DOT_MODE_VARIABLE_DECLARATION;
-		} else if (strcmp("-s", argv[1]) == 0){
+        } else if (strcmp("-s", argv[1]) == 0){
             input = stdinToString();
             ast_to_dot_mode = MCC_AST_TO_DOT_MODE_STATEMENT;
-		}else {
-//            input = fileToString(argv[1]);
+        }else {
+            input = fileToString(argv[1]);
 //            ast_to_dot_mode = MCC_AST_TO_DOT_MODE_PROGRAM;
-            }
+        }
     } else if (argc == 3) {
         if (strcmp("-h", argv[1]) == 0 || strcmp("--help", argv[1]) == 0){
             print_usage(argv[0]);
-            return EXIT_FAILURE;
+            EXIT_FAILURE;
         } else if (strcmp("-e", argv[1]) == 0){
             input = fileToString(argv[2]);
             ast_to_dot_mode = MCC_AST_TO_DOT_MODE_EXPRESSION;
         } else if (strcmp("-v", argv[1]) == 0){
-//            input = fileToString(argv[2]);
+            input = fileToString(argv[2]);
 //            ast_to_dot_mode = MCC_AST_TO_DOT_MODE_VARIABLE_DECLARATION;
         } else if (strcmp("-s", argv[1]) == 0){
             input = fileToString(argv[2]);
             ast_to_dot_mode = MCC_AST_TO_DOT_MODE_STATEMENT;
         } else {
             print_usage(argv[0]);
-            return EXIT_FAILURE;
-            }
+            EXIT_FAILURE;
+        }
     } else {
-	    input = "fail";
-	    printf("Unkown Option");
+        printf("error: unkown option");
         print_usage(argv[0]);
-        return EXIT_FAILURE;
-	}
+        EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
+}
 
-	switch (ast_to_dot_mode) {
+int main(int argc, char *argv[])
+{
+	if(readInputAndSetMode(argc, argv) == EXIT_FAILURE)
+	    return EXIT_FAILURE;
+
+    switch (ast_to_dot_mode) {
     // MCC_PASER_ENTRY_POINT_EXPRESSION
     case MCC_AST_TO_DOT_MODE_EXPRESSION:;
         struct mcc_ast_expression *expr = NULL;
