@@ -22,12 +22,11 @@ static void print_usage(const char *prg)
     printf("   or: %s <FILE>            open specified .mc-program\n", prg);
     printf("   or: %s -                 read .mc-program from stdin\n", prg);
     printf("   or: %s <OPTION> <FILE>   open specified file with chosen option\n", prg);
-    printf("   or: %s <OPTION> -        read text from stdin with chosen option\n\n", prg);
+    printf("   or: %s <OPTION>          read text from stdin with chosen option\n\n", prg);
     printf("Options:\n");
     printf("   -h                     show this usage\n");
-    printf("   -t                     open in test mode (Can display parts of .mc-programs.\n");
-    printf("                          As root node choose a later derivation step of the\n");
-    printf("                          grammar like 'expression' or 'statement'.)\n");
+    printf("   -e                     derivation starts at expression level of the grammar\n");
+    printf("   -s                     derivation starts at statement level of the grammar\n");
 }
 
 // from: https://stackoverflow.com/questions/174531/how-to-read-the-content-of-a-file-to-a-string-in-c
