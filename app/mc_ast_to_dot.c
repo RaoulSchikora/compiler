@@ -121,7 +121,7 @@ int main(int argc, char *argv[])
             }
     } else {
 	    input = "fail";
-	    printf(input);
+	    printf("Unkown Option");
         print_usage(argv[0]);
         return EXIT_FAILURE;
 	}

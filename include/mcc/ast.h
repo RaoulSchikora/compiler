@@ -132,7 +132,7 @@ enum mcc_ast_types{
 
 struct mcc_ast_type{
 
-	struct mcc_ast_node *node;
+	struct mcc_ast_node node;
     enum mcc_ast_types type_value;
 
 };
@@ -142,58 +142,76 @@ void mcc_ast_delete_type(struct mcc_ast_type *type);
 
 // ------------------------------------------------------------------- Declarations
 
-struct mcc_ast_variable_declaration{
+enum mcc_ast_declaration_type{
+	MCC_AST_DECLARATION_TYPE_VARIABLE,
+	MCC_AST_DECLARATION_TYPE_ARRAY,
+};
+
+struct mcc_ast_declaration{
 
 	struct mcc_ast_node node;
+	enum mcc_ast_declaration_type declaration_type;
+	union{
+		struct{
+			struct mcc_ast_type *variable_type;
+			struct mcc_ast_identifier *variable_identifier;
+		};
+		struct{
+			struct mcc_ast_literal *array_size;
+			struct mcc_ast_type *array_type;
+			struct mcc_ast_identifier *array_identifier;
+		};
 
-	struct{
-		struct mcc_ast_type *type;
-		struct mcc_ast_identifier *identifier;
 	};
 };
 
-struct mcc_ast_variable_declaration *mcc_ast_new_variable_declaration(enum mcc_ast_types, char* identifier);
 
-void mcc_ast_delete_variable_declaration(struct mcc_ast_variable_declaration* decl);
+struct mcc_ast_declaration *mcc_ast_new_variable_declaration(enum mcc_ast_types, char* identifier);
 
-struct mcc_ast_array_declaration{
+void mcc_ast_delete_variable_declaration(struct mcc_ast_declaration* decl);
 
-	struct mcc_ast_node node;
 
-	struct{
-	    struct mcc_ast_literal *size;
-		struct mcc_ast_type *type;
-		struct mcc_ast_identifier *identifier;
-	};
+struct mcc_ast_declaration *mcc_ast_new_array_declaration(enum mcc_ast_types type, struct mcc_ast_literal* size, char* identifier);
 
-};
+void mcc_ast_delete_array_declaration(struct mcc_ast_declaration* array_decl);
 
-struct mcc_ast_array_declaration *mcc_ast_new_array_declaration(enum mcc_ast_types type, struct mcc_ast_literal* size, char* identifier);
-
-void mcc_ast_delete_array_declaration(struct mcc_ast_array_declaration* array_decl);
+void mcc_ast_delete_declaration(struct mcc_ast_declaration* decl);
 
 // ------------------------------------------------------------------ Assignments
 
-struct mcc_ast_variable_assignment {
-
-	struct mcc_ast_node node;
-	struct mcc_ast_identifier *identifier;
-	struct mcc_ast_expression *assigned_value;
+enum mcc_ast_assignment_type{
+    MCC_AST_ASSIGNMENT_TYPE_VARIABLE,
+    MCC_AST_ASSIGNMENT_TYPE_ARRAY,
 };
 
-struct mcc_ast_array_assignment {
+struct mcc_ast_assignment{
+    struct mcc_ast_node node;
+    enum mcc_ast_assignment_type assignment_type;
+    union{
+        // MCC_AST_ASSIGNMENT_TYPE_VARIABLE
+        struct{
+        	struct mcc_ast_identifier *variable_identifier;
+        	struct mcc_ast_expression *variable_assigned_value;
+        };
+        // MCC_AST_ASSIGNMENT_TYPE_ARRAY
+		struct{
+			struct mcc_ast_identifier *array_identifier;
+			struct mcc_ast_expression *array_index;
+			struct mcc_ast_expression *array_assigned_value;
+		};
 
-	struct mcc_ast_node node;
-	struct mcc_ast_identifier *identifier;
-	struct mcc_ast_expression *index;
-	struct mcc_ast_expression *assigned_value;
+    };
 };
 
-struct mcc_ast_variable_assignment *mcc_ast_new_variable_assignment (char *identifier, struct mcc_ast_expression *assigned_value);
+struct mcc_ast_assignment *mcc_ast_new_variable_assignment (char *identifier, struct mcc_ast_expression *assigned_value);
 
-struct mcc_ast_array_assignment *mcc_ast_new_array_assignment (char *identifier, struct mcc_ast_expression *index, struct mcc_ast_expression *assigned_value);
+struct mcc_ast_assignment *mcc_ast_new_array_assignment (char *identifier, struct mcc_ast_expression *index, struct mcc_ast_expression *assigned_value);
 
+void mcc_ast_delete_assignment(struct mcc_ast_assignment* assignment);
 
+void mcc_ast_delete_variable_assignment(struct mcc_ast_assignment* assignment);
+
+void mcc_ast_delete_array_assignment(struct mcc_ast_assignment* assignment);
 //-------------------------------------------------------------------- Identifier
 
 struct mcc_ast_identifier{
@@ -289,6 +307,8 @@ void mcc_ast_delete_literal(struct mcc_ast_literal *literal);
 
 #define mcc_ast_delete(x) _Generic((x), \
 		struct mcc_ast_expression *: mcc_ast_delete_expression, \
+		struct mcc_ast_declaration *: mcc_ast_delete_declaration, \
+		struct mcc_ast_assignment*:	 mcc_ast_delete_assignment, \
 		struct mcc_ast_statement *: mcc_ast_delete_statement, \
 		struct mcc_ast_literal *:    mcc_ast_delete_literal \
 	)(x)
