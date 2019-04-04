@@ -12,6 +12,7 @@
 enum mcc_ast_to_dot_mode{
     MCC_AST_TO_DOT_MODE_EXPRESSION,
     MCC_AST_TO_DOT_MODE_STATEMENT,
+    MCC_AST_TO_DOT_MODE_ASSIGNMENT,
 //    MCC_AST_TO_DOT_MODE_PROGRAM,
 //    MCC_AST_TO_DOT_MODE_VARIABLE_DECLARATION,
 };
@@ -103,7 +104,10 @@ static int readInputAndSetMode(int argc, char *argv[])
         } else if (strcmp("-s", argv[1]) == 0){
             input = stdinToString();
             ast_to_dot_mode = MCC_AST_TO_DOT_MODE_STATEMENT;
-        }else {
+        } else if (strcmp("-a", argv[1]) == 0){
+            input = stdinToString();
+            ast_to_dot_mode = MCC_AST_TO_DOT_MODE_ASSIGNMENT;
+        } else {
             input = fileToString(argv[1]);
 //            ast_to_dot_mode = MCC_AST_TO_DOT_MODE_PROGRAM;
         }
@@ -120,6 +124,9 @@ static int readInputAndSetMode(int argc, char *argv[])
         } else if (strcmp("-s", argv[1]) == 0){
             input = fileToString(argv[2]);
             ast_to_dot_mode = MCC_AST_TO_DOT_MODE_STATEMENT;
+        } else if (strcmp("-a", argv[1]) == 0) {
+            input = fileToString(argv[2]);
+            ast_to_dot_mode = MCC_AST_TO_DOT_MODE_ASSIGNMENT;
         } else {
             print_usage(argv[0]);
             return EXIT_FAILURE;
@@ -175,6 +182,23 @@ int main(int argc, char *argv[])
 
         // cleanup
         mcc_ast_delete(stmt);
+
+        return EXIT_SUCCESS;
+    case MCC_AST_TO_DOT_MODE_ASSIGNMENT: ;
+	    struct mcc_ast_assignment *assignment = NULL;
+
+	    {
+	        struct mcc_parser_result result = mcc_parse_string(input,MCC_PARSER_ENTRY_POINT_ASSIGNMENT);
+	        if (result.status != MCC_PARSER_STATUS_OK) {
+	            return EXIT_FAILURE;
+	        }
+	        assignment = result.assignment;
+	    }
+
+	    mcc_ast_print_dot(stdout, assignment);
+
+        // cleanup
+        mcc_ast_delete(assignment);
 
         return EXIT_SUCCESS;
     }
