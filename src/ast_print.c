@@ -250,6 +250,7 @@ static void print_dot_array_declaration(struct mcc_ast_declaration *declaration,
 
 }
 
+
 static void print_dot_variable_assignment(struct mcc_ast_assignment *assignment, void *data)
 {
 	assert(assignment);
@@ -274,6 +275,32 @@ static void print_dot_array_assignment(struct mcc_ast_assignment *assignment, vo
 	print_dot_edge(out, assignment, assignment->array_assigned_value, "value");
 
 
+}
+
+static void print_dot_assignment (struct mcc_ast_assignment *assignment, void* data){
+	assert(assignment);
+	assert(data);
+	switch(assignment->assignment_type){
+		case MCC_AST_ASSIGNMENT_TYPE_VARIABLE:
+			print_dot_variable_assignment(assignment,data);
+			break;
+		case MCC_AST_ASSIGNMENT_TYPE_ARRAY:
+			print_dot_array_assignment(assignment,data);
+			break;
+	}
+}
+
+static void print_dot_declaration (struct mcc_ast_declaration *declaration, void* data){
+	assert(declaration);
+	assert(data);
+	switch(declaration->declaration_type){
+		case MCC_AST_DECLARATION_TYPE_VARIABLE:
+			print_dot_variable_declaration(declaration,data);
+			break;
+		case MCC_AST_DECLARATION_TYPE_ARRAY:
+			print_dot_array_declaration(declaration,data);
+			break;
+	}
 }
 
 static void print_dot_type(struct mcc_ast_type *type, void *data){
@@ -338,8 +365,10 @@ static struct mcc_ast_visitor print_dot_visitor(FILE *out)
 		.statement_expression_stmt = print_dot_statement_expression_stmt,
         .statement_while = print_dot_statement_while,
 
+        .assignment = print_dot_assignment,
 	    .variable_assignment = print_dot_variable_assignment,
 	    .array_assignment = print_dot_array_assignment,
+	    .declaration = print_dot_declaration,
 	    .variable_declaration = print_dot_variable_declaration,
 	    .array_declaration = print_dot_array_declaration,
 

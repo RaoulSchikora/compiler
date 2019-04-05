@@ -234,7 +234,7 @@ struct mcc_parser_result mcc_parse_file(FILE *input)
 	return result;
 }
 
-// TODO: transfer allocation into function
+//TODO: transfer allocation into function
 
 void mcc_transform_into_unit_test (const char* in, char* out ) {
   *out = '~';
