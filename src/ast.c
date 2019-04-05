@@ -413,6 +413,10 @@ void mcc_ast_delete_statement(struct mcc_ast_statement *statement)
 	case MCC_AST_STATEMENT_TYPE_EXPRESSION:
 		mcc_ast_delete_expression(statement->stmt_expression);
 		break;
+    case MCC_AST_STATEMENT_TYPE_WHILE:
+        mcc_ast_delete_expression(statement->while_condition);
+        mcc_ast_delete_statement(statement->while_on_true);
+        break;
     }
     free(statement);
 }
