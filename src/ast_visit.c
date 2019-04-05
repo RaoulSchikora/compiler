@@ -112,6 +112,9 @@ void mcc_ast_visit_literal(struct mcc_ast_literal *literal, struct mcc_ast_visit
     case MCC_AST_LITERAL_TYPE_BOOL:
         visit(literal, visitor->literal_bool, visitor);
         break;
+	case MCC_AST_LITERAL_TYPE_STRING:
+		visit(literal, visitor->literal_string,visitor);
+		break;
 	}
 
 	visit_if_post_order(literal, visitor->literal, visitor);

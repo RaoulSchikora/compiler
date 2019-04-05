@@ -56,8 +56,10 @@ struct mcc_ast_visitor {
     mcc_ast_visit_statement_cb statement_expression_stmt;
 	mcc_ast_visit_statement_cb statement_while;
 
+	mcc_ast_visit_assignment_cb assignment;
 	mcc_ast_visit_assignment_cb variable_assignment;
 	mcc_ast_visit_assignment_cb array_assignment;
+	mcc_ast_visit_declaration_cb declaration;
 	mcc_ast_visit_declaration_cb variable_declaration;
 	mcc_ast_visit_declaration_cb array_declaration;
 
