@@ -479,11 +479,15 @@ void mcc_ast_print_dot_result(FILE *out, struct mcc_parser_result *result)
 	switch(entry_point){
 	case MCC_PARSER_ENTRY_POINT_EXPRESSION: ;
 		mcc_ast_print_dot(out,result->expression);
+		break;
 	case MCC_PARSER_ENTRY_POINT_STATEMENT: ;
 		mcc_ast_print_dot(out,result->statement);
+		break;
 	case MCC_PARSER_ENTRY_POINT_VARIABLE_DECLARATION: ;
 		mcc_ast_print_dot(out,result->declaration);
+		break;
 	case MCC_PARSER_ENTRY_POINT_ASSIGNMENT: ;
 		mcc_ast_print_dot(out,result->assignment);
+		break;
 	}
 }

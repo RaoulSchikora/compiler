@@ -503,11 +503,15 @@ void mcc_ast_delete_result(struct mcc_parser_result *result)
 	switch(entry_point){
 	case MCC_PARSER_ENTRY_POINT_EXPRESSION: ;
 		mcc_ast_delete(result->expression);
+		break;
 	case MCC_PARSER_ENTRY_POINT_STATEMENT: ;
 		mcc_ast_delete(result->statement);
+		break;
 	case MCC_PARSER_ENTRY_POINT_VARIABLE_DECLARATION: ;
 		mcc_ast_delete(result->declaration);
+		break;
 	case MCC_PARSER_ENTRY_POINT_ASSIGNMENT: ;
 		mcc_ast_delete(result->assignment);
+		break;
 	}
 }
