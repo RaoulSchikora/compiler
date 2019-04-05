@@ -41,7 +41,10 @@ static char *fileToString(char *filename) {
     fseek(f, 0, SEEK_SET);
     char *buffer = (char *) malloc(length + 1);
     buffer[length] = '\0';
-    fread(buffer, 1, length, f);
+    if (fread(buffer, 1, length, f) != 0){
+        perror ("failed write file to string.");
+        return NULL;
+    }
     fclose(f);
     return buffer;
 }
