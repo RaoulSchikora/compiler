@@ -96,10 +96,10 @@ void mcc_parser_error();
 toplevel : TILDE unit_test TILDE {}
          ;
 
-unit_test  : expression { result->expression = $1;  }
-	   | declaration {result->declaration = $1;}
-	   | assignment {result->assignment = $1;}
-	   | statement {result->statement = $1;}
+unit_test  : expression { result->entry_point = MCC_PARSER_ENTRY_POINT_EXPRESSION; result->expression = $1;  }
+	   | declaration { result->entry_point = MCC_PARSER_ENTRY_POINT_DECLARATION; result->declaration = $1;}
+	   | assignment { result->entry_point = MCC_PARSER_ENTRY_POINT_ASSIGNMENT; result->assignment = $1;}
+	   | statement { result->entry_point = MCC_PARSER_ENTRY_POINT_STATEMENT; result->statement = $1;}
 	   ;
 
 expression : literal                      { $$ = mcc_ast_new_expression_literal($1);                              loc($$, @1); }
@@ -160,7 +160,7 @@ literal : INT_LITERAL    { $$ = mcc_ast_new_literal_int($1);   loc($$, @1); }
 
 
 
-
+//void mcc_parser_error(struct MCC_PARSER_LTYPE *yylloc, yyscan_t *scanner, struct mcc_ast_result result, const char *msg)
 void mcc_parser_error(struct MCC_PARSER_LTYPE *yylloc, yyscan_t *scanner, const char *msg)
 {
 	// TODO

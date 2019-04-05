@@ -28,6 +28,8 @@ void mcc_ast_print_dot_type(FILE *out, struct mcc_ast_type *type);
 
 void mcc_ast_print_dot_identifier(FILE *out, struct mcc_ast_identifier *identifier);
 
+void mcc_ast_print_dot_result(FILE *out, struct mcc_parser_result *result);
+
 // clang-format off
 
 #define mcc_ast_print_dot(out, x) _Generic((x), \

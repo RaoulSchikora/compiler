@@ -493,3 +493,21 @@ void mcc_ast_delete_literal(struct mcc_ast_literal *literal)
 	}
 	free(literal);
 }
+
+void mcc_ast_delete_result(struct mcc_parser_result *result)
+{
+	assert(result);
+
+	enum mcc_parser_entry_point entry_point = result->entry_point;
+
+	switch(entry_point){
+	case MCC_PARSER_ENTRY_POINT_EXPRESSION: ;
+		mcc_ast_delete(result->expression);
+	case MCC_PARSER_ENTRY_POINT_STATEMENT: ;
+		mcc_ast_delete(result->statement);
+	case MCC_PARSER_ENTRY_POINT_VARIABLE_DECLARATION: ;
+		mcc_ast_delete(result->declaration);
+	case MCC_PARSER_ENTRY_POINT_ASSIGNMENT: ;
+		mcc_ast_delete(result->assignment);
+	}
+}

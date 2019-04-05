@@ -6,21 +6,19 @@
 #include "mcc/ast.h"
 #include "mcc/ast_print.h"
 #include "mcc/parser.h"
+#include "mcc/ast_visit.h"
+
 
 #define BUF_SIZE 1024
 
 enum mcc_ast_to_dot_mode{
-    MCC_AST_TO_DOT_MODE_EXPRESSION,
-    MCC_AST_TO_DOT_MODE_STATEMENT,
-    MCC_AST_TO_DOT_MODE_ASSIGNMENT,
-//    MCC_AST_TO_DOT_MODE_PROGRAM,
-    MCC_AST_TO_DOT_MODE_VARIABLE_DECLARATION,
+    MCC_AST_TO_DOT_MODE_TEST,
+    MCC_AST_TO_DOT_MODE_PROGRAM,
 };
 
 static void print_usage(const char *prg)
 {
-    printf("usage: %s <FILE>\n\n", prg);
-    printf("   or: %s <FILE>            open specified .mc-program\n", prg);
+    printf("usage: %s <FILE>            open specified .mc-program\n", prg);
     printf("   or: %s -                 read .mc-program from stdin\n", prg);
     printf("   or: %s <OPTION> <FILE>   open specified file with chosen option\n", prg);
     printf("   or: %s <OPTION>          read text from stdin with chosen option\n\n", prg);
@@ -42,8 +40,7 @@ static char *fileToString(char *filename) {
     char *buffer = (char *) malloc(length + 1);
     buffer[length] = '\0';
     //TODO error handling fread
-    fread(buffer, 1, length, f)
-    }
+    fread(buffer, 1, length, f);
     fclose(f);
     return buffer;
 }
@@ -90,160 +87,90 @@ static char* input;
 static int readInputAndSetMode(int argc, char *argv[])
 {
     if (argc < 2) {
+        // print help
         print_usage(argv[0]);
         return EXIT_FAILURE;
     } else if (argc == 2){
-        if (strcmp("-", argv[1]) == 0) {
-            input = stdinToString();
-            ast_to_dot_mode = MCC_AST_TO_DOT_MODE_EXPRESSION;
-        } else if (strcmp("-h", argv[1]) == 0 || strcmp("--help", argv[1]) == 0){
+        if (strcmp("-h", argv[1]) == 0 || strcmp("--help", argv[1]) == 0){
+            // print help
             print_usage(argv[0]);
             return EXIT_FAILURE;
-        } else if (strcmp("-e", argv[1]) == 0){
+        } else if (strcmp("-", argv[1]) == 0) {
+            // read from stdin
             input = stdinToString();
-            ast_to_dot_mode = MCC_AST_TO_DOT_MODE_EXPRESSION;
-        } else if (strcmp("-d", argv[1]) == 0){
-			input = stdinToString();
-			ast_to_dot_mode = MCC_AST_TO_DOT_MODE_VARIABLE_DECLARATION;
-        } else if (strcmp("-s", argv[1]) == 0){
+            ast_to_dot_mode = MCC_AST_TO_DOT_MODE_PROGRAM;
+        } else if (strcmp("-t", argv[1]) == 0){
+            // read from stdin in testing mode
             input = stdinToString();
-            ast_to_dot_mode = MCC_AST_TO_DOT_MODE_STATEMENT;
-        } else if (strcmp("-a", argv[1]) == 0){
-            input = stdinToString();
-            ast_to_dot_mode = MCC_AST_TO_DOT_MODE_ASSIGNMENT;
+            ast_to_dot_mode = MCC_AST_TO_DOT_MODE_TEST;
         } else {
+            // read file
             input = fileToString(argv[1]);
-//            ast_to_dot_mode = MCC_AST_TO_DOT_MODE_PROGRAM;
+            ast_to_dot_mode = MCC_AST_TO_DOT_MODE_PROGRAM;
         }
     } else if (argc == 3) {
         if (strcmp("-h", argv[1]) == 0 || strcmp("--help", argv[1]) == 0){
+            // print help
             print_usage(argv[0]);
             return EXIT_FAILURE;
-        } else if (strcmp("-e", argv[1]) == 0){
+        } else if (strcmp("-t", argv[1]) == 0){
+            // read from file in testing mode
             input = fileToString(argv[2]);
-            ast_to_dot_mode = MCC_AST_TO_DOT_MODE_EXPRESSION;
-        } else if (strcmp("-d", argv[1]) == 0){
-            input = fileToString(argv[2]);
-            ast_to_dot_mode = MCC_AST_TO_DOT_MODE_VARIABLE_DECLARATION;
-        } else if (strcmp("-s", argv[1]) == 0){
-            input = fileToString(argv[2]);
-            ast_to_dot_mode = MCC_AST_TO_DOT_MODE_STATEMENT;
-        } else if (strcmp("-a", argv[1]) == 0) {
-            input = fileToString(argv[2]);
-            ast_to_dot_mode = MCC_AST_TO_DOT_MODE_ASSIGNMENT;
+            ast_to_dot_mode = MCC_AST_TO_DOT_MODE_TEST;
         } else {
+            // print help
             printf("error: unkown option");
             print_usage(argv[0]);
             return EXIT_FAILURE;
         }
     } else {
-        printf("error: unkown option");
+        // print help
+        printf("error: too many options");
         print_usage(argv[0]);
         return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
 }
 
-int main(int argc, char *argv[])
-{
-	if(readInputAndSetMode(argc, argv) == EXIT_FAILURE)
-	    return EXIT_FAILURE;
+int main(int argc, char *argv[]) {
+    // set mode and read input
+    if (readInputAndSetMode(argc, argv) == EXIT_FAILURE)
+        return EXIT_FAILURE;
 
+    struct mcc_parser_result result;
+    struct mcc_parser_result *ptr_result;
+
+    // handle entry point dependend on ast_to_dot_mode
     switch (ast_to_dot_mode) {
-    // MCC_PASER_ENTRY_POINT_EXPRESSION
-    case MCC_AST_TO_DOT_MODE_EXPRESSION:;
-        struct mcc_ast_expression *expr = NULL;
+    case MCC_AST_TO_DOT_MODE_TEST: ;
 
-        // parsing phase
-        {
-            struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_EXPRESSION);
-            if (result.status != MCC_PARSER_STATUS_OK) {
-                return EXIT_FAILURE;
-            }
-            expr = result.expression;
+        // parsing phase - entry point set as expression. Actual entry point is set while parsing
+        result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_EXPRESSION);
+        ptr_result = &result;
+        if (ptr_result->status != MCC_PARSER_STATUS_OK) {
+            return EXIT_FAILURE;
         }
 
-        mcc_ast_print_dot(stdout, expr);
+        mcc_ast_print_dot_result(stdout, ptr_result);
 
         // cleanup
-        mcc_ast_delete(expr);
+        mcc_ast_delete_result(ptr_result);
 
         return EXIT_SUCCESS;
-    // MCC_PASER_ENTRY_POINT_STATEMENT
-    case MCC_AST_TO_DOT_MODE_STATEMENT: ;
-
-        struct mcc_ast_statement *stmt = NULL;
+    case MCC_AST_TO_DOT_MODE_PROGRAM: ;
 
         // parsing phase
-        {
-            struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_STATEMENT);
-            if (result.status != MCC_PARSER_STATUS_OK) {
-                return EXIT_FAILURE;
-            }
-            stmt = result.statement;
+        result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+        ptr_result = &result;
+        if (ptr_result->status != MCC_PARSER_STATUS_OK) {
+            return EXIT_FAILURE;
         }
 
-        mcc_ast_print_dot(stdout, stmt);
+        mcc_ast_print_dot_result(stdout, ptr_result);
 
         // cleanup
-        mcc_ast_delete(stmt);
-
-        return EXIT_SUCCESS;
-    case MCC_AST_TO_DOT_MODE_ASSIGNMENT: ;
-	    struct mcc_ast_assignment *assignment = NULL;
-
-	    {
-	        struct mcc_parser_result result = mcc_parse_string(input,MCC_PARSER_ENTRY_POINT_ASSIGNMENT);
-	        if (result.status != MCC_PARSER_STATUS_OK) {
-	            return EXIT_FAILURE;
-	        }
-	        assignment = result.assignment;
-	    }
-
-	    mcc_ast_print_dot(stdout, assignment);
-
-        // cleanup
-        mcc_ast_delete(assignment);
-
-        return EXIT_SUCCESS;
-    case MCC_AST_TO_DOT_MODE_VARIABLE_DECLARATION: ;
-	    struct mcc_ast_declaration *variable = NULL;
-
-	    {
-	        struct mcc_parser_result result = mcc_parse_string(input,MCC_PARSER_ENTRY_POINT_VARIABLE_DECLARATION);
-	        if (result.status != MCC_PARSER_STATUS_OK) {
-	            return EXIT_FAILURE;
-	        }
-	        variable = result.declaration;
-	    }
-
-	    mcc_ast_print_dot(stdout, variable);
-
-        // cleanup
-        mcc_ast_delete(variable);
+        mcc_ast_delete_result(ptr_result);
 
         return EXIT_SUCCESS;
     }
-
-	    //TODO: below
-//	// MCC_PARSER_ENTRY_POINT_PROGRAN
-//	case MCC_AST_TO_DOT_MODE_PROGRAM: ;
-//		struct mcc_ast_program *program = NULL;
-//
-//		{
-//			struct mcc_parser_result result = mcc_parse_file(in,MCC_PARSER_ENTRY_POINT_PROGRAM);
-//			fclose(in);
-//			if (result.status != MCC_PARSER_STATUS_OK) {
-//				return EXIT_FAILURE;
-//			}
-//			program = result.program;
-//		}
-//
-//		mcc_ast_print_dot(stdout, program);
-//
-//		// cleanup
-//		mcc_ast_delete(program);
-//
-//		return EXIT_SUCCESS;
-//	}
 }

@@ -20,6 +20,7 @@ enum mcc_parser_status {
 };
 
 enum mcc_parser_entry_point{
+	// entry point which are set while parsing
     MCC_PARSER_ENTRY_POINT_EXPRESSION,
     MCC_PARSER_ENTRY_POINT_VARIABLE_DECLARATION,
     MCC_PARSER_ENTRY_POINT_PROGRAM,
@@ -30,6 +31,7 @@ enum mcc_parser_entry_point{
 
 struct mcc_parser_result {
 	enum mcc_parser_status status;
+	enum mcc_parser_entry_point entry_point;
 
 	union{
 	    // MCC_PARSER_ENTRY_POINT_EXPRESSION

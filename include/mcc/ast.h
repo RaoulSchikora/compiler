@@ -13,6 +13,8 @@
 #ifndef MCC_AST_H
 #define MCC_AST_H
 
+#include "mcc/parser.h"
+
 #include <stdbool.h>
 #include <string.h>
 // ------------------------------------------------------------------- AST Node
@@ -309,6 +311,8 @@ char* mcc_remove_quotes_from_string(char* string);
 struct mcc_ast_literal *mcc_ast_new_literal_bool(bool value);
 
 void mcc_ast_delete_literal(struct mcc_ast_literal *literal);
+
+void mcc_ast_delete_result(struct mcc_parser_result *result);
 
 // -------------------------------------------------------------------- Utility
 

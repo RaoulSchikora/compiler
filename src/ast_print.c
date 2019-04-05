@@ -439,3 +439,22 @@ void mcc_ast_print_dot_identifier(FILE *out, struct mcc_ast_identifier *identifi
 
 	print_dot_end(out);
 }
+
+void mcc_ast_print_dot_result(FILE *out, struct mcc_parser_result *result)
+{
+	assert(out);
+	assert(result);
+
+	enum mcc_parser_entry_point entry_point = result->entry_point;
+
+	switch(entry_point){
+	case MCC_PARSER_ENTRY_POINT_EXPRESSION: ;
+		mcc_ast_print_dot(out,result->expression);
+	case MCC_PARSER_ENTRY_POINT_STATEMENT: ;
+		mcc_ast_print_dot(out,result->statement);
+	case MCC_PARSER_ENTRY_POINT_VARIABLE_DECLARATION: ;
+		mcc_ast_print_dot(out,result->declaration);
+	case MCC_PARSER_ENTRY_POINT_ASSIGNMENT: ;
+		mcc_ast_print_dot(out,result->assignment);
+	}
+}
