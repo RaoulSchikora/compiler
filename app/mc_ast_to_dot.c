@@ -42,8 +42,7 @@ static char *fileToString(char *filename) {
     char *buffer = (char *) malloc(length + 1);
     buffer[length] = '\0';
     //TODO error handling fread
-    fread(buffer, 1, length, f)
-    }
+    fread(buffer, 1, length, f);
     fclose(f);
     return buffer;
 }
