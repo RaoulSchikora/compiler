@@ -134,6 +134,33 @@ static void print_dot_expression_unary_op(struct mcc_ast_expression *expression,
 	print_dot_edge(out, expression, expression->child, "child");
 }
 
+static void print_dot_expression_array_element(struct mcc_ast_expression *expression, void *data)
+{
+	assert(expression);
+	assert(data);
+
+	char label[LABEL_SIZE] = {0};
+	snprintf(label, sizeof(label), "expr: arr_el");
+
+	FILE *out = data;
+	print_dot_node(out, expression, label);
+	print_dot_edge(out, expression, expression->index, "index");
+	print_dot_edge(out, expression, expression->array_identifier, "id");
+}
+
+static void print_dot_expression_variable(struct mcc_ast_expression *expression, void *data)
+{
+	assert(expression);
+	assert(data);
+
+	char label[LABEL_SIZE] = {0};
+	snprintf(label, sizeof(label), "expr: var");
+
+	FILE *out = data;
+	print_dot_node(out, expression, label);
+	print_dot_edge(out, expression, expression->identifier, "id");
+}
+
 static void print_dot_statememt_if_stmt(struct mcc_ast_statement *statement, void *data)
 {
 	assert(statement);
@@ -323,7 +350,6 @@ static void print_dot_type(struct mcc_ast_type *type, void *data){
 			print_dot_node(out, type, "string");
             break;
 	}
-	print_dot_node(out, type, "float");
 }
 
 static void print_dot_expression_identifier(struct mcc_ast_identifier *identifier, void *data){
@@ -353,6 +379,9 @@ static struct mcc_ast_visitor print_dot_visitor(FILE *out)
 	    .expression_binary_op = print_dot_expression_binary_op,
 	    .expression_parenth = print_dot_expression_parenth,
 	    .expression_unary_op = print_dot_expression_unary_op,
+	    .expression_variable = print_dot_expression_variable,
+	    .expression_array_element = print_dot_expression_array_element,
+
 
 	    .literal_int = print_dot_literal_int,
 	    .literal_float = print_dot_literal_float,

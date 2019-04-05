@@ -43,6 +43,8 @@ struct mcc_ast_visitor {
 	mcc_ast_visit_expression_cb expression_binary_op;
 	mcc_ast_visit_expression_cb expression_parenth;
     mcc_ast_visit_expression_cb expression_unary_op;
+    mcc_ast_visit_expression_cb expression_variable;
+	mcc_ast_visit_expression_cb expression_array_element;
 
 	mcc_ast_visit_literal_cb literal;
 	mcc_ast_visit_literal_cb literal_int;
