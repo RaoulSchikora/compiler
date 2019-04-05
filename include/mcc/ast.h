@@ -229,6 +229,8 @@ enum mcc_ast_statement_type {
 	MCC_AST_STATEMENT_TYPE_IF_ELSE_STMT,
 	MCC_AST_STATEMENT_TYPE_EXPRESSION,
 	MCC_AST_STATEMENT_TYPE_WHILE,
+	MCC_AST_STATEMENT_TYPE_DECLARATION,
+	MCC_AST_STATEMENT_TYPE_ASSIGNMENT,
 };
 
 struct mcc_ast_statement {
@@ -255,6 +257,10 @@ struct mcc_ast_statement {
 			struct mcc_ast_expression *while_condition;
 			struct mcc_ast_statement *while_on_true;
 		};
+		//MCC_AST_STATEMENT_TYPE_DECLARATION,
+		struct mcc_ast_declaration *declaration;
+		//MCC_AST_STATEMENT_TYPE_ASSIGNMENT,
+		struct mcc_ast_assignment *assignment;
 	};
 };
 
