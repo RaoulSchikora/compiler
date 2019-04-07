@@ -417,6 +417,12 @@ void mcc_ast_delete_statement(struct mcc_ast_statement *statement)
         mcc_ast_delete_expression(statement->while_condition);
         mcc_ast_delete_statement(statement->while_on_true);
         break;
+	case MCC_AST_STATEMENT_TYPE_DECLARATION:
+		mcc_ast_delete_declaration(statement->declaration);
+		break;
+	case MCC_AST_STATEMENT_TYPE_ASSIGNMENT:
+		mcc_ast_delete_assignment(statement->assignment);
+		break;
     }
     free(statement);
 }
@@ -512,6 +518,9 @@ void mcc_ast_delete_result(struct mcc_parser_result *result)
 		break;
 	case MCC_PARSER_ENTRY_POINT_ASSIGNMENT: ;
 		mcc_ast_delete(result->assignment);
+		break;
+	case MCC_PARSER_ENTRY_POINT_PROGRAM:
+		//TODO
 		break;
 	}
 }
