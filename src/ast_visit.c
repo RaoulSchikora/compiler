@@ -105,14 +105,14 @@ void mcc_ast_visit_statement(struct mcc_ast_statement *statement, struct mcc_ast
         visit_if_post_order(statement, visitor->statement_while, visitor);
         break;
     case MCC_AST_STATEMENT_TYPE_DECLARATION:
-        visit_if_pre_order(statement, visitor->declaration, visitor);
+        visit_if_pre_order(statement, visitor->statement_declaration, visitor);
         mcc_ast_visit(statement->declaration, visitor);
-        visit_if_post_order(statement, visitor->declaration, visitor);
+        visit_if_post_order(statement, visitor->statement_declaration, visitor);
         break;
     case MCC_AST_STATEMENT_TYPE_ASSIGNMENT:
-        visit_if_pre_order(statement, visitor->assignment, visitor);
+        visit_if_pre_order(statement, visitor->statement_assignment, visitor);
         mcc_ast_visit(statement->assignment, visitor);
-        visit_if_post_order(statement, visitor->assignment, visitor);
+        visit_if_post_order(statement, visitor->statement_assignment, visitor);
         break;
 	}
 }

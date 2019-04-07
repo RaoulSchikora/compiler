@@ -57,6 +57,8 @@ struct mcc_ast_visitor {
     mcc_ast_visit_statement_cb statement_if_else_stmt;
     mcc_ast_visit_statement_cb statement_expression_stmt;
 	mcc_ast_visit_statement_cb statement_while;
+	mcc_ast_visit_statement_cb statement_declaration;
+	mcc_ast_visit_statement_cb statement_assignment;
 
 	mcc_ast_visit_assignment_cb assignment;
 	mcc_ast_visit_assignment_cb variable_assignment;

@@ -276,6 +276,10 @@ struct mcc_ast_statement *mcc_ast_new_statement_expression( struct mcc_ast_expre
 struct mcc_ast_statement *mcc_ast_new_statement_while( struct mcc_ast_expression *condition,
 													   struct mcc_ast_statement *on_true);
 
+struct mcc_ast_statement *mcc_ast_new_statement_declaration( struct mcc_ast_declaration *declaration);
+
+struct mcc_ast_statement *mcc_ast_new_statement_assignment( struct mcc_ast_assignment *assignment);
+
 void mcc_ast_delete_statement(struct mcc_ast_statement *statement);
 
 // ------------------------------------------------------------------- Literals
