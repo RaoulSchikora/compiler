@@ -16,7 +16,7 @@ enum mcc_ast_to_dot_mode{
     MCC_AST_TO_DOT_MODE_PROGRAM,
 };
 
-static void print_usage(const char *prg)
+void print_usage(const char *prg)
 {
     printf("usage: %s <FILE>            open specified .mc-program\n", prg);
     printf("   or: %s -                 read .mc-program from stdin\n", prg);
@@ -31,7 +31,7 @@ static void print_usage(const char *prg)
 }
 
 // from: https://stackoverflow.com/questions/174531/how-to-read-the-content-of-a-file-to-a-string-in-c
-static char *fileToString(char *filename) {
+char *fileToString(char *filename) {
     FILE *f = fopen(filename, "rt");
     assert(f);
     fseek(f, 0, SEEK_END);
@@ -46,7 +46,7 @@ static char *fileToString(char *filename) {
 }
 
 //from: https://stackoverflow.com/questions/2496668/how-to-read-the-standard-input-into-string-variable-until-eof-in-c
-static char *stdinToString(){
+char *stdinToString(){
     char buffer[BUF_SIZE];
     size_t contentSize = 1; // includes NULL
     /* Preallocate space. */
@@ -81,8 +81,8 @@ static char *stdinToString(){
     return content;
 }
 
-static enum mcc_ast_to_dot_mode ast_to_dot_mode;
-static char* input;
+enum mcc_ast_to_dot_mode ast_to_dot_mode;
+char* input;
 
 static int readInputAndSetMode(int argc, char *argv[])
 {
