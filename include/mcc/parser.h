@@ -22,7 +22,6 @@ enum mcc_parser_status {
 enum mcc_parser_entry_point{
 	// entry point which are set while parsing
     MCC_PARSER_ENTRY_POINT_EXPRESSION,
-    MCC_PARSER_ENTRY_POINT_VARIABLE_DECLARATION,
     MCC_PARSER_ENTRY_POINT_PROGRAM,
 	MCC_PARSER_ENTRY_POINT_DECLARATION,
 	MCC_PARSER_ENTRY_POINT_ASSIGNMENT,

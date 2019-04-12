@@ -399,6 +399,63 @@ void while_stmt(CuTest *tc)
 	mcc_ast_delete(stmt);
 }
 
+void assign_stmt(CuTest *tc)
+{
+	const char input[] = "if (true) a = 1;";
+
+	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_STATEMENT);
+
+	CuAssertTrue(tc, MCC_PARSER_STATUS_OK == result.status);
+
+	struct mcc_ast_statement *stmt = result.statement;
+
+	// root
+	CuAssertIntEquals(tc, MCC_AST_STATEMENT_TYPE_IF_STMT, stmt->type);
+
+	// root -> cond
+	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_LITERAL, stmt->if_condition->type);
+	CuAssertTrue(tc, stmt->if_condition->literal->bool_value);
+
+	// root -> on_true
+	CuAssertIntEquals(tc, MCC_AST_ASSIGNMENT_TYPE_VARIABLE, stmt->if_on_true->assignment->assignment_type);
+	CuAssertIntEquals(tc, 1, stmt->if_on_true->assignment->variable_assigned_value->literal->i_value);
+	CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_INT, stmt->if_on_true->assignment->variable_assigned_value->literal->type);
+	CuAssertStrEquals(tc, "a", stmt->if_on_true->assignment->variable_identifier->identifier_name);
+
+
+	mcc_ast_delete(stmt);
+}
+
+
+void decl_stmt(CuTest *tc)
+{
+    //TODO: fix invalid free() compiler-complaint
+/*	const char input[] = "if (true) int[2] test;";
+
+	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_STATEMENT);
+
+	CuAssertTrue(tc, MCC_PARSER_STATUS_OK == result.status);
+
+	struct mcc_ast_statement *stmt = result.statement;
+
+	// root
+	CuAssertIntEquals(tc, MCC_AST_STATEMENT_TYPE_IF_STMT, stmt->type);
+
+	// root -> cond
+	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_LITERAL, stmt->if_condition->type);
+	CuAssertTrue(tc, stmt->if_condition->literal->bool_value);
+
+	// root -> on_true
+	CuAssertIntEquals(tc, MCC_AST_DECLARATION_TYPE_ARRAY, stmt->if_on_true->declaration->declaration_type);
+	CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_INT, stmt->if_on_true->declaration->array_size->type);
+	CuAssertIntEquals(tc, 2, stmt->if_on_true->declaration->array_size->i_value);
+	CuAssertStrEquals(tc, "test", stmt->if_on_true->declaration->array_identifier->identifier_name);
+	CuAssertIntEquals(tc, INT, stmt->if_on_true->declaration->array_type->type_value);
+
+
+	mcc_ast_delete(stmt);*/
+}
+
 void MissingClosingParenthesis_1(CuTest *tc)
 {
 	// TODO: fix memory leak
@@ -577,7 +634,9 @@ void ArrayAssignment(CuTest *tc)
 	TEST(VariableDeclaration) \
 	TEST(ArrayDeclaration) \
 	TEST(StringLiteral) \
-	TEST(VariableAssignment)
+	TEST(VariableAssignment) \
+	TEST(assign_stmt) \
+	TEST(decl_stmt)
 
 #include "main_stub.inc"
 #undef TESTS

@@ -96,7 +96,6 @@ static void print_dot_expression_literal(struct mcc_ast_expression *expression, 
 	print_dot_edge(out, expression, expression->literal, "literal");
 }
 
-
 static void print_dot_expression_binary_op(struct mcc_ast_expression *expression, void *data)
 {
 	assert(expression);
@@ -132,6 +131,33 @@ static void print_dot_expression_unary_op(struct mcc_ast_expression *expression,
 	FILE *out = data;
 	print_dot_node(out, expression, label);
 	print_dot_edge(out, expression, expression->child, "child");
+}
+
+static void print_dot_expression_array_element(struct mcc_ast_expression *expression, void *data)
+{
+	assert(expression);
+	assert(data);
+
+	char label[LABEL_SIZE] = {0};
+	snprintf(label, sizeof(label), "expr: arr_el");
+
+	FILE *out = data;
+	print_dot_node(out, expression, label);
+	print_dot_edge(out, expression, expression->index, "index");
+	print_dot_edge(out, expression, expression->array_identifier, "id");
+}
+
+static void print_dot_expression_variable(struct mcc_ast_expression *expression, void *data)
+{
+	assert(expression);
+	assert(data);
+
+	char label[LABEL_SIZE] = {0};
+	snprintf(label, sizeof(label), "expr: var");
+
+	FILE *out = data;
+	print_dot_node(out, expression, label);
+	print_dot_edge(out, expression, expression->identifier, "id");
 }
 
 static void print_dot_statememt_if_stmt(struct mcc_ast_statement *statement, void *data)
@@ -202,7 +228,6 @@ static void print_dot_literal_float(struct mcc_ast_literal *literal, void *data)
 	print_dot_node(out, literal, label);
 }
 
-
 static void print_dot_literal_string(struct mcc_ast_literal *literal, void *data)
 {
 	assert(literal);
@@ -235,7 +260,6 @@ static void print_dot_variable_declaration(struct mcc_ast_declaration *declarati
 	print_dot_edge(out, declaration, declaration->variable_identifier, "id");
 }
 
-
 static void print_dot_array_declaration(struct mcc_ast_declaration *declaration, void *data)
 {
 	assert(declaration);
@@ -249,7 +273,6 @@ static void print_dot_array_declaration(struct mcc_ast_declaration *declaration,
 
 
 }
-
 
 static void print_dot_variable_assignment(struct mcc_ast_assignment *assignment, void *data)
 {
@@ -323,7 +346,6 @@ static void print_dot_type(struct mcc_ast_type *type, void *data){
 			print_dot_node(out, type, "string");
             break;
 	}
-	print_dot_node(out, type, "float");
 }
 
 static void print_dot_expression_identifier(struct mcc_ast_identifier *identifier, void *data){
@@ -337,6 +359,29 @@ static void print_dot_expression_identifier(struct mcc_ast_identifier *identifie
 	print_dot_node(out, identifier, label);
 }
 
+static void print_dot_statement_declaration(struct mcc_ast_statement *statement, void *data)
+{
+
+	assert(statement);
+	assert(data);
+
+	FILE *out = data;
+	print_dot_node(out, statement, "stmt: decl.");
+	print_dot_edge(out,statement, statement->declaration,"decl.");
+
+}
+
+static void print_dot_statement_assignment(struct mcc_ast_statement *statement, void *data)
+{
+
+	assert(statement);
+	assert(data);
+
+	FILE *out = data;
+	print_dot_node(out, statement, "stmt: assign");
+	print_dot_edge(out,statement, statement->assignment,"assign");
+
+}
 
 // Setup an AST Visitor for printing.
 static struct mcc_ast_visitor print_dot_visitor(FILE *out)
@@ -353,6 +398,9 @@ static struct mcc_ast_visitor print_dot_visitor(FILE *out)
 	    .expression_binary_op = print_dot_expression_binary_op,
 	    .expression_parenth = print_dot_expression_parenth,
 	    .expression_unary_op = print_dot_expression_unary_op,
+	    .expression_variable = print_dot_expression_variable,
+	    .expression_array_element = print_dot_expression_array_element,
+
 
 	    .literal_int = print_dot_literal_int,
 	    .literal_float = print_dot_literal_float,
@@ -364,6 +412,8 @@ static struct mcc_ast_visitor print_dot_visitor(FILE *out)
 		.statement_if_else_stmt = print_dot_statement_if_else_stmt,
 		.statement_expression_stmt = print_dot_statement_expression_stmt,
         .statement_while = print_dot_statement_while,
+        .statement_assignment = print_dot_statement_assignment,
+        .statement_declaration = print_dot_statement_declaration,
 
         .assignment = print_dot_assignment,
 	    .variable_assignment = print_dot_variable_assignment,
@@ -483,11 +533,14 @@ void mcc_ast_print_dot_result(FILE *out, struct mcc_parser_result *result)
 	case MCC_PARSER_ENTRY_POINT_STATEMENT: ;
 		mcc_ast_print_dot(out,result->statement);
 		break;
-	case MCC_PARSER_ENTRY_POINT_VARIABLE_DECLARATION: ;
+	case MCC_PARSER_ENTRY_POINT_DECLARATION: ;
 		mcc_ast_print_dot(out,result->declaration);
 		break;
 	case MCC_PARSER_ENTRY_POINT_ASSIGNMENT: ;
 		mcc_ast_print_dot(out,result->assignment);
+		break;
+	case MCC_PARSER_ENTRY_POINT_PROGRAM:
+		//TODO
 		break;
 	}
 }

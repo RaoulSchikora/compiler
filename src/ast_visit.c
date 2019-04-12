@@ -53,7 +53,20 @@ void mcc_ast_visit_expression(struct mcc_ast_expression *expression, struct mcc_
         visit_if_pre_order(expression, visitor->expression_unary_op, visitor);
         mcc_ast_visit(expression->child, visitor);
         visit_if_post_order(expression, visitor->expression_unary_op, visitor);
+		break;
 
+    case MCC_AST_EXPRESSION_TYPE_VARIABLE:
+	    visit_if_pre_order(expression,visitor->expression_variable,visitor);
+	    mcc_ast_visit(expression->identifier,visitor);
+	    visit_if_post_order(expression,visitor->expression_variable,visitor);
+		break;
+
+	case MCC_AST_EXPRESSION_TYPE_ARRAY_ELEMENT:
+        visit_if_pre_order(expression,visitor->expression_array_element,visitor);
+        mcc_ast_visit(expression->array_identifier,visitor);
+        mcc_ast_visit(expression->index,visitor);
+        visit_if_post_order(expression,visitor->expression_array_element,visitor);
+        break;
 	}
 
 	visit_if_post_order(expression, visitor->expression, visitor);
@@ -90,6 +103,16 @@ void mcc_ast_visit_statement(struct mcc_ast_statement *statement, struct mcc_ast
         mcc_ast_visit(statement->while_condition, visitor);
         mcc_ast_visit(statement->while_on_true, visitor);
         visit_if_post_order(statement, visitor->statement_while, visitor);
+        break;
+    case MCC_AST_STATEMENT_TYPE_DECLARATION:
+        visit_if_pre_order(statement, visitor->statement_declaration, visitor);
+        mcc_ast_visit(statement->declaration, visitor);
+        visit_if_post_order(statement, visitor->statement_declaration, visitor);
+        break;
+    case MCC_AST_STATEMENT_TYPE_ASSIGNMENT:
+        visit_if_pre_order(statement, visitor->statement_assignment, visitor);
+        mcc_ast_visit(statement->assignment, visitor);
+        visit_if_post_order(statement, visitor->statement_assignment, visitor);
         break;
 	}
 
@@ -130,12 +153,15 @@ void mcc_ast_visit_declaration(struct mcc_ast_declaration *declaration, struct m
 	switch(declaration->declaration_type){
 		case MCC_AST_DECLARATION_TYPE_VARIABLE:
 			visit_if_pre_order(declaration, visitor->variable_declaration, visitor);
-			visit(declaration,visitor->variable_declaration,visitor);
+			mcc_ast_visit(declaration->variable_type,visitor);
+			mcc_ast_visit(declaration->variable_identifier,visitor);
 			visit_if_post_order(declaration,visitor->variable_declaration,visitor);
 			break;
 		case MCC_AST_DECLARATION_TYPE_ARRAY:
 			visit_if_pre_order(declaration, visitor->array_declaration, visitor);
-			visit(declaration,visitor->array_declaration,visitor);
+			mcc_ast_visit(declaration->array_identifier,visitor);
+			mcc_ast_visit(declaration->array_size,visitor);
+			mcc_ast_visit(declaration->array_type,visitor);
 			visit_if_post_order(declaration,visitor->array_declaration,visitor);
 			break;
 	}
@@ -150,12 +176,15 @@ void mcc_ast_visit_assignment(struct mcc_ast_assignment *assignment, struct mcc_
 	switch(assignment->assignment_type){
 		case MCC_AST_ASSIGNMENT_TYPE_VARIABLE:
 			visit_if_pre_order(assignment, visitor->variable_assignment, visitor);
-			visit(assignment,visitor->variable_assignment,visitor);
+			mcc_ast_visit(assignment->variable_identifier,visitor);
+			mcc_ast_visit(assignment->variable_assigned_value,visitor);
 			visit_if_post_order(assignment,visitor->variable_assignment,visitor);
 			break;
 		case MCC_AST_ASSIGNMENT_TYPE_ARRAY:
 			visit_if_pre_order(assignment, visitor->array_assignment, visitor);
-			visit(assignment,visitor->array_assignment,visitor);
+			mcc_ast_visit(assignment->array_identifier,visitor);
+			mcc_ast_visit(assignment->array_index,visitor);
+			mcc_ast_visit(assignment->array_assigned_value,visitor);
 			visit_if_post_order(assignment,visitor->array_assignment,visitor);
 			break;
 	}

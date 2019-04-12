@@ -396,6 +396,38 @@ struct mcc_ast_statement *mcc_ast_new_statement_while( struct mcc_ast_expression
 	return statement;
 }
 
+
+struct mcc_ast_statement *mcc_ast_new_statement_declaration( struct mcc_ast_declaration *declaration)
+{
+	assert(declaration);
+
+	struct mcc_ast_statement *statement = malloc(sizeof(*statement));
+	if(!statement) {
+		return NULL;
+	}
+
+	statement->type = MCC_AST_STATEMENT_TYPE_DECLARATION;
+	statement->declaration = declaration;
+
+	return statement;
+}
+
+
+struct mcc_ast_statement *mcc_ast_new_statement_assignment( struct mcc_ast_assignment *assignment)
+{
+	assert(assignment);
+
+	struct mcc_ast_statement *statement = malloc(sizeof(*statement));
+	if(!statement) {
+		return NULL;
+	}
+
+	statement->type = MCC_AST_STATEMENT_TYPE_ASSIGNMENT;
+	statement->assignment = assignment;
+
+	return statement;
+}
+
 void mcc_ast_delete_statement(struct mcc_ast_statement *statement)
 {
     assert(statement);
@@ -417,6 +449,12 @@ void mcc_ast_delete_statement(struct mcc_ast_statement *statement)
         mcc_ast_delete_expression(statement->while_condition);
         mcc_ast_delete_statement(statement->while_on_true);
         break;
+	case MCC_AST_STATEMENT_TYPE_DECLARATION:
+		mcc_ast_delete_declaration(statement->declaration);
+		break;
+	case MCC_AST_STATEMENT_TYPE_ASSIGNMENT:
+		mcc_ast_delete_assignment(statement->assignment);
+		break;
     }
     free(statement);
 }
@@ -507,11 +545,14 @@ void mcc_ast_delete_result(struct mcc_parser_result *result)
 	case MCC_PARSER_ENTRY_POINT_STATEMENT: ;
 		mcc_ast_delete(result->statement);
 		break;
-	case MCC_PARSER_ENTRY_POINT_VARIABLE_DECLARATION: ;
+	case MCC_PARSER_ENTRY_POINT_DECLARATION: ;
 		mcc_ast_delete(result->declaration);
 		break;
 	case MCC_PARSER_ENTRY_POINT_ASSIGNMENT: ;
 		mcc_ast_delete(result->assignment);
+		break;
+	case MCC_PARSER_ENTRY_POINT_PROGRAM:
+		//TODO
 		break;
 	}
 }

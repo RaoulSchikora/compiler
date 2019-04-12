@@ -135,6 +135,8 @@ statement : IF LPARENTH expression RPARENTH statement 		     { $$ = mcc_ast_new_
 	  | IF LPARENTH expression RPARENTH statement ELSE statement { $$ = mcc_ast_new_statement_if_else_stmt( $3, $5, $7); loc($$, @1);}
 	  | expression SEMICOLON 				     { $$ = mcc_ast_new_statement_expression( $1); 	     loc($$, @1);}
 	  | WHILE LPARENTH expression RPARENTH statement 	     { $$ = mcc_ast_new_statement_while( $3, $5); 	     loc($$, @1);}
+	  | assignment SEMICOLON				     { $$ = mcc_ast_new_statement_assignment($1);	     loc($$, @1);}
+	  | declaration SEMICOLON				     { $$ = mcc_ast_new_statement_declaration($1);	     loc($$, @1);}
 	  ;
 
 literal : INT_LITERAL    { $$ = mcc_ast_new_literal_int($1);   loc($$, @1); }
