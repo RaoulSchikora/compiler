@@ -121,6 +121,11 @@ unit_test       : expression { result->entry_point = MCC_PARSER_ENTRY_POINT_EXPR
                 | declaration { result->entry_point = MCC_PARSER_ENTRY_POINT_DECLARATION; result->declaration = $1;}
                 | assignment { result->entry_point = MCC_PARSER_ENTRY_POINT_ASSIGNMENT; result->assignment = $1;}
                 | statement { result->entry_point = MCC_PARSER_ENTRY_POINT_STATEMENT; result->statement = $1;}
+                | compound_statement {result->compound_statement = $1;}
+                | function_def {result->function_definition = $1;}
+                | parameters {result->parameters = $1; }
+                | arguments {result->arguments = $1; }
+                | program {result->program = $1; }
                 ;
 
 expression      : literal                      { $$ = mcc_ast_new_expression_literal($1);                              loc($$, @1); }

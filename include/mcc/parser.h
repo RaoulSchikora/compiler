@@ -41,6 +41,11 @@ struct mcc_parser_result {
 		struct mcc_ast_assignment *assignment;
 		// MCC_PARSER_ENTRY_POINT_STATEMENT
 		struct mcc_ast_statement *statement;
+		struct mcc_ast_program *program;
+		struct mcc_ast_function_definition *function_definition;
+		struct mcc_ast_parameters *parameters;
+		struct mcc_ast_arguments *arguments;
+		struct mcc_ast_compound_statement *compound_statement;
 	};
 };
 

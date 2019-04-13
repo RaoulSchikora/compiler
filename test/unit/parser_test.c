@@ -615,6 +615,19 @@ void ArrayAssignment(CuTest *tc)
 	mcc_ast_delete(array_assignment);
 }
 
+void CompoundStatement(CuTest *tc)
+{
+    // TODO: finish and enable unit test
+	const char input[] = "{int a; a = 1; b = 2;}";
+	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_STATEMENT);
+
+	CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
+
+	struct mcc_ast_compound_statement *compound_statement = result.compound_statement;
+
+
+}
+
 #define TESTS \
 	TEST(BinaryOp_1) \
 	TEST(BinaryOp_2) \
@@ -635,7 +648,8 @@ void ArrayAssignment(CuTest *tc)
 	TEST(StringLiteral) \
 	TEST(VariableAssignment) \
 	TEST(assign_stmt) \
-	TEST(decl_stmt)
+	TEST(decl_stmt) \
+//	TEST(CompoundStatement) \
 
 #include "main_stub.inc"
 #undef TESTS

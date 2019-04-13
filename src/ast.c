@@ -502,7 +502,6 @@ void mcc_ast_delete_statement(struct mcc_ast_statement *statement)
 
 struct mcc_ast_compound_statement *mcc_ast_new_compound_stmt(struct mcc_ast_statement *statement, struct mcc_ast_compound_statement *next_compound_stmt){
 	assert(statement);
-	assert(next_compound_stmt);
 
 	struct mcc_ast_compound_statement *compound_statement = malloc(sizeof(compound_statement));
 	if(!compound_statement){
@@ -526,6 +525,7 @@ void mcc_ast_delete_compound_statement(struct mcc_ast_compound_statement *compou
 		mcc_ast_delete_statement(compound_statement->statement);
 	} else {
 		mcc_ast_delete_compound_statement(compound_statement->next_compound_statement);
+		mcc_ast_delete_statement(compound_statement->statement);
 	}
 	free(compound_statement);
 }
@@ -672,7 +672,6 @@ void mcc_ast_delete_function_definition(struct mcc_ast_function_definition *func
 
 struct mcc_ast_program *mcc_ast_new_program(struct mcc_ast_function_definition *function_definition, struct mcc_ast_program *next_program){
 	assert(function_definition);
-	assert(next_program);
 
 	struct mcc_ast_program *program = malloc(sizeof(program));
 
@@ -704,7 +703,6 @@ void mcc_ast_delete_program (struct mcc_ast_program *program){
 
 struct mcc_ast_parameters *mcc_ast_new_parameters(struct mcc_ast_declaration *declaration, struct mcc_ast_parameters *next_parameters){
 	assert(declaration);
-	assert(next_parameters);
 
 	struct mcc_ast_parameters *parameters = malloc(sizeof(parameters));
 	if(!parameters){
@@ -738,7 +736,6 @@ void mcc_ast_delete_parameters(struct mcc_ast_parameters *parameters){
 
 struct mcc_ast_arguments *mcc_ast_new_arguments(struct mcc_ast_expression *expression, struct mcc_ast_arguments *next_arguments){
 	assert(expression);
-	assert(next_arguments);
 
 	struct mcc_ast_arguments *arguments = malloc(sizeof(arguments));
 	if(!arguments){
