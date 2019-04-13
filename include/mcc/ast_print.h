@@ -30,6 +30,16 @@ void mcc_ast_print_dot_identifier(FILE *out, struct mcc_ast_identifier *identifi
 
 void mcc_ast_print_dot_result(FILE *out, struct mcc_parser_result *result);
 
+void mcc_ast_print_dot_compound_statement(FILE *out, struct mcc_ast_compound_statement *compound_statement);
+
+void mcc_ast_print_dot_program(FILE *out, struct mcc_ast_program *program);
+
+void mcc_ast_print_dot_function_definition(FILE *out, struct mcc_ast_function_definition *function_definition);
+
+void mcc_ast_print_dot_parameters(FILE *out, struct mcc_ast_parameters *parameters);
+
+void mcc_ast_print_dot_arguments(FILE *out, struct mcc_ast_arguments *arguments);
+
 // clang-format off
 
 #define mcc_ast_print_dot(out, x) _Generic((x), \
@@ -39,7 +49,12 @@ void mcc_ast_print_dot_result(FILE *out, struct mcc_parser_result *result);
 		struct mcc_ast_declaration *: mcc_ast_print_dot_declaration, \
 		struct mcc_ast_assignment *: mcc_ast_print_dot_assignment, \
 		struct mcc_ast_type *: mcc_ast_print_dot_type, \
-		struct mcc_ast_identifier *: mcc_ast_print_dot_identifier \
+		struct mcc_ast_identifier *: mcc_ast_print_dot_identifier, \
+		struct mcc_ast_compound_statement *: mcc_ast_print_dot_compound_statement, \
+		struct mcc_ast_program *: mcc_ast_print_dot_program, \
+		struct mcc_ast_function_definition *: mcc_ast_print_dot_function_definition, \
+		struct mcc_ast_parameters *: mcc_ast_print_dot_parameters, \
+		struct mcc_ast_arguments *: mcc_ast_print_dot_arguments  \
 	)(out, x)
 
 // clang-format on

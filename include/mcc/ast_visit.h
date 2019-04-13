@@ -29,6 +29,11 @@ typedef void (*mcc_ast_visit_assignment_cb)(struct mcc_ast_assignment *, void *u
 typedef void (*mcc_ast_visit_declaration_cb)(struct mcc_ast_declaration *, void *userdata);
 typedef void (*mcc_ast_visit_type_cb)(struct mcc_ast_type *, void *userdata);
 typedef void (*mcc_ast_visit_identifier_cb)(struct mcc_ast_identifier *, void *userdata);
+typedef void (*mcc_ast_visit_compound_statement_cb)(struct mcc_ast_compound_statement *,void *userdata);
+typedef void (*mcc_ast_visit_program_cb)(struct mcc_ast_program *, void *userdata);
+typedef void (*mcc_ast_visit_parameters_cb)(struct mcc_ast_parameters *, void *userdata);
+typedef void (*mcc_ast_visit_arguments_cb)(struct mcc_ast_arguments *, void *userdata);
+typedef void (*mcc_ast_visit_function_definition_cb)(struct mcc_ast_function_definition *, void *userdata);
 
 struct mcc_ast_visitor {
 	enum mcc_ast_visit_traversal traversal;
@@ -45,6 +50,7 @@ struct mcc_ast_visitor {
     mcc_ast_visit_expression_cb expression_unary_op;
     mcc_ast_visit_expression_cb expression_variable;
 	mcc_ast_visit_expression_cb expression_array_element;
+	mcc_ast_visit_expression_cb expression_function_call;
 
 	mcc_ast_visit_literal_cb literal;
 	mcc_ast_visit_literal_cb literal_int;
@@ -59,6 +65,12 @@ struct mcc_ast_visitor {
 	mcc_ast_visit_statement_cb statement_while;
 	mcc_ast_visit_statement_cb statement_declaration;
 	mcc_ast_visit_statement_cb statement_assignment;
+
+	mcc_ast_visit_compound_statement_cb compound_statement;
+	mcc_ast_visit_program_cb program;
+	mcc_ast_visit_function_definition_cb function_definition;
+	mcc_ast_visit_parameters_cb parameters;
+	mcc_ast_visit_arguments_cb arguments;
 
 	mcc_ast_visit_assignment_cb assignment;
 	mcc_ast_visit_assignment_cb variable_assignment;
@@ -86,6 +98,16 @@ void mcc_ast_visit_type(struct mcc_ast_type *type, struct mcc_ast_visitor *visit
 
 void mcc_ast_visit_identifier(struct mcc_ast_identifier *identifier, struct mcc_ast_visitor *visitor);
 
+void mcc_ast_visit_compound_statement(struct mcc_ast_compound_statement *compound_statement, struct mcc_ast_visitor *visitor);
+
+void mcc_ast_visit_function_definition(struct mcc_ast_function_definition *function_definition, struct mcc_ast_visitor *visitor);
+
+void mcc_ast_visit_parameters (struct mcc_ast_parameters *parameters, struct mcc_ast_visitor *visitor);
+
+void mcc_ast_visit_arguments (struct mcc_ast_arguments *arguments, struct mcc_ast_visitor *visitor);
+
+void mcc_ast_visit_program (struct mcc_ast_program *program, struct mcc_ast_visitor *visitor);
+
 
 // clang-format off
 
@@ -96,7 +118,12 @@ void mcc_ast_visit_identifier(struct mcc_ast_identifier *identifier, struct mcc_
 		struct mcc_ast_declaration *: mcc_ast_visit_declaration, \
 		struct mcc_ast_assignment *: mcc_ast_visit_assignment, \
 		struct mcc_ast_type *: 		mcc_ast_visit_type, \
-		struct mcc_ast_identifier *: mcc_ast_visit_identifier \
+		struct mcc_ast_identifier *: mcc_ast_visit_identifier, \
+		struct mcc_ast_compound_statement *: mcc_ast_visit_compound_statement, \
+		struct mcc_ast_program *: mcc_ast_visit_program, \
+		struct mcc_ast_function_definition *: mcc_ast_visit_function_definition, \
+		struct mcc_ast_parameters *: mcc_ast_visit_parameters, \
+		struct mcc_ast_arguments *: mcc_ast_visit_arguments \
 	)(x, visitor)
 
 // clang-format on

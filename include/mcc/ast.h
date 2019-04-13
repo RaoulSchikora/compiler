@@ -427,7 +427,12 @@ void mcc_ast_delete_arguments (struct mcc_ast_arguments *arguments);
 		struct mcc_ast_declaration *: mcc_ast_delete_declaration, \
 		struct mcc_ast_assignment*:	 mcc_ast_delete_assignment, \
 		struct mcc_ast_statement *: mcc_ast_delete_statement, \
-		struct mcc_ast_literal *:    mcc_ast_delete_literal \
+		struct mcc_ast_literal *:    mcc_ast_delete_literal, \
+		struct mcc_ast_compount_statement *: mcc_ast_delete_compound_statement, \
+		struct mcc_ast_program *: mcc_ast_delete_program, \
+		struct mcc_ast_function_definition *: mcc_ast_delete_function_definition, \
+		struct mcc_ast_parameters *: mcc_ast_delete_parameters, \
+		struct mcc_ast_arguments *: mcc_ast_delete_arguments \
 	)(x)
 
 // clang-format on

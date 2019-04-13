@@ -160,6 +160,20 @@ static void print_dot_expression_variable(struct mcc_ast_expression *expression,
 	print_dot_edge(out, expression, expression->identifier, "id");
 }
 
+static void print_dot_expression_function_call(struct mcc_ast_expression *expression, void*data)
+{
+	assert(expression);
+	assert(data);
+
+	char label[LABEL_SIZE] = {0};
+	snprintf(label, sizeof(label),"expr: funct. call");
+
+	FILE *out = data;
+	print_dot_node(out,expression,label);
+	print_dot_edge(out,expression, expression->function_identifier,"func id");
+	print_dot_edge(out,expression, expression->arguments,"func args");
+}
+
 static void print_dot_statememt_if_stmt(struct mcc_ast_statement *statement, void *data)
 {
 	assert(statement);
@@ -383,6 +397,79 @@ static void print_dot_statement_assignment(struct mcc_ast_statement *statement, 
 
 }
 
+static void print_dot_compound_statement(struct mcc_ast_compound_statement *compound_statement, void *data)
+{
+	assert(compound_statement);
+	assert(data);
+
+	FILE *out = data;
+	print_dot_node(out, compound_statement, "comp_stmt");
+	print_dot_edge(out, compound_statement, compound_statement->statement, "stmt");
+	if(compound_statement->has_next_statement == true){
+		print_dot_edge(out, compound_statement, compound_statement->next_compound_statement, "next stmt:");
+	}
+}
+
+static void print_dot_program (struct mcc_ast_program *program, void *data)
+{
+	assert(program);
+	assert(data);
+
+	FILE *out = data;
+	print_dot_node(out, program, "program");
+	print_dot_edge(out, program, program->function, "func");
+	if(program->has_next_function == true){
+		print_dot_edge(out,program,program->next_function, "next func");
+	}
+}
+
+
+static void print_dot_parameters (struct mcc_ast_parameters *parameters, void *data)
+{
+	assert(parameters);
+	assert(data);
+
+	FILE *out = data;
+	print_dot_node(out, parameters, "param");
+	print_dot_edge(out, parameters, parameters->declaration, "decl");
+	if(parameters->has_next_parameter == true){
+		print_dot_edge(out,parameters,parameters->next_parameters, "next param");
+	}
+}
+
+static void print_dot_arguments (struct mcc_ast_arguments *arguments, void *data)
+{
+	assert(arguments);
+	assert(data);
+
+	FILE *out = data;
+	print_dot_node(out, arguments, "args");
+	print_dot_edge(out, arguments, arguments->expression, "expr");
+	if(arguments->has_next_expression == true){
+		print_dot_edge(out,arguments,arguments->next_arguments, "next arg");
+	}
+}
+
+static void print_dot_function_definition (struct mcc_ast_function_definition *function_definition, void *data)
+{
+	assert(function_definition);
+	assert(data);
+
+	FILE *out = data;
+	print_dot_node(out,function_definition, "func def");
+	print_dot_edge(out,function_definition, function_definition->identifier, "id");
+	print_dot_edge(out,function_definition, function_definition->parameters, "param");
+	print_dot_edge(out,function_definition, function_definition->compound_stmt, "comp_stmt");
+	switch (function_definition->type){
+		case MCC_AST_FUNCTION_TYPE_INT:
+		case MCC_AST_FUNCTION_TYPE_FLOAT:
+		case MCC_AST_FUNCTION_TYPE_STRING:
+		case MCC_AST_FUNCTION_TYPE_BOOL:
+		case MCC_AST_FUNCTION_TYPE_VOID:
+			break;
+	}
+}
+
 // Setup an AST Visitor for printing.
 static struct mcc_ast_visitor print_dot_visitor(FILE *out)
 {
@@ -400,7 +487,7 @@ static struct mcc_ast_visitor print_dot_visitor(FILE *out)
 	    .expression_unary_op = print_dot_expression_unary_op,
 	    .expression_variable = print_dot_expression_variable,
 	    .expression_array_element = print_dot_expression_array_element,
-
+		.expression_function_call = print_dot_expression_function_call,
 
 	    .literal_int = print_dot_literal_int,
 	    .literal_float = print_dot_literal_float,
@@ -414,6 +501,12 @@ static struct mcc_ast_visitor print_dot_visitor(FILE *out)
         .statement_while = print_dot_statement_while,
         .statement_assignment = print_dot_statement_assignment,
         .statement_declaration = print_dot_statement_declaration,
+
+        .compound_statement = print_dot_compound_statement,
+        .program = print_dot_program,
+        .function_definition = print_dot_function_definition,
+        .parameters = print_dot_parameters,
+        .arguments = print_dot_arguments,
 
         .assignment = print_dot_assignment,
 	    .variable_assignment = print_dot_variable_assignment,
@@ -543,4 +636,61 @@ void mcc_ast_print_dot_result(FILE *out, struct mcc_parser_result *result)
 		//TODO
 		break;
 	}
+}
+
+void mcc_ast_print_dot_compound_statement(FILE *out, struct mcc_ast_compound_statement *compound_statement)
+{
+	assert(out);
+	assert(compound_statement);
+
+	print_dot_begin(out);
+	struct mcc_ast_visitor visitor = print_dot_visitor(out);
+	mcc_ast_visit(compound_statement,&visitor);
+	print_dot_end(out);
+}
+
+void mcc_ast_print_dot_program(FILE *out, struct mcc_ast_program *program)
+{
+    assert(out);
+    assert(program);
+
+    print_dot_begin(out);
+    struct mcc_ast_visitor visitor = print_dot_visitor(out);
+    mcc_ast_visit(program,&visitor);
+    print_dot_end(out);
+}
+
+void mcc_ast_print_dot_function_definition(FILE *out, struct mcc_ast_function_definition *function_definition)
+{
+    assert(out);
+    assert(function_definition);
+
+    print_dot_begin(out);
+    struct mcc_ast_visitor visitor = print_dot_visitor(out);
+    mcc_ast_visit(function_definition,&visitor);
+    print_dot_end(out);
+}
+
+
+void mcc_ast_print_dot_parameters(FILE *out, struct mcc_ast_parameters *parameters)
+{
+	assert(out);
+	assert(parameters);
+
+	print_dot_begin(out);
+	struct mcc_ast_visitor visitor = print_dot_visitor(out);
+	mcc_ast_visit(parameters,&visitor);
+	print_dot_end(out);
+}
+
+
+void mcc_ast_print_dot_arguments(FILE *out, struct mcc_ast_arguments *arguments)
+{
+	assert(out);
+	assert(arguments);
+
+	print_dot_begin(out);
+	struct mcc_ast_visitor visitor = print_dot_visitor(out);
+	mcc_ast_visit(arguments,&visitor);
+	print_dot_end(out);
 }
