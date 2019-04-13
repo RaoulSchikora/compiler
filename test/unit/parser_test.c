@@ -429,8 +429,7 @@ void assign_stmt(CuTest *tc)
 
 void decl_stmt(CuTest *tc)
 {
-    //TODO: fix invalid free() compiler-complaint
-/*	const char input[] = "if (true) int[2] test;";
+	const char input[] = "if (true) int [2] test;";
 
 	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_STATEMENT);
 
@@ -453,7 +452,7 @@ void decl_stmt(CuTest *tc)
 	CuAssertIntEquals(tc, INT, stmt->if_on_true->declaration->array_type->type_value);
 
 
-	mcc_ast_delete(stmt);*/
+	mcc_ast_delete(stmt);
 }
 
 void MissingClosingParenthesis_1(CuTest *tc)

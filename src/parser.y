@@ -179,16 +179,15 @@ struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_par
 
 
 	if (entry_point != MCC_PARSER_ENTRY_POINT_PROGRAM){
-		input = (char*) malloc ((strlen(input_string) + 2)*sizeof(char));
-		if(!input){
+	    input = mcc_transform_into_unit_test(input_string);
+		if(input == NULL){
 			return (struct mcc_parser_result){
 				.status = MCC_PARSER_STATUS_UNKNOWN_ERROR,
 			};
 		}
-		mcc_transform_into_unit_test(input_string,input);
 	} else {
-		input = (char*) malloc (strlen(input_string)*sizeof(char));
-		if(!input){
+		input = (char*) malloc ((strlen(input_string)+1)*sizeof(char));
+		if(input == NULL){
 			return (struct mcc_parser_result){
 				.status = MCC_PARSER_STATUS_UNKNOWN_ERROR,
 			};
@@ -199,7 +198,7 @@ struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_par
 
 
 	FILE *in = fmemopen((void *)input, strlen(input), "r");
-	if (!in) {
+	if (in == NULL) {
 		return (struct mcc_parser_result){
 		    .status = MCC_PARSER_STATUS_UNABLE_TO_OPEN_STREAM,
 		};
@@ -212,6 +211,15 @@ struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_par
 	fclose(in);
 
 	return result;
+}
+
+char* mcc_transform_into_unit_test (char* in) {
+  char* out = (char*) malloc((strlen(in)+3)*sizeof(char));
+  *out = '~';
+  strcpy (out + 1,in);
+  *(out + strlen(in)+1) = '~';
+  *(out + strlen(in)+2) = '\0';
+  return out;
 }
 
 struct mcc_parser_result mcc_parse_file(FILE *input)
@@ -236,13 +244,5 @@ struct mcc_parser_result mcc_parse_file(FILE *input)
 	return result;
 }
 
-//TODO: transfer allocation into function
-
-void mcc_transform_into_unit_test (const char* in, char* out ) {
-  *out = '~';
-  strcpy (out + 1,in);
-  *(out + strlen(in)+1) = '~';
-  *(out + strlen(in)+2) = '\0';
-}
 
 
