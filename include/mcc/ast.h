@@ -61,6 +61,7 @@ enum mcc_ast_expression_type {
     MCC_AST_EXPRESSION_TYPE_UNARY_OP,
     MCC_AST_EXPRESSION_TYPE_VARIABLE,
     MCC_AST_EXPRESSION_TYPE_ARRAY_ELEMENT,
+	MCC_AST_EXPRESSION_TYPE_FUNCTION_CALL,
 };
 
 struct mcc_ast_expression {
@@ -97,6 +98,13 @@ struct mcc_ast_expression {
 			struct mcc_ast_identifier* array_identifier;
 			struct mcc_ast_expression *index;
 		};
+
+		// MCC AST_EXPRESSION_TYPE_FUNCTION_CALL
+		struct{
+			struct mcc_ast_identifier *function_identifier;
+			struct mcc_ast_arguments *arguments;
+		};
+
 	};
 };
 
@@ -116,6 +124,9 @@ struct mcc_ast_expression *mcc_ast_new_expression_variable(char *identifier);
 struct mcc_ast_identifier *mcc_ast_new_identifier(char *identifier);
 
 struct mcc_ast_expression *mcc_ast_new_expression_array_element(char* identifier, struct mcc_ast_expression* index);
+
+struct mcc_ast_expression *mcc_ast_new_expression_function_call(struct mcc_ast_identifier *identifier, struct mcc_ast_arguments *arguments);
+
 
 void mcc_ast_delete_identifier(struct mcc_ast_identifier *identifier);
 
@@ -222,6 +233,8 @@ struct mcc_ast_identifier{
 	char* identifier_name;
 };
 
+struct mcc_ast_identifier *mcc_ast_new_identifier(char *identifier);
+
 //-------------------------------------------------------------------- Statements
 
 enum mcc_ast_statement_type {
@@ -282,6 +295,20 @@ struct mcc_ast_statement *mcc_ast_new_statement_assignment( struct mcc_ast_assig
 
 void mcc_ast_delete_statement(struct mcc_ast_statement *statement);
 
+
+// ------------------------------------------------------------------- Compound Statement
+
+struct mcc_ast_compound_statement{
+	struct mcc_ast_node node;
+	bool has_next_statement;
+	struct mcc_ast_compound_statement *next_compound_statement;
+	struct mcc_ast_statement *statement;
+};
+
+struct mcc_ast_compound_statement *mcc_ast_new_compound_stmt(struct mcc_ast_statement *statement, struct mcc_ast_compound_statement *next_compound_stmt);
+
+void mcc_ast_delete_compound_statement(struct mcc_ast_compound_statement *compound_statement);
+
 // ------------------------------------------------------------------- Literals
 
 enum mcc_ast_literal_type {
@@ -322,6 +349,76 @@ struct mcc_ast_literal *mcc_ast_new_literal_bool(bool value);
 
 void mcc_ast_delete_literal(struct mcc_ast_literal *literal);
 
+
+// ------------------------------------------------------------------- Function Definition
+
+enum mcc_ast_function_type {
+	MCC_AST_FUNCTION_TYPE_INT,
+	MCC_AST_FUNCTION_TYPE_FLOAT,
+	MCC_AST_FUNCTION_TYPE_STRING,
+	MCC_AST_FUNCTION_TYPE_BOOL,
+	MCC_AST_FUNCTION_TYPE_VOID,
+};
+
+struct mcc_ast_function_definition {
+	struct mcc_ast_node node;
+
+	enum mcc_ast_function_type type;
+	struct mcc_ast_identifier *identifier;
+	struct mcc_ast_parameters *parameters;
+	struct mcc_ast_compound_statement *compound_stmt;
+};
+
+void mcc_ast_delete_function_definition(struct mcc_ast_function_definition *function_definition);
+
+struct mcc_ast_function_definition *mcc_ast_new_void_function_def(struct mcc_ast_identifier *identifier, struct mcc_ast_parameters *parameters, struct mcc_ast_compound_statement *compound_statement);
+
+struct mcc_ast_function_definition *mcc_ast_new_type_function_def(enum mcc_ast_types type, struct mcc_ast_identifier *identifier, struct mcc_ast_parameters *parameters, struct mcc_ast_compound_statement *compound_statement);
+
+
+// ------------------------------------------------------------------- Program
+
+struct mcc_ast_program{
+	struct mcc_ast_node node;
+	bool has_next_function;
+	struct mcc_ast_function_definition *function;
+	struct mcc_ast_program *next_function;
+};
+
+
+struct mcc_ast_program *mcc_ast_new_program(struct mcc_ast_function_definition *function_definition, struct mcc_ast_program *next_program);
+
+void mcc_ast_delete_program (struct mcc_ast_program *program);
+
+
+// ------------------------------------------------------------------- Parameters
+
+
+struct mcc_ast_parameters{
+	struct mcc_ast_node node;
+	bool has_next_parameter;
+	struct mcc_ast_parameters *next_parameters;
+	struct mcc_ast_declaration *declaration;
+};
+
+void mcc_ast_delete_parameters(struct mcc_ast_parameters *parameters);
+
+struct mcc_ast_parameters *mcc_ast_new_parameters(struct mcc_ast_declaration *declaration, struct mcc_ast_parameters *next_parameters);
+
+
+// ------------------------------------------------------------------- Arguments
+
+
+struct mcc_ast_arguments{
+	struct mcc_ast_node node;
+	bool has_next_expression;
+	struct mcc_ast_arguments *next_arguments;
+	struct mcc_ast_expression *expression;
+};
+
+struct mcc_ast_arguments *mcc_ast_new_arguments(struct mcc_ast_expression *expression, struct mcc_ast_arguments *next_arguments);
+
+void mcc_ast_delete_arguments (struct mcc_ast_arguments *arguments);
 
 // clang-format off
 

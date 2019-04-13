@@ -45,6 +45,7 @@ string_literal \"[^"]*\"
 "float"   { yylval->TK_TYPE = FLOAT; return TK_TYPE;}
 "bool"    { yylval->TK_TYPE = BOOL; return TK_TYPE;}
 "string"  { yylval->TK_TYPE = STRING; return TK_TYPE;}
+"void"    { return TK_VOID; }
 
 
 "+"               { return TK_PLUS; }
@@ -71,6 +72,9 @@ string_literal \"[^"]*\"
 "("               { return TK_LPARENTH; }
 ")"               { return TK_RPARENTH; }
 
+"{"               { return TK_CURL_OPEN; }
+"}"               { return TK_CURL_CLOSE; }
+
 "if"              { return TK_IF; }
 "else"            { return TK_ELSE; }
 "while"           { return TK_WHILE; }
@@ -78,6 +82,7 @@ string_literal \"[^"]*\"
 {identifier}      { yylval->TK_IDENTIFIER = strdup(yytext); return TK_IDENTIFIER; }
 
 ";"               { return TK_SEMICOLON; }
+","               { return TK_COMMA; }
 
 
 [ \t\r\n]+        { /* ignore */ }

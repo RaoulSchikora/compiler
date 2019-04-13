@@ -112,6 +112,21 @@ struct mcc_ast_expression *mcc_ast_new_expression_array_element(char* identifier
 
 }
 
+struct mcc_ast_expression *mcc_ast_new_expression_function_call(struct mcc_ast_identifier *identifier, struct mcc_ast_arguments *arguments){
+	assert(identifier);
+	assert(arguments);
+
+	struct mcc_ast_expression *expr = malloc(sizeof(*expr));
+	if(!expr){
+		return NULL;
+	}
+
+	expr->function_identifier = identifier;
+	expr->arguments = arguments;
+
+	return expr;
+}
+
 void mcc_ast_delete_expression(struct mcc_ast_expression *expression)
 {
 	assert(expression);
@@ -143,6 +158,10 @@ void mcc_ast_delete_expression(struct mcc_ast_expression *expression)
 		mcc_ast_delete_expression(expression->index);
 		break;
 
+    case MCC_AST_EXPRESSION_TYPE_FUNCTION_CALL:
+        mcc_ast_delete_identifier(expression->function_identifier);
+        mcc_ast_delete_arguments(expression->arguments);
+		break;
 	}
 
 	free(expression);
@@ -459,9 +478,42 @@ void mcc_ast_delete_statement(struct mcc_ast_statement *statement)
     free(statement);
 }
 
+
+// ------------------------------------------------------------------- Compound Statement
+
+struct mcc_ast_compound_statement *mcc_ast_new_compound_stmt(struct mcc_ast_statement *statement, struct mcc_ast_compound_statement *next_compound_stmt){
+	assert(statement);
+	assert(next_compound_stmt);
+
+	struct mcc_ast_compound_statement *compound_statement = malloc(sizeof(compound_statement));
+	if(!compound_statement){
+		return NULL;
+	}
+
+	compound_statement->statement = statement;
+	if(next_compound_stmt == NULL){
+		compound_statement->has_next_statement = false;
+		compound_statement->next_compound_statement = NULL;
+	} else {
+		compound_statement->has_next_statement = true;
+		compound_statement->next_compound_statement = next_compound_stmt;
+	}
+	return compound_statement;
+}
+
+void mcc_ast_delete_compound_statement(struct mcc_ast_compound_statement *compound_statement){
+	assert(compound_statement);
+	if(compound_statement->has_next_statement == false){
+		mcc_ast_delete_statement(compound_statement->statement);
+	} else {
+		mcc_ast_delete_compound_statement(compound_statement->next_compound_statement);
+	}
+	free(compound_statement);
+}
+
+
 // ------------------------------------------------------------------- Literals
 
-// ---------------------------------------------------------------------- Literal
 
 struct mcc_ast_literal *mcc_ast_new_literal_int(long value)
 {
@@ -533,3 +585,168 @@ void mcc_ast_delete_literal(struct mcc_ast_literal *literal)
 	free(literal);
 }
 
+// --------------------------------------------------------------------- Function Definition
+
+struct mcc_ast_function_definition *mcc_ast_new_void_function_def(struct mcc_ast_identifier *identifier, struct mcc_ast_parameters *parameters, struct mcc_ast_compound_statement *compound_statement){
+assert(identifier);
+assert(parameters);
+assert(compound_statement);
+
+struct mcc_ast_function_definition *function_definition = malloc(sizeof(function_definition));
+if(!function_definition){
+    return NULL;
+}
+
+function_definition->type = MCC_AST_FUNCTION_TYPE_VOID;
+function_definition->identifier = identifier;
+function_definition->parameters = parameters;
+function_definition->compound_stmt = compound_statement;
+
+return function_definition;
+
+}
+
+struct mcc_ast_function_definition *mcc_ast_new_type_function_def(enum mcc_ast_types type, struct mcc_ast_identifier *identifier, struct mcc_ast_parameters *parameters, struct mcc_ast_compound_statement *compound_statement){
+	assert(identifier);
+	assert(parameters);
+	assert(compound_statement);
+
+	struct mcc_ast_function_definition *function_definition = malloc(sizeof(function_definition));
+	if(!function_definition){
+		return NULL;
+	}
+
+	switch(type){
+		case INT:
+			function_definition->type = MCC_AST_FUNCTION_TYPE_INT;
+			break;
+		case FLOAT:
+			function_definition->type = MCC_AST_FUNCTION_TYPE_FLOAT;
+			break;
+		case STRING:
+			function_definition->type = MCC_AST_FUNCTION_TYPE_STRING;
+			break;
+		case BOOL:
+			function_definition->type = MCC_AST_FUNCTION_TYPE_BOOL;
+			break;
+	}
+	function_definition->identifier = identifier;
+	function_definition->parameters = parameters;
+	function_definition->compound_stmt = compound_statement;
+
+	return function_definition;
+
+}
+
+void mcc_ast_delete_function_definition(struct mcc_ast_function_definition *function_definition){
+	assert(function_definition);
+	mcc_ast_delete_identifier(function_definition->identifier);
+	mcc_ast_delete_compound_statement(function_definition->compound_stmt);
+	mcc_ast_delete_parameters(function_definition->parameters);
+	free(function_definition);
+}
+
+
+
+// --------------------------------------------------------------------- Program
+
+
+struct mcc_ast_program *mcc_ast_new_program(struct mcc_ast_function_definition *function_definition, struct mcc_ast_program *next_program){
+	assert(function_definition);
+	assert(next_program);
+
+	struct mcc_ast_program *program = malloc(sizeof(program));
+
+	if (next_program == NULL){
+		program->has_next_function = false;
+		program->next_function = NULL;
+	} else {
+		program->has_next_function = true;
+		program->next_function = next_program;
+	}
+	program->function = function_definition;
+
+	return program;
+}
+
+void mcc_ast_delete_program (struct mcc_ast_program *program){
+	assert(program);
+
+	if (program->has_next_function == false){
+		mcc_ast_delete_function_definition(program->function);
+	} else {
+		mcc_ast_delete_program (program->next_function);
+		mcc_ast_delete_function_definition(program->function);
+	}
+	free(program);
+}
+
+// --------------------------------------------------------------------- Parameters
+
+struct mcc_ast_parameters *mcc_ast_new_parameters(struct mcc_ast_declaration *declaration, struct mcc_ast_parameters *next_parameters){
+	assert(declaration);
+	assert(next_parameters);
+
+	struct mcc_ast_parameters *parameters = malloc(sizeof(parameters));
+	if(!parameters){
+		return NULL;
+	}
+
+	if(next_parameters == NULL){
+		parameters->has_next_parameter = false;
+		parameters->next_parameters = NULL;
+	} else {
+		parameters->has_next_parameter = true;
+		parameters->next_parameters = next_parameters;
+	}
+
+	parameters->declaration = declaration;
+
+	return parameters;
+}
+
+
+void mcc_ast_delete_parameters(struct mcc_ast_parameters *parameters){
+	assert(parameters);
+	if(parameters->has_next_parameter == true){
+		mcc_ast_delete_parameters(parameters->next_parameters);
+	}
+	mcc_ast_delete_declaration(parameters->declaration);
+	free(parameters);
+}
+
+// --------------------------------------------------------------------- Arguments
+
+struct mcc_ast_arguments *mcc_ast_new_arguments(struct mcc_ast_expression *expression, struct mcc_ast_arguments *next_arguments){
+	assert(expression);
+	assert(next_arguments);
+
+	struct mcc_ast_arguments *arguments = malloc(sizeof(arguments));
+	if(!arguments){
+		return NULL;
+	}
+
+	if (next_arguments == NULL){
+		arguments->has_next_expression = false;
+		arguments->next_arguments = NULL;
+	} else {
+		arguments->has_next_expression = true;
+		arguments->next_arguments = next_arguments;
+	}
+
+	arguments->expression = expression;
+	return arguments;
+}
+
+void mcc_ast_delete_arguments (struct mcc_ast_arguments *arguments){
+	assert(arguments);
+
+	if (arguments->has_next_expression == false){
+		mcc_ast_delete_expression(arguments->expression);
+	} else {
+		mcc_ast_delete_arguments(arguments->next_arguments);
+		mcc_ast_delete_expression(arguments->expression);
+	}
+	free(arguments);
+
+}
