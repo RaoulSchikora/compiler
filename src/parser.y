@@ -80,6 +80,7 @@ void mcc_parser_error();
 %token IF "if"
 %token ELSE "else"
 %token WHILE "while"
+%token RETURN "return"
 
 %token SEMICOLON ";"
 %token COMMA ","
@@ -164,6 +165,8 @@ statement       : IF LPARENTH expression RPARENTH statement 		            { $$ =
                 | WHILE LPARENTH expression RPARENTH statement 	            { $$ = mcc_ast_new_statement_while( $3, $5); 	     loc($$, @1);}
                 | assignment SEMICOLON				                        { $$ = mcc_ast_new_statement_assignment($1);	     loc($$, @1);}
                 | declaration SEMICOLON				                        { $$ = mcc_ast_new_statement_declaration($1);	     loc($$, @1);}
+                | RETURN SEMICOLON                                          { $$ = mcc_ast_new_statement_return(NULL);           loc($$, @1);}
+                | RETURN expression SEMICOLON                               { $$ = mcc_ast_new_statement_return($2);             loc($$, @1);}
                 ;
 
 statements      : statement statements  { $$ = mcc_ast_new_compound_stmt($1, $2); loc($$,@1); }

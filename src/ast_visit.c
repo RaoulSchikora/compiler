@@ -119,6 +119,13 @@ void mcc_ast_visit_statement(struct mcc_ast_statement *statement, struct mcc_ast
         mcc_ast_visit(statement->assignment, visitor);
         visit_if_post_order(statement, visitor->statement_assignment, visitor);
         break;
+    case MCC_AST_STATEMENT_TYPE_RETURN:
+        visit_if_pre_order(statement, visitor->statement_return, visitor);
+        if(statement->return_value != NULL) {
+			mcc_ast_visit(statement->return_value, visitor);
+		}
+        visit_if_post_order(statement, visitor->statement_return, visitor);
+        break;
 	}
 
 	visit_if_post_order(statement, visitor->statement, visitor);
