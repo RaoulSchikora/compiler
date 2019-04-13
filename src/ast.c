@@ -504,8 +504,9 @@ struct mcc_ast_literal *mcc_ast_new_literal_string(char* value)
 char* mcc_remove_quotes_from_string(char* string){
 
 	assert(string);
-	char* intermediate = (char*) malloc (strlen(string)*sizeof(char));
+	char* intermediate = (char*) malloc ((strlen(string)-1)*sizeof(char));
 	strncpy (intermediate, string+1, strlen(string)-2);
+	*(intermediate + strlen(string)-2) = '\0';
 	return intermediate;
 
 }
@@ -532,27 +533,3 @@ void mcc_ast_delete_literal(struct mcc_ast_literal *literal)
 	free(literal);
 }
 
-void mcc_ast_delete_result(struct mcc_parser_result *result)
-{
-	assert(result);
-
-	enum mcc_parser_entry_point entry_point = result->entry_point;
-
-	switch(entry_point){
-	case MCC_PARSER_ENTRY_POINT_EXPRESSION: ;
-		mcc_ast_delete(result->expression);
-		break;
-	case MCC_PARSER_ENTRY_POINT_STATEMENT: ;
-		mcc_ast_delete(result->statement);
-		break;
-	case MCC_PARSER_ENTRY_POINT_DECLARATION: ;
-		mcc_ast_delete(result->declaration);
-		break;
-	case MCC_PARSER_ENTRY_POINT_ASSIGNMENT: ;
-		mcc_ast_delete(result->assignment);
-		break;
-	case MCC_PARSER_ENTRY_POINT_PROGRAM:
-		//TODO
-		break;
-	}
-}

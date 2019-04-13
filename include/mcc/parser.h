@@ -48,6 +48,8 @@ struct mcc_parser_result mcc_parse_string(const char *input, enum mcc_parser_ent
 
 struct mcc_parser_result mcc_parse_file(FILE *input);
 
-char* mcc_transform_into_unit_test (char* in);
+char* mcc_transform_into_unit_test (const char* in);
+
+void mcc_ast_delete_result(struct mcc_parser_result *result);
 
 #endif // MCC_PARSER_H

@@ -89,6 +89,12 @@ void mcc_parser_error();
 %type <struct mcc_ast_assignment *> assignment
 %type <struct mcc_ast_statement *> statement
 
+%destructor { mcc_ast_delete($$); } expression
+%destructor { mcc_ast_delete($$); } statement
+%destructor { mcc_ast_delete($$); } assignment
+%destructor { mcc_ast_delete($$); } declaration
+%destructor { mcc_ast_delete($$); } literal
+
 %start toplevel
 
 %%
@@ -112,9 +118,9 @@ expression : literal                      { $$ = mcc_ast_new_expression_literal(
            | expression LT_EQ_SIGN expression { $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_SMALLEREQ, $1, $3); loc($$, @1); }
            | expression GT_EQ_SIGN expression { $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_GREATEREQ, $1, $3); loc($$, @1); }
            | expression ANDAND expression { $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_CONJ, $1, $3);loc($$, @1); }
-	   | expression OROR expression { $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_DISJ, $1, $3);  loc($$, @1); }
-	   | expression EQEQ expression { $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_EQUAL, $1, $3); loc($$, @1); }
-	   | expression EXKLA_EQ expression { $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_NOTEQUAL, $1, $3); loc($$, @1); }
+           | expression OROR expression { $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_DISJ, $1, $3);  loc($$, @1); }
+           | expression EQEQ expression { $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_EQUAL, $1, $3); loc($$, @1); }
+           | expression EXKLA_EQ expression { $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_NOTEQUAL, $1, $3); loc($$, @1); }
            | LPARENTH expression RPARENTH { $$ = mcc_ast_new_expression_parenth($2);                              loc($$, @1); }
            | MINUS expression 		  { $$ = mcc_ast_new_expression_unary_op(MCC_AST_UNARY_OP_NEGATIV, $2);	  loc($$, @1); }
            | EXKLA expression 		  { $$ = mcc_ast_new_expression_unary_op(MCC_AST_UNARY_OP_NOT, $2);     loc($$, @1); }
@@ -123,27 +129,28 @@ expression : literal                      { $$ = mcc_ast_new_expression_literal(
            ;
 
 assignment 	:	IDENTIFIER EQ expression { $$ = mcc_ast_new_variable_assignment ($1, $3); loc($$,@1); }
-		|	IDENTIFIER SQUARE_OPEN expression SQUARE_CLOSE EQ expression { $$ = mcc_ast_new_array_assignment ($1, $3, $6); loc($$, @1);}
-		;
+            |	IDENTIFIER SQUARE_OPEN expression SQUARE_CLOSE EQ expression { $$ = mcc_ast_new_array_assignment ($1, $3, $6); loc($$, @1);}
+            ;
 
 declaration : TYPE IDENTIFIER { $$ = mcc_ast_new_variable_declaration($1,$2); loc ($$, @1);}
-	    | TYPE SQUARE_OPEN INT_LITERAL SQUARE_CLOSE IDENTIFIER { $$ = mcc_ast_new_array_declaration($1, mcc_ast_new_literal_int($3), $5); loc($$, @1);}
-	    ;
+            | TYPE SQUARE_OPEN INT_LITERAL SQUARE_CLOSE IDENTIFIER { $$ = mcc_ast_new_array_declaration($1, mcc_ast_new_literal_int($3), $5); loc($$, @1);}
+            ;
 
 
 statement : IF LPARENTH expression RPARENTH statement 		     { $$ = mcc_ast_new_statement_if_stmt( $3, $5); 	     loc($$, @1);}
-	  | IF LPARENTH expression RPARENTH statement ELSE statement { $$ = mcc_ast_new_statement_if_else_stmt( $3, $5, $7); loc($$, @1);}
-	  | expression SEMICOLON 				     { $$ = mcc_ast_new_statement_expression( $1); 	     loc($$, @1);}
-	  | WHILE LPARENTH expression RPARENTH statement 	     { $$ = mcc_ast_new_statement_while( $3, $5); 	     loc($$, @1);}
-	  | assignment SEMICOLON				     { $$ = mcc_ast_new_statement_assignment($1);	     loc($$, @1);}
-	  | declaration SEMICOLON				     { $$ = mcc_ast_new_statement_declaration($1);	     loc($$, @1);}
-	  ;
+          | IF LPARENTH expression RPARENTH statement ELSE statement { $$ = mcc_ast_new_statement_if_else_stmt( $3, $5, $7); loc($$, @1);}
+          | expression SEMICOLON 				     { $$ = mcc_ast_new_statement_expression( $1); 	     loc($$, @1);}
+          | WHILE LPARENTH expression RPARENTH statement 	     { $$ = mcc_ast_new_statement_while( $3, $5); 	     loc($$, @1);}
+          | assignment SEMICOLON				     { $$ = mcc_ast_new_statement_assignment($1);	     loc($$, @1);}
+          | declaration SEMICOLON				     { $$ = mcc_ast_new_statement_declaration($1);	     loc($$, @1);}
+          ;
 
 literal : INT_LITERAL    { $$ = mcc_ast_new_literal_int($1);   loc($$, @1); }
         | FLOAT_LITERAL  { $$ = mcc_ast_new_literal_float($1); loc($$, @1); }
         | BOOL_LITERAL   { $$ = mcc_ast_new_literal_bool($1);  loc($$, @1); }
-        | STRING_LITERAL { $$ = mcc_ast_new_literal_string($1);  loc($$, @1);  }
+        | STRING_LITERAL { $$ = mcc_ast_new_literal_string($1); free($1); loc($$, @1);}
         ;
+
 
 %%
 
@@ -151,6 +158,7 @@ literal : INT_LITERAL    { $$ = mcc_ast_new_literal_int($1);   loc($$, @1); }
 
 #include "scanner.h"
 #include "utils/unused.h"
+#include "mcc/parser.h"
 
 // Enabling verbose debugging that shows state of the parser:
 
@@ -162,14 +170,6 @@ literal : INT_LITERAL    { $$ = mcc_ast_new_literal_int($1);   loc($$, @1); }
 
 
 
-//void mcc_parser_error(struct MCC_PARSER_LTYPE *yylloc, yyscan_t *scanner, struct mcc_ast_result result, const char *msg)
-void mcc_parser_error(struct MCC_PARSER_LTYPE *yylloc, yyscan_t *scanner, const char *msg)
-{
-	// TODO
-	UNUSED(yylloc);
-	UNUSED(scanner);
-	UNUSED(msg);
-}
 
 struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_parser_entry_point entry_point)
 {
@@ -213,7 +213,7 @@ struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_par
 	return result;
 }
 
-char* mcc_transform_into_unit_test (char* in) {
+char* mcc_transform_into_unit_test (const char* in) {
   char* out = (char*) malloc((strlen(in)+3)*sizeof(char));
   *out = '~';
   strcpy (out + 1,in);
@@ -245,4 +245,36 @@ struct mcc_parser_result mcc_parse_file(FILE *input)
 }
 
 
+void mcc_ast_delete_result(struct mcc_parser_result *result)
+{
+	assert(result);
+
+	enum mcc_parser_entry_point entry_point = result->entry_point;
+
+	switch(entry_point){
+	case MCC_PARSER_ENTRY_POINT_EXPRESSION: ;
+		mcc_ast_delete(result->expression);
+		break;
+	case MCC_PARSER_ENTRY_POINT_STATEMENT: ;
+		mcc_ast_delete(result->statement);
+		break;
+	case MCC_PARSER_ENTRY_POINT_DECLARATION: ;
+		mcc_ast_delete(result->declaration);
+		break;
+	case MCC_PARSER_ENTRY_POINT_ASSIGNMENT: ;
+		mcc_ast_delete(result->assignment);
+		break;
+	case MCC_PARSER_ENTRY_POINT_PROGRAM:
+		//TODO
+		break;
+	}
+}
+
+
+void mcc_parser_error(struct MCC_PARSER_LTYPE *yylloc, yyscan_t *scanner, struct mcc_parser_result *result, const char *msg)
+{
+	// TODO
+// 	mcc_parser_lex_destroy(scanner);
+//	mcc_ast_delete_result(result);
+}
 
