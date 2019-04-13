@@ -115,6 +115,8 @@ void mcc_ast_visit_statement(struct mcc_ast_statement *statement, struct mcc_ast
         visit_if_post_order(statement, visitor->statement_assignment, visitor);
         break;
 	}
+
+	visit_if_post_order(statement, visitor->statement, visitor);
 }
 
 void mcc_ast_visit_literal(struct mcc_ast_literal *literal, struct mcc_ast_visitor *visitor)
