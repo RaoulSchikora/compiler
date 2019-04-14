@@ -164,14 +164,14 @@ declaration     : TYPE IDENTIFIER { $$ = mcc_ast_new_variable_declaration($1,$2)
                 ;
 
 
-statement       : IF LPARENTH expression RPARENTH statement 		            { $$ = mcc_ast_new_statement_if_stmt( $3, $5); 	     loc($$, @1);}
-                | IF LPARENTH expression RPARENTH statement ELSE statement    { $$ = mcc_ast_new_statement_if_else_stmt( $3, $5, $7); loc($$, @1);}
+statement       : IF LPARENTH expression RPARENTH statement 		        { $$ = mcc_ast_new_statement_if_stmt( $3, $5); 	     loc($$, @1);}
+                | IF LPARENTH expression RPARENTH statement ELSE statement  { $$ = mcc_ast_new_statement_if_else_stmt( $3, $5, $7); loc($$, @1);}
                 | expression SEMICOLON 				                        { $$ = mcc_ast_new_statement_expression( $1); 	     loc($$, @1);}
                 | WHILE LPARENTH expression RPARENTH statement 	            { $$ = mcc_ast_new_statement_while( $3, $5); 	     loc($$, @1);}
                 | assignment SEMICOLON				                        { $$ = mcc_ast_new_statement_assignment($1);	     loc($$, @1);}
                 | declaration SEMICOLON				                        { $$ = mcc_ast_new_statement_declaration($1);	     loc($$, @1);}
-                | RETURN SEMICOLON                                          { $$ = mcc_ast_new_statement_return(true, NULL);           loc($$, @1);}
-                | RETURN expression SEMICOLON                               { $$ = mcc_ast_new_statement_return(false, $2);             loc($$, @1);}
+                | RETURN SEMICOLON                                          { $$ = mcc_ast_new_statement_return(true, NULL);     loc($$, @1);}
+                | RETURN expression SEMICOLON                               { $$ = mcc_ast_new_statement_return(false, $2);      loc($$, @1);}
                 ;
 
 statements      : statement statements  { $$ = mcc_ast_new_compound_stmt(false, $1, $2); loc($$,@1); }
