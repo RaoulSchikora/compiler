@@ -674,7 +674,7 @@ void FunctionCall(CuTest *tc){
 	// root -> arguments -> next_arguments
 
 	CuAssertPtrEquals(tc, NULL, function_call->arguments->next_arguments->next_arguments);
-	CuAssertTrue(tc, !function_call->arguments->has_next_expression);
+	CuAssertTrue(tc, !(function_call->arguments->next_arguments->has_next_expression));
 	CuAssertStrEquals(tc, "h", function_call->arguments->next_arguments->expression->identifier->identifier_name);
 }
 
@@ -702,7 +702,7 @@ void FunctionCall(CuTest *tc){
 	TEST(assign_stmt) \
 	TEST(decl_stmt) \
 	TEST(CompoundStatement) \
-//	TEST(FunctionCall) \
+	TEST(FunctionCall) \
 
 #include "main_stub.inc"
 #undef TESTS

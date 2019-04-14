@@ -120,6 +120,7 @@ struct mcc_ast_expression *mcc_ast_new_expression_function_call(struct mcc_ast_i
 		return NULL;
 	}
 
+	expr->type = MCC_AST_EXPRESSION_TYPE_FUNCTION_CALL;
 	expr->function_identifier = identifier;
 	expr->arguments = arguments;
 
