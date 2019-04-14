@@ -472,6 +472,8 @@ void ret_stmt(CuTest *tc)
 
 	CuAssertIntEquals(tc, stmt->return_value->type, MCC_AST_EXPRESSION_TYPE_VARIABLE);
 	CuAssertStrEquals(tc, stmt->return_value->identifier->identifier_name, "a");
+
+	mcc_ast_delete(stmt);
 }
 
 void MissingClosingParenthesis_1(CuTest *tc)
@@ -663,6 +665,8 @@ void CompoundStatement(CuTest *tc)
 	CuAssertIntEquals(tc, compound_statement->next_compound_statement->statement->assignment->variable_assigned_value->literal->type, MCC_AST_LITERAL_TYPE_INT);
 	CuAssertIntEquals(tc, compound_statement->next_compound_statement->statement->assignment->variable_assigned_value->literal->i_value, 1);
 
+	mcc_ast_delete(compound_statement);
+
 }
 
 
@@ -695,6 +699,8 @@ void FunctionCallArguments(CuTest *tc){
 	CuAssertPtrEquals(tc, NULL, function_call->arguments->next_arguments->next_arguments);
 	CuAssertTrue(tc, !(function_call->arguments->next_arguments->has_next_expression));
 	CuAssertStrEquals(tc, "h", function_call->arguments->next_arguments->expression->identifier->identifier_name);
+
+	mcc_ast_delete(function_call);
 }
 
 void FunctionDefParameters(CuTest *tc)
@@ -743,10 +749,22 @@ void FunctionDefParameters(CuTest *tc)
 	CuAssertIntEquals(tc, function_definition->compound_stmt->statement->assignment->variable_assigned_value->literal->type, MCC_AST_LITERAL_TYPE_INT);
 	CuAssertIntEquals(tc, function_definition->compound_stmt->statement->assignment->variable_assigned_value->literal->i_value, 2);
 
+	mcc_ast_delete(function_definition);
 
 }
 
+void Program(CuTest *tc)
+{
 
+//	const char input[] = "int func(bool a){a = 2;} bool func2(){}";
+//	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_EXPRESSION);
+
+//	CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
+//	CuAssertIntEquals(tc, MCC_PARSER_ENTRY_POINT_PROGRAM, result.entry_point);
+
+//	struct mcc_ast_program *program = result.program;
+
+}
 
 
 #define TESTS \
@@ -774,6 +792,7 @@ void FunctionDefParameters(CuTest *tc)
 	TEST(CompoundStatement) \
 	TEST(FunctionCallArguments) \
 	TEST(FunctionDefParameters) \
+	TEST(Program) \
 
 #include "main_stub.inc"
 #undef TESTS

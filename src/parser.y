@@ -207,7 +207,6 @@ program         :  function_defs { $$ = $1; loc($$,@1); }
                 ;
 
 %%
-//TODO: fix compound_statement grammar rule
 
 
 #include <assert.h>

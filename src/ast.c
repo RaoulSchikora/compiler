@@ -607,7 +607,6 @@ void mcc_ast_delete_literal(struct mcc_ast_literal *literal)
 struct mcc_ast_function_definition *mcc_ast_new_void_function_def(struct mcc_ast_identifier *identifier, struct mcc_ast_parameters *parameters, struct mcc_ast_compound_statement *compound_statement){
 assert(identifier);
 assert(parameters);
-assert(compound_statement);
 
 struct mcc_ast_function_definition *function_definition = malloc(sizeof(*function_definition));
 if(!function_definition){
@@ -626,7 +625,6 @@ return function_definition;
 struct mcc_ast_function_definition *mcc_ast_new_type_function_def(enum mcc_ast_types type, struct mcc_ast_identifier *identifier, struct mcc_ast_parameters *parameters, struct mcc_ast_compound_statement *compound_statement){
 	assert(identifier);
 	assert(parameters);
-	assert(compound_statement);
 
 	struct mcc_ast_function_definition *function_definition = malloc(sizeof(*function_definition));
 	if(!function_definition){
