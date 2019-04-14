@@ -742,9 +742,10 @@ void mcc_ast_delete_parameters(struct mcc_ast_parameters *parameters){
 
 // --------------------------------------------------------------------- Arguments
 
-struct mcc_ast_arguments *mcc_ast_new_arguments(struct mcc_ast_expression *expression, struct mcc_ast_arguments *next_arguments){
-	assert(expression);
-
+struct mcc_ast_arguments *mcc_ast_new_arguments(bool is_empty, struct mcc_ast_expression *expression, struct mcc_ast_arguments *next_arguments){
+	if(!is_empty){
+		assert(expression);
+	}
 	struct mcc_ast_arguments *arguments = malloc(sizeof(*arguments));
 	if(!arguments){
 		return NULL;
@@ -757,18 +758,22 @@ struct mcc_ast_arguments *mcc_ast_new_arguments(struct mcc_ast_expression *expre
 		arguments->has_next_expression = true;
 		arguments->next_arguments = next_arguments;
 	}
-
-	arguments->expression = expression;
+	if(!is_empty) {
+		arguments->expression = expression;
+	} else {
+		arguments->expression = NULL;
+	}
+	arguments->is_empty = is_empty;
 	return arguments;
 }
 
 void mcc_ast_delete_arguments (struct mcc_ast_arguments *arguments){
 	assert(arguments);
 
-	if (arguments->has_next_expression == false){
-		mcc_ast_delete_expression(arguments->expression);
-	} else {
+	if (arguments->has_next_expression == true){
 		mcc_ast_delete_arguments(arguments->next_arguments);
+	}
+	if (!(arguments->is_empty)){
 		mcc_ast_delete_expression(arguments->expression);
 	}
 	free(arguments);

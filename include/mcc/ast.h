@@ -419,11 +419,12 @@ struct mcc_ast_parameters *mcc_ast_new_parameters(struct mcc_ast_declaration *de
 struct mcc_ast_arguments{
 	struct mcc_ast_node node;
 	bool has_next_expression;
+	bool is_empty;
 	struct mcc_ast_arguments *next_arguments;
 	struct mcc_ast_expression *expression;
 };
 
-struct mcc_ast_arguments *mcc_ast_new_arguments(struct mcc_ast_expression *expression, struct mcc_ast_arguments *next_arguments);
+struct mcc_ast_arguments *mcc_ast_new_arguments(bool is_empty, struct mcc_ast_expression *expression, struct mcc_ast_arguments *next_arguments);
 
 void mcc_ast_delete_arguments (struct mcc_ast_arguments *arguments);
 

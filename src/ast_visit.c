@@ -70,7 +70,9 @@ void mcc_ast_visit_expression(struct mcc_ast_expression *expression, struct mcc_
 	case MCC_AST_EXPRESSION_TYPE_FUNCTION_CALL:
 		visit_if_pre_order(expression,visitor->expression_function_call,visitor);
 		mcc_ast_visit(expression->function_identifier,visitor);
-		mcc_ast_visit(expression->arguments,visitor);
+		if (!expression->arguments->is_empty) {
+			mcc_ast_visit(expression->arguments, visitor);
+		}
 		visit_if_post_order(expression,visitor->expression_function_call,visitor);
 	}
 

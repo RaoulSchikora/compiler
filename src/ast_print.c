@@ -166,12 +166,18 @@ static void print_dot_expression_function_call(struct mcc_ast_expression *expres
 	assert(data);
 
 	char label[LABEL_SIZE] = {0};
-	snprintf(label, sizeof(label),"expr: funct. call");
+	if(expression->arguments->is_empty){
+		snprintf(label, sizeof(label),"expr: funct. call, no args");
+	} else {
+		snprintf(label, sizeof(label), "expr: funct. call");
+	}
 
 	FILE *out = data;
 	print_dot_node(out,expression,label);
 	print_dot_edge(out,expression, expression->function_identifier,"func id");
-	print_dot_edge(out,expression, expression->arguments,"func args");
+	if (!expression->arguments->is_empty) {
+		print_dot_edge(out, expression, expression->arguments, "func args");
+	}
 }
 
 static void print_dot_statememt_if_stmt(struct mcc_ast_statement *statement, void *data)

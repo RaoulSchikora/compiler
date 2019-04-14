@@ -147,11 +147,11 @@ expression      : literal                      { $$ = mcc_ast_new_expression_lit
                 | IDENTIFIER			  { $$ = mcc_ast_new_expression_variable($1);				  loc($$, @1); }
                 | IDENTIFIER SQUARE_OPEN expression SQUARE_CLOSE {$$ = mcc_ast_new_expression_array_element($1,$3);    loc($$, @1); }
                 | IDENTIFIER LPARENTH arguments RPARENTH        { $$ = mcc_ast_new_expression_function_call(mcc_ast_new_identifier($1), $3); loc($$,@1); }
-                | IDENTIFIER LPARENTH RPARENTH        { $$ = mcc_ast_new_expression_function_call(mcc_ast_new_identifier($1), NULL); loc($$,@1); }
                 ;
 
-arguments       : expression { $$ = mcc_ast_new_arguments($1, NULL); loc($$,@1); }
-                | expression COMMA arguments { $$ = mcc_ast_new_arguments($1, $3); loc($$,@1)};
+arguments       : expression { $$ = mcc_ast_new_arguments(false, $1, NULL); loc($$,@1); }
+                | expression COMMA arguments { $$ = mcc_ast_new_arguments(false, $1, $3); loc($$,@1);}
+                | %empty { $$ = mcc_ast_new_arguments(true, NULL, NULL); }
                 ;
 
 
