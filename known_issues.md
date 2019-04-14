@@ -14,10 +14,6 @@ The grammar (except for the program non-terminal) works without memory leaks, wi
 * There is an enum to store wether a function has a type or void. Currently the visitor/printer doesn't print the type
 * Since empty parameter-lists are allowed, currently a NULL pointer is passed
 
-### Program
-
-* Currently program unit test fails with segmentation fault
-
 ### Return statement
 
 Like Function Call expression, for "return;" without return values, a NULL pointer is passed
@@ -25,3 +21,7 @@ Like Function Call expression, for "return;" without return values, a NULL point
 ### Compound Statement
 
 Parser crashes with segfault on empty compound statement
+
+## Printer
+
+Printer currently fails on empty parameter list and empty compound statement

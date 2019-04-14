@@ -756,13 +756,23 @@ void FunctionDefParameters(CuTest *tc)
 void Program(CuTest *tc)
 {
 
-//	const char input[] = "int func(bool a){a = 2;} bool func2(){}";
-//	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_EXPRESSION);
+	const char input[] = "int func(bool a){a = 2;} bool func2(int a){a[1] = 1;}";
+	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_EXPRESSION);
 
-//	CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
-//	CuAssertIntEquals(tc, MCC_PARSER_ENTRY_POINT_PROGRAM, result.entry_point);
+	CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
+	CuAssertIntEquals(tc, MCC_PARSER_ENTRY_POINT_PROGRAM, result.entry_point);
 
-//	struct mcc_ast_program *program = result.program;
+	struct mcc_ast_program *program = result.program;
+
+	CuAssertTrue(tc, program->has_next_function);
+	CuAssertTrue(tc, !(program->next_function->has_next_function));
+
+	// root -> function -> identifier -> identifier_name
+	CuAssertStrEquals(tc, program->function->identifier->identifier_name, "func");
+
+	// root -> next_function -> function -> identifier -> identifier_name
+	CuAssertStrEquals(tc, program->next_function->function->identifier->identifier_name, "func2");
+
 
 }
 
