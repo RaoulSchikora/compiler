@@ -773,7 +773,7 @@ void Program(CuTest *tc)
 	// root -> next_function -> function -> identifier -> identifier_name
 	CuAssertStrEquals(tc, program->next_function->function->identifier->identifier_name, "func2");
 
-
+	mcc_ast_delete(program);
 }
 
 void EmptyCompound(CuTest *tc){
