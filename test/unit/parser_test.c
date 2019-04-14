@@ -811,7 +811,7 @@ void EmptyCompound(CuTest *tc){
 	TEST(FunctionCallArguments) \
 	TEST(FunctionDefParameters) \
 	TEST(Program) \
-//	TEST(EmptyCompound) \
+	TEST(EmptyCompound) \
 
 #include "main_stub.inc"
 #undef TESTS

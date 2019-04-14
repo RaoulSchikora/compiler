@@ -306,12 +306,13 @@ void mcc_ast_delete_statement(struct mcc_ast_statement *statement);
 
 struct mcc_ast_compound_statement{
 	struct mcc_ast_node node;
+	bool is_empty;
 	bool has_next_statement;
 	struct mcc_ast_compound_statement *next_compound_statement;
 	struct mcc_ast_statement *statement;
 };
 
-struct mcc_ast_compound_statement *mcc_ast_new_compound_stmt(struct mcc_ast_statement *statement, struct mcc_ast_compound_statement *next_compound_stmt);
+struct mcc_ast_compound_statement *mcc_ast_new_compound_stmt(bool is_empty, struct mcc_ast_statement *statement, struct mcc_ast_compound_statement *next_compound_stmt);
 
 void mcc_ast_delete_compound_statement(struct mcc_ast_compound_statement *compound_statement);
 

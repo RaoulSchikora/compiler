@@ -503,15 +503,21 @@ void mcc_ast_delete_statement(struct mcc_ast_statement *statement)
 
 // ------------------------------------------------------------------- Compound Statement
 
-struct mcc_ast_compound_statement *mcc_ast_new_compound_stmt(struct mcc_ast_statement *statement, struct mcc_ast_compound_statement *next_compound_stmt){
-	assert(statement);
+struct mcc_ast_compound_statement *mcc_ast_new_compound_stmt(bool is_empty, struct mcc_ast_statement *statement, struct mcc_ast_compound_statement *next_compound_stmt){
+	if (is_empty != true){
+		assert(statement);
+	}
+
 
 	struct mcc_ast_compound_statement *compound_statement = malloc(sizeof(*compound_statement));
 	if(!compound_statement){
 		return NULL;
 	}
-
-	compound_statement->statement = statement;
+	if(is_empty != true) {
+		compound_statement->statement = statement;
+	} else{
+		compound_statement->statement = NULL;
+	}
 	if(next_compound_stmt == NULL){
 		compound_statement->has_next_statement = false;
 		compound_statement->next_compound_statement = NULL;
@@ -519,6 +525,7 @@ struct mcc_ast_compound_statement *mcc_ast_new_compound_stmt(struct mcc_ast_stat
 		compound_statement->has_next_statement = true;
 		compound_statement->next_compound_statement = next_compound_stmt;
 	}
+	compound_statement->is_empty = is_empty;
 	return compound_statement;
 }
 
@@ -527,7 +534,9 @@ void mcc_ast_delete_compound_statement(struct mcc_ast_compound_statement *compou
 	if(compound_statement->has_next_statement == true){
 		mcc_ast_delete_compound_statement(compound_statement->next_compound_statement);
 	}
-	mcc_ast_delete_statement(compound_statement->statement);
+	if (!compound_statement->is_empty) {
+		mcc_ast_delete_statement(compound_statement->statement);
+	}
 	free(compound_statement);
 }
 

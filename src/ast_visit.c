@@ -131,16 +131,17 @@ void mcc_ast_visit_statement(struct mcc_ast_statement *statement, struct mcc_ast
 	visit_if_post_order(statement, visitor->statement, visitor);
 }
 
-void mcc_ast_visit_compound_statement(struct mcc_ast_compound_statement *compound_statement, struct mcc_ast_visitor *visitor)
-{
-    assert(compound_statement);
-    assert(visitor);
+void mcc_ast_visit_compound_statement(struct mcc_ast_compound_statement *compound_statement, struct mcc_ast_visitor *visitor) {
+	assert(compound_statement);
+	assert(visitor);
 
-    visit_if_pre_order(compound_statement,visitor->compound_statement,visitor);
-    if (compound_statement->has_next_statement == true){
-        mcc_ast_visit(compound_statement->next_compound_statement,visitor);
+	visit_if_pre_order(compound_statement, visitor->compound_statement, visitor);
+	if (compound_statement->has_next_statement == true) {
+		mcc_ast_visit(compound_statement->next_compound_statement, visitor);
+	}
+	if(compound_statement->is_empty == false){
+        mcc_ast_visit(compound_statement->statement, visitor);
     }
-    mcc_ast_visit(compound_statement->statement,visitor);
 	visit_if_post_order(compound_statement->statement,visitor->statement,visitor);
 }
 

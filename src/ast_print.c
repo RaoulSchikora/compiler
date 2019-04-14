@@ -408,14 +408,19 @@ static void print_dot_statement_return (struct mcc_ast_statement *statement, voi
 	}
 }
 
-static void print_dot_compound_statement(struct mcc_ast_compound_statement *compound_statement, void *data)
-{
+static void print_dot_compound_statement(struct mcc_ast_compound_statement *compound_statement, void *data) {
 	assert(compound_statement);
 	assert(data);
 
 	FILE *out = data;
-	print_dot_node(out, compound_statement, "comp_stmt");
-	print_dot_edge(out, compound_statement, compound_statement->statement, "stmt");
+	if (compound_statement->is_empty) {
+		print_dot_node(out, compound_statement, "empty comp_stmt");
+	} else {
+        print_dot_node(out, compound_statement, "comp_stmt");
+    }
+	if(compound_statement->is_empty == false) {
+		print_dot_edge(out, compound_statement, compound_statement->statement, "stmt");
+	}
 	if(compound_statement->has_next_statement == true){
 		print_dot_edge(out, compound_statement, compound_statement->next_compound_statement, "next stmt:");
 	}
