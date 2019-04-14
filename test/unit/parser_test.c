@@ -766,6 +766,14 @@ void Program(CuTest *tc)
 
 }
 
+void EmptyCompound(CuTest *tc){
+
+	const char input[] = "{}";
+	struct mcc_parser_result result = mcc_parse_string(input,MCC_PARSER_ENTRY_POINT_STATEMENT);
+
+	CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
+	CuAssertIntEquals(tc, MCC_PARSER_ENTRY_POINT_COMPOUND_STATEMENT, result.entry_point);
+}
 
 #define TESTS \
 	TEST(BinaryOp_1) \
@@ -793,6 +801,7 @@ void Program(CuTest *tc)
 	TEST(FunctionCallArguments) \
 	TEST(FunctionDefParameters) \
 	TEST(Program) \
+//	TEST(EmptyCompound) \
 
 #include "main_stub.inc"
 #undef TESTS

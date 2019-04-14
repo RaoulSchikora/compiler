@@ -137,11 +137,10 @@ void mcc_ast_visit_compound_statement(struct mcc_ast_compound_statement *compoun
     assert(visitor);
 
     visit_if_pre_order(compound_statement,visitor->compound_statement,visitor);
-    visit_if_pre_order(compound_statement->statement,visitor->statement,visitor);
     if (compound_statement->has_next_statement == true){
         mcc_ast_visit(compound_statement->next_compound_statement,visitor);
     }
-	visit_if_post_order(compound_statement,visitor->compound_statement,visitor);
+    mcc_ast_visit(compound_statement->statement,visitor);
 	visit_if_post_order(compound_statement->statement,visitor->statement,visitor);
 }
 
@@ -243,6 +242,9 @@ void mcc_ast_visit_function_definition(struct mcc_ast_function_definition *funct
 	//mcc_ast_visit(function_definition->type,visitor);
 	mcc_ast_visit(function_definition->identifier,visitor);
 	mcc_ast_visit(function_definition->compound_stmt,visitor);
+	if(function_definition->parameters != NULL){
+		mcc_ast_visit(function_definition->parameters,visitor);
+	}
 	visit_if_post_order(function_definition,visitor->function_definition,visitor);
 }
 
@@ -252,11 +254,10 @@ void mcc_ast_visit_parameters (struct mcc_ast_parameters *parameters, struct mcc
 	assert(visitor);
 
 	visit_if_pre_order(parameters,visitor->parameters,visitor);
-	visit_if_pre_order(parameters->declaration,visitor->declaration,visitor);
 	if(parameters->has_next_parameter == true){
 		mcc_ast_visit(parameters->next_parameters,visitor);
 	}
-	visit_if_post_order(parameters->declaration,visitor->declaration,visitor);
+	mcc_ast_visit(parameters->declaration,visitor);
 	visit_if_post_order(parameters,visitor->parameters,visitor);
 }
 
@@ -266,11 +267,10 @@ void mcc_ast_visit_arguments (struct mcc_ast_arguments *arguments, struct mcc_as
 	assert(visitor);
 
 	visit_if_pre_order(arguments,visitor->arguments,visitor);
-	visit_if_pre_order(arguments->expression,visitor->expression,visitor);
 	if(arguments->has_next_expression == true){
 		mcc_ast_visit(arguments->next_arguments,visitor);
 	}
-	visit_if_post_order(arguments->expression,visitor->expression,visitor);
+	mcc_ast_visit(arguments->expression,visitor);
 	visit_if_post_order(arguments,visitor->arguments,visitor);
 }
 

@@ -2,17 +2,26 @@
 
 ## Parser
 
+The grammar (except for the program non-terminal) works without memory leaks, with the following issues still unadressed:
+
 ### Function Call Expression
 
-* There is no system in place in the data structure or functions to detect function calls with empty arguments-list
-* Currently using a function without arguments fails on "assert(arguments);"
+* There is no system in place to detect function calls with empty arguments-list
+* Currently a NULL pointer is passed in the grammar and set in the datastructure. 
 
 ### Function Definition
 
-* There is no system to store wether a function has a type or void. Currently the visitor/printer doesn't print the type
+* There is an enum to store wether a function has a type or void. Currently the visitor/printer doesn't print the type
+* Since empty parameter-lists are allowed, currently a NULL pointer is passed
 
-### Memory Leaks and failed Unit test
+### Program
 
-* Function_defs, program, parameters, arguments and expression_function_call are not tested, some are buggy and have read/write-errors --> Memory Leaks
-* Unit test FunctionCall fails due to memory errors and are commented out in the macro
-* Unit test CompoundStatement leaks memory
+* Currently program unit test fails with segmentation fault
+
+### Return statement
+
+Like Function Call expression, for "return;" without return values, a NULL pointer is passed
+
+### Compound Statement
+
+Parser crashes with segfault on empty compound statement

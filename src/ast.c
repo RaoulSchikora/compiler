@@ -449,7 +449,6 @@ struct mcc_ast_statement *mcc_ast_new_statement_assignment( struct mcc_ast_assig
 
 struct mcc_ast_statement *mcc_ast_new_statement_return( struct mcc_ast_expression* expression)
 {
-	assert(expression);
 
 	struct mcc_ast_statement *statement = malloc(sizeof(*statement));
 	if(!statement){
@@ -491,8 +490,12 @@ void mcc_ast_delete_statement(struct mcc_ast_statement *statement)
 		mcc_ast_delete_assignment(statement->assignment);
 		break;
     case MCC_AST_STATEMENT_TYPE_RETURN:
-    	mcc_ast_delete_expression(statement->return_value);
-    	break;
+        if (statement->return_value == NULL){
+        	break;
+        } else {
+			mcc_ast_delete_expression(statement->return_value);
+			break;
+		}
     }
     free(statement);
 }
@@ -606,7 +609,6 @@ void mcc_ast_delete_literal(struct mcc_ast_literal *literal)
 
 struct mcc_ast_function_definition *mcc_ast_new_void_function_def(struct mcc_ast_identifier *identifier, struct mcc_ast_parameters *parameters, struct mcc_ast_compound_statement *compound_statement){
 assert(identifier);
-assert(parameters);
 
 struct mcc_ast_function_definition *function_definition = malloc(sizeof(*function_definition));
 if(!function_definition){
@@ -624,7 +626,6 @@ return function_definition;
 
 struct mcc_ast_function_definition *mcc_ast_new_type_function_def(enum mcc_ast_types type, struct mcc_ast_identifier *identifier, struct mcc_ast_parameters *parameters, struct mcc_ast_compound_statement *compound_statement){
 	assert(identifier);
-	assert(parameters);
 
 	struct mcc_ast_function_definition *function_definition = malloc(sizeof(*function_definition));
 	if(!function_definition){
@@ -657,7 +658,9 @@ void mcc_ast_delete_function_definition(struct mcc_ast_function_definition *func
 	assert(function_definition);
 	mcc_ast_delete_identifier(function_definition->identifier);
 	mcc_ast_delete_compound_statement(function_definition->compound_stmt);
-	mcc_ast_delete_parameters(function_definition->parameters);
+	if (function_definition->parameters != NULL) {
+		mcc_ast_delete_parameters(function_definition->parameters);
+	}
 	free(function_definition);
 }
 
