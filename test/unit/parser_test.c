@@ -617,14 +617,32 @@ void ArrayAssignment(CuTest *tc)
 
 void CompoundStatement(CuTest *tc)
 {
-    // TODO: finish and enable unit test
-	const char input[] = "{int a; a = 1; b = 2;}";
+	const char input[] = "{int a; a = 1;}";
 	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_STATEMENT);
 
 	CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
+	CuAssertIntEquals(tc, MCC_PARSER_ENTRY_POINT_COMPOUND_STATEMENT, result.entry_point);
 
 	struct mcc_ast_compound_statement *compound_statement = result.compound_statement;
 
+	// root -> statement
+	CuAssertIntEquals(tc, compound_statement->statement->type, MCC_AST_STATEMENT_TYPE_DECLARATION);
+	CuAssertIntEquals(tc, compound_statement->statement->declaration->declaration_type, MCC_AST_DECLARATION_TYPE_VARIABLE);
+	CuAssertIntEquals(tc, compound_statement->statement->declaration->variable_type->type_value, INT);
+	CuAssertStrEquals(tc, compound_statement->statement->declaration->variable_identifier->identifier_name, "a" );
+
+	// root -> next_compound_statement
+
+	CuAssertTrue(tc, compound_statement->has_next_statement);
+	CuAssertIntEquals(tc, compound_statement->next_compound_statement->statement->type, MCC_AST_STATEMENT_TYPE_ASSIGNMENT);
+	CuAssertIntEquals(tc, compound_statement->next_compound_statement->statement->assignment->assignment_type, MCC_AST_ASSIGNMENT_TYPE_VARIABLE);
+	CuAssertStrEquals(tc, compound_statement->next_compound_statement->statement->assignment->variable_identifier->identifier_name, "a" );
+
+	// root -> next_compound_statement -> assignment -> assigned_value
+
+	CuAssertIntEquals(tc, compound_statement->next_compound_statement->statement->assignment->variable_assigned_value->type, MCC_AST_EXPRESSION_TYPE_LITERAL);
+	CuAssertIntEquals(tc, compound_statement->next_compound_statement->statement->assignment->variable_assigned_value->literal->type, MCC_AST_LITERAL_TYPE_INT);
+	CuAssertIntEquals(tc, compound_statement->next_compound_statement->statement->assignment->variable_assigned_value->literal->i_value, 1);
 
 }
 
@@ -660,6 +678,8 @@ void FunctionCall(CuTest *tc){
 	CuAssertStrEquals(tc, "h", function_call->arguments->next_arguments->expression->identifier->identifier_name);
 }
 
+
+
 #define TESTS \
 	TEST(BinaryOp_1) \
 	TEST(BinaryOp_2) \
@@ -681,8 +701,8 @@ void FunctionCall(CuTest *tc){
 	TEST(VariableAssignment) \
 	TEST(assign_stmt) \
 	TEST(decl_stmt) \
+	TEST(CompoundStatement) \
 //	TEST(FunctionCall) \
-//	TEST(CompoundStatement) \
 
 #include "main_stub.inc"
 #undef TESTS

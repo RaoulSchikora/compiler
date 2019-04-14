@@ -114,7 +114,6 @@ struct mcc_ast_expression *mcc_ast_new_expression_array_element(char* identifier
 
 struct mcc_ast_expression *mcc_ast_new_expression_function_call(struct mcc_ast_identifier *identifier, struct mcc_ast_arguments *arguments){
 	assert(identifier);
-	assert(arguments);
 
 	struct mcc_ast_expression *expr = malloc(sizeof(*expr));
 	if(!expr){
@@ -503,7 +502,7 @@ void mcc_ast_delete_statement(struct mcc_ast_statement *statement)
 struct mcc_ast_compound_statement *mcc_ast_new_compound_stmt(struct mcc_ast_statement *statement, struct mcc_ast_compound_statement *next_compound_stmt){
 	assert(statement);
 
-	struct mcc_ast_compound_statement *compound_statement = malloc(sizeof(compound_statement));
+	struct mcc_ast_compound_statement *compound_statement = malloc(sizeof(*compound_statement));
 	if(!compound_statement){
 		return NULL;
 	}
@@ -521,12 +520,10 @@ struct mcc_ast_compound_statement *mcc_ast_new_compound_stmt(struct mcc_ast_stat
 
 void mcc_ast_delete_compound_statement(struct mcc_ast_compound_statement *compound_statement){
 	assert(compound_statement);
-	if(compound_statement->has_next_statement == false){
-		mcc_ast_delete_statement(compound_statement->statement);
-	} else {
+	if(compound_statement->has_next_statement == true){
 		mcc_ast_delete_compound_statement(compound_statement->next_compound_statement);
-		mcc_ast_delete_statement(compound_statement->statement);
 	}
+	mcc_ast_delete_statement(compound_statement->statement);
 	free(compound_statement);
 }
 

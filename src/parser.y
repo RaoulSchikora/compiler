@@ -121,11 +121,11 @@ unit_test       : expression { result->entry_point = MCC_PARSER_ENTRY_POINT_EXPR
                 | declaration { result->entry_point = MCC_PARSER_ENTRY_POINT_DECLARATION; result->declaration = $1;}
                 | assignment { result->entry_point = MCC_PARSER_ENTRY_POINT_ASSIGNMENT; result->assignment = $1;}
                 | statement { result->entry_point = MCC_PARSER_ENTRY_POINT_STATEMENT; result->statement = $1;}
-                | compound_statement {result->compound_statement = $1;}
-                | function_def {result->function_definition = $1;}
-                | parameters {result->parameters = $1; }
-                | arguments {result->arguments = $1; }
-                | program {result->program = $1; }
+                | compound_statement { result->entry_point = MCC_PARSER_ENTRY_POINT_COMPOUND_STATEMENT; result->compound_statement = $1;}
+                | function_def { result->entry_point = MCC_PARSER_ENTRY_POINT_FUNCTION_DEFINITION; result->function_definition = $1;}
+                | parameters {  result->entry_point = MCC_PARSER_ENTRY_POINT_PARAMETERS; result->parameters = $1; }
+                | arguments { result->entry_point = MCC_PARSER_ENTRY_POINT_ARGUMENTS; result->arguments = $1; }
+                | program { result->entry_point = MCC_PARSER_ENTRY_POINT_PROGRAM; result->program = $1; }
                 ;
 
 expression      : literal                      { $$ = mcc_ast_new_expression_literal($1);                              loc($$, @1); }
@@ -321,8 +321,20 @@ void mcc_ast_delete_result(struct mcc_parser_result *result)
 		mcc_ast_delete(result->assignment);
 		break;
 	case MCC_PARSER_ENTRY_POINT_PROGRAM:
-		//TODO
+		mcc_ast_delete(result->program);
 		break;
+    case MCC_PARSER_ENTRY_POINT_FUNCTION_DEFINITION:
+        mcc_ast_delete(result->function_definition);
+        break;
+    case MCC_PARSER_ENTRY_POINT_PARAMETERS:
+        mcc_ast_delete(result->parameters);
+        break;
+    case MCC_PARSER_ENTRY_POINT_ARGUMENTS:
+        mcc_ast_delete(result->arguments);
+        break;
+    case MCC_PARSER_ENTRY_POINT_COMPOUND_STATEMENT:
+        mcc_ast_delete(result->compound_statement);
+        break;
 	}
 }
 

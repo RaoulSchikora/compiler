@@ -645,8 +645,20 @@ void mcc_ast_print_dot_result(FILE *out, struct mcc_parser_result *result)
 		mcc_ast_print_dot(out,result->assignment);
 		break;
 	case MCC_PARSER_ENTRY_POINT_PROGRAM:
-		//TODO
+		mcc_ast_print_dot(out,result->program);
 		break;
+	case MCC_PARSER_ENTRY_POINT_FUNCTION_DEFINITION:
+		mcc_ast_print_dot(out,result->function_definition);
+		break;
+	case MCC_PARSER_ENTRY_POINT_PARAMETERS:
+		mcc_ast_print_dot(out,result->parameters);
+		break;
+	case MCC_PARSER_ENTRY_POINT_ARGUMENTS:
+		mcc_ast_print_dot(out,result->arguments);
+		break;
+    case MCC_PARSER_ENTRY_POINT_COMPOUND_STATEMENT:
+        mcc_ast_print_dot(out,result->compound_statement);
+        break;
 	}
 }
 
