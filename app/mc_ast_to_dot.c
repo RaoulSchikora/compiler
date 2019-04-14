@@ -16,6 +16,58 @@ enum mcc_ast_to_dot_mode{
     MCC_AST_TO_DOT_MODE_PROGRAM,
 };
 
+void print_usage(const char *prg);
+char *fileToString(char *filename);
+char *stdinToString();
+static int readInputAndSetMode(int argc, char *argv[]);
+
+enum mcc_ast_to_dot_mode ast_to_dot_mode;
+char* input;
+
+
+int main(int argc, char *argv[]) {
+    // set mode and read input
+    if (readInputAndSetMode(argc, argv) == EXIT_FAILURE)
+        return EXIT_FAILURE;
+
+    struct mcc_parser_result result;
+    struct mcc_parser_result *ptr_result;
+
+    // handle entry point dependend on ast_to_dot_mode
+    switch (ast_to_dot_mode) {
+        case MCC_AST_TO_DOT_MODE_TEST: ;
+
+            // parsing phase - entry point set as expression. Actual entry point is set while parsing
+            result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_EXPRESSION);
+            ptr_result = &result;
+            if (ptr_result->status != MCC_PARSER_STATUS_OK) {
+                return EXIT_FAILURE;
+            }
+
+            mcc_ast_print_dot_result(stdout, ptr_result);
+
+            // cleanup
+            mcc_ast_delete_result(ptr_result);
+
+            return EXIT_SUCCESS;
+        case MCC_AST_TO_DOT_MODE_PROGRAM: ;
+
+            // parsing phase
+            result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+            ptr_result = &result;
+            if (ptr_result->status != MCC_PARSER_STATUS_OK) {
+                return EXIT_FAILURE;
+            }
+
+            mcc_ast_print_dot_result(stdout, ptr_result);
+
+            // cleanup
+            mcc_ast_delete_result(ptr_result);
+
+            return EXIT_SUCCESS;
+    }
+}
+
 void print_usage(const char *prg)
 {
     printf("usage: %s <FILE>            open specified .mc-program\n", prg);
@@ -81,8 +133,6 @@ char *stdinToString(){
     return content;
 }
 
-enum mcc_ast_to_dot_mode ast_to_dot_mode;
-char* input;
 
 static int readInputAndSetMode(int argc, char *argv[])
 {
@@ -132,45 +182,3 @@ static int readInputAndSetMode(int argc, char *argv[])
     return EXIT_SUCCESS;
 }
 
-int main(int argc, char *argv[]) {
-    // set mode and read input
-    if (readInputAndSetMode(argc, argv) == EXIT_FAILURE)
-        return EXIT_FAILURE;
-
-    struct mcc_parser_result result;
-    struct mcc_parser_result *ptr_result;
-
-    // handle entry point dependend on ast_to_dot_mode
-    switch (ast_to_dot_mode) {
-    case MCC_AST_TO_DOT_MODE_TEST: ;
-
-        // parsing phase - entry point set as expression. Actual entry point is set while parsing
-        result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_EXPRESSION);
-        ptr_result = &result;
-        if (ptr_result->status != MCC_PARSER_STATUS_OK) {
-            return EXIT_FAILURE;
-        }
-
-        mcc_ast_print_dot_result(stdout, ptr_result);
-
-        // cleanup
-        mcc_ast_delete_result(ptr_result);
-
-        return EXIT_SUCCESS;
-    case MCC_AST_TO_DOT_MODE_PROGRAM: ;
-
-        // parsing phase
-        result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
-        ptr_result = &result;
-        if (ptr_result->status != MCC_PARSER_STATUS_OK) {
-            return EXIT_FAILURE;
-        }
-
-        mcc_ast_print_dot_result(stdout, ptr_result);
-
-        // cleanup
-        mcc_ast_delete_result(ptr_result);
-
-        return EXIT_SUCCESS;
-    }
-}
