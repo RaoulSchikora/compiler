@@ -783,6 +783,7 @@ void EmptyCompound(CuTest *tc){
 
 	CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
 	CuAssertIntEquals(tc, MCC_PARSER_ENTRY_POINT_COMPOUND_STATEMENT, result.entry_point);
+	mcc_ast_delete(result.compound_statement);
 }
 
 #define TESTS \
