@@ -280,10 +280,9 @@ void mcc_ast_visit_program (struct mcc_ast_program *program, struct mcc_ast_visi
 	assert(visitor);
 
 	visit_if_pre_order(program,visitor->program, visitor);
-	visit_if_pre_order(program->function,visitor->function_definition,visitor);
 	if(program->has_next_function == true){
 		mcc_ast_visit(program->next_function,visitor);
 	}
-	visit_if_post_order(program->function,visitor->function_definition,visitor);
+	mcc_ast_visit(program->function,visitor);
 	visit_if_post_order(program,visitor->program, visitor);
 }
