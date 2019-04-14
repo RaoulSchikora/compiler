@@ -408,8 +408,10 @@ static void print_dot_statement_return (struct mcc_ast_statement *statement, voi
 	assert(data);
 
 	FILE *out = data;
-	print_dot_node(out,statement, "stmt:ret");
-	if(statement->return_value != NULL){
+	if(statement->is_empty_return){
+		print_dot_node(out, statement, "stmt:empty_ret");
+	} else {
+		print_dot_node(out, statement, "stmt:ret");
 		print_dot_edge(out,statement,statement->return_value,"ret_val");
 	}
 }
@@ -482,12 +484,22 @@ static void print_dot_function_definition (struct mcc_ast_function_definition *f
 	print_dot_edge(out,function_definition, function_definition->identifier, "id");
 	print_dot_edge(out,function_definition, function_definition->parameters, "param");
 	print_dot_edge(out,function_definition, function_definition->compound_stmt, "comp_stmt");
+	print_dot_edge(out,function_definition, &function_definition->type, "type");
 	switch (function_definition->type){
 		case MCC_AST_FUNCTION_TYPE_INT:
+			print_dot_node(out, &function_definition->type, "Int");
+			break;
 		case MCC_AST_FUNCTION_TYPE_FLOAT:
+			print_dot_node(out, &function_definition->type, "Float");
+			break;
 		case MCC_AST_FUNCTION_TYPE_STRING:
+			print_dot_node(out, &function_definition->type, "String");
+			break;
 		case MCC_AST_FUNCTION_TYPE_BOOL:
+			print_dot_node(out, &function_definition->type, "Bool");
+			break;
 		case MCC_AST_FUNCTION_TYPE_VOID:
+			print_dot_node(out, &function_definition->type, "Void");
 			break;
 	}
 }

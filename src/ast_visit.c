@@ -123,7 +123,7 @@ void mcc_ast_visit_statement(struct mcc_ast_statement *statement, struct mcc_ast
         break;
     case MCC_AST_STATEMENT_TYPE_RETURN:
         visit_if_pre_order(statement, visitor->statement_return, visitor);
-        if(statement->return_value != NULL) {
+        if(!(statement->is_empty_return)) {
 			mcc_ast_visit(statement->return_value, visitor);
 		}
         visit_if_post_order(statement, visitor->statement_return, visitor);
@@ -242,7 +242,6 @@ void mcc_ast_visit_function_definition(struct mcc_ast_function_definition *funct
 	assert(visitor);
 
 	visit_if_pre_order(function_definition,visitor->function_definition,visitor);
-	//mcc_ast_visit(function_definition->type,visitor);
 	mcc_ast_visit(function_definition->identifier,visitor);
 	mcc_ast_visit(function_definition->compound_stmt,visitor);
 	if(function_definition->parameters != NULL){

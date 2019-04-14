@@ -276,6 +276,7 @@ struct mcc_ast_statement {
 		//MCC_AST_STATEMENT_TYPE_ASSIGNMENT,
 		struct mcc_ast_assignment *assignment;
 		//MCC_AST_STATMENT_TYPE_RETURN: If return_value is NULL, then the returning function is of type void
+		bool is_empty_return;
 		struct mcc_ast_expression *return_value;
 	};
 };
@@ -296,7 +297,7 @@ struct mcc_ast_statement *mcc_ast_new_statement_declaration( struct mcc_ast_decl
 
 struct mcc_ast_statement *mcc_ast_new_statement_assignment( struct mcc_ast_assignment *assignment);
 
-struct mcc_ast_statement *mcc_ast_new_statement_return( struct mcc_ast_expression* expression);
+struct mcc_ast_statement *mcc_ast_new_statement_return(bool is_empty_return, struct mcc_ast_expression* expression);
 
 
 void mcc_ast_delete_statement(struct mcc_ast_statement *statement);

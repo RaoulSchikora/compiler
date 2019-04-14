@@ -447,16 +447,24 @@ struct mcc_ast_statement *mcc_ast_new_statement_assignment( struct mcc_ast_assig
 	return statement;
 }
 
-struct mcc_ast_statement *mcc_ast_new_statement_return( struct mcc_ast_expression* expression)
+struct mcc_ast_statement *mcc_ast_new_statement_return(bool is_empty_return, struct mcc_ast_expression* expression)
 {
-
+	if (!is_empty_return){
+		assert(expression);
+	}
 	struct mcc_ast_statement *statement = malloc(sizeof(*statement));
 	if(!statement){
 		return NULL;
 	}
 
 	statement->type = MCC_AST_STATEMENT_TYPE_RETURN;
-	statement->return_value = expression;
+	statement->is_empty_return = is_empty_return;
+
+	if(is_empty_return){
+		statement->return_value = NULL;
+	} else {
+		statement->return_value = expression;
+	}
 
 	return statement;
 }
@@ -490,7 +498,7 @@ void mcc_ast_delete_statement(struct mcc_ast_statement *statement)
 		mcc_ast_delete_assignment(statement->assignment);
 		break;
     case MCC_AST_STATEMENT_TYPE_RETURN:
-        if (statement->return_value == NULL){
+        if (statement->is_empty_return){
         	break;
         } else {
 			mcc_ast_delete_expression(statement->return_value);
