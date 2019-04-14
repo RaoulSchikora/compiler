@@ -244,9 +244,7 @@ void mcc_ast_visit_function_definition(struct mcc_ast_function_definition *funct
 	visit_if_pre_order(function_definition,visitor->function_definition,visitor);
 	mcc_ast_visit(function_definition->identifier,visitor);
 	mcc_ast_visit(function_definition->compound_stmt,visitor);
-	if(function_definition->parameters != NULL){
-		mcc_ast_visit(function_definition->parameters,visitor);
-	}
+    mcc_ast_visit(function_definition->parameters,visitor);
 	visit_if_post_order(function_definition,visitor->function_definition,visitor);
 }
 
@@ -259,7 +257,9 @@ void mcc_ast_visit_parameters (struct mcc_ast_parameters *parameters, struct mcc
 	if(parameters->has_next_parameter == true){
 		mcc_ast_visit(parameters->next_parameters,visitor);
 	}
-	mcc_ast_visit(parameters->declaration,visitor);
+	if(!(parameters->is_empty)) {
+		mcc_ast_visit(parameters->declaration, visitor);
+	}
 	visit_if_post_order(parameters,visitor->parameters,visitor);
 }
 

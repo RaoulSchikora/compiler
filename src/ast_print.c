@@ -454,8 +454,12 @@ static void print_dot_parameters (struct mcc_ast_parameters *parameters, void *d
 	assert(data);
 
 	FILE *out = data;
-	print_dot_node(out, parameters, "param");
-	print_dot_edge(out, parameters, parameters->declaration, "decl");
+	if(!(parameters->is_empty)) {
+		print_dot_edge(out, parameters, parameters->declaration, "decl");
+		print_dot_node(out, parameters, "param");
+	} else {
+		print_dot_node(out, parameters, "empty param");
+	}
 	if(parameters->has_next_parameter == true){
 		print_dot_edge(out,parameters,parameters->next_parameters, "next param");
 	}

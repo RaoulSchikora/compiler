@@ -717,13 +717,17 @@ void mcc_ast_delete_program (struct mcc_ast_program *program){
 
 // --------------------------------------------------------------------- Parameters
 
-struct mcc_ast_parameters *mcc_ast_new_parameters(struct mcc_ast_declaration *declaration, struct mcc_ast_parameters *next_parameters){
-	assert(declaration);
-
+struct mcc_ast_parameters *mcc_ast_new_parameters(bool is_empty, struct mcc_ast_declaration *declaration, struct mcc_ast_parameters *next_parameters){
+	if(!is_empty) {
+		assert(declaration);
+	}
 	struct mcc_ast_parameters *parameters = malloc(sizeof(*parameters));
+
 	if(!parameters){
 		return NULL;
 	}
+
+	parameters->is_empty = is_empty;
 
 	if(next_parameters == NULL){
 		parameters->has_next_parameter = false;
@@ -732,9 +736,11 @@ struct mcc_ast_parameters *mcc_ast_new_parameters(struct mcc_ast_declaration *de
 		parameters->has_next_parameter = true;
 		parameters->next_parameters = next_parameters;
 	}
-
-	parameters->declaration = declaration;
-
+	if(!is_empty) {
+		parameters->declaration = declaration;
+	} else {
+		parameters->declaration = NULL;
+	};
 	return parameters;
 }
 
@@ -744,7 +750,10 @@ void mcc_ast_delete_parameters(struct mcc_ast_parameters *parameters){
 	if(parameters->has_next_parameter == true){
 		mcc_ast_delete_parameters(parameters->next_parameters);
 	}
-	mcc_ast_delete_declaration(parameters->declaration);
+
+	if(!(parameters->is_empty)) {
+		mcc_ast_delete_declaration(parameters->declaration);
+	}
 	free(parameters);
 }
 

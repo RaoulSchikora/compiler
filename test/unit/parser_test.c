@@ -725,6 +725,7 @@ void FunctionDefParameters(CuTest *tc)
 
 	// root -> parameters
 
+	CuAssertTrue(tc, !(function_definition->parameters->is_empty));
 	CuAssertTrue(tc, !(function_definition->parameters->has_next_parameter));
 	CuAssertPtrEquals(tc, function_definition->parameters->next_parameters, NULL);
 
@@ -809,6 +810,21 @@ void EmptyFunctionCall(CuTest *tc){
 	mcc_ast_delete(expression);
 }
 
+void EmptyParameters(CuTest *tc){
+
+	const char input[] = "int func(){}";
+	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_EXPRESSION);
+
+	CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
+	CuAssertIntEquals(tc, MCC_PARSER_ENTRY_POINT_FUNCTION_DEFINITION, result.entry_point);
+
+	struct mcc_ast_function_definition* function_definition = result.function_definition;
+
+	CuAssertTrue(tc, function_definition->parameters->is_empty);
+
+	mcc_ast_delete(function_definition);
+}
+
 #define TESTS \
 	TEST(BinaryOp_1) \
 	TEST(BinaryOp_2) \
@@ -837,6 +853,7 @@ void EmptyFunctionCall(CuTest *tc){
 	TEST(Program) \
 	TEST(EmptyCompound) \
 	TEST(EmptyFunctionCall) \
+	TEST(EmptyParameters) \
 
 #include "main_stub.inc"
 #undef TESTS

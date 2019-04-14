@@ -189,14 +189,13 @@ literal         : INT_LITERAL    { $$ = mcc_ast_new_literal_int($1);   loc($$, @
                 | STRING_LITERAL { $$ = mcc_ast_new_literal_string($1); free($1); loc($$, @1);}
                 ;
 
-parameters      : declaration                    { $$ = mcc_ast_new_parameters( $1, NULL ); loc($$,@1); }
-                | declaration COMMA parameters   { $$ = mcc_ast_new_parameters( $1, $3 ); loc($$,@1); }
+parameters      : declaration                    { $$ = mcc_ast_new_parameters(false, $1, NULL ); loc($$,@1); }
+                | declaration COMMA parameters   { $$ = mcc_ast_new_parameters(false, $1, $3 ); loc($$,@1); }
+                | %empty { $$ = mcc_ast_new_parameters(true, NULL, NULL); }
                 ;
 
 function_def    : VOID IDENTIFIER LPARENTH parameters RPARENTH compound_statement    { $$ = mcc_ast_new_void_function_def(mcc_ast_new_identifier($2), $4, $6); loc($$,@1); }
                 | TYPE IDENTIFIER LPARENTH parameters RPARENTH compound_statement    { $$ = mcc_ast_new_type_function_def($1, mcc_ast_new_identifier($2), $4, $6); loc($$,@1); }
-                | VOID IDENTIFIER LPARENTH RPARENTH compound_statement               { $$ = mcc_ast_new_void_function_def(mcc_ast_new_identifier($2), NULL, $5); loc($$,@1); }
-                | TYPE IDENTIFIER LPARENTH RPARENTH compound_statement               { $$ = mcc_ast_new_type_function_def($1, mcc_ast_new_identifier($2), NULL, $5); loc($$,@1); }
                 ;
 
 function_defs   :   function_def function_defs  { $$ = mcc_ast_new_program($1, $2); loc($$,@1); }

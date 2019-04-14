@@ -405,13 +405,14 @@ void mcc_ast_delete_program (struct mcc_ast_program *program);
 struct mcc_ast_parameters{
 	struct mcc_ast_node node;
 	bool has_next_parameter;
+	bool is_empty;
 	struct mcc_ast_parameters *next_parameters;
 	struct mcc_ast_declaration *declaration;
 };
 
 void mcc_ast_delete_parameters(struct mcc_ast_parameters *parameters);
 
-struct mcc_ast_parameters *mcc_ast_new_parameters(struct mcc_ast_declaration *declaration, struct mcc_ast_parameters *next_parameters);
+struct mcc_ast_parameters *mcc_ast_new_parameters(bool is_empty, struct mcc_ast_declaration *declaration, struct mcc_ast_parameters *next_parameters);
 
 
 // ------------------------------------------------------------------- Arguments
