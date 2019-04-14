@@ -673,7 +673,7 @@ void mcc_ast_delete_function_definition(struct mcc_ast_function_definition *func
 struct mcc_ast_program *mcc_ast_new_program(struct mcc_ast_function_definition *function_definition, struct mcc_ast_program *next_program){
 	assert(function_definition);
 
-	struct mcc_ast_program *program = malloc(sizeof(program));
+	struct mcc_ast_program *program = malloc(sizeof(*program));
 
 	if (next_program == NULL){
 		program->has_next_function = false;
@@ -704,7 +704,7 @@ void mcc_ast_delete_program (struct mcc_ast_program *program){
 struct mcc_ast_parameters *mcc_ast_new_parameters(struct mcc_ast_declaration *declaration, struct mcc_ast_parameters *next_parameters){
 	assert(declaration);
 
-	struct mcc_ast_parameters *parameters = malloc(sizeof(parameters));
+	struct mcc_ast_parameters *parameters = malloc(sizeof(*parameters));
 	if(!parameters){
 		return NULL;
 	}
@@ -737,7 +737,7 @@ void mcc_ast_delete_parameters(struct mcc_ast_parameters *parameters){
 struct mcc_ast_arguments *mcc_ast_new_arguments(struct mcc_ast_expression *expression, struct mcc_ast_arguments *next_arguments){
 	assert(expression);
 
-	struct mcc_ast_arguments *arguments = malloc(sizeof(arguments));
+	struct mcc_ast_arguments *arguments = malloc(sizeof(*arguments));
 	if(!arguments){
 		return NULL;
 	}

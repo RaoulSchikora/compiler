@@ -628,6 +628,38 @@ void CompoundStatement(CuTest *tc)
 
 }
 
+
+void FunctionCall(CuTest *tc){
+
+	const char input[] = "func1(a, h)";
+	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_EXPRESSION);
+
+	CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
+
+	struct mcc_ast_expression *function_call = result.expression;
+
+	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_FUNCTION_CALL, function_call->type);
+
+	// root -> identifier
+
+	CuAssertStrEquals(tc, "func1", function_call->function_identifier->identifier_name);
+
+	// root -> arguments
+
+	CuAssertTrue(tc, function_call->arguments->has_next_expression);
+
+	// root -> arguments -> expression
+
+	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_VARIABLE, function_call->arguments->expression->type);
+	CuAssertStrEquals(tc, "a", function_call->arguments->expression->identifier->identifier_name);
+
+	// root -> arguments -> next_arguments
+
+	CuAssertPtrEquals(tc, NULL, function_call->arguments->next_arguments->next_arguments);
+	CuAssertTrue(tc, !function_call->arguments->has_next_expression);
+	CuAssertStrEquals(tc, "h", function_call->arguments->next_arguments->expression->identifier->identifier_name);
+}
+
 #define TESTS \
 	TEST(BinaryOp_1) \
 	TEST(BinaryOp_2) \
@@ -649,6 +681,7 @@ void CompoundStatement(CuTest *tc)
 	TEST(VariableAssignment) \
 	TEST(assign_stmt) \
 	TEST(decl_stmt) \
+//	TEST(FunctionCall) \
 //	TEST(CompoundStatement) \
 
 #include "main_stub.inc"

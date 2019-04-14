@@ -178,8 +178,9 @@ statements      : statement statements  { $$ = mcc_ast_new_compound_stmt($1, $2)
                 | statement             { $$ = mcc_ast_new_compound_stmt($1, NULL); loc($$,@1); }
                 ;
 
+
 compound_statement  :   CURL_OPEN statements CURL_CLOSE { $$ = $2; loc($$,@1); }
-                    |   CURL_OPEN CURL_CLOSE            { $$ = mcc_ast_new_compound_stmt(NULL, NULL); loc($$,@1); }
+                    |   CURL_OPEN CURL_CLOSE            { $$ = NULL; loc($$,@1); }
                     ;
 
 literal         : INT_LITERAL    { $$ = mcc_ast_new_literal_int($1);   loc($$, @1); }
@@ -206,6 +207,8 @@ program         :  function_defs { $$ = $1; loc($$,@1); }
                 ;
 
 %%
+//TODO: fix compound_statement grammar rule
+
 
 #include <assert.h>
 
