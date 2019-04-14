@@ -609,7 +609,7 @@ assert(identifier);
 assert(parameters);
 assert(compound_statement);
 
-struct mcc_ast_function_definition *function_definition = malloc(sizeof(function_definition));
+struct mcc_ast_function_definition *function_definition = malloc(sizeof(*function_definition));
 if(!function_definition){
     return NULL;
 }
@@ -628,7 +628,7 @@ struct mcc_ast_function_definition *mcc_ast_new_type_function_def(enum mcc_ast_t
 	assert(parameters);
 	assert(compound_statement);
 
-	struct mcc_ast_function_definition *function_definition = malloc(sizeof(function_definition));
+	struct mcc_ast_function_definition *function_definition = malloc(sizeof(*function_definition));
 	if(!function_definition){
 		return NULL;
 	}

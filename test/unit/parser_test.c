@@ -678,7 +678,54 @@ void FunctionCall(CuTest *tc){
 	CuAssertStrEquals(tc, "h", function_call->arguments->next_arguments->expression->identifier->identifier_name);
 }
 
+void FunctionDef(CuTest *tc)
+{
 
+	const char input[] = "int func(bool a){a = 2;}";
+	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_FUNCTION_DEFINITION);
+
+	CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
+
+	struct mcc_ast_function_definition *function_definition = result.function_definition;
+
+	// root
+
+	CuAssertIntEquals(tc, function_definition->type, MCC_AST_FUNCTION_TYPE_INT);
+
+	// root -> identifier
+
+	CuAssertStrEquals(tc, function_definition->identifier->identifier_name, "func");
+
+	// root -> parameters
+
+	CuAssertTrue(tc, !(function_definition->parameters->has_next_parameter));
+	CuAssertPtrEquals(tc, function_definition->parameters->next_parameters, NULL);
+
+	// root -> parameters -> declaration
+
+	CuAssertIntEquals( tc, function_definition->parameters->declaration->declaration_type, MCC_AST_DECLARATION_TYPE_VARIABLE);
+	CuAssertIntEquals( tc, function_definition->parameters->declaration->variable_type->type_value, BOOL);
+	CuAssertStrEquals( tc, function_definition->parameters->declaration->variable_identifier->identifier_name, "a");
+
+	// root -> compound_stmt
+
+	CuAssertTrue (tc, !(function_definition->compound_stmt->has_next_statement));
+	CuAssertPtrEquals (tc, function_definition->compound_stmt->next_compound_statement, NULL);
+
+	// root -> compound_stmt -> statement
+
+	CuAssertIntEquals(tc, function_definition->compound_stmt->statement->type, MCC_AST_STATEMENT_TYPE_ASSIGNMENT);
+	CuAssertIntEquals(tc, function_definition->compound_stmt->statement->assignment->assignment_type, MCC_AST_ASSIGNMENT_TYPE_VARIABLE);
+	CuAssertStrEquals(tc, function_definition->compound_stmt->statement->assignment->variable_identifier->identifier_name, "a");
+
+	// root -> compound_stmt -> statement -> assignment -> variable_assigned_value
+
+	CuAssertIntEquals(tc, function_definition->compound_stmt->statement->assignment->variable_assigned_value->type, MCC_AST_EXPRESSION_TYPE_LITERAL);
+	CuAssertIntEquals(tc, function_definition->compound_stmt->statement->assignment->variable_assigned_value->literal->type, MCC_AST_LITERAL_TYPE_INT);
+	CuAssertIntEquals(tc, function_definition->compound_stmt->statement->assignment->variable_assigned_value->literal->i_value, 2);
+
+
+}
 
 #define TESTS \
 	TEST(BinaryOp_1) \
@@ -703,6 +750,7 @@ void FunctionCall(CuTest *tc){
 	TEST(decl_stmt) \
 	TEST(CompoundStatement) \
 	TEST(FunctionCall) \
+	TEST(FunctionDef) \
 
 #include "main_stub.inc"
 #undef TESTS
