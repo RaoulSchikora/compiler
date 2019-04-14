@@ -455,6 +455,25 @@ void decl_stmt(CuTest *tc)
 	mcc_ast_delete(stmt);
 }
 
+void ret_stmt(CuTest *tc)
+{
+	const char input[] = "return a;";
+
+	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_STATEMENT);
+
+	CuAssertTrue(tc, MCC_PARSER_STATUS_OK == result.status);
+
+	struct mcc_ast_statement *stmt = result.statement;
+
+	// root
+	CuAssertIntEquals(tc, MCC_AST_STATEMENT_TYPE_RETURN, stmt->type);
+
+	// root -> return_value
+
+	CuAssertIntEquals(tc, stmt->return_value->type, MCC_AST_EXPRESSION_TYPE_VARIABLE);
+	CuAssertStrEquals(tc, stmt->return_value->identifier->identifier_name, "a");
+}
+
 void MissingClosingParenthesis_1(CuTest *tc)
 {
 	// TODO: fix memory leak
@@ -647,7 +666,7 @@ void CompoundStatement(CuTest *tc)
 }
 
 
-void FunctionCall(CuTest *tc){
+void FunctionCallArguments(CuTest *tc){
 
 	const char input[] = "func1(a, h)";
 	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_EXPRESSION);
@@ -678,7 +697,7 @@ void FunctionCall(CuTest *tc){
 	CuAssertStrEquals(tc, "h", function_call->arguments->next_arguments->expression->identifier->identifier_name);
 }
 
-void FunctionDef(CuTest *tc)
+void FunctionDefParameters(CuTest *tc)
 {
 
 	const char input[] = "int func(bool a){a = 2;}";
@@ -727,6 +746,9 @@ void FunctionDef(CuTest *tc)
 
 }
 
+
+
+
 #define TESTS \
 	TEST(BinaryOp_1) \
 	TEST(BinaryOp_2) \
@@ -741,6 +763,7 @@ void FunctionDef(CuTest *tc)
 	TEST(Variable) \
 	TEST(if_stmt_1) \
 	TEST(while_stmt) \
+	TEST(ret_stmt) \
 	TEST(Array_Element) \
 	TEST(VariableDeclaration) \
 	TEST(ArrayDeclaration) \
@@ -749,8 +772,8 @@ void FunctionDef(CuTest *tc)
 	TEST(assign_stmt) \
 	TEST(decl_stmt) \
 	TEST(CompoundStatement) \
-	TEST(FunctionCall) \
-	TEST(FunctionDef) \
+	TEST(FunctionCallArguments) \
+	TEST(FunctionDefParameters) \
 
 #include "main_stub.inc"
 #undef TESTS
