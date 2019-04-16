@@ -276,8 +276,10 @@ struct mcc_ast_statement {
 		//MCC_AST_STATEMENT_TYPE_ASSIGNMENT,
 		struct mcc_ast_assignment *assignment;
 		//MCC_AST_STATEMENT_TYPE_RETURN
-		bool is_empty_return;
-		struct mcc_ast_expression *return_value;
+		struct {
+			bool is_empty_return;
+			struct mcc_ast_expression *return_value;
+		};
 	};
 };
 

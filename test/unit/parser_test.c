@@ -457,8 +457,7 @@ void decl_stmt(CuTest *tc)
 
 void ret_stmt(CuTest *tc)
 {
-    //TODO
-/*	const char input[] = "return a;";
+	const char input[] = "return a;";
 
 	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_STATEMENT);
 
@@ -475,7 +474,7 @@ void ret_stmt(CuTest *tc)
 	CuAssertIntEquals(tc,  MCC_AST_EXPRESSION_TYPE_VARIABLE, stmt->return_value->type);
 	CuAssertStrEquals(tc,  "a", stmt->return_value->identifier->identifier_name);
 
-	mcc_ast_delete(stmt);*/
+	mcc_ast_delete(stmt);
 }
 
 void MissingClosingParenthesis_1(CuTest *tc)
