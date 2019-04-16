@@ -85,6 +85,7 @@ void mcc_parser_error();
 %token SEMICOLON ";"
 %token COMMA ","
 
+// set prescedence and associativity
 %left ANDAND OROR
 %left LT_SIGN GT_SIGN LT_EQ_SIGN GT_EQ_SIGN EQEQ EXKLA_EQ
 %left PLUS MINUS
@@ -268,7 +269,8 @@ struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_par
 	return result;
 }
 
-char* mcc_transform_into_unit_test (const char* in) {
+char* mcc_transform_into_unit_test (const char* in)
+{
   char* out = (char*) malloc((strlen(in)+3)*sizeof(char));
   *out = '~';
   strcpy (out + 1,in);
@@ -338,10 +340,16 @@ void mcc_ast_delete_result(struct mcc_parser_result *result)
 }
 
 
-void mcc_parser_error(struct MCC_PARSER_LTYPE *yylloc, yyscan_t *scanner, const char *msg)
+void mcc_parser_error(struct MCC_PARSER_LTYPE *yylloc, struct mcc_parser_result *result, yyscan_t *scanner, const char *msg)
 {
-	// TODO
-// 	mcc_parser_lex_destroy(scanner);
+
+	fprintf(stderr, "stopped while parsing in (%d," , yylloc->first_line);
+	fprintf(stderr, "%d)" , yylloc->first_column);
+	fprintf(stderr, " till (%d," , yylloc->last_line);
+	fprintf(stderr, "%d): ", yylloc->last_column);
+	fprintf(stderr, "%s\n", msg);
+
+//	mcc_parser_lex_destroy(scanner);
 //	mcc_ast_delete_result(result);
 }
 

@@ -21,7 +21,8 @@
 // - take line breaks into account
 #define YY_USER_ACTION \
 	yylloc->first_column = yylloc->last_column; \
-	yylloc->last_column += yyleng;
+	yylloc->last_column += yyleng; \
+	yylloc->first_line = yylloc->last_line;
 %}
 
 identifier     [a-zA-Z_][a-zA-Z0-9_]*
@@ -86,9 +87,12 @@ string_literal \"[^"]*\"
 ","               { return TK_COMMA; }
 
 
-[ \t\r\n]+        { /* ignore */ }
+[ \t\r]+          { /* ignore */ }
+\n                { yylloc->first_column = 1; yylloc->last_column = 1; yylloc->last_line += 1; }
 
-"~"               { return TK_TILDE; /*only for UnitTest purpose*/ }
+"~"               { yylloc->last_column = yylloc->first_column; return TK_TILDE; /*only for UnitTest purpose*/ }
+
+"/*".*"*/"        { /* ignore comments TODO: line break */ }
 
 <<EOF>>           { return TK_END; }
 

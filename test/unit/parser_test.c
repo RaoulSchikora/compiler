@@ -527,7 +527,7 @@ void SourceLocation_SingleLineColumn(CuTest *tc)
 	CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
 
 	struct mcc_ast_expression *expr = result.expression;
-/*
+
 	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_PARENTH, expr->type);
 	CuAssertIntEquals(tc, 1, expr->node.sloc.start_col);
 
@@ -539,7 +539,7 @@ void SourceLocation_SingleLineColumn(CuTest *tc)
 
 	CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_INT, expr->expression->rhs->literal->type);
 	CuAssertIntEquals(tc, 7, expr->expression->rhs->literal->node.sloc.start_col);
-*/
+
 	mcc_ast_delete(expr);
 }
 
