@@ -245,6 +245,7 @@ enum mcc_ast_statement_type {
 	MCC_AST_STATEMENT_TYPE_DECLARATION,
 	MCC_AST_STATEMENT_TYPE_ASSIGNMENT,
 	MCC_AST_STATEMENT_TYPE_RETURN,
+	MCC_AST_STATEMENT_TYPE_COMPOUND_STMT,
 };
 
 struct mcc_ast_statement {
@@ -280,6 +281,8 @@ struct mcc_ast_statement {
 			bool is_empty_return;
 			struct mcc_ast_expression *return_value;
 		};
+		//MCC_AST_STATEMENT_TYPE_COMPOUND_STMT
+		struct mcc_ast_compound_statement *compound_statement;
 	};
 };
 
@@ -300,6 +303,8 @@ struct mcc_ast_statement *mcc_ast_new_statement_declaration( struct mcc_ast_decl
 struct mcc_ast_statement *mcc_ast_new_statement_assignment( struct mcc_ast_assignment *assignment);
 
 struct mcc_ast_statement *mcc_ast_new_statement_return(bool is_empty_return, struct mcc_ast_expression* expression);
+
+struct mcc_ast_statement *mcc_ast_new_statement_compound_stmt(struct mcc_ast_compound_statement *compound_statement);
 
 
 void mcc_ast_delete_statement(struct mcc_ast_statement *statement);

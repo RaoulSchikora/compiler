@@ -426,6 +426,39 @@ void assign_stmt(CuTest *tc)
 	mcc_ast_delete(stmt);
 }
 
+void if_compound_stmt(CuTest *tc)
+{
+	const char input[] = "if (true) {3;}";
+
+	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_STATEMENT);
+
+	CuAssertTrue(tc, MCC_PARSER_STATUS_OK == result.status);
+
+	struct mcc_ast_statement *stmt = result.statement;
+
+	// root
+	CuAssertIntEquals(tc, MCC_AST_STATEMENT_TYPE_IF_STMT, stmt->type);
+
+	// root -> cond
+	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_LITERAL, stmt->if_condition->type);
+	CuAssertTrue(tc, stmt->if_condition->literal->bool_value);
+
+	// root -> on_true
+	CuAssertIntEquals(tc, MCC_AST_STATEMENT_TYPE_COMPOUND_STMT, stmt->if_on_true->type);
+	CuAssertTrue(tc, !stmt->if_on_true->compound_statement->is_empty);
+	CuAssertTrue(tc, !stmt->if_on_true->compound_statement->has_next_statement);
+	CuAssertTrue(tc, stmt->if_on_true->compound_statement->next_compound_statement == NULL);
+
+	struct mcc_ast_statement *stmt2 = stmt->if_on_true->compound_statement->statement;
+
+	//root->on_true->compound_statement->statement
+	CuAssertIntEquals(tc, MCC_AST_STATEMENT_TYPE_EXPRESSION, stmt2->type);
+	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_LITERAL, stmt2->stmt_expression->type);
+	CuAssertIntEquals(tc, 3, stmt2->stmt_expression->literal->i_value);
+
+	mcc_ast_delete(stmt);
+}
+
 
 void decl_stmt(CuTest *tc)
 {
@@ -844,6 +877,7 @@ void EmptyParameters(CuTest *tc){
 	TEST(StringLiteral) \
 	TEST(VariableAssignment) \
 	TEST(assign_stmt) \
+	TEST(if_compound_stmt) \
 	TEST(decl_stmt) \
 	TEST(CompoundStatement) \
 	TEST(FunctionCallArguments) \

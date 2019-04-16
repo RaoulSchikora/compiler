@@ -469,6 +469,20 @@ struct mcc_ast_statement *mcc_ast_new_statement_return(bool is_empty_return, str
 	return statement;
 }
 
+struct mcc_ast_statement *mcc_ast_new_statement_compound_stmt(struct mcc_ast_compound_statement *compound_statement)
+{
+	assert(compound_statement);
+
+    struct mcc_ast_statement *statement = malloc(sizeof(*statement));
+	if(!statement) {
+		return NULL;
+	}
+
+	statement->type = MCC_AST_STATEMENT_TYPE_COMPOUND_STMT;
+	statement->compound_statement = compound_statement;
+
+	return statement;
+}
 
 void mcc_ast_delete_statement(struct mcc_ast_statement *statement)
 {
@@ -504,6 +518,8 @@ void mcc_ast_delete_statement(struct mcc_ast_statement *statement)
 			mcc_ast_delete_expression(statement->return_value);
 			break;
 		}
+    case MCC_AST_STATEMENT_TYPE_COMPOUND_STMT:
+		mcc_ast_delete_compound_statement(statement->compound_statement);
     }
     free(statement);
 }
@@ -515,7 +531,6 @@ struct mcc_ast_compound_statement *mcc_ast_new_compound_stmt(bool is_empty, stru
 	if (is_empty != true){
 		assert(statement);
 	}
-
 
 	struct mcc_ast_compound_statement *compound_statement = malloc(sizeof(*compound_statement));
 	if(!compound_statement){
@@ -554,6 +569,7 @@ void mcc_ast_delete_compound_statement(struct mcc_ast_compound_statement *compou
 
 struct mcc_ast_literal *mcc_ast_new_literal_int(long value)
 {
+
 	struct mcc_ast_literal *lit = malloc(sizeof(*lit));
 	if (!lit) {
 		return NULL;

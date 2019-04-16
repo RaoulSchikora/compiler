@@ -416,6 +416,16 @@ static void print_dot_statement_return (struct mcc_ast_statement *statement, voi
 	}
 }
 
+static void print_dot_statement_compound_statement(struct mcc_ast_statement *statement, void *data)
+{
+    assert(statement);
+    assert(data);
+
+    FILE *out  = data;
+    print_dot_node(out, statement, "stmt: comp_stmt");
+    print_dot_edge(out,statement, statement->compound_statement, "comp_stmt");
+}
+
 static void print_dot_compound_statement(struct mcc_ast_compound_statement *compound_statement, void *data) {
 	assert(compound_statement);
 	assert(data);
@@ -540,6 +550,7 @@ static struct mcc_ast_visitor print_dot_visitor(FILE *out)
         .statement_assignment = print_dot_statement_assignment,
         .statement_declaration = print_dot_statement_declaration,
         .statement_return = print_dot_statement_return,
+        .statement_compound_stmt = print_dot_statement_compound_statement,
 
         .compound_statement = print_dot_compound_statement,
         .program = print_dot_program,

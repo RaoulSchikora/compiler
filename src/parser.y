@@ -155,7 +155,7 @@ arguments       : expression { $$ = mcc_ast_new_arguments(false, $1, NULL); loc(
                 ;
 
 
-assignment 	    :	IDENTIFIER EQ expression { $$ = mcc_ast_new_variable_assignment ($1, $3); loc($$,@1); }
+assignment 	:	IDENTIFIER EQ expression { $$ = mcc_ast_new_variable_assignment ($1, $3); loc($$,@1); }
                 |	IDENTIFIER SQUARE_OPEN expression SQUARE_CLOSE EQ expression { $$ = mcc_ast_new_array_assignment ($1, $3, $6); loc($$, @1);}
                 ;
 
@@ -172,6 +172,7 @@ statement       : IF LPARENTH expression RPARENTH statement 		        { $$ = mcc
                 | declaration SEMICOLON				                        { $$ = mcc_ast_new_statement_declaration($1);	     loc($$, @1);}
                 | RETURN SEMICOLON                                          { $$ = mcc_ast_new_statement_return(true, NULL);     loc($$, @1);}
                 | RETURN expression SEMICOLON                               { $$ = mcc_ast_new_statement_return(false, $2);      loc($$, @1);}
+                | compound_statement					    { $$ = mcc_ast_new_statement_compound_stmt($1);	 loc($$, @1);}
                 ;
 
 statements      : statement statements  { $$ = mcc_ast_new_compound_stmt(false, $1, $2); loc($$,@1); }

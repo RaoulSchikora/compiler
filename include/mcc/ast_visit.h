@@ -66,6 +66,7 @@ struct mcc_ast_visitor {
 	mcc_ast_visit_statement_cb statement_declaration;
 	mcc_ast_visit_statement_cb statement_assignment;
 	mcc_ast_visit_statement_cb statement_return;
+	mcc_ast_visit_statement_cb statement_compound_stmt;
 
 	mcc_ast_visit_compound_statement_cb compound_statement;
 	mcc_ast_visit_program_cb program;

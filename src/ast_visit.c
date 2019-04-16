@@ -128,6 +128,11 @@ void mcc_ast_visit_statement(struct mcc_ast_statement *statement, struct mcc_ast
 		}
         visit_if_post_order(statement, visitor->statement_return, visitor);
         break;
+	case MCC_AST_STATEMENT_TYPE_COMPOUND_STMT:
+		visit_if_pre_order(statement, visitor->statement_compound_stmt, visitor);
+		mcc_ast_visit(statement->compound_statement, visitor);
+		visit_if_post_order(statement, visitor->statement_compound_stmt, visitor);
+		break;
 	}
 
 	visit_if_post_order(statement, visitor->statement, visitor);
