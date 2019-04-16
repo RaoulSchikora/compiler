@@ -70,19 +70,18 @@ int main(int argc, char *argv[]) {
 
 void print_usage(const char *prg)
 {
-    printf("usage: %s <FILE>            open specified .mc-program\n", prg);
-    printf("   or: %s -                 read .mc-program from stdin\n", prg);
-    printf("   or: %s <OPTION> <FILE>   open specified file with chosen option\n", prg);
-    printf("   or: %s <OPTION>          read text from stdin with chosen option\n\n", prg);
-    printf("Options:\n");
-    printf("   -h                     show this usage\n");
-    printf("   -e                     derivation starts at expression level of the grammar\n");
-    printf("   -s                     derivation starts at statement level of the grammar\n");
-    printf("   -a                     derivation starts at assignment level of the grammar\n");
-    printf("   -d                     derivation starts at declaration level of the grammar\n");
+    printf("usage: %s [OPTIONS] file...\n\n", prg);
+    printf("Utility for printing an abstract syntax tree in the DOT format. The output\n");
+    printf("can be visualised using graphviz. Errors are reported on invalid inputs.\n\n");
+    printf("Use '-' as input file to read from stdin.\n\n");
+    printf("OPTIONS:\n");
+    printf("  -h, --help                displays this help message\n");
+    printf("  -o, --output <file>       write the output to <file> (defaults to stdout)\n");
+    printf("  -f, --function <name>     limit scope to the given function\n");
+    printf("  -t, --test                testing purpose\n");
 }
 
-// from: https://stackoverflow.com/questions/174531/how-to-read-the-content-of-a-file-to-a-string-in-c
+// from: https://stackoverflow.com/questions/174531
 char *fileToString(char *filename) {
     FILE *f = fopen(filename, "rt");
     assert(f);
@@ -97,7 +96,7 @@ char *fileToString(char *filename) {
     return buffer;
 }
 
-//from: https://stackoverflow.com/questions/2496668/how-to-read-the-standard-input-into-string-variable-until-eof-in-c
+// from: https://stackoverflow.com/questions/2496668
 char *stdinToString(){
     char buffer[BUF_SIZE];
     size_t contentSize = 1; // includes NULL
