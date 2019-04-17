@@ -9,6 +9,9 @@
 %option reentrant
 %option yylineno
 
+/* define exclusive state for comments */
+%x COMMENT
+
 %{
 #include "parser.tab.h"
 #include <stdbool.h>
@@ -16,9 +19,6 @@
 #define YYSTYPE MCC_PARSER_STYPE
 #define YYLTYPE MCC_PARSER_LTYPE
 
-// TODO:
-// - track lines
-// - take line breaks into account
 #define YY_USER_ACTION \
 	yylloc->first_column = yylloc->last_column; \
 	yylloc->last_column += yyleng; \
@@ -86,13 +86,16 @@ string_literal \"[^"]*\"
 ";"               { return TK_SEMICOLON; }
 ","               { return TK_COMMA; }
 
-
 [ \t\r]+          { /* ignore */ }
-\n                { yylloc->first_column = 1; yylloc->last_column = 1; yylloc->last_line += 1; }
+\n                { yylloc->last_column = 1; yylloc->last_line += 1; }
 
 "~"               { yylloc->last_column = yylloc->first_column; return TK_TILDE; /*only for UnitTest purpose*/ }
 
-"/*".*"*/"        { /* ignore comments TODO: line break */ }
+"/*"              { BEGIN COMMENT; }
+<COMMENT>.        { /* ignore comments */ }
+<COMMENT>"*/"     { BEGIN INITIAL; /* get back to normal mode */ }
+<COMMENT>\n       { yylloc->last_line += 1; yylloc->last_column = 1; }
+
 
 <<EOF>>           { return TK_END; }
 
