@@ -340,15 +340,14 @@ void mcc_ast_delete_result(struct mcc_parser_result *result)
 }
 
 
-void mcc_parser_error(struct MCC_PARSER_LTYPE *yylloc, struct mcc_parser_result *result, yyscan_t *scanner, const char *msg)
+void mcc_parser_error(struct MCC_PARSER_LTYPE *yylloc, struct mcc_parser_result *result, yyscan_t *scanner,
+ 												const char *msg)
 {
+	fprintf(stderr, "stopped while parsing in (%d,%d) - (%d,%d): %s\n", yylloc->first_line, yylloc->first_column,
+			yylloc->last_line, yylloc->last_column, msg);
 
-	fprintf(stderr, "stopped while parsing in (%d," , yylloc->first_line);
-	fprintf(stderr, "%d)" , yylloc->first_column);
-	fprintf(stderr, " till (%d," , yylloc->last_line);
-	fprintf(stderr, "%d): ", yylloc->last_column);
-	fprintf(stderr, "%s\n", msg);
-
+	UNUSED(scanner);
+	UNUSED(result);
 //	mcc_parser_lex_destroy(scanner);
 //	mcc_ast_delete_result(result);
 }

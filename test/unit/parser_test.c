@@ -543,6 +543,36 @@ void SourceLocation_SingleLineColumn(CuTest *tc)
 	mcc_ast_delete(expr);
 }
 
+void multiline_comment(CuTest *tc)
+{
+	const char input[] = "/* this is a multiline \n comment */ \n1+3";
+	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_EXPRESSION);
+
+	CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
+
+	struct mcc_ast_expression *expr = result.expression;
+
+	//root
+	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_BINARY_OP, expr->type);
+	CuAssertIntEquals(tc, 1, expr->node.sloc.start_col);
+
+	// root -> lhs
+	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_LITERAL, expr->lhs->type);
+
+	// root -> lhs -> literal
+	CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_INT, expr->lhs->literal->type);
+	CuAssertIntEquals(tc, 1, expr->lhs->literal->i_value);
+
+	// root -> rhs
+	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_LITERAL, expr->rhs->type);
+
+	// root -> rhs -> literal
+	CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_INT, expr->rhs->literal->type);
+	CuAssertIntEquals(tc, 3, expr->rhs->literal->i_value);
+
+	mcc_ast_delete(expr);
+}
+
 void UnaryOp_1(CuTest *tc)
 {
     const char input[] = "-2";
@@ -865,6 +895,7 @@ void EmptyParameters(CuTest *tc){
 	TEST(NestedExpression_1) \
 	TEST(MissingClosingParenthesis_1) \
 	TEST(SourceLocation_SingleLineColumn) \
+	TEST(multiline_comment) \
 	TEST(UnaryOp_1) \
 	TEST(UnaryOp_2) \
 	TEST(Variable) \

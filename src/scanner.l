@@ -93,8 +93,8 @@ string_literal \"[^"]*\"
 
 "/*"              { BEGIN COMMENT; }
 <COMMENT>.        { /* ignore comments */ }
-<COMMENT>"*/"     { BEGIN INITIAL; /* get back to normal mode */ }
 <COMMENT>\n       { yylloc->last_line += 1; yylloc->last_column = 1; }
+<COMMENT>"*/"     { BEGIN INITIAL; /* get back to normal mode */ }
 
 
 <<EOF>>           { return TK_END; }
