@@ -346,6 +346,7 @@ void mcc_parser_error(struct MCC_PARSER_LTYPE *yylloc, struct mcc_parser_result 
 	fprintf(stderr, "stopped while parsing in (%d,%d) - (%d,%d): %s\n", yylloc->first_line, yylloc->first_column,
 			yylloc->last_line, yylloc->last_column, msg);
 
+	// result and scanner needed to get meaningfull msg
 	UNUSED(scanner);
 	UNUSED(result);
 //	mcc_parser_lex_destroy(scanner);

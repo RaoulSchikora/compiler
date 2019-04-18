@@ -44,4 +44,6 @@ Taken from the [Meson Documentation](https://mesonbuild.com/Unit-tests.html#cove
 
 ## Known Issues
 
-- Parser leaks memory on invalid inputs.
+- DONE Parser leaks memory on invalid inputs.
+- parser conflicts
+- mc_ast_to_dot is not providing expected OPTIONS
