@@ -148,7 +148,7 @@ static int readInputAndSetMode(int argc, char *argv[])
             // read from stdin
             input = stdinToString();
             ast_to_dot_mode = MCC_AST_TO_DOT_MODE_PROGRAM;
-        } else if (strcmp("-t", argv[1]) == 0){
+        } else if (strcmp("-t", argv[1]) == 0 || strcmp("--test", argv[1]) == 0){
             // read from stdin in testing mode
             input = stdinToString();
             ast_to_dot_mode = MCC_AST_TO_DOT_MODE_TEST;
