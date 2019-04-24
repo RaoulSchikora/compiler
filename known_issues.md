@@ -10,3 +10,6 @@ Leaks memory on invalid inputs and performs 3 invalid reads and writes
 
 The grammar contains 4 reduce/reduce conflicts and 13 shift/reduce conflicts, which indicates ambiguity and needs to be solved, by re-writing or precedence rules (see Bison documentation).
 
+## Other
+
+Calling the unit tests with valgrind produces parsing error
