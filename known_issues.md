@@ -1,5 +1,9 @@
 # Known Issues
 
+## mc_ast_to_dot
+
+Leaks memory on invalid inputs and performs 3 invalid reads and writes
+
 ## Parser
 
 ### Grammar
