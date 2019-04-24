@@ -18,7 +18,7 @@ struct arguments{
 };
 
 int parse_options(struct options *options, int argc, char *argv[]);
-void print_struct(struct options options);
+void print_struct(struct options *options);
 void print_usage(void);
 struct arguments *parse_arguments(int argc, char *argv[]);
 void print_arguments(struct arguments *arguments);
@@ -34,7 +34,7 @@ int main(int argc, char *argv[]){
 	};
 
 	parse_options(&options,argc,argv);
-	print_struct(options);
+	print_struct(&options);
 	if(options.print_help == true){
 		print_usage();
 	}
@@ -104,11 +104,11 @@ int parse_options(struct options *options, int argc, char *argv[])
 	return 0;	
 }
 
-void print_struct(struct options options)
+void print_struct(struct options *options)
 {
-	printf("to_file: \t\t %d\n",options.to_file);
-	printf("output:\t\t\t %s\n",options.output);
-	printf("print_help: \t\t %d\n",options.print_help);
-	printf("limited_scope: \t\t %d\n",options.limited_scope);
-	printf("function: \t\t %s\n",options.function);
+	printf("to_file: \t\t %d\n",options->to_file);
+	printf("output:\t\t\t %s\n",options->output);
+	printf("print_help: \t\t %d\n",options->print_help);
+	printf("limited_scope: \t\t %d\n",options->limited_scope);
+	printf("function: \t\t %s\n",options->function);
 }
