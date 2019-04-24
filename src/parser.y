@@ -115,7 +115,7 @@ void mcc_parser_error();
 %%
 
 toplevel        : TILDE unit_test TILDE
-                | program
+                | program {result->entry_point = MCC_PARSER_ENTRY_POINT_PROGRAM; result->program = $1;}
                 ;
 
 unit_test       : expression { result->entry_point = MCC_PARSER_ENTRY_POINT_EXPRESSION; result->expression = $1;  }
@@ -250,8 +250,6 @@ struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_par
 		}
 		strcpy (input,input_string);
 	}
-
-
 
 	FILE *in = fmemopen((void *)input, strlen(input), "r");
 	if (in == NULL) {
