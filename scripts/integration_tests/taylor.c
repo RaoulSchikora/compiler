@@ -1,7 +1,8 @@
-#include <stdbool.h>
 #include "mc_builtins.c"
-typedef const char* string;
-float taylor_approx(int n) {
+#include <stdbool.h>
+typedef const char *string;
+float taylor_approx(int n)
+{
 	float signed_one;
 	signed_one = 1.0;
 	float pi;
@@ -12,9 +13,9 @@ float taylor_approx(int n) {
 	j = 1.0;
 
 	/* summation loop i goes from 1 to n */
-	while(i <= n) {
+	while (i <= n) {
 		/* add next term to sum */
-		pi = pi + (signed_one/((2.0*j) * (2.0*j+1.0) *(2.0*j+2.0)));
+		pi = pi + (signed_one / ((2.0 * j) * (2.0 * j + 1.0) * (2.0 * j + 2.0)));
 
 		/* reverse sign for next term */
 		signed_one = -signed_one;
@@ -28,7 +29,8 @@ float taylor_approx(int n) {
 	return pi;
 }
 
-int main() {
+int main()
+{
 	print("Enter a number to obtain the n Taylor series for pi: ");
 	int n;
 	n = read_int();

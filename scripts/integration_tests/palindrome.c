@@ -1,12 +1,14 @@
-#include <stdbool.h>
 #include "mc_builtins.c"
-typedef const char* string;
+#include <stdbool.h>
+typedef const char *string;
 
-int modulo(int n, int k) {
+int modulo(int n, int k)
+{
 	return (n - k * (n / k));
 }
 
-bool is_palindrome(int original) {
+bool is_palindrome(int original)
+{
 	int reversed;
 	int remainder;
 	int to_check;
@@ -27,7 +29,8 @@ bool is_palindrome(int original) {
 	}
 }
 
-int main() {
+int main()
+{
 	int input;
 
 	print("Please enter a number:");

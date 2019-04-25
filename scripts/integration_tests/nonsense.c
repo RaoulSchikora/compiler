@@ -1,24 +1,27 @@
-#include <stdbool.h>
 #include "mc_builtins.c"
-typedef const char* string;
-int returnTwo() {
+#include <stdbool.h>
+typedef const char *string;
+int returnTwo()
+{
 	int value = 2;
 	return value;
 }
 
-bool isOne(int in) {
+bool isOne(int in)
+{
 	if (in == 1)
 		return true;
 	else
 		return false;
 }
 
-int main() {
+int main()
+{
 	int array[42];
 	int arrayTwo[21];
 	int i = 0;
 	while (i < 21) {
-		array[i] = i*i;
+		array[i] = i * i;
 		i = i + 1;
 	}
 	i = 0;
@@ -33,7 +36,7 @@ int main() {
 	if (array[0] == 0) {
 		print_int(array[0]);
 		print_nl();
-    }
+	}
 
 	if (array[1] == 2) {
 		print_int(0);
@@ -56,7 +59,7 @@ int main() {
 	print_nl();
 	a = b;
 	b = b * b;
-	if (a == (b/a)) {
+	if (a == (b / a)) {
 		print_int(b);
 		print_nl();
 	}

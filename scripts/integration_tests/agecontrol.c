@@ -1,6 +1,6 @@
-#include <stdbool.h>
 #include "mc_builtins.c"
-typedef const char* string;
+#include <stdbool.h>
+typedef const char *string;
 bool ageforalco(int n)
 {
 	if (n < 21) {
@@ -23,8 +23,7 @@ int main()
 
 	if (!result) {
 		print("You Can't drink ):");
-	}	
-	else {
+	} else {
 		print("You Can Drink!");
 	}
 	print_nl();

@@ -1,6 +1,6 @@
-#include <stdbool.h>
 #include "mc_builtins.c"
-typedef const char* string;
+#include <stdbool.h>
+typedef const char *string;
 float transform_x(float x)
 {
 	float fx;

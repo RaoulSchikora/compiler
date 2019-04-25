@@ -1,8 +1,9 @@
-#include <stdbool.h>
 #include "mc_builtins.c"
-typedef const char* string;
+#include <stdbool.h>
+typedef const char *string;
 /* This is a comment */
-int main(){
+int main()
+{
 	print("Please enter a number: ");
 	print_nl();
 	int n;
@@ -14,23 +15,21 @@ int main(){
 	n = n / 2;
 	n = n + 2;
 	n = n - 2;
-	a && b;
+	a &&b;
 	a || b;
 	a != !b;
 	int test[3];
 	string hi = "Hello";
 	float f = -1.0;
 	bool c = true;
-	if (c)
-	{
-		while(c){
+	if (c) {
+		while (c) {
 			c = false;
 		}
 	}
-	if (c){
+	if (c) {
 		f = f * 2;
-	}
-	else{
+	} else {
 		f = f * 3;
 	}
 	return 0;

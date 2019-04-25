@@ -1,32 +1,34 @@
-#include <stdbool.h>
 #include "mc_builtins.c"
-typedef const char* string;
-int calculateFactorial(int number){
-    int factorial = 1;
-    int i = 1;
-    while (i <= number){
-        factorial *= i;
-        i = i + 1;
-    }
-    return factorial;
+#include <stdbool.h>
+typedef const char *string;
+int calculateFactorial(int number)
+{
+	int factorial = 1;
+	int i = 1;
+	while (i <= number) {
+		factorial *= i;
+		i = i + 1;
+	}
+	return factorial;
 }
 
-int main() {
+int main()
+{
 
-    print("Please enter a number: ");
+	print("Please enter a number: ");
 
-    int number;
-    number = read_int();
-    print_nl();
+	int number;
+	number = read_int();
+	print_nl();
 
-    int result;
-    result = calculateFactorial(number);
+	int result;
+	result = calculateFactorial(number);
 
-    print("The factorial of ");
-    print_int(number);
-    print(" is ");
-    print_int(result);
-    print_nl();
+	print("The factorial of ");
+	print_int(number);
+	print(" is ");
+	print_int(result);
+	print_nl();
 
-    return 0;
+	return 0;
 }

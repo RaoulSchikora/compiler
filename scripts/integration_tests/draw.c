@@ -1,12 +1,13 @@
-#include <stdbool.h>
 #include "mc_builtins.c"
-typedef const char* string;
-void drawrect(int w, int h) {
+#include <stdbool.h>
+typedef const char *string;
+void drawrect(int w, int h)
+{
 	int i;
 	int j;
 
 	i = 0;
-	while(i < w) {
+	while (i < w) {
 		print("x");
 		i = i + 1;
 	}
@@ -14,11 +15,11 @@ void drawrect(int w, int h) {
 	print_nl();
 
 	i = 2;
-	while(i < h) {
+	while (i < h) {
 		print("x");
 
 		j = 2;
-		while(j < w) {
+		while (j < w) {
 			print(" ");
 			j = j + 1;
 		}
@@ -29,7 +30,7 @@ void drawrect(int w, int h) {
 	}
 
 	i = 0;
-	while(i < w) {
+	while (i < w) {
 		print("x");
 		i = i + 1;
 	}
@@ -37,7 +38,8 @@ void drawrect(int w, int h) {
 	print_nl();
 }
 
-int main() {
+int main()
+{
 	drawrect(10, 15);
 	drawrect(3, 5);
 	drawrect(50, 20);

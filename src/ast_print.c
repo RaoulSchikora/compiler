@@ -15,30 +15,31 @@ const char *mcc_ast_print_binary_op(enum mcc_ast_binary_op op)
 		return "*";
 	case MCC_AST_BINARY_OP_DIV:
 		return "/";
-    case MCC_AST_BINARY_OP_SMALLER:
-        return "<";
-    case MCC_AST_BINARY_OP_GREATER:
-        return ">";
-    case MCC_AST_BINARY_OP_SMALLEREQ:
-        return "<=";
-    case MCC_AST_BINARY_OP_GREATEREQ:
-        return ">=";
-    case MCC_AST_BINARY_OP_CONJ:
-        return "&&";
-    case MCC_AST_BINARY_OP_DISJ:
-        return "||";
-    case MCC_AST_BINARY_OP_EQUAL:
-        return "==";
-    case MCC_AST_BINARY_OP_NOTEQUAL:
-        return "!=";
-}
+	case MCC_AST_BINARY_OP_SMALLER:
+		return "<";
+	case MCC_AST_BINARY_OP_GREATER:
+		return ">";
+	case MCC_AST_BINARY_OP_SMALLEREQ:
+		return "<=";
+	case MCC_AST_BINARY_OP_GREATEREQ:
+		return ">=";
+	case MCC_AST_BINARY_OP_CONJ:
+		return "&&";
+	case MCC_AST_BINARY_OP_DISJ:
+		return "||";
+	case MCC_AST_BINARY_OP_EQUAL:
+		return "==";
+	case MCC_AST_BINARY_OP_NOTEQUAL:
+		return "!=";
+	}
 
 	return "unknown op";
 }
 
-const char *mcc_ast_print_unary_op(enum mcc_ast_unary_op u_op){
+const char *mcc_ast_print_unary_op(enum mcc_ast_unary_op u_op)
+{
 
-	switch (u_op){
+	switch (u_op) {
 	case MCC_AST_UNARY_OP_NEGATIV:
 		return "- ( )";
 	case MCC_AST_UNARY_OP_NOT:
@@ -160,21 +161,21 @@ static void print_dot_expression_variable(struct mcc_ast_expression *expression,
 	print_dot_edge(out, expression, expression->identifier, "id");
 }
 
-static void print_dot_expression_function_call(struct mcc_ast_expression *expression, void*data)
+static void print_dot_expression_function_call(struct mcc_ast_expression *expression, void *data)
 {
 	assert(expression);
 	assert(data);
 
 	char label[LABEL_SIZE] = {0};
-	if(expression->arguments->is_empty){
-		snprintf(label, sizeof(label),"expr: funct. call, no args");
+	if (expression->arguments->is_empty) {
+		snprintf(label, sizeof(label), "expr: funct. call, no args");
 	} else {
 		snprintf(label, sizeof(label), "expr: funct. call");
 	}
 
 	FILE *out = data;
-	print_dot_node(out,expression,label);
-	print_dot_edge(out,expression, expression->function_identifier,"func id");
+	print_dot_node(out, expression, label);
+	print_dot_edge(out, expression, expression->function_identifier, "func id");
 	if (!expression->arguments->is_empty) {
 		print_dot_edge(out, expression, expression->arguments, "func args");
 	}
@@ -215,13 +216,13 @@ static void print_dot_statement_expression_stmt(struct mcc_ast_statement *statem
 
 static void print_dot_statement_while(struct mcc_ast_statement *statement, void *data)
 {
-    assert(statement);
-    assert(data);
+	assert(statement);
+	assert(data);
 
-    FILE *out = data;
-    print_dot_node(out, statement, "while");
-    print_dot_edge(out, statement, statement->if_condition, "cond");
-    print_dot_edge(out, statement, statement->if_on_true, "on_true");
+	FILE *out = data;
+	print_dot_node(out, statement, "while");
+	print_dot_edge(out, statement, statement->if_condition, "cond");
+	print_dot_edge(out, statement, statement->if_on_true, "on_true");
 }
 
 static void print_dot_literal_int(struct mcc_ast_literal *literal, void *data)
@@ -265,8 +266,8 @@ static void print_dot_literal_bool(struct mcc_ast_literal *literal, void *data)
 	assert(literal);
 	assert(data);
 
-    FILE *out = data;
-    print_dot_node(out, literal, literal->bool_value ? "true" : "false");
+	FILE *out = data;
+	print_dot_node(out, literal, literal->bool_value ? "true" : "false");
 }
 
 static void print_dot_variable_declaration(struct mcc_ast_declaration *declaration, void *data)
@@ -290,8 +291,6 @@ static void print_dot_array_declaration(struct mcc_ast_declaration *declaration,
 	print_dot_edge(out, declaration, declaration->array_type, "type");
 	print_dot_edge(out, declaration, declaration->array_identifier, "id");
 	print_dot_edge(out, declaration, declaration->array_size, "size");
-
-
 }
 
 static void print_dot_variable_assignment(struct mcc_ast_assignment *assignment, void *data)
@@ -303,7 +302,6 @@ static void print_dot_variable_assignment(struct mcc_ast_assignment *assignment,
 	print_dot_node(out, assignment, "assign: var;");
 	print_dot_edge(out, assignment, assignment->variable_assigned_value, "value");
 	print_dot_edge(out, assignment, assignment->variable_identifier, "id");
-
 }
 
 static void print_dot_array_assignment(struct mcc_ast_assignment *assignment, void *data)
@@ -316,59 +314,61 @@ static void print_dot_array_assignment(struct mcc_ast_assignment *assignment, vo
 	print_dot_edge(out, assignment, assignment->array_index, "index");
 	print_dot_edge(out, assignment, assignment->array_identifier, "id");
 	print_dot_edge(out, assignment, assignment->array_assigned_value, "value");
-
-
 }
 
-static void print_dot_assignment (struct mcc_ast_assignment *assignment, void* data){
+static void print_dot_assignment(struct mcc_ast_assignment *assignment, void *data)
+{
 	assert(assignment);
 	assert(data);
-	switch(assignment->assignment_type){
-		case MCC_AST_ASSIGNMENT_TYPE_VARIABLE:
-			print_dot_variable_assignment(assignment,data);
-			break;
-		case MCC_AST_ASSIGNMENT_TYPE_ARRAY:
-			print_dot_array_assignment(assignment,data);
-			break;
+	switch (assignment->assignment_type) {
+	case MCC_AST_ASSIGNMENT_TYPE_VARIABLE:
+		print_dot_variable_assignment(assignment, data);
+		break;
+	case MCC_AST_ASSIGNMENT_TYPE_ARRAY:
+		print_dot_array_assignment(assignment, data);
+		break;
 	}
 }
 
-static void print_dot_declaration (struct mcc_ast_declaration *declaration, void* data){
+static void print_dot_declaration(struct mcc_ast_declaration *declaration, void *data)
+{
 	assert(declaration);
 	assert(data);
-	switch(declaration->declaration_type){
-		case MCC_AST_DECLARATION_TYPE_VARIABLE:
-			print_dot_variable_declaration(declaration,data);
-			break;
-		case MCC_AST_DECLARATION_TYPE_ARRAY:
-			print_dot_array_declaration(declaration,data);
-			break;
+	switch (declaration->declaration_type) {
+	case MCC_AST_DECLARATION_TYPE_VARIABLE:
+		print_dot_variable_declaration(declaration, data);
+		break;
+	case MCC_AST_DECLARATION_TYPE_ARRAY:
+		print_dot_array_declaration(declaration, data);
+		break;
 	}
 }
 
-static void print_dot_type(struct mcc_ast_type *type, void *data){
+static void print_dot_type(struct mcc_ast_type *type, void *data)
+{
 
 	assert(data);
 	assert(type);
 
 	FILE *out = data;
-	switch(type->type_value){
-		case INT:
-			print_dot_node(out, type, "int");
-			break;
-		case FLOAT:
-			print_dot_node(out, type, "float");
-            break;
-        case BOOL:
-			print_dot_node(out, type, "bool");
-            break;
-		case STRING:
-			print_dot_node(out, type, "string");
-            break;
+	switch (type->type_value) {
+	case INT:
+		print_dot_node(out, type, "int");
+		break;
+	case FLOAT:
+		print_dot_node(out, type, "float");
+		break;
+	case BOOL:
+		print_dot_node(out, type, "bool");
+		break;
+	case STRING:
+		print_dot_node(out, type, "string");
+		break;
 	}
 }
 
-static void print_dot_expression_identifier(struct mcc_ast_identifier *identifier, void *data){
+static void print_dot_expression_identifier(struct mcc_ast_identifier *identifier, void *data)
+{
 	assert(identifier);
 	assert(data);
 
@@ -387,8 +387,7 @@ static void print_dot_statement_declaration(struct mcc_ast_statement *statement,
 
 	FILE *out = data;
 	print_dot_node(out, statement, "stmt: decl.");
-	print_dot_edge(out,statement, statement->declaration,"decl.");
-
+	print_dot_edge(out, statement, statement->declaration, "decl.");
 }
 
 static void print_dot_statement_assignment(struct mcc_ast_statement *statement, void *data)
@@ -399,34 +398,35 @@ static void print_dot_statement_assignment(struct mcc_ast_statement *statement, 
 
 	FILE *out = data;
 	print_dot_node(out, statement, "stmt: assign");
-	print_dot_edge(out,statement, statement->assignment,"assign");
-
+	print_dot_edge(out, statement, statement->assignment, "assign");
 }
 
-static void print_dot_statement_return (struct mcc_ast_statement *statement, void *data){
+static void print_dot_statement_return(struct mcc_ast_statement *statement, void *data)
+{
 	assert(statement);
 	assert(data);
 
 	FILE *out = data;
-	if(statement->is_empty_return){
+	if (statement->is_empty_return) {
 		print_dot_node(out, statement, "stmt:empty_ret");
 	} else {
 		print_dot_node(out, statement, "stmt:ret");
-		print_dot_edge(out,statement,statement->return_value,"ret_val");
+		print_dot_edge(out, statement, statement->return_value, "ret_val");
 	}
 }
 
 static void print_dot_statement_compound_statement(struct mcc_ast_statement *statement, void *data)
 {
-    assert(statement);
-    assert(data);
+	assert(statement);
+	assert(data);
 
-    FILE *out  = data;
-    print_dot_node(out, statement, "stmt: comp_stmt");
-    print_dot_edge(out,statement, statement->compound_statement, "comp_stmt");
+	FILE *out = data;
+	print_dot_node(out, statement, "stmt: comp_stmt");
+	print_dot_edge(out, statement, statement->compound_statement, "comp_stmt");
 }
 
-static void print_dot_compound_statement(struct mcc_ast_compound_statement *compound_statement, void *data) {
+static void print_dot_compound_statement(struct mcc_ast_compound_statement *compound_statement, void *data)
+{
 	assert(compound_statement);
 	assert(data);
 
@@ -434,17 +434,17 @@ static void print_dot_compound_statement(struct mcc_ast_compound_statement *comp
 	if (compound_statement->is_empty) {
 		print_dot_node(out, compound_statement, "empty comp_stmt");
 	} else {
-        print_dot_node(out, compound_statement, "comp_stmt");
-    }
-	if(compound_statement->is_empty == false) {
+		print_dot_node(out, compound_statement, "comp_stmt");
+	}
+	if (compound_statement->is_empty == false) {
 		print_dot_edge(out, compound_statement, compound_statement->statement, "stmt");
 	}
-	if(compound_statement->has_next_statement == true){
+	if (compound_statement->has_next_statement == true) {
 		print_dot_edge(out, compound_statement, compound_statement->next_compound_statement, "next stmt:");
 	}
 }
 
-static void print_dot_program (struct mcc_ast_program *program, void *data)
+static void print_dot_program(struct mcc_ast_program *program, void *data)
 {
 	assert(program);
 	assert(data);
@@ -452,30 +452,29 @@ static void print_dot_program (struct mcc_ast_program *program, void *data)
 	FILE *out = data;
 	print_dot_node(out, program, "program");
 	print_dot_edge(out, program, program->function, "func");
-	if(program->has_next_function == true){
-		print_dot_edge(out,program,program->next_function, "next func");
+	if (program->has_next_function == true) {
+		print_dot_edge(out, program, program->next_function, "next func");
 	}
 }
 
-
-static void print_dot_parameters (struct mcc_ast_parameters *parameters, void *data)
+static void print_dot_parameters(struct mcc_ast_parameters *parameters, void *data)
 {
 	assert(parameters);
 	assert(data);
 
 	FILE *out = data;
-	if(!(parameters->is_empty)) {
+	if (!(parameters->is_empty)) {
 		print_dot_edge(out, parameters, parameters->declaration, "decl");
 		print_dot_node(out, parameters, "param");
 	} else {
 		print_dot_node(out, parameters, "empty param");
 	}
-	if(parameters->has_next_parameter == true){
-		print_dot_edge(out,parameters,parameters->next_parameters, "next param");
+	if (parameters->has_next_parameter == true) {
+		print_dot_edge(out, parameters, parameters->next_parameters, "next param");
 	}
 }
 
-static void print_dot_arguments (struct mcc_ast_arguments *arguments, void *data)
+static void print_dot_arguments(struct mcc_ast_arguments *arguments, void *data)
 {
 	assert(arguments);
 	assert(data);
@@ -483,38 +482,38 @@ static void print_dot_arguments (struct mcc_ast_arguments *arguments, void *data
 	FILE *out = data;
 	print_dot_node(out, arguments, "args");
 	print_dot_edge(out, arguments, arguments->expression, "expr");
-	if(arguments->has_next_expression == true){
-		print_dot_edge(out,arguments,arguments->next_arguments, "next arg");
+	if (arguments->has_next_expression == true) {
+		print_dot_edge(out, arguments, arguments->next_arguments, "next arg");
 	}
 }
 
-static void print_dot_function_definition (struct mcc_ast_function_definition *function_definition, void *data)
+static void print_dot_function_definition(struct mcc_ast_function_definition *function_definition, void *data)
 {
 	assert(function_definition);
 	assert(data);
 
 	FILE *out = data;
-	print_dot_node(out,function_definition, "func def");
-	print_dot_edge(out,function_definition, function_definition->identifier, "id");
-	print_dot_edge(out,function_definition, function_definition->parameters, "param");
-	print_dot_edge(out,function_definition, function_definition->compound_stmt, "comp_stmt");
-	print_dot_edge(out,function_definition, &function_definition->type, "type");
-	switch (function_definition->type){
-		case MCC_AST_FUNCTION_TYPE_INT:
-			print_dot_node(out, &function_definition->type, "Int");
-			break;
-		case MCC_AST_FUNCTION_TYPE_FLOAT:
-			print_dot_node(out, &function_definition->type, "Float");
-			break;
-		case MCC_AST_FUNCTION_TYPE_STRING:
-			print_dot_node(out, &function_definition->type, "String");
-			break;
-		case MCC_AST_FUNCTION_TYPE_BOOL:
-			print_dot_node(out, &function_definition->type, "Bool");
-			break;
-		case MCC_AST_FUNCTION_TYPE_VOID:
-			print_dot_node(out, &function_definition->type, "Void");
-			break;
+	print_dot_node(out, function_definition, "func def");
+	print_dot_edge(out, function_definition, function_definition->identifier, "id");
+	print_dot_edge(out, function_definition, function_definition->parameters, "param");
+	print_dot_edge(out, function_definition, function_definition->compound_stmt, "comp_stmt");
+	print_dot_edge(out, function_definition, &function_definition->type, "type");
+	switch (function_definition->type) {
+	case MCC_AST_FUNCTION_TYPE_INT:
+		print_dot_node(out, &function_definition->type, "Int");
+		break;
+	case MCC_AST_FUNCTION_TYPE_FLOAT:
+		print_dot_node(out, &function_definition->type, "Float");
+		break;
+	case MCC_AST_FUNCTION_TYPE_STRING:
+		print_dot_node(out, &function_definition->type, "String");
+		break;
+	case MCC_AST_FUNCTION_TYPE_BOOL:
+		print_dot_node(out, &function_definition->type, "Bool");
+		break;
+	case MCC_AST_FUNCTION_TYPE_VOID:
+		print_dot_node(out, &function_definition->type, "Void");
+		break;
 	}
 }
 
@@ -535,30 +534,29 @@ static struct mcc_ast_visitor print_dot_visitor(FILE *out)
 	    .expression_unary_op = print_dot_expression_unary_op,
 	    .expression_variable = print_dot_expression_variable,
 	    .expression_array_element = print_dot_expression_array_element,
-		.expression_function_call = print_dot_expression_function_call,
+	    .expression_function_call = print_dot_expression_function_call,
 
 	    .literal_int = print_dot_literal_int,
 	    .literal_float = print_dot_literal_float,
 	    .literal_bool = print_dot_literal_bool,
-        .literal_string = print_dot_literal_string,
+	    .literal_string = print_dot_literal_string,
 
+	    .statement_if_stmt = print_dot_statememt_if_stmt,
+	    .statement_if_else_stmt = print_dot_statement_if_else_stmt,
+	    .statement_expression_stmt = print_dot_statement_expression_stmt,
+	    .statement_while = print_dot_statement_while,
+	    .statement_assignment = print_dot_statement_assignment,
+	    .statement_declaration = print_dot_statement_declaration,
+	    .statement_return = print_dot_statement_return,
+	    .statement_compound_stmt = print_dot_statement_compound_statement,
 
-		.statement_if_stmt = print_dot_statememt_if_stmt,
-		.statement_if_else_stmt = print_dot_statement_if_else_stmt,
-		.statement_expression_stmt = print_dot_statement_expression_stmt,
-        .statement_while = print_dot_statement_while,
-        .statement_assignment = print_dot_statement_assignment,
-        .statement_declaration = print_dot_statement_declaration,
-        .statement_return = print_dot_statement_return,
-        .statement_compound_stmt = print_dot_statement_compound_statement,
+	    .compound_statement = print_dot_compound_statement,
+	    .program = print_dot_program,
+	    .function_definition = print_dot_function_definition,
+	    .parameters = print_dot_parameters,
+	    .arguments = print_dot_arguments,
 
-        .compound_statement = print_dot_compound_statement,
-        .program = print_dot_program,
-        .function_definition = print_dot_function_definition,
-        .parameters = print_dot_parameters,
-        .arguments = print_dot_arguments,
-
-        .assignment = print_dot_assignment,
+	    .assignment = print_dot_assignment,
 	    .variable_assignment = print_dot_variable_assignment,
 	    .array_assignment = print_dot_array_assignment,
 	    .declaration = print_dot_declaration,
@@ -588,10 +586,10 @@ void mcc_ast_print_dot_statement(FILE *out, struct mcc_ast_statement *statement)
 	assert(out);
 	assert(statement);
 
-    print_dot_begin(out);
+	print_dot_begin(out);
 
-    struct mcc_ast_visitor visitor = print_dot_visitor(out);
-    mcc_ast_visit(statement, &visitor);
+	struct mcc_ast_visitor visitor = print_dot_visitor(out);
+	mcc_ast_visit(statement, &visitor);
 
 	print_dot_end(out);
 }
@@ -621,7 +619,6 @@ void mcc_ast_print_dot_assignment(FILE *out, struct mcc_ast_assignment *assignme
 
 	print_dot_end(out);
 }
-
 
 void mcc_ast_print_dot_literal(FILE *out, struct mcc_ast_literal *literal)
 {
@@ -669,34 +666,34 @@ void mcc_ast_print_dot_result(FILE *out, struct mcc_parser_result *result)
 
 	enum mcc_parser_entry_point entry_point = result->entry_point;
 
-	switch(entry_point){
-	case MCC_PARSER_ENTRY_POINT_EXPRESSION: ;
-		mcc_ast_print_dot(out,result->expression);
+	switch (entry_point) {
+	case MCC_PARSER_ENTRY_POINT_EXPRESSION:;
+		mcc_ast_print_dot(out, result->expression);
 		break;
-	case MCC_PARSER_ENTRY_POINT_STATEMENT: ;
-		mcc_ast_print_dot(out,result->statement);
+	case MCC_PARSER_ENTRY_POINT_STATEMENT:;
+		mcc_ast_print_dot(out, result->statement);
 		break;
-	case MCC_PARSER_ENTRY_POINT_DECLARATION: ;
-		mcc_ast_print_dot(out,result->declaration);
+	case MCC_PARSER_ENTRY_POINT_DECLARATION:;
+		mcc_ast_print_dot(out, result->declaration);
 		break;
-	case MCC_PARSER_ENTRY_POINT_ASSIGNMENT: ;
-		mcc_ast_print_dot(out,result->assignment);
+	case MCC_PARSER_ENTRY_POINT_ASSIGNMENT:;
+		mcc_ast_print_dot(out, result->assignment);
 		break;
 	case MCC_PARSER_ENTRY_POINT_PROGRAM:
-		mcc_ast_print_dot(out,result->program);
+		mcc_ast_print_dot(out, result->program);
 		break;
 	case MCC_PARSER_ENTRY_POINT_FUNCTION_DEFINITION:
-		mcc_ast_print_dot(out,result->function_definition);
+		mcc_ast_print_dot(out, result->function_definition);
 		break;
 	case MCC_PARSER_ENTRY_POINT_PARAMETERS:
-		mcc_ast_print_dot(out,result->parameters);
+		mcc_ast_print_dot(out, result->parameters);
 		break;
 	case MCC_PARSER_ENTRY_POINT_ARGUMENTS:
-		mcc_ast_print_dot(out,result->arguments);
+		mcc_ast_print_dot(out, result->arguments);
 		break;
-    case MCC_PARSER_ENTRY_POINT_COMPOUND_STATEMENT:
-        mcc_ast_print_dot(out,result->compound_statement);
-        break;
+	case MCC_PARSER_ENTRY_POINT_COMPOUND_STATEMENT:
+		mcc_ast_print_dot(out, result->compound_statement);
+		break;
 	}
 }
 
@@ -707,32 +704,31 @@ void mcc_ast_print_dot_compound_statement(FILE *out, struct mcc_ast_compound_sta
 
 	print_dot_begin(out);
 	struct mcc_ast_visitor visitor = print_dot_visitor(out);
-	mcc_ast_visit(compound_statement,&visitor);
+	mcc_ast_visit(compound_statement, &visitor);
 	print_dot_end(out);
 }
 
 void mcc_ast_print_dot_program(FILE *out, struct mcc_ast_program *program)
 {
-    assert(out);
-    assert(program);
+	assert(out);
+	assert(program);
 
-    print_dot_begin(out);
-    struct mcc_ast_visitor visitor = print_dot_visitor(out);
-    mcc_ast_visit(program,&visitor);
-    print_dot_end(out);
+	print_dot_begin(out);
+	struct mcc_ast_visitor visitor = print_dot_visitor(out);
+	mcc_ast_visit(program, &visitor);
+	print_dot_end(out);
 }
 
 void mcc_ast_print_dot_function_definition(FILE *out, struct mcc_ast_function_definition *function_definition)
 {
-    assert(out);
-    assert(function_definition);
+	assert(out);
+	assert(function_definition);
 
-    print_dot_begin(out);
-    struct mcc_ast_visitor visitor = print_dot_visitor(out);
-    mcc_ast_visit(function_definition,&visitor);
-    print_dot_end(out);
+	print_dot_begin(out);
+	struct mcc_ast_visitor visitor = print_dot_visitor(out);
+	mcc_ast_visit(function_definition, &visitor);
+	print_dot_end(out);
 }
-
 
 void mcc_ast_print_dot_parameters(FILE *out, struct mcc_ast_parameters *parameters)
 {
@@ -741,10 +737,9 @@ void mcc_ast_print_dot_parameters(FILE *out, struct mcc_ast_parameters *paramete
 
 	print_dot_begin(out);
 	struct mcc_ast_visitor visitor = print_dot_visitor(out);
-	mcc_ast_visit(parameters,&visitor);
+	mcc_ast_visit(parameters, &visitor);
 	print_dot_end(out);
 }
-
 
 void mcc_ast_print_dot_arguments(FILE *out, struct mcc_ast_arguments *arguments)
 {
@@ -753,6 +748,6 @@ void mcc_ast_print_dot_arguments(FILE *out, struct mcc_ast_arguments *arguments)
 
 	print_dot_begin(out);
 	struct mcc_ast_visitor visitor = print_dot_visitor(out);
-	mcc_ast_visit(arguments,&visitor);
+	mcc_ast_visit(arguments, &visitor);
 	print_dot_end(out);
 }

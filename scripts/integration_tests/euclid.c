@@ -1,6 +1,6 @@
-#include <stdbool.h>
 #include "mc_builtins.c"
-typedef const char* string;
+#include <stdbool.h>
+typedef const char *string;
 int euclid(int n, int k)
 {
 	if (k == 0) {
