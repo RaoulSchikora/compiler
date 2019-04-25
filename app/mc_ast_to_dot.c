@@ -1,4 +1,4 @@
-#include "mcc/mc_ast_to_dot.h"
+#include "mc_ast_to_dot/mc_ast_to_dot.h"
 
 
 int main(int argc, char *argv[]) {
