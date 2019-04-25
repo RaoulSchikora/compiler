@@ -248,7 +248,7 @@ struct mcc_ast_to_dot_command_line_parser *parse_command_line(int argc, char *ar
 
 	struct mcc_ast_to_dot_options *options = parse_options(argc, argv);
 	if (options == NULL) {
-	    perror("parse_command_line: malloc");
+	    perror("parse_command_line: parse_options");
 		return NULL;
 	}
 
