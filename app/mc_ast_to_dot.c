@@ -319,15 +319,13 @@ char *mc_ast_to_dot_generate_input(struct mcc_ast_to_dot_command_line_parser *co
 			i++;
 		}
 
-		// allocate memory for input string
+		// allocate memory for input string (initialized with 0s, for strncat to find)
 		char *input = calloc((length + command_line->arguments->size) +1, sizeof(char));
 		if (input == NULL) {
 			perror("mc_ast_to_dot_generate_input: malloc");
 			return NULL;
 		}
 
-		// Concatenate input files into input string
-		snprintf(input, 1, "\0");
 		i = 0;
 
 		while (i < command_line->arguments->size) {
