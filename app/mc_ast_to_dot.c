@@ -176,8 +176,17 @@ struct mcc_ast_to_dot_options *parse_options(int argc, char *argv[])
 		return options;
 	}
 
+	static struct option long_options[] =
+			{
+					{"help", no_argument, NULL, 'h'},
+					{"output", required_argument, NULL, 'o'},
+					{"function", required_argument, NULL, 'f'},
+					{"test", no_argument, NULL, 't'},
+					{NULL,0,NULL,0}
+			};
+
 	int c;
-	while ((c = getopt(argc, argv, "o:hf:t")) != -1) {
+	while ((c = getopt_long(argc, argv, "o:hf:t",long_options,NULL)) != -1) {
 		switch (c) {
 		case 'o':
 			options->write_to_file = true;
@@ -188,7 +197,7 @@ struct mcc_ast_to_dot_options *parse_options(int argc, char *argv[])
 			break;
 		case 'f':
 			options->limited_scope = true;
-			options->mode = MCC_AST_TO_DOT_MODE_TEST;
+			options->mode = MCC_AST_TO_DOT_MODE_PROGRAM;
 			options->function = optarg;
 			break;
 		case 't':
@@ -239,11 +248,13 @@ struct mcc_ast_to_dot_command_line_parser *parse_command_line(int argc, char *ar
 
 	struct mcc_ast_to_dot_options *options = parse_options(argc, argv);
 	if (options == NULL) {
+	    perror("parse_command_line: malloc");
 		return NULL;
 	}
 
 	struct mcc_ast_to_dot_command_line_parser *parser = malloc(sizeof(*parser));
 	if (parser == NULL) {
+		perror("parse_command_line: malloc");
 		return NULL;
 	}
 
@@ -278,7 +289,7 @@ char *mc_ast_to_dot_generate_input(struct mcc_ast_to_dot_command_line_parser *co
 	if (command_line->arguments->size == 1 && strcmp(*(command_line->arguments->args), "-") == 0) {
 		return stdinToString();
 
-		// read from files into input string
+	// read from files into input string
 	} else {
 		int i = 0;
 		int length = 0;
@@ -299,6 +310,7 @@ char *mc_ast_to_dot_generate_input(struct mcc_ast_to_dot_command_line_parser *co
 			char *content = fileToString(*(command_line->arguments->args + i));
 			if (content == NULL) {
 				printf("Error opening file \"%s\"\n", *(command_line->arguments->args + i));
+				free(content);
 				command_line->options->print_help = true;
 				return NULL;
 			}
@@ -308,7 +320,7 @@ char *mc_ast_to_dot_generate_input(struct mcc_ast_to_dot_command_line_parser *co
 		}
 
 		// allocate memory for input string
-		char *input = malloc(sizeof(char) * (length + command_line->arguments->size));
+		char *input = calloc((length + command_line->arguments->size) +1, sizeof(char));
 		if (input == NULL) {
 			perror("mc_ast_to_dot_generate_input: malloc");
 			return NULL;
@@ -320,7 +332,7 @@ char *mc_ast_to_dot_generate_input(struct mcc_ast_to_dot_command_line_parser *co
 
 		while (i < command_line->arguments->size) {
 			char *file_content = fileToString(*(command_line->arguments->args + i));
-			int arg_length = strlen(file_content) + 1;
+			int arg_length = strlen(file_content) + 2;
 			char *intermediate = malloc(arg_length);
 			if (intermediate == NULL) {
 				perror("mc_ast_to_dot_generate_input: malloc");
@@ -329,6 +341,7 @@ char *mc_ast_to_dot_generate_input(struct mcc_ast_to_dot_command_line_parser *co
 			snprintf(intermediate, arg_length + 1, "\n%s", file_content);
 			free(file_content);
 			strncat(input, intermediate, arg_length);
+			free(intermediate);
 			i++;
 		}
 		return input;
