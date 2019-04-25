@@ -8,8 +8,8 @@
 #ifndef MCC_PARSER_H
 #define MCC_PARSER_H
 
-#include <stdio.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #include "mcc/ast.h"
 
@@ -19,10 +19,10 @@ enum mcc_parser_status {
 	MCC_PARSER_STATUS_UNKNOWN_ERROR,
 };
 
-enum mcc_parser_entry_point{
+enum mcc_parser_entry_point {
 	// entry point which are set while parsing
-    MCC_PARSER_ENTRY_POINT_EXPRESSION,
-    MCC_PARSER_ENTRY_POINT_PROGRAM,
+	MCC_PARSER_ENTRY_POINT_EXPRESSION,
+	MCC_PARSER_ENTRY_POINT_PROGRAM,
 	MCC_PARSER_ENTRY_POINT_DECLARATION,
 	MCC_PARSER_ENTRY_POINT_ASSIGNMENT,
 	MCC_PARSER_ENTRY_POINT_STATEMENT,
@@ -36,8 +36,8 @@ struct mcc_parser_result {
 	enum mcc_parser_status status;
 	enum mcc_parser_entry_point entry_point;
 
-	union{
-	    // MCC_PARSER_ENTRY_POINT_EXPRESSION
+	union {
+		// MCC_PARSER_ENTRY_POINT_EXPRESSION
 		struct mcc_ast_expression *expression;
 		// MCC_PARSER_ENTRY_POINT_DECLARATION
 		struct mcc_ast_declaration *declaration;
@@ -57,7 +57,7 @@ struct mcc_parser_result mcc_parse_string(const char *input, enum mcc_parser_ent
 
 struct mcc_parser_result mcc_parse_file(FILE *input);
 
-char* mcc_transform_into_unit_test (const char* in);
+char *mcc_transform_into_unit_test(const char *in);
 
 void mcc_ast_delete_result(struct mcc_parser_result *result);
 
