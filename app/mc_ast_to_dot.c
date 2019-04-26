@@ -73,22 +73,6 @@ int main(int argc, char *argv[])
 	return EXIT_SUCCESS;
 }
 
-void mc_ast_to_dot_delete_command_line_parser(struct mcc_ast_to_dot_command_line_parser *command_line)
-{
-	if (command_line->arguments->args != NULL) {
-		free(command_line->arguments->args);
-	}
-	if (command_line->arguments != NULL) {
-		free(command_line->arguments);
-	}
-	if (command_line->options != NULL) {
-		free(command_line->options);
-	}
-	if (command_line != NULL) {
-		free(command_line);
-	}
-}
-
 void print_usage(const char *prg)
 {
 	printf("usage: %s [OPTIONS] file...\n\n", prg);
@@ -276,6 +260,22 @@ struct mcc_ast_to_dot_command_line_parser *parse_command_line(int argc, char *ar
 	parser->arguments = arguments;
 
 	return parser;
+}
+
+void mc_ast_to_dot_delete_command_line_parser(struct mcc_ast_to_dot_command_line_parser *command_line)
+{
+	if (command_line->arguments->args != NULL) {
+		free(command_line->arguments->args);
+	}
+	if (command_line->arguments != NULL) {
+		free(command_line->arguments);
+	}
+	if (command_line->options != NULL) {
+		free(command_line->options);
+	}
+	if (command_line != NULL) {
+		free(command_line);
+	}
 }
 
 char *mc_ast_to_dot_generate_input(struct mcc_ast_to_dot_command_line_parser *command_line)
