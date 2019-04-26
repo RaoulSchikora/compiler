@@ -114,7 +114,6 @@ char *fileToString(char *filename)
 	fseek(f, 0, SEEK_SET);
 	char *buffer = (char *)malloc(length + 1);
 	buffer[length] = '\0';
-	// TODO error handling fread
 	size_t ret = fread(buffer, 1, length, f);
 	if (ret == 0){
 		perror("fileToString: fread");
