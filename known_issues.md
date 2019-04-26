@@ -1,10 +1,5 @@
 # Known Issues
 
-## mc_ast_to_dot
-
-Leaks memory on some invalid inputs(e.g. expression as input to stdin w/o test mode) and performs invalid reads and writes
-Leaks memory if files are passed as input
-
 ## Parser
 
 ### Grammar

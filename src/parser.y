@@ -100,6 +100,15 @@ void mcc_parser_error();
 %destructor { mcc_ast_delete($$); } assignment
 %destructor { mcc_ast_delete($$); } declaration
 %destructor { mcc_ast_delete($$); } literal
+%destructor { mcc_ast_delete($$); } compound_statement
+%destructor { mcc_ast_delete($$); } statements
+%destructor { mcc_ast_delete($$); } parameters
+%destructor { mcc_ast_delete($$); } function_def
+%destructor { mcc_ast_delete($$); } function_defs
+%destructor { mcc_ast_delete($$); } program
+%destructor { mcc_ast_delete($$); } arguments
+%destructor { free($$); } STRING_LITERAL
+%destructor { free($$); } IDENTIFIER
 
 %start toplevel
 
