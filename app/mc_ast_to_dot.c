@@ -25,6 +25,7 @@ int main(int argc, char *argv[])
 	}
 
 	struct mcc_parser_result result;
+	struct mcc_parser_result limited_result;
 	struct mcc_parser_result *ptr_result;
 
 	// handle entry point dependent on wether "-t" was passed
@@ -36,6 +37,13 @@ int main(int argc, char *argv[])
 		result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_EXPRESSION);
 		break;
 
+	case MCC_AST_TO_DOT_MODE_FUNCTION:
+
+        //parsing phase
+        result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+        limited_result = limit_result_to_function_scope(&result, command_line->options->function);
+        break;
+
 	case MCC_AST_TO_DOT_MODE_PROGRAM:;
 
 		// parsing phase
@@ -43,9 +51,13 @@ int main(int argc, char *argv[])
 		break;
 	}
 
-	// Check if Parser returned correctly
-	ptr_result = &result;
-	if (ptr_result->status != MCC_PARSER_STATUS_OK) {
+	if (command_line->options->mode != MCC_AST_TO_DOT_MODE_FUNCTION){
+        ptr_result = &result;
+    } else {
+        ptr_result = &limited_result;
+    }
+    // Check if Parser returned correctly
+    if (ptr_result->status != MCC_PARSER_STATUS_OK) {
 		mc_ast_to_dot_delete_command_line_parser(command_line);
 		free(input);
 		return EXIT_FAILURE;
@@ -66,7 +78,11 @@ int main(int argc, char *argv[])
 	}
 
 	// Cleanup
-	mcc_ast_delete_result(ptr_result);
+    if (command_line->options->mode != MCC_AST_TO_DOT_MODE_FUNCTION){
+        mcc_ast_delete_result(ptr_result);
+    } else {
+        mcc_ast_delete_result(&result);
+    }
 	mc_ast_to_dot_delete_command_line_parser(command_line);
 	free(input);
 
@@ -92,18 +108,14 @@ void mc_ast_to_dot_delete_command_line_parser(struct mcc_ast_to_dot_command_line
 void print_usage(const char *prg)
 {
 	printf("usage: %s [OPTIONS] file...\n\n", prg);
-	printf("Utility for printing an abstract syntax tree in the DOT format. The "
-	       "output\n");
-	printf("can be visualised using graphviz. Errors are reported on invalid "
-	       "inputs.\n\n");
+	printf("Utility for printing an abstract syntax tree in the DOT format. The output\n");
+	printf("can be visualised using graphviz. Errors are reported on invalid inputs.\n\n");
 	printf("Use '-' as input file to read from stdin.\n\n");
 	printf("OPTIONS:\n");
 	printf("  -h, --help                displays this help message\n");
-	printf("  -o, --output <file>       write the output to <file> (defaults to "
-	       "stdout)\n");
+	printf("  -o, --output <file>       write the output to <file> (defaults to stdout)\n");
 	printf("  -f, --function <name>     limit scope to the given function\n");
-	printf("  -t, --test                parse, even if input is not a program or "
-	       "function\n");
+	printf("  -t, --test                parse, even if input is not a program or function\n");
 }
 
 // modified from: https://stackoverflow.com/questions/174531
@@ -177,7 +189,7 @@ struct mcc_ast_to_dot_options *parse_options(int argc, char *argv[])
 	}
 
 	int c;
-	while ((c = getopt(argc, argv, "o:hf:t")) != -1) {
+	while ((c = getopt(argc, argv, "o:h:f:t")) != -1) {
 		switch (c) {
 		case 'o':
 			options->write_to_file = true;
@@ -188,7 +200,7 @@ struct mcc_ast_to_dot_options *parse_options(int argc, char *argv[])
 			break;
 		case 'f':
 			options->limited_scope = true;
-			options->mode = MCC_AST_TO_DOT_MODE_TEST;
+			options->mode = MCC_AST_TO_DOT_MODE_FUNCTION;
 			options->function = optarg;
 			break;
 		case 't':
@@ -334,3 +346,103 @@ char *mc_ast_to_dot_generate_input(struct mcc_ast_to_dot_command_line_parser *co
 		return input;
 	}
 }
+
+struct mcc_parser_result limit_result_to_function_scope(struct mcc_parser_result *result, char *wanted_function_name)
+{
+    // current program
+    struct mcc_ast_program *cur_program = result->program;
+
+    // new result with limited scope
+    struct mcc_parser_result limited_result;
+    limited_result.status = MCC_PARSER_STATUS_OK;
+    limited_result.entry_point = MCC_PARSER_ENTRY_POINT_FUNCTION_DEFINITION;
+
+    // look for wanted function
+    if (strcmp(wanted_function_name, cur_program->function->identifier->identifier_name) == 0)
+    {// wanted function is in top-level program
+        limited_result.function_definition = cur_program->function;
+        return limited_result;
+    } else {
+        while (cur_program->has_next_function) {
+            cur_program = cur_program->next_function;
+
+            // if wanted function is found
+            if (strcmp(wanted_function_name, cur_program->function->identifier->identifier_name) == 0) {
+                limited_result.function_definition = cur_program->function;
+                return limited_result;
+            }
+        }
+
+    }
+    // if not returned till this point parser status not okay
+    limited_result.status = MCC_PARSER_STATUS_UNKNOWN_ERROR;
+    perror("error while printing: no function with given function name\n");
+    return limited_result;
+}
+
+//void limit_result_to_function_scope(struct mcc_parser_result *result, char *wanted_function_name)
+//{
+//    assert(result);
+//
+//    printf("1: %s\n", result->program->has_next_function ? "true" : "false");
+//    printf("2: %s\n", wanted_function_name);
+//
+//    // preceding program
+//    struct mcc_ast_program *pre_program;
+//    // current program
+//    struct mcc_ast_program *cur_program = result->program;
+//
+//    // wanted function
+//    struct mcc_ast_function_definition *wanted_function;
+//
+//    // look for wanted function
+//    if (strcmp(wanted_function_name, cur_program->function->identifier->identifier_name) == 0)
+//    {// wanted function is in top-level program
+//
+//        wanted_function = cur_program->function;
+//        cur_program->function = NULL;
+//        // delete everything except wanted_function and its program
+//        if (cur_program->has_next_function){
+//            mcc_ast_delete_program(cur_program->next_function);
+//        }
+//        // free remaining program of old result
+//        free(result->program);
+//        result->program = NULL;
+//        // set new result and return
+//        result->function_definition = wanted_function;
+//        return;
+//    } else { // wanted function is not in top-level program
+//
+//        while (cur_program->has_next_function) {
+//            pre_program = cur_program;
+//            cur_program = cur_program->next_function;
+//
+//            // if wanted function is found
+//            if (strcmp(wanted_function_name, cur_program->function->identifier->identifier_name) == 0){
+//                wanted_function = cur_program->function;
+//                // reorganize pointers
+//                if (cur_program->has_next_function){
+//                    pre_program->next_function = cur_program->next_function;
+//                    cur_program->function = NULL;
+//                    cur_program->has_next_function = false;
+//                    cur_program->next_function = NULL;
+//                    free(cur_program);
+//                } else {
+//                    pre_program->has_next_function = false;
+//                    pre_program->next_function = NULL;
+//                }
+//                // delete everything except wanted function
+//                mcc_ast_delete_program(result->program);
+//                // set new result and return
+//                result->function_definition = wanted_function;
+//                printf(result->program->has_next_function ? "program exists\n" : "program does not exist\n");
+//                printf("%s\n", result->function_definition->identifier->identifier_name);
+//                return;
+//            }
+//        }
+//    }
+//    // if not returned until here parser status not okay
+//    result->status = MCC_PARSER_STATUS_UNKNOWN_ERROR;
+//    perror("error while printing: no function with given function name\n");
+//    return;
+//}

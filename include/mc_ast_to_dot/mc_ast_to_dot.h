@@ -16,6 +16,7 @@
 
 enum mcc_ast_to_dot_mode {
 	MCC_AST_TO_DOT_MODE_TEST,
+	MCC_AST_TO_DOT_MODE_FUNCTION,
 	MCC_AST_TO_DOT_MODE_PROGRAM,
 };
 
@@ -61,6 +62,9 @@ struct mcc_ast_to_dot_program_arguments *parse_arguments(int argc, char *argv[])
 
 // Generate string from command line inputs
 char *mc_ast_to_dot_generate_input(struct mcc_ast_to_dot_command_line_parser *command_line);
+
+// get a function out of a mcc_parser_result
+struct mcc_parser_result limit_result_to_function_scope(struct mcc_parser_result *result, char *wanted_function_name);
 
 // Obsolete
 // static int readInputAndSetMode(int argc, char *argv[]);

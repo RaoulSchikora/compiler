@@ -235,7 +235,7 @@ struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_par
 
 
 	if (entry_point != MCC_PARSER_ENTRY_POINT_PROGRAM){
-	    input = mcc_transform_into_unit_test(input_string);
+	    	input = mcc_transform_into_unit_test(input_string);
 		if(input == NULL){
 			return (struct mcc_parser_result){
 				.status = MCC_PARSER_STATUS_UNKNOWN_ERROR,
@@ -322,18 +322,18 @@ void mcc_ast_delete_result(struct mcc_parser_result *result)
 	case MCC_PARSER_ENTRY_POINT_PROGRAM:
 		mcc_ast_delete(result->program);
 		break;
-    case MCC_PARSER_ENTRY_POINT_FUNCTION_DEFINITION:
-        mcc_ast_delete(result->function_definition);
-        break;
-    case MCC_PARSER_ENTRY_POINT_PARAMETERS:
-        mcc_ast_delete(result->parameters);
-        break;
-    case MCC_PARSER_ENTRY_POINT_ARGUMENTS:
-        mcc_ast_delete(result->arguments);
-        break;
-    case MCC_PARSER_ENTRY_POINT_COMPOUND_STATEMENT:
-        mcc_ast_delete(result->compound_statement);
-        break;
+    	case MCC_PARSER_ENTRY_POINT_FUNCTION_DEFINITION:
+        	mcc_ast_delete(result->function_definition);
+        	break;
+    	case MCC_PARSER_ENTRY_POINT_PARAMETERS:
+        	mcc_ast_delete(result->parameters);
+        	break;
+   	case MCC_PARSER_ENTRY_POINT_ARGUMENTS:
+        	mcc_ast_delete(result->arguments);
+        	break;
+    	case MCC_PARSER_ENTRY_POINT_COMPOUND_STATEMENT:
+        	mcc_ast_delete(result->compound_statement);
+        	break;
 	}
 }
 
