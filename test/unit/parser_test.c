@@ -902,6 +902,25 @@ void EmptyParameters(CuTest *tc)
 	mcc_ast_delete(function_definition);
 }
 
+void DanglingElse (CuTest *tc)
+{
+	const char input[] = "{if (a ==1) a = 1; if (a == 2) a = 2; else b = 3;}";
+	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_EXPRESSION);
+
+	CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
+	CuAssertIntEquals(tc, MCC_PARSER_ENTRY_POINT_COMPOUND_STATEMENT, result.entry_point);
+
+	struct mcc_ast_compound_statement *stmt = result.compound_statement;
+
+	CuAssertIntEquals(tc, MCC_AST_STATEMENT_TYPE_IF_STMT, stmt->statement->type);
+
+	// root -> next_stmt -> stmt -> on_false -> expression
+	CuAssertIntEquals(tc, MCC_AST_STATEMENT_TYPE_IF_ELSE_STMT, stmt->next_compound_statement->statement->type);
+	CuAssertStrEquals(tc, "b", stmt->next_compound_statement->statement->if_else_on_false->assignment->variable_identifier->identifier_name);
+
+	mcc_ast_delete(stmt);
+}
+
 #define TESTS \
 	TEST(BinaryOp_1) \
 	TEST(BinaryOp_2) \
@@ -932,7 +951,8 @@ void EmptyParameters(CuTest *tc)
 	TEST(Program) \
 	TEST(EmptyCompound) \
 	TEST(EmptyFunctionCall) \
-	TEST(EmptyParameters)
+	TEST(EmptyParameters) \
+	TEST(DanglingElse)
 
 #include "main_stub.inc"
 #undef TESTS
