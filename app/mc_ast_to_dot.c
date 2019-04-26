@@ -115,7 +115,11 @@ char *fileToString(char *filename)
 	char *buffer = (char *)malloc(length + 1);
 	buffer[length] = '\0';
 	// TODO error handling fread
-	fread(buffer, 1, length, f);
+	size_t ret = fread(buffer, 1, length, f);
+	if (ret == 0){
+		perror("fileToString: fread");
+		return NULL;
+	}
 	fclose(f);
 	return buffer;
 }
