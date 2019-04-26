@@ -7,15 +7,6 @@
 %define parse.trace
 %define parse.error verbose
 
-// Enabling printer of the state of the parser for debugging purposes:
-
-
-%printer { fprintf (yyo, "Semantic string value:'%s'", $$); } <char*>
-%printer { fprintf (yyo, "Semantic float value:'%ld'", $$); } <long>
-%printer { fprintf (yyo, "Semantic int value:'%f'", $$); } <double>
-
-
-
 %code requires {
 #include "mcc/parser.h"
 }
@@ -109,6 +100,15 @@ void mcc_parser_error();
 %destructor { mcc_ast_delete($$); } assignment
 %destructor { mcc_ast_delete($$); } declaration
 %destructor { mcc_ast_delete($$); } literal
+%destructor { mcc_ast_delete($$); } compound_statement
+%destructor { mcc_ast_delete($$); } statements
+%destructor { mcc_ast_delete($$); } parameters
+%destructor { mcc_ast_delete($$); } function_def
+%destructor { mcc_ast_delete($$); } function_defs
+%destructor { mcc_ast_delete($$); } program
+%destructor { mcc_ast_delete($$); } arguments
+%destructor { free($$); } STRING_LITERAL
+%destructor { free($$); } IDENTIFIER
 
 %start toplevel
 
@@ -215,17 +215,6 @@ program         :  function_defs { $$ = $1; loc($$,@1); }
 #include "scanner.h"
 #include "utils/unused.h"
 #include "mcc/parser.h"
-
-// Enabling verbose debugging that shows state of the parser:
-
-
-#ifdef YYDEBUG
-  yydebug = 1;
-#endif
-
-
-
-
 
 struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_parser_entry_point entry_point)
 {

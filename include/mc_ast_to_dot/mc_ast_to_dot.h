@@ -39,8 +39,6 @@ struct mcc_ast_to_dot_program_arguments {
 	char **args;
 };
 
-// Clean up command line parsing results
-void mc_ast_to_dot_delete_command_line_parser(struct mcc_ast_to_dot_command_line_parser *command_line);
 
 // Print usage of mc_ast_to_dot
 void print_usage(const char *prg);
@@ -59,6 +57,9 @@ struct mcc_ast_to_dot_options *parse_options(int argc, char *argv[]);
 
 // Parse the arguments from mc_ast_to_dot
 struct mcc_ast_to_dot_program_arguments *parse_arguments(int argc, char *argv[]);
+
+// Clean up command line parsing results
+void mc_ast_to_dot_delete_command_line_parser(struct mcc_ast_to_dot_command_line_parser *command_line);
 
 // Generate string from command line inputs
 char *mc_ast_to_dot_generate_input(struct mcc_ast_to_dot_command_line_parser *command_line);

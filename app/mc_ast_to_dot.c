@@ -89,22 +89,6 @@ int main(int argc, char *argv[])
 	return EXIT_SUCCESS;
 }
 
-void mc_ast_to_dot_delete_command_line_parser(struct mcc_ast_to_dot_command_line_parser *command_line)
-{
-	if (command_line->arguments->args != NULL) {
-		free(command_line->arguments->args);
-	}
-	if (command_line->arguments != NULL) {
-		free(command_line->arguments);
-	}
-	if (command_line->options != NULL) {
-		free(command_line->options);
-	}
-	if (command_line != NULL) {
-		free(command_line);
-	}
-}
-
 void print_usage(const char *prg)
 {
 	printf("usage: %s [OPTIONS] file...\n\n", prg);
@@ -173,7 +157,7 @@ struct mcc_ast_to_dot_options *parse_options(int argc, char *argv[])
 {
 	struct mcc_ast_to_dot_options *options = malloc(sizeof(*options));
 	if (options == NULL) {
-		perror("Error:Allocation in parse_options");
+		perror("parse_options:malloc");
 		return NULL;
 	}
 
@@ -188,8 +172,17 @@ struct mcc_ast_to_dot_options *parse_options(int argc, char *argv[])
 		return options;
 	}
 
+	static struct option long_options[] =
+			{
+					{"help", no_argument, NULL, 'h'},
+					{"output", required_argument, NULL, 'o'},
+					{"function", required_argument, NULL, 'f'},
+					{"test", no_argument, NULL, 't'},
+					{NULL,0,NULL,0}
+			};
+
 	int c;
-	while ((c = getopt(argc, argv, "o:h:f:t")) != -1) {
+	while ((c = getopt_long(argc, argv, "o:hf:t",long_options,NULL)) != -1) {
 		switch (c) {
 		case 'o':
 			options->write_to_file = true;
@@ -220,9 +213,9 @@ struct mcc_ast_to_dot_program_arguments *parse_arguments(int argc, char *argv[])
 
 	int i = optind;
 
-	struct mcc_ast_to_dot_program_arguments *arguments = malloc(sizeof(arguments));
+	struct mcc_ast_to_dot_program_arguments *arguments = malloc(sizeof(*arguments));
 	if (arguments == NULL) {
-		perror("malloc");
+		perror("parse_arguments:malloc");
 	}
 
 	if (argc == 1) {
@@ -251,32 +244,42 @@ struct mcc_ast_to_dot_command_line_parser *parse_command_line(int argc, char *ar
 
 	struct mcc_ast_to_dot_options *options = parse_options(argc, argv);
 	if (options == NULL) {
+	    perror("parse_command_line: parse_options");
 		return NULL;
 	}
 
 	struct mcc_ast_to_dot_command_line_parser *parser = malloc(sizeof(*parser));
 	if (parser == NULL) {
+		perror("parse_command_line: malloc");
 		return NULL;
 	}
 
 	struct mcc_ast_to_dot_program_arguments *arguments = parse_arguments(argc, argv);
-	if (arguments == NULL) {
-		parser->options = options;
-		parser->arguments = NULL;
-		return parser;
-	}
 
 	if (arguments->size == 0) {
 		options->print_help = true;
-		parser->options = options;
-		parser->arguments = arguments;
-		return parser;
 	}
 
 	parser->options = options;
 	parser->arguments = arguments;
 
 	return parser;
+}
+
+void mc_ast_to_dot_delete_command_line_parser(struct mcc_ast_to_dot_command_line_parser *command_line)
+{
+	if (command_line->arguments->args != NULL) {
+		free(command_line->arguments->args);
+	}
+	if (command_line->arguments != NULL) {
+		free(command_line->arguments);
+	}
+	if (command_line->options != NULL) {
+		free(command_line->options);
+	}
+	if (command_line != NULL) {
+		free(command_line);
+	}
 }
 
 char *mc_ast_to_dot_generate_input(struct mcc_ast_to_dot_command_line_parser *command_line)
@@ -290,7 +293,7 @@ char *mc_ast_to_dot_generate_input(struct mcc_ast_to_dot_command_line_parser *co
 	if (command_line->arguments->size == 1 && strcmp(*(command_line->arguments->args), "-") == 0) {
 		return stdinToString();
 
-		// read from files into input string
+	// read from files into input string
 	} else {
 		int i = 0;
 		int length = 0;
@@ -311,6 +314,7 @@ char *mc_ast_to_dot_generate_input(struct mcc_ast_to_dot_command_line_parser *co
 			char *content = fileToString(*(command_line->arguments->args + i));
 			if (content == NULL) {
 				printf("Error opening file \"%s\"\n", *(command_line->arguments->args + i));
+				free(content);
 				command_line->options->print_help = true;
 				return NULL;
 			}
@@ -319,20 +323,18 @@ char *mc_ast_to_dot_generate_input(struct mcc_ast_to_dot_command_line_parser *co
 			i++;
 		}
 
-		// allocate memory for input string
-		char *input = malloc(sizeof(char) * (length + command_line->arguments->size));
+		// allocate memory for input string (initialized with 0s, for strncat to find)
+		char *input = calloc((length + command_line->arguments->size) +1, sizeof(char));
 		if (input == NULL) {
 			perror("mc_ast_to_dot_generate_input: malloc");
 			return NULL;
 		}
 
-		// Concatenate input files into input string
-		snprintf(input, 1, "\0");
 		i = 0;
 
 		while (i < command_line->arguments->size) {
 			char *file_content = fileToString(*(command_line->arguments->args + i));
-			int arg_length = strlen(file_content) + 1;
+			int arg_length = strlen(file_content) + 2;
 			char *intermediate = malloc(arg_length);
 			if (intermediate == NULL) {
 				perror("mc_ast_to_dot_generate_input: malloc");
@@ -341,6 +343,7 @@ char *mc_ast_to_dot_generate_input(struct mcc_ast_to_dot_command_line_parser *co
 			snprintf(intermediate, arg_length + 1, "\n%s", file_content);
 			free(file_content);
 			strncat(input, intermediate, arg_length);
+			free(intermediate);
 			i++;
 		}
 		return input;
@@ -379,70 +382,3 @@ struct mcc_parser_result limit_result_to_function_scope(struct mcc_parser_result
     perror("error while printing: no function with given function name\n");
     return limited_result;
 }
-
-//void limit_result_to_function_scope(struct mcc_parser_result *result, char *wanted_function_name)
-//{
-//    assert(result);
-//
-//    printf("1: %s\n", result->program->has_next_function ? "true" : "false");
-//    printf("2: %s\n", wanted_function_name);
-//
-//    // preceding program
-//    struct mcc_ast_program *pre_program;
-//    // current program
-//    struct mcc_ast_program *cur_program = result->program;
-//
-//    // wanted function
-//    struct mcc_ast_function_definition *wanted_function;
-//
-//    // look for wanted function
-//    if (strcmp(wanted_function_name, cur_program->function->identifier->identifier_name) == 0)
-//    {// wanted function is in top-level program
-//
-//        wanted_function = cur_program->function;
-//        cur_program->function = NULL;
-//        // delete everything except wanted_function and its program
-//        if (cur_program->has_next_function){
-//            mcc_ast_delete_program(cur_program->next_function);
-//        }
-//        // free remaining program of old result
-//        free(result->program);
-//        result->program = NULL;
-//        // set new result and return
-//        result->function_definition = wanted_function;
-//        return;
-//    } else { // wanted function is not in top-level program
-//
-//        while (cur_program->has_next_function) {
-//            pre_program = cur_program;
-//            cur_program = cur_program->next_function;
-//
-//            // if wanted function is found
-//            if (strcmp(wanted_function_name, cur_program->function->identifier->identifier_name) == 0){
-//                wanted_function = cur_program->function;
-//                // reorganize pointers
-//                if (cur_program->has_next_function){
-//                    pre_program->next_function = cur_program->next_function;
-//                    cur_program->function = NULL;
-//                    cur_program->has_next_function = false;
-//                    cur_program->next_function = NULL;
-//                    free(cur_program);
-//                } else {
-//                    pre_program->has_next_function = false;
-//                    pre_program->next_function = NULL;
-//                }
-//                // delete everything except wanted function
-//                mcc_ast_delete_program(result->program);
-//                // set new result and return
-//                result->function_definition = wanted_function;
-//                printf(result->program->has_next_function ? "program exists\n" : "program does not exist\n");
-//                printf("%s\n", result->function_definition->identifier->identifier_name);
-//                return;
-//            }
-//        }
-//    }
-//    // if not returned until here parser status not okay
-//    result->status = MCC_PARSER_STATUS_UNKNOWN_ERROR;
-//    perror("error while printing: no function with given function name\n");
-//    return;
-//}
