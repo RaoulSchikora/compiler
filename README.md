@@ -1,10 +1,5 @@
 # mC Compiler
 
-This repository holds a *getting started* code-base for the [compiler construction course](https://git.uibk.ac.at/c7031162/703602-Compiler-Construction).
-
-Be sure to understand the provided code before using it!
-
-- See [Development Notes](docs/development_notes.md)
 
 ## Prerequisites
 
@@ -36,14 +31,6 @@ For integration testing we try to compile mC programs and compare their output f
 
     $ ../scripts/run_integration_tests
 
-Taken from the [Meson Documentation](https://mesonbuild.com/Unit-tests.html#coverage):
-
-> If you enable coverage measurements by giving Meson the command line flag `-Db_coverage=true`, you can generate coverage reports.
-> Meson will autodetect what coverage generator tools you have installed and will generate the corresponding targets.
-> These targets are `coverage-xml` and `coverage-text` which are both provided by Gcovr and `coverage-html`, which requires Lcov and GenHTML or Gcovr with html support.
-
 ## Known Issues
 
-- DONE Parser leaks memory on invalid inputs.
-- parser conflicts
-- mc_ast_to_dot is not providing expected OPTIONS
+- see docs/known_issues.md 

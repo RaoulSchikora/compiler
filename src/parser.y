@@ -110,6 +110,8 @@ void mcc_parser_error();
 %destructor { free($$); } STRING_LITERAL
 %destructor { free($$); } IDENTIFIER
 
+
+
 %start toplevel
 
 %%

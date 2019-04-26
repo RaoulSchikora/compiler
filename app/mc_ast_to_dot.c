@@ -99,7 +99,7 @@ void print_usage(const char *prg)
 	printf("  -h, --help                displays this help message\n");
 	printf("  -o, --output <file>       write the output to <file> (defaults to stdout)\n");
 	printf("  -f, --function <name>     limit scope to the given function\n");
-	printf("  -t, --test                parse, even if input is not a program or function\n");
+	printf("  -t, --test                parse rules of the grammar that are not a program\n");
 }
 
 // modified from: https://stackoverflow.com/questions/174531
