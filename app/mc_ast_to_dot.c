@@ -145,7 +145,7 @@ struct mcc_ast_to_dot_options *parse_options(int argc, char *argv[])
 {
 	struct mcc_ast_to_dot_options *options = malloc(sizeof(*options));
 	if (options == NULL) {
-		perror("Error:Allocation in parse_options");
+		perror("parse_options:malloc");
 		return NULL;
 	}
 
@@ -201,9 +201,9 @@ struct mcc_ast_to_dot_program_arguments *parse_arguments(int argc, char *argv[])
 
 	int i = optind;
 
-	struct mcc_ast_to_dot_program_arguments *arguments = malloc(sizeof(arguments));
+	struct mcc_ast_to_dot_program_arguments *arguments = malloc(sizeof(*arguments));
 	if (arguments == NULL) {
-		perror("malloc");
+		perror("parse_arguments:malloc");
 	}
 
 	if (argc == 1) {
@@ -243,17 +243,9 @@ struct mcc_ast_to_dot_command_line_parser *parse_command_line(int argc, char *ar
 	}
 
 	struct mcc_ast_to_dot_program_arguments *arguments = parse_arguments(argc, argv);
-	if (arguments == NULL) {
-		parser->options = options;
-		parser->arguments = NULL;
-		return parser;
-	}
 
 	if (arguments->size == 0) {
 		options->print_help = true;
-		parser->options = options;
-		parser->arguments = arguments;
-		return parser;
 	}
 
 	parser->options = options;
