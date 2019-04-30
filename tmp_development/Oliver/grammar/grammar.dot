@@ -1,0 +1,31 @@
+digraph {
+
+"program"[shape="box",style=rounded];
+"function_def"[shape="box",style=rounded];
+"type"[shape="box",style=rounded];
+"identifier"[shape="box",style=rounded];
+"parameter"[shape="box",style=rounded];
+"declaration"[shape="box",style=rounded];
+"call_expr"[shape="box",style=rounded];
+"arguments"[shape="box",style=rounded];
+"expression"[shape="box",style=rounded];
+"statement"[shape="box",style=rounded];
+"if_stmt"[shape="box",style=rounded];
+"while_stmt"[shape="box",style=rounded];
+"ret_stmt"[shape="box",style=rounded];
+"compound_stmt"[shape="box",style=rounded];
+
+
+	"program" -> "function_def";
+	"function_def" -> "type";
+	"function_def" -> "identifier";
+	"function_def" -> "parameter";
+	"function_def" -> "compound_stmt";
+	"compound_stmt" -> "statement";
+	"statement" -> "if_stmt";
+	"statement" -> "while_stmt";
+	"statement" -> "ret_stmt";
+	"statement" -> "declaration";
+	"statement" -> "expression";
+	"statement" -> "compound_stmt";
+}
