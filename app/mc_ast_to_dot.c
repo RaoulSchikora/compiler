@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
 	struct mcc_parser_result limited_result;
 	struct mcc_parser_result *ptr_result;
 
-	// handle entry point dependent on wether "-t" was passed
+	// handle entry point dependent on whether "-t" was passed
 	switch (command_line->options->mode) {
 	case MCC_AST_TO_DOT_MODE_TEST:;
 
