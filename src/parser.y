@@ -81,6 +81,8 @@ void mcc_parser_error();
 %left LT_SIGN GT_SIGN LT_EQ_SIGN GT_EQ_SIGN EQEQ EXKLA_EQ
 %left PLUS MINUS
 %left ASTER SLASH
+%precedence NOT_ELSE
+%precedence ELSE
 
 %type <struct mcc_ast_expression *> expression
 %type <struct mcc_ast_literal *> literal
@@ -167,7 +169,7 @@ declaration     : TYPE IDENTIFIER { $$ = mcc_ast_new_variable_declaration($1,$2)
                 ;
 
 
-statement       : IF LPARENTH expression RPARENTH statement 		        { $$ = mcc_ast_new_statement_if_stmt( $3, $5); 	     loc($$, @1);}
+statement       : IF LPARENTH expression RPARENTH statement %prec NOT_ELSE   { $$ = mcc_ast_new_statement_if_stmt( $3, $5); 	     loc($$, @1);}
                 | IF LPARENTH expression RPARENTH statement ELSE statement  { $$ = mcc_ast_new_statement_if_else_stmt( $3, $5, $7); loc($$, @1);}
                 | expression SEMICOLON 				                        { $$ = mcc_ast_new_statement_expression( $1); 	     loc($$, @1);}
                 | WHILE LPARENTH expression RPARENTH statement 	            { $$ = mcc_ast_new_statement_while( $3, $5); 	     loc($$, @1);}
@@ -226,6 +228,7 @@ struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_par
 
 
 	if (entry_point != MCC_PARSER_ENTRY_POINT_PROGRAM){
+		// set global variable instead
 	    	input = mcc_transform_into_unit_test(input_string);
 		if(input == NULL){
 			return (struct mcc_parser_result){
