@@ -20,6 +20,8 @@ void mcc_parser_error();
 #define loc(ast_node, ast_sloc) \
 	(ast_node)->node.sloc.start_col = (ast_sloc).first_column;
 
+int start_token;
+
 %}
 
 %define api.value.type union
@@ -45,8 +47,6 @@ void mcc_parser_error();
 
 %token CURL_OPEN "{"
 %token CURL_CLOSE "}"
-
-%token TILDE "~"
 
 %token PLUS  "+"
 %token MINUS "-"
@@ -75,6 +75,9 @@ void mcc_parser_error();
 
 %token SEMICOLON ";"
 %token COMMA ","
+
+%token START_UNIT 1
+%token START_PROG 2
 
 // set prescedence and associativity
 %left ANDAND OROR
@@ -118,9 +121,9 @@ void mcc_parser_error();
 
 %%
 
-toplevel        : TILDE unit_test TILDE
-                | program {result->entry_point = MCC_PARSER_ENTRY_POINT_PROGRAM; result->program = $1;}
-                ;
+toplevel	: START_UNIT unit_test
+		| START_PROG program {result->entry_point = MCC_PARSER_ENTRY_POINT_PROGRAM; result->program = $2;}
+		;
 
 unit_test       : expression { result->entry_point = MCC_PARSER_ENTRY_POINT_EXPRESSION; result->expression = $1;  }
                 | declaration { result->entry_point = MCC_PARSER_ENTRY_POINT_DECLARATION; result->declaration = $1;}
@@ -227,23 +230,20 @@ struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_par
 	char* input;
 
 
+	// set global variable to entry point of parser
 	if (entry_point != MCC_PARSER_ENTRY_POINT_PROGRAM){
-		// set global variable instead
-	    	input = mcc_transform_into_unit_test(input_string);
-		if(input == NULL){
-			return (struct mcc_parser_result){
-				.status = MCC_PARSER_STATUS_UNKNOWN_ERROR,
-			};
-		}
+		start_token = 1;
 	} else {
-		input = (char*) malloc ((strlen(input_string)+1)*sizeof(char));
-		if(input == NULL){
-			return (struct mcc_parser_result){
-				.status = MCC_PARSER_STATUS_UNKNOWN_ERROR,
-			};
-		}
-		strcpy (input,input_string);
+		start_token = 2;
 	}
+
+	input = (char*) malloc ((strlen(input_string)+1)*sizeof(char));
+	if(input == NULL){
+		return (struct mcc_parser_result){
+			.status = MCC_PARSER_STATUS_UNKNOWN_ERROR,
+		};
+	}
+	strcpy (input,input_string);
 
 	FILE *in = fmemopen((void *)input, strlen(input), "r");
 	if (in == NULL) {
@@ -259,16 +259,6 @@ struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_par
 	fclose(in);
 
 	return result;
-}
-
-char* mcc_transform_into_unit_test (const char* in)
-{
-  char* out = (char*) malloc((strlen(in)+3)*sizeof(char));
-  *out = '~';
-  strcpy (out + 1,in);
-  *(out + strlen(in)+1) = '~';
-  *(out + strlen(in)+2) = '\0';
-  return out;
 }
 
 struct mcc_parser_result mcc_parse_file(FILE *input)
