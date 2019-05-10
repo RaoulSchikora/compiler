@@ -158,8 +158,8 @@ arguments       : expression { $$ = mcc_ast_new_arguments(false, $1, NULL); loc(
                 ;
 
 
-assignment 	:	IDENTIFIER EQ expression { $$ = mcc_ast_new_variable_assignment ($1, $3); loc($$,@1); }
-                |	IDENTIFIER SQUARE_OPEN expression SQUARE_CLOSE EQ expression { $$ = mcc_ast_new_array_assignment ($1, $3, $6); loc($$, @1);}
+assignment 	: IDENTIFIER EQ expression { $$ = mcc_ast_new_variable_assignment ($1, $3); loc($$,@1); }
+                | IDENTIFIER SQUARE_OPEN expression SQUARE_CLOSE EQ expression { $$ = mcc_ast_new_array_assignment ($1, $3, $6); loc($$, @1);}
                 ;
 
 declaration     : TYPE IDENTIFIER { $$ = mcc_ast_new_variable_declaration($1,$2); loc ($$, @1);}
@@ -260,12 +260,12 @@ struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_par
 
 char* mcc_transform_into_unit_test (const char* in)
 {
-  char* out = (char*) malloc((strlen(in)+3)*sizeof(char));
-  *out = '~';
-  strcpy (out + 1,in);
-  *(out + strlen(in)+1) = '~';
-  *(out + strlen(in)+2) = '\0';
-  return out;
+  	char* out = (char*) malloc((strlen(in)+3)*sizeof(char));
+  	*out = '~';
+  	strcpy (out + 1,in);
+  	*(out + strlen(in)+1) = '~';
+ 	*(out + strlen(in)+2) = '\0';
+  	return out;
 }
 
 struct mcc_parser_result mcc_parse_file(FILE *input)
