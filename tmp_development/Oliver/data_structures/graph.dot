@@ -1,0 +1,69 @@
+digraph {
+	label="AST.h visualisiert"
+	
+	"struct mcc_parser_result"[shape="box", style=rounded];
+	"enum mcc_parser_status"[shape="box",style=rounded];
+	"struct mcc_ast_source_location"[shape="box", style=rounded];
+	"int start_line"[shape="box", style=rounded];
+	"int start_col"[shape="box", style=rounded];
+	"int end_line"[shape="box", style=rounded];
+	"int end_col"[shape="box", style=rounded];
+	"struct mcc_ast_node"[shape="box", style=rounded];
+	"enum mcc_ast_binary_op"[shape="box", style=rounded];
+	"enum mcc_ast_expression_type"[shape="box", style=rounded];
+	"struct mcc_ast_expression"[shape="box", style=rounded];
+	"enum mcc_ast_literal_type"[shape="box", style=rounded];
+	"struct mcc_ast_literal"[shape="box", style=rounded];
+	"Union"[shape="box", style=rounded];
+	"Anonymous struct"[shape="box", style=rounded];
+	"struct mcc_ast_expression LHS"[shape="box"];
+	"struct mcc_ast_expression RHS"[shape="box"];
+	"struct mcc_ast_expression No. 2"[shape="box"];
+	"struct mcc_ast_node No. 2"[shape="box"];
+	"Union 2"[shape="box",style=rounded];
+	"long i_value"[shape="box",style=rounded];
+	"double f_value"[shape="box",style=rounded];
+	"enum mcc_ast_unary_op"[shape="box",style=rounded];
+	"struct mcc_ast_expression CHILD"[shape="box",style=rounded];
+	"Anonymous struct 2"[shape="box", style=rounded];
+	"Anonymous struct 3"[shape="box", style=rounded];
+	"Anonymous struct 4"[shape="box", style=rounded];
+	"char* array_identifier"[shape="box", style=rounded];
+	"struct mcc_ast_expression* index"[shape="box", style=rounded];
+	"char* identifier"[shape="box", style=rounded];
+
+
+	"struct mcc_ast_source_location" -> "int start_line";
+	"struct mcc_ast_source_location" -> "int start_col";	
+	"struct mcc_ast_source_location" -> "int end_line";
+	"struct mcc_ast_source_location" -> "int end_col";
+	
+	"struct mcc_ast_node" -> "struct mcc_ast_source_location";
+	
+	"struct mcc_ast_expression" -> "struct mcc_ast_node";
+	"struct mcc_ast_expression" -> "enum mcc_ast_expression_type";
+	"struct mcc_ast_expression" -> "Union";
+	"Union" -> "struct mcc_ast_literal";	
+	"Union" -> "Anonymous struct";
+	"Union" -> "struct mcc_ast_expression No. 2";
+	"Union" -> "Anonymous struct 2"
+	"Anonymous struct 2" -> "enum mcc_ast_unary_op";
+	"Anonymous struct 2" -> "struct mcc_ast_expression CHILD";
+	"Anonymous struct" -> "enum mcc_ast_binary_op";
+	"Anonymous struct" -> "struct mcc_ast_expression LHS";
+	"Anonymous struct" -> "struct mcc_ast_expression RHS";
+	"struct mcc_ast_literal" -> "struct mcc_ast_node No. 2";
+	"struct mcc_ast_literal" -> "enum mcc_ast_literal_type";
+	"struct mcc_ast_literal" -> "Union 2";
+	"Union 2" -> "long i_value";
+	"Union 2" -> "double f_value";
+	"struct mcc_parser_result" -> "enum mcc_parser_status";
+	"struct mcc_parser_result" -> "struct mcc_ast_expression";
+	"Union" -> "Anonymous struct 3";
+	"Union" -> "Anonymous struct 4";
+	"Anonymous struct 3" -> "char* identifier";
+	"Anonymous struct 4" -> "char* array_identifier";
+	"Anonymous struct 4" -> "struct mcc_ast_expression* index";
+}
+
+	

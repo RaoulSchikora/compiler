@@ -23,6 +23,8 @@
 	yylloc->first_column = yylloc->last_column; \
 	yylloc->last_column += yyleng; \
 	yylloc->first_line = yylloc->last_line;
+    int start_token;
+
 %}
 
 identifier     [a-zA-Z_][a-zA-Z0-9_]*
@@ -32,6 +34,16 @@ string_literal \"[^"]*\"
 
 
 %%
+
+%{
+    if(start_token)
+        {
+            int t = start_token;
+            start_token = 0;
+            return t;
+        }
+%}
+
 
 {int_literal}     { yylval->TK_INT_LITERAL = atol(yytext); return TK_INT_LITERAL; }
 
@@ -88,8 +100,6 @@ string_literal \"[^"]*\"
 
 [ \t\r]+          { /* ignore */ }
 \n                { yylloc->last_column = 1; yylloc->last_line += 1; }
-
-"~"               { yylloc->last_column = yylloc->first_column; return TK_TILDE; /*only for UnitTest purpose*/ }
 
 "/*"              { BEGIN COMMENT; }
 <COMMENT>.        { /* ignore comments */ }

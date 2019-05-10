@@ -1,0 +1,25 @@
+Running integration tests with mcc stub: 
+	Assign variable MCC=./scripts/mcc_stub first
+Flex usage: 
+	flex sample.lex
+Flex tutorial + manual:
+	info flex
+Compiling generated lexer with gcc:
+	gcc lex.yy.c -lfl
+Execute generated output file with:
+    ./a.out
+Use program for example with (Calculator sample):
+    12 + 4
+
+
+Bison flags:
+	%left defines associativity and precedence, first occurence of %left has highest precedence
+	%start defines Starting-Nonterminal of the grammar to be used, so that it doesn't have to be the first rule
+	%location is a flag to turn on tracking of the location in the source file, which is handled by the lexer and stored in the yylloc variable
+	%define api.pure is a flag to tell bison to create a pure parser, which means, that instead of creating static data structures to store the parsed data structures (here AST), the data structures are given as an argument to the parsing and scanning routines to enable e.g. multithread execution (also called "reentrant" parser)
+	--> the variables yylval and yyloc have to be passed to yylex() to tell the scanner at which point to re-enter
+	%lex-param{} specifies application data to be passed (to my (Oli) understanding, this is independent of the state of the scanner, while the arguments specified in parse-param are used to determine the re-entry point of the scanner)
+	%parse-param{} defines the arguments that will be passed to the yyparse() - routine, can be arbitrarilly many
+	%code requires {} inserts code into the generated C file ahead of some default definitions and also into the headerfile, but is otherwhise like %{ %}
+	%type <d> NUMBER defines NUMBER to be of type d (in the code example literals are defined to be of type "struct mcc_ast_literal*"
+	%define api.value.type union, definiert Typ der yylval Variable?
