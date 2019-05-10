@@ -284,7 +284,7 @@ struct mcc_ast_to_dot_program_arguments *parse_arguments(int argc, char *argv[])
 
 	struct mcc_ast_to_dot_program_arguments *arguments = malloc(sizeof(*arguments));
 	if (arguments == NULL) {
-		perror("parse_arguments:malloc");
+		perror("parse_arguments: malloc");
 	}
 
 	if (argc == 1) {
