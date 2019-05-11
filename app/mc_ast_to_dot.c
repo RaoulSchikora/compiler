@@ -125,6 +125,10 @@ int main(int argc, char *argv[])
     // Check if Parser returned correctly
     if (ptr_result->status != MCC_PARSER_STATUS_OK) {
 		mc_ast_to_dot_delete_command_line_parser(command_line);
+        // covers case where actual result is OK but limited result is not
+		if(result.status == MCC_PARSER_STATUS_OK){
+            mcc_ast_delete_result(&result);
+        }
 		free(input);
 		return EXIT_FAILURE;
 	}
@@ -421,13 +425,19 @@ char *mc_ast_to_dot_generate_input(struct mcc_ast_to_dot_command_line_parser *co
 
 struct mcc_parser_result limit_result_to_function_scope(struct mcc_parser_result *result, char *wanted_function_name)
 {
-    // current program
-    struct mcc_ast_program *cur_program = result->program;
 
     // new result with limited scope
     struct mcc_parser_result limited_result;
     limited_result.status = MCC_PARSER_STATUS_OK;
     limited_result.entry_point = MCC_PARSER_ENTRY_POINT_FUNCTION_DEFINITION;
+
+    if(result->status != MCC_PARSER_STATUS_OK)
+    {
+        limited_result.status = MCC_PARSER_STATUS_UNKNOWN_ERROR;
+        return limited_result;
+    }
+    // current program
+    struct mcc_ast_program *cur_program = result->program;
 
     // look for wanted function
     if (strcmp(wanted_function_name, cur_program->function->identifier->identifier_name) == 0)
