@@ -20,7 +20,7 @@ enum mcc_parser_status {
 };
 
 enum mcc_parser_entry_point {
-	// entry point which are set while parsing
+	// entry point which is set while parsing
 	MCC_PARSER_ENTRY_POINT_EXPRESSION,
 	MCC_PARSER_ENTRY_POINT_PROGRAM,
 	MCC_PARSER_ENTRY_POINT_DECLARATION,
@@ -35,6 +35,8 @@ enum mcc_parser_entry_point {
 struct mcc_parser_result {
 	enum mcc_parser_status status;
 	enum mcc_parser_entry_point entry_point;
+
+	char* error_buffer;
 
 	union {
 		// MCC_PARSER_ENTRY_POINT_EXPRESSION
@@ -56,8 +58,6 @@ struct mcc_parser_result {
 struct mcc_parser_result mcc_parse_string(const char *input, enum mcc_parser_entry_point entry_point);
 
 struct mcc_parser_result mcc_parse_file(FILE *input);
-
-char *mcc_transform_into_unit_test(const char *in);
 
 void mcc_ast_delete_result(struct mcc_parser_result *result);
 

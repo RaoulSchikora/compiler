@@ -223,6 +223,8 @@ program         :  function_defs { $$ = $1; loc($$,@1); }
 #include "utils/unused.h"
 #include "mcc/parser.h"
 
+char* buffer;
+
 struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_parser_entry_point entry_point)
 {
 	assert(input_string);
@@ -273,9 +275,11 @@ struct mcc_parser_result mcc_parse_file(FILE *input)
 	    .status = MCC_PARSER_STATUS_OK,
 	};
 
-
 	if (yyparse(scanner, &result) != 0) {
 		result.status = MCC_PARSER_STATUS_UNKNOWN_ERROR;
+		result.error_buffer = (char *)malloc(sizeof(char) * strlen(buffer) + 1);
+		strcpy(result.error_buffer, buffer);
+		free(buffer);
 	}
 
 	mcc_parser_lex_destroy(scanner);
@@ -319,19 +323,23 @@ void mcc_ast_delete_result(struct mcc_parser_result *result)
         	mcc_ast_delete(result->compound_statement);
         	break;
 	}
+	free(result->error_buffer);
 }
-
 
 void mcc_parser_error(struct MCC_PARSER_LTYPE *yylloc, struct mcc_parser_result *result, yyscan_t *scanner,
  												const char *msg)
 {
-	fprintf(stderr, "stopped while parsing in (%d,%d) - (%d,%d): %s\n", yylloc->first_line, yylloc->first_column,
+	char* str = (char *)malloc(sizeof(char) * (strlen(msg) + 50));
+	sprintf(str, "stopped while parsing in (%d,%d) - (%d,%d): %s\n", yylloc->first_line, yylloc->first_column,
 			yylloc->last_line, yylloc->last_column, msg);
 
-	// result and scanner needed to get meaningfull msg
+	buffer = (char *)malloc(sizeof(char) * strlen(str) + 1);
+	strcpy(buffer, str);
+
+	free(str);
+
+	// scanner needed to get meaningfull msg
 	UNUSED(scanner);
 	UNUSED(result);
-//	mcc_parser_lex_destroy(scanner);
-//	mcc_ast_delete_result(result);
 }
 

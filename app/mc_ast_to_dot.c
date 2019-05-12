@@ -117,20 +117,24 @@ int main(int argc, char *argv[])
 		break;
 	}
 
-	if (command_line->options->mode != MCC_AST_TO_DOT_MODE_FUNCTION){
-        ptr_result = &result;
-    } else {
+	if (command_line->options->mode == MCC_AST_TO_DOT_MODE_FUNCTION){
         ptr_result = &limited_result;
+    } else {
+        ptr_result = &result;
     }
     // Check if Parser returned correctly
     if (ptr_result->status != MCC_PARSER_STATUS_OK) {
+        if(ptr_result->error_buffer){
+            fprintf(stderr, "%s", ptr_result->error_buffer);
+            free(ptr_result->error_buffer);
+        }
 		mc_ast_to_dot_delete_command_line_parser(command_line);
         // covers case where actual result is OK but limited result is not
 		if(result.status == MCC_PARSER_STATUS_OK){
             mcc_ast_delete_result(&result);
         }
 		free(input);
-		return EXIT_FAILURE;
+        return EXIT_FAILURE;
 	}
 
 	// Print to file or stdout
@@ -148,10 +152,10 @@ int main(int argc, char *argv[])
 	}
 
 	// Cleanup
-    if (command_line->options->mode != MCC_AST_TO_DOT_MODE_FUNCTION){
-        mcc_ast_delete_result(ptr_result);
-    } else {
+    if (command_line->options->mode == MCC_AST_TO_DOT_MODE_FUNCTION){
         mcc_ast_delete_result(&result);
+    } else {
+        mcc_ast_delete_result(ptr_result);
     }
 	mc_ast_to_dot_delete_command_line_parser(command_line);
 	free(input);
