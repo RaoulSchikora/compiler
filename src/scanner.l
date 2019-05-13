@@ -20,6 +20,7 @@
 #define YYLTYPE MCC_PARSER_LTYPE
 
 #define YY_USER_ACTION \
+    yylloc->filename = filename; \
 	yylloc->first_column = yylloc->last_column; \
 	yylloc->last_column += yyleng; \
 	yylloc->first_line = yylloc->last_line;
@@ -40,6 +41,11 @@ string_literal \"[^"]*\"
         {
             int t = start_token;
             start_token = 0;
+
+            // tell scanner that we start counting from 1 and not from 0
+            yylloc->last_line = 1;
+            yylloc->last_column = 1;
+
             return t;
         }
 %}
@@ -66,7 +72,7 @@ string_literal \"[^"]*\"
 "*"               { return TK_ASTER; }
 "/"               { return TK_SLASH; }
 "!"               { return TK_EXKLA; }
-"="               { return TK_EQ;  }
+"="               { return TK_EQ; }
 
 "<"               { return TK_LT_SIGN; }
 ">"               { return TK_GT_SIGN; }
@@ -99,7 +105,7 @@ string_literal \"[^"]*\"
 ","               { return TK_COMMA; }
 
 [ \t\r]+          { /* ignore */ }
-\n                { yylloc->last_column = 1; yylloc->last_line += 1; }
+\n                { yylloc->last_line += 1; yylloc->last_column = 1;}
 
 "/*"              { BEGIN COMMENT; }
 <COMMENT>.        { /* ignore comments */ }
