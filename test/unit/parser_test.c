@@ -4,6 +4,7 @@
 #include "mcc/parser.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 
 // Threshold for floating point comparisions.
 static const double EPS = 1e-3;
@@ -512,6 +513,8 @@ void MissingClosingParenthesis_1(CuTest *tc)
 
 	CuAssertTrue(tc, MCC_PARSER_STATUS_OK != result.status);
 	CuAssertTrue(tc, NULL == result.expression);
+
+    free(result.error_buffer);
 }
 
 void SourceLocation_SingleLineColumn(CuTest *tc)
