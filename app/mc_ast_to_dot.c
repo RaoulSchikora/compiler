@@ -212,7 +212,7 @@ struct mcc_parser_result parse_file(char *filename)
 		};
 		return result;
 	}
-	return mcc_parse_file(f,MCC_PARSER_ENTRY_POINT_PROGRAM);
+	return mcc_parse_file(f,MCC_PARSER_ENTRY_POINT_PROGRAM,filename);
 }
 
 void print_usage(const char *prg)

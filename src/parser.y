@@ -281,7 +281,7 @@ struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_par
 		};
 	}
 
-	struct mcc_parser_result result = mcc_parse_file(in,entry_point);
+	struct mcc_parser_result result = mcc_parse_file(in,entry_point,"stdin");
 
 	free(input);
 
@@ -290,7 +290,7 @@ struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_par
 	return result;
 }
 
-struct mcc_parser_result mcc_parse_file(FILE *input, enum mcc_parser_entry_point entry_point)
+struct mcc_parser_result mcc_parse_file(FILE *input, enum mcc_parser_entry_point entry_point,char* name)
 {
 	assert(input);
 
@@ -303,7 +303,7 @@ struct mcc_parser_result mcc_parse_file(FILE *input, enum mcc_parser_entry_point
 		start_token = 1;
 	} else {
 		start_token = 2;
-		filename = "stdin";
+		filename = name;
 	}
 
 	struct mcc_parser_result result = {
@@ -366,7 +366,7 @@ void mcc_parser_error(struct MCC_PARSER_LTYPE *yylloc, struct mcc_parser_result 
  												const char *msg)
 {
 	char* str = (char *)malloc( sizeof(char) * (strlen(msg) + 50 + strlen(yylloc->filename)) );
-	sprintf(str, "stopped while parsing in %s (%d,%d) - (%d,%d): %s\n", yylloc->filename, (yylloc->first_line - 1),
+	sprintf(str, "stopped while parsing %s: (%d,%d) - (%d,%d): %s\n", yylloc->filename, (yylloc->first_line - 1),
 			yylloc->first_column, (yylloc->last_line - 1), yylloc->last_column, msg);
 
 	buffer = (char *)malloc(sizeof(char) * strlen(str) + 1);
