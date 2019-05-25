@@ -113,7 +113,7 @@ int start_token;
 %token START_UNIT 1
 %token START_PROG 2
 
-// set prescedence and associativity
+// set precedence and associativity
 %left ANDAND OROR
 %left LT_SIGN GT_SIGN LT_EQ_SIGN GT_EQ_SIGN EQEQ EXKLA_EQ
 %left PLUS MINUS
@@ -265,14 +265,6 @@ struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_par
 
 	char* input;
 
-	// set global variable to entry point of parser
-	if (entry_point != MCC_PARSER_ENTRY_POINT_PROGRAM){
-		filename = "<test_suit>";
-		start_token = 1;
-	} else {
-		start_token = 2;
-		filename = "<filename>";
-	}
 
 	input = (char*) malloc ((strlen(input_string)+1)*sizeof(char));
 	if(input == NULL){
@@ -289,7 +281,7 @@ struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_par
 		};
 	}
 
-	struct mcc_parser_result result = mcc_parse_file(in);
+	struct mcc_parser_result result = mcc_parse_file(in,entry_point);
 
 	free(input);
 
@@ -298,13 +290,21 @@ struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_par
 	return result;
 }
 
-struct mcc_parser_result mcc_parse_file(FILE *input)
+struct mcc_parser_result mcc_parse_file(FILE *input, enum mcc_parser_entry_point entry_point)
 {
 	assert(input);
 
 	yyscan_t scanner;
 	mcc_parser_lex_init(&scanner);
 	mcc_parser_set_in(input, scanner);
+
+	if (entry_point != MCC_PARSER_ENTRY_POINT_PROGRAM){
+		filename = "<test_suite>";
+		start_token = 1;
+	} else {
+		start_token = 2;
+		filename = "stdin";
+	}
 
 	struct mcc_parser_result result = {
 	    .status = MCC_PARSER_STATUS_OK,
@@ -345,22 +345,23 @@ void mcc_ast_delete_result(struct mcc_parser_result *result)
 	case MCC_PARSER_ENTRY_POINT_PROGRAM:
 		mcc_ast_delete(result->program);
 		break;
-    	case MCC_PARSER_ENTRY_POINT_FUNCTION_DEFINITION:
-        	mcc_ast_delete(result->function_definition);
-        	break;
-    	case MCC_PARSER_ENTRY_POINT_PARAMETERS:
-        	mcc_ast_delete(result->parameters);
-        	break;
+    case MCC_PARSER_ENTRY_POINT_FUNCTION_DEFINITION:
+        mcc_ast_delete(result->function_definition);
+        break;
+    case MCC_PARSER_ENTRY_POINT_PARAMETERS:
+        mcc_ast_delete(result->parameters);
+        break;
    	case MCC_PARSER_ENTRY_POINT_ARGUMENTS:
-        	mcc_ast_delete(result->arguments);
-        	break;
-    	case MCC_PARSER_ENTRY_POINT_COMPOUND_STATEMENT:
-        	mcc_ast_delete(result->compound_statement);
-        	break;
+        mcc_ast_delete(result->arguments);
+        break;
+    case MCC_PARSER_ENTRY_POINT_COMPOUND_STATEMENT:
+        mcc_ast_delete(result->compound_statement);
+        break;
 	}
-	free(result->error_buffer);
+
 }
 
+// Writes error message to a variable "buffer" that is allocated on the heap
 void mcc_parser_error(struct MCC_PARSER_LTYPE *yylloc, struct mcc_parser_result *result, yyscan_t *scanner,
  												const char *msg)
 {
