@@ -33,11 +33,17 @@ For integration testing we try to compile mC programs and compare their output f
 
 # Known Issues
 
+## mc_ast_to_dot
+
+- mc_ast_to_dot leaks memory
+- the option "-t" is still coded into the option parsing, but can't be used from the command line
+- if "-f" is specified and multiple functions match the specified name, currently the first one is used
+
 ## Parser
 
 ### Grammar
 
-The grammar contains 13 shift/reduce conflicts.
-Also, since the unit test matches any grammar rule, there are multiple reduce/reduce-conflicts. These will however not arise, when the testing mode isn't specified, because the parser can only match the unit-test grammar rule with the use of special "~" characters.
+The grammar contains 12 shift/reduce conflicts.
+Also, since the unit test matches any grammar rule, there are multiple reduce/reduce-conflicts. These will however not arise, when the testing mode isn't specified, because the parser can only match the unit-test grammar rule when a dedicated global variable is set (which can't happen due to user input)
 
 
