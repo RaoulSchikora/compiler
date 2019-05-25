@@ -15,7 +15,6 @@
 // Forward declarations:
 
 enum mc_ast_to_dot_mode {
-	MC_AST_TO_DOT_MODE_TEST,
 	MC_AST_TO_DOT_MODE_FUNCTION,
 	MC_AST_TO_DOT_MODE_PROGRAM,
 };
@@ -306,7 +305,6 @@ struct mc_ast_to_dot_options *parse_options(int argc, char *argv[])
 					{"help", no_argument, NULL, 'h'},
 					{"output", required_argument, NULL, 'o'},
 					{"function", required_argument, NULL, 'f'},
-					{"test", no_argument, NULL, 't'},
 					{NULL,0,NULL,0}
 			};
 
@@ -324,9 +322,6 @@ struct mc_ast_to_dot_options *parse_options(int argc, char *argv[])
 			options->limited_scope = true;
 			options->mode = MC_AST_TO_DOT_MODE_FUNCTION;
 			options->function = optarg;
-			break;
-		case 't':
-			options->mode = MC_AST_TO_DOT_MODE_TEST;
 			break;
 		default:
 			options->print_help = true;
