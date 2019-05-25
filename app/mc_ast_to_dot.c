@@ -446,28 +446,39 @@ struct mcc_parser_result limit_result_to_function_scope(struct mcc_parser_result
 	// set cur_program to current toplevel program
 	struct mcc_ast_program *cur_program = result->program;
 
-	// look for wanted function
+	// look for wanted function in first result
+	bool found_function = false;
 	if (strcmp(wanted_function_name, cur_program->function->identifier->identifier_name) == 0)
 	// wanted function is in top-level program
 	{
 		limited_result.program = cur_program;
 		limited_result.program->has_next_function = false;
 		limited_result.program->next_function = NULL;
-		return limited_result;
-	} else {
-	// look for wanted function, following the tree structure
-		while (cur_program->has_next_function) {
-			cur_program = cur_program->next_function;
-
-			// if wanted function is found
-			if (strcmp(wanted_function_name, cur_program->function->identifier->identifier_name) == 0) {
-				limited_result.program = cur_program;
-				limited_result.program->has_next_function = false;
-				limited_result.program->next_function = NULL;
-				return limited_result;
-			}
-		}
+		found_function = true;
 	}
+	// look for wanted function, following the tree structure
+    while (cur_program->has_next_function) {
+        cur_program = cur_program->next_function;
+
+        // if wanted function is found
+        if (strcmp(wanted_function_name, cur_program->function->identifier->identifier_name) == 0) {
+            if (found_function == true){
+                limited_result.status = MCC_PARSER_STATUS_UNKNOWN_ERROR;
+                limited_result.program = NULL;
+                fprintf(stderr,"error: function with name %s appears multiple times\n",wanted_function_name);
+                return limited_result;
+            } else {
+                limited_result.program = cur_program;
+                limited_result.program->has_next_function = false;
+                limited_result.program->next_function = NULL;
+                found_function = true;
+            }
+        }
+    }
+    if (found_function == true){
+        return limited_result;
+    }
+
 	// if not returned till this point, function can't be found
 	limited_result.status = MCC_PARSER_STATUS_UNKNOWN_ERROR;
 	fprintf(stderr,"error: no function with function name %s\n",wanted_function_name);

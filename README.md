@@ -37,6 +37,7 @@ For integration testing we try to compile mC programs and compare their output f
 
 - mc_ast_to_dot leaks memory
 - if "-f" is specified and multiple functions match the specified name, currently the first one is used
+- in function limit_result_to_function_scope, a pointer is introduced and set to the corresponding program struct. In order for printing to work correctly, the actual value inside the AST of "program.has_next_function" needs to be set to false (which is what happens right now.) In order to free the memory later, a copy of the program struct in question should be made, which will be returned by value. Adjustements in the main method in order to free allocated memory need to be made afterwards.
 
 ## Parser
 
