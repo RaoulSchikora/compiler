@@ -38,6 +38,7 @@ For integration testing we try to compile mC programs and compare their output f
 - mc_ast_to_dot leaks memory
 - the option "-t" is still coded into the option parsing, but can't be used from the command line
 - if "-f" is specified and multiple functions match the specified name, currently the first one is used
+- error messages don't specify the correct offending source filename but instead "stdin"
 
 ## Parser
 
