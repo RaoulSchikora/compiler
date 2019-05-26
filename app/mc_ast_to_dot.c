@@ -72,7 +72,7 @@ void mc_ast_to_dot_delete_command_line_parser(struct mc_ast_to_dot_command_line_
 enum mc_ast_to_dot_argument_status mc_ast_to_dot_check_args(struct mc_ast_to_dot_command_line_parser *command_line);
 
 // get a function out of a mcc_parser_result
-struct mcc_parser_result limit_result_to_function_scope(struct mcc_parser_result *result, char *wanted_function_name);
+struct mcc_parser_result *limit_result_to_function_scope(struct mcc_parser_result *result, char *wanted_function_name);
 
 // take an array of mcc_parser_results and merge them into one
 struct mcc_parser_result mc_ast_to_dot_merge_results(struct mcc_parser_result* array, int size);
@@ -109,7 +109,6 @@ int main(int argc, char *argv[])
 
 	// Declare struct that will hold the result of the parser and corresponding pointer
 	struct mcc_parser_result result;
-	struct mcc_parser_result *ptr_result;
 
 	// Invoke parser on stdin
 	if (argument_status == MC_AST_TO_DOT_ARGSTAT_STDIN){
@@ -156,18 +155,18 @@ int main(int argc, char *argv[])
 	// ---------------------------------------------------------------------- Executing option "-f"
 
 	// find correct node of ast tree, depending on wether "-f" was passed, ptr_result will then be set to it
-	struct mcc_parser_result limited_result;
-
 	if (command_line->options->mode == MC_AST_TO_DOT_MODE_FUNCTION) {
-    	limited_result = limit_result_to_function_scope(&result, command_line->options->function);
-		if(limited_result.status != MCC_PARSER_STATUS_OK){
+	    struct mcc_parser_result *intermediate = limit_result_to_function_scope(&result, command_line->options->function);
+	    if(intermediate == NULL){
+			mc_ast_to_dot_delete_command_line_parser(command_line);
+			return EXIT_FAILURE;
+	    }
+	    result = *intermediate;
+		if(result.status != MCC_PARSER_STATUS_OK){
 		    mc_ast_to_dot_delete_command_line_parser(command_line);
 		    return EXIT_FAILURE;
 		}
-		ptr_result = &limited_result;
-	} else {
-        ptr_result = &result;
-    }
+	}
 
 	// ---------------------------------------------------------------------- Print ast in dot format
 
@@ -178,10 +177,10 @@ int main(int argc, char *argv[])
 			mc_ast_to_dot_delete_command_line_parser(command_line);
 			return EXIT_FAILURE;
 		}
-		mcc_ast_print_dot_result(out, ptr_result);
+		mcc_ast_print_dot_result(out, &result);
 		fclose(out);
 	} else {
-		mcc_ast_print_dot_result(stdout, ptr_result);
+		mcc_ast_print_dot_result(stdout, &result);
 	}
 
 	// ---------------------------------------------------------------------- Clean up
@@ -436,53 +435,85 @@ enum mc_ast_to_dot_argument_status mc_ast_to_dot_check_args(struct mc_ast_to_dot
 	}
 }
 
-struct mcc_parser_result limit_result_to_function_scope(struct mcc_parser_result *result, char *wanted_function_name)
-{
-    // new result that will be returned (only containing wanted function)
-	struct mcc_parser_result limited_result;
-	limited_result.status = MCC_PARSER_STATUS_OK;
-	limited_result.entry_point = MCC_PARSER_ENTRY_POINT_PROGRAM;
+struct mcc_parser_result *limit_result_to_function_scope(struct mcc_parser_result *result, char *wanted_function_name) {
 
-	// set cur_program to current toplevel program
+	// INPUT: 	- pointer to struct mcc_parser_result that is allocated on the heap
+	//			- string that contains the name of the function that the result should be limited to
+	// RETURN: 	- pointer to struct mcc_parser_result that is allocated on the heap and contains only
+	//			  the function that was specified by the input string
+	//			- returns NULL in case of runtime errors
+	// RECOMMENDED USE: call it like this: 		ptr = limit_result_to_function_scope(ptr,function_name)
+
+
+	// New struct mcc_parser_result that will be returned
+	struct mcc_parser_result *new_result = malloc(sizeof(struct mcc_parser_result));
+	if (new_result == NULL) {
+		perror("limit_result_to_function_scope: malloc");
+		return NULL;
+	}
+
+	// Set default values of the mcc_parser_result struct
+	new_result->status = MCC_PARSER_STATUS_OK;
+	new_result->entry_point = MCC_PARSER_ENTRY_POINT_PROGRAM;
+
+	// Decleare pointer that will be iterated over and initialize it with the first function of the input
 	struct mcc_ast_program *cur_program = result->program;
 
-	// look for wanted function in first result
+	// Set up two pointers to keep track of the found function and its predecessor
+	struct mcc_ast_program *right_function = NULL;
+	struct mcc_ast_program *predecessor = NULL;
+
+	// Set up boolean to keep track of wether the function was encountered yet
 	bool found_function = false;
-	if (strcmp(wanted_function_name, cur_program->function->identifier->identifier_name) == 0)
-	// wanted function is in top-level program
-	{
-		limited_result.program = cur_program;
-		limited_result.program->has_next_function = false;
-		limited_result.program->next_function = NULL;
+
+	// Check if wanted function is the toplevel function
+	if (strcmp(wanted_function_name, cur_program->function->identifier->identifier_name) == 0) {
+		right_function = cur_program;
 		found_function = true;
 	}
-	// look for wanted function, following the tree structure
-    while (cur_program->has_next_function) {
-        cur_program = cur_program->next_function;
 
-        // if wanted function is found
-        if (strcmp(wanted_function_name, cur_program->function->identifier->identifier_name) == 0) {
-            if (found_function == true){
-                limited_result.status = MCC_PARSER_STATUS_UNKNOWN_ERROR;
-                limited_result.program = NULL;
-                fprintf(stderr,"error: function with name %s appears multiple times\n",wanted_function_name);
-                return limited_result;
-            } else {
-                limited_result.program = cur_program;
-                limited_result.program->has_next_function = false;
-                limited_result.program->next_function = NULL;
-                found_function = true;
-            }
-        }
-    }
-    if (found_function == true){
-        return limited_result;
-    }
+	// Iterate over the rest of the tree
+	struct mcc_ast_program *intermediate = cur_program;
+	while (cur_program->has_next_function) {
+		intermediate = cur_program;
+		cur_program = cur_program->next_function;
 
-	// if not returned till this point, function can't be found
-	limited_result.status = MCC_PARSER_STATUS_UNKNOWN_ERROR;
-	fprintf(stderr,"error: no function with function name %s\n",wanted_function_name);
-	return limited_result;
+		// check if wanted function is found
+		if (strcmp(wanted_function_name, cur_program->function->identifier->identifier_name) == 0) {
+			if (found_function == true) {
+				fprintf(stderr, "error: function with name %s appears multiple times\n", wanted_function_name);
+				return NULL;
+			} else {
+				right_function = cur_program;
+				predecessor = intermediate;
+				found_function = true;
+			}
+		}
+	}
+
+	// Check if the function was found
+	if (found_function == true) {
+		// Delete all nodes followed by the found function
+		if (right_function->has_next_function) {
+			mcc_ast_delete_program(cur_program->next_function);
+		}
+		// Tell the predecessor of the found function to forget about its successor
+		if (predecessor != NULL) {
+			predecessor->has_next_function = false;
+			predecessor->next_function = NULL;
+		}
+		// Set up the new result with the found function
+		new_result->program = right_function;
+		right_function->has_next_function = false;
+		right_function->next_function = NULL;
+		// Delete the previous AST up to including the predecessor
+		mcc_ast_delete_result(result);
+
+		return new_result;
+	} else {
+		fprintf(stderr, "error: no function with function name %s\n", wanted_function_name);
+		return NULL;
+	}
 }
 
 struct mcc_parser_result mc_ast_to_dot_merge_results(struct mcc_parser_result* array, int size)
