@@ -308,6 +308,7 @@ struct mcc_parser_result mcc_parse_file(FILE *input, enum mcc_parser_entry_point
 
 	struct mcc_parser_result result = {
 	    .status = MCC_PARSER_STATUS_OK,
+	    .error_buffer = NULL,
 	};
 
 	if (yyparse(scanner, &result) != 0) {
