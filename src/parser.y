@@ -113,7 +113,7 @@ int start_token;
 %token START_UNIT 1
 %token START_PROG 2
 
-// set prescedence and associativity
+// set precedence and associativity
 %left ANDAND OROR
 %left LT_SIGN GT_SIGN LT_EQ_SIGN GT_EQ_SIGN EQEQ EXKLA_EQ
 %left PLUS MINUS
@@ -155,9 +155,9 @@ int start_token;
 
 %%
 
-toplevel	: START_UNIT unit_test
-		| START_PROG program {result->entry_point = MCC_PARSER_ENTRY_POINT_PROGRAM; result->program = $2;}
-		;
+toplevel	        : START_UNIT unit_test
+                    | START_PROG program {result->entry_point = MCC_PARSER_ENTRY_POINT_PROGRAM; result->program = $2;}
+                    ;
 
 unit_test       : expression { result->entry_point = MCC_PARSER_ENTRY_POINT_EXPRESSION; result->expression = $1;}
                 | declaration { result->entry_point = MCC_PARSER_ENTRY_POINT_DECLARATION; result->declaration = $1;}
@@ -265,14 +265,6 @@ struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_par
 
 	char* input;
 
-	// set global variable to entry point of parser
-	if (entry_point != MCC_PARSER_ENTRY_POINT_PROGRAM){
-		filename = "<test_suit>";
-		start_token = 1;
-	} else {
-		filename = "<filename>";
-		start_token = 2;
-	}
 
 	input = (char*) malloc ((strlen(input_string)+1)*sizeof(char));
 	if(input == NULL){
@@ -289,7 +281,7 @@ struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_par
 		};
 	}
 
-	struct mcc_parser_result result = mcc_parse_file(in);
+	struct mcc_parser_result result = mcc_parse_file(in,entry_point,"stdin");
 
 	free(input);
 
@@ -298,13 +290,21 @@ struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_par
 	return result;
 }
 
-struct mcc_parser_result mcc_parse_file(FILE *input)
+struct mcc_parser_result mcc_parse_file(FILE *input, enum mcc_parser_entry_point entry_point,char* name)
 {
 	assert(input);
 
 	yyscan_t scanner;
 	mcc_parser_lex_init(&scanner);
 	mcc_parser_set_in(input, scanner);
+
+	if (entry_point != MCC_PARSER_ENTRY_POINT_PROGRAM){
+		filename = "<test_suite>";
+		start_token = 1;
+	} else {
+		start_token = 2;
+		filename = name;
+	}
 
 	struct mcc_parser_result result = {
 	    .status = MCC_PARSER_STATUS_OK,
@@ -358,14 +358,15 @@ void mcc_ast_delete_result(struct mcc_parser_result *result)
         	mcc_ast_delete(result->compound_statement);
         	break;
 	}
-	free(result->error_buffer);
+
 }
 
+// Writes error message to a variable "buffer" that is allocated on the heap
 void mcc_parser_error(struct MCC_PARSER_LTYPE *yylloc, struct mcc_parser_result *result, yyscan_t *scanner,
  												const char *msg)
 {
 	char* str = (char *)malloc( sizeof(char) * (strlen(msg) + 50 + strlen(yylloc->filename)) );
-	sprintf(str, "stopped while parsing in %s (%d,%d) - (%d,%d): %s\n", yylloc->filename, (yylloc->first_line - 1),
+	sprintf(str, "stopped while parsing %s: (%d,%d) - (%d,%d): %s\n", yylloc->filename, (yylloc->first_line - 1),
 			yylloc->first_column, (yylloc->last_line - 1), yylloc->last_column, msg);
 
 	buffer = (char *)malloc(sizeof(char) * strlen(str) + 1);
