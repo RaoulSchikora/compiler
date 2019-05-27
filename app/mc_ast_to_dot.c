@@ -154,16 +154,20 @@ int main(int argc, char *argv[])
 
 	// ---------------------------------------------------------------------- Executing option "-f"
 
-	// find correct node of ast tree, depending on wether "-f" was passed, ptr_result will then be set to it
+	// find correct node of ast tree, depending on wether "-f" was passed, result will then be set to it
+	struct mcc_parser_result *intermediate = NULL;
 	if (command_line->options->mode == MC_AST_TO_DOT_MODE_FUNCTION) {
-	    struct mcc_parser_result *intermediate = limit_result_to_function_scope(&result, command_line->options->function);
+	    intermediate = limit_result_to_function_scope(&result, command_line->options->function);
 	    if(intermediate == NULL){
 			mc_ast_to_dot_delete_command_line_parser(command_line);
+			mcc_ast_delete_program(result.program);
 			return EXIT_FAILURE;
 	    }
 	    result = *intermediate;
 		if(result.status != MCC_PARSER_STATUS_OK){
+			mcc_ast_delete_program(result.program);
 		    mc_ast_to_dot_delete_command_line_parser(command_line);
+			if(intermediate != NULL) free(intermediate);
 		    return EXIT_FAILURE;
 		}
 	}
@@ -174,7 +178,9 @@ int main(int argc, char *argv[])
 	if (command_line->options->write_to_file == true) {
 		FILE *out = fopen(command_line->options->output_file, "a");
 		if (out == NULL) {
+			mcc_ast_delete_program(result.program);
 			mc_ast_to_dot_delete_command_line_parser(command_line);
+			if(intermediate != NULL) free(intermediate);
 			return EXIT_FAILURE;
 		}
 		mcc_ast_print_dot_result(out, &result);
@@ -187,7 +193,8 @@ int main(int argc, char *argv[])
 
 	// Cleanup
 	mc_ast_to_dot_delete_command_line_parser(command_line);
-	mcc_ast_delete_result(&result);
+	mcc_ast_delete_program(result.program);
+	if(intermediate != NULL) free(intermediate);
 
 	return EXIT_SUCCESS;
 }
@@ -435,13 +442,14 @@ enum mc_ast_to_dot_argument_status mc_ast_to_dot_check_args(struct mc_ast_to_dot
 	}
 }
 
-struct mcc_parser_result *limit_result_to_function_scope(struct mcc_parser_result *result, char *wanted_function_name) {
+struct mcc_parser_result *limit_result_to_function_scope(struct mcc_parser_result *result, char *wanted_function_name)
+{
 
 	// INPUT: 	- pointer to struct mcc_parser_result that is allocated on the heap
 	//			- string that contains the name of the function that the result should be limited to
 	// RETURN: 	- pointer to struct mcc_parser_result that is allocated on the heap and contains only
 	//			  the function that was specified by the input string
-	//			- returns NULL in case of runtime errors
+	//			- returns NULL in case of runtime errors (in that case the input result won't have been deleted)
 	// RECOMMENDED USE: call it like this: 		ptr = limit_result_to_function_scope(ptr,function_name)
 
 
@@ -482,6 +490,7 @@ struct mcc_parser_result *limit_result_to_function_scope(struct mcc_parser_resul
 		if (strcmp(wanted_function_name, cur_program->function->identifier->identifier_name) == 0) {
 			if (found_function == true) {
 				fprintf(stderr, "error: function with name %s appears multiple times\n", wanted_function_name);
+				free(new_result);
 				return NULL;
 			} else {
 				right_function = cur_program;
@@ -495,7 +504,7 @@ struct mcc_parser_result *limit_result_to_function_scope(struct mcc_parser_resul
 	if (found_function == true) {
 		// Delete all nodes followed by the found function
 		if (right_function->has_next_function) {
-			mcc_ast_delete_program(cur_program->next_function);
+			mcc_ast_delete_program(right_function->next_function);
 		}
 		// Tell the predecessor of the found function to forget about its successor
 		if (predecessor != NULL) {
@@ -507,11 +516,14 @@ struct mcc_parser_result *limit_result_to_function_scope(struct mcc_parser_resul
 		right_function->has_next_function = false;
 		right_function->next_function = NULL;
 		// Delete the previous AST up to including the predecessor
-		mcc_ast_delete_result(result);
+		if(predecessor != NULL){
+			mcc_ast_delete_result(result);
+		}
 
 		return new_result;
 	} else {
 		fprintf(stderr, "error: no function with function name %s\n", wanted_function_name);
+		free(new_result);
 		return NULL;
 	}
 }
