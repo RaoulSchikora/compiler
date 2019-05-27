@@ -6,9 +6,16 @@ success=0
 input="int test1(){return a;int a; a = 1; } int test2(){ return a; } void test3(int a){ a =1; return; }"
 input_error="int test1(){return a;;int a;} a = 1; } int {test2(){ return a; } void test3(int a){ a =1; return; }"
 
+if [ -d logs ]
+then
+	echo "writing to directory logs"
+else
+	echo "creating directory logs"
+	mkdir logs
+fi
 
 # testing the parse of input1 - input3 
-$val $print input_test input_test2 input_test3 2> log1.txt > /dev/null
+$val $print input_test input_test2 input_test3 2> logs/log1.txt > /dev/null
 if [ $? -eq 3  ]
 	then 
 		success=1
@@ -18,7 +25,7 @@ if [ $? -eq 3  ]
 fi
 
 # testing the parse of input1 - input3 with -f set to first function
-$val $print -f test1 input_test input_test2 input_test3 2> log2.txt > /dev/null
+$val $print -f test1 input_test input_test2 input_test3 2> logs/log2.txt > /dev/null
 if [ $? -eq 3  ]
 	then 
 		success=1
@@ -28,7 +35,7 @@ if [ $? -eq 3  ]
 fi
 
 # testing the parse of input1 - input3 with -f set to second function
-$val $print -f test2 input_test input_test2 input_test3 2> log3.txt > /dev/null
+$val $print -f test2 input_test input_test2 input_test3 2> logs/log3.txt > /dev/null
 if [ $? -eq 3  ]
 	then 
 		success=1
@@ -38,7 +45,7 @@ if [ $? -eq 3  ]
 fi
 
 # testing the parse of input1 - input3 with -f set to last function
-$val $print -f test3 input_test input_test2 input_test3 2> log4.txt > /dev/null
+$val $print -f test3 input_test input_test2 input_test3 2> logs/log4.txt > /dev/null
 if [ $? -eq 3  ]
 	then 
 		success=1
@@ -48,7 +55,7 @@ if [ $? -eq 3  ]
 fi
 
 # testing the parse of single input file 
-$val $print input_test3 2> log5.txt > /dev/null
+$val $print input_test3 2> logs/log5.txt > /dev/null
 if [ $? -eq 3  ]
 	then 
 		success=1
@@ -58,7 +65,7 @@ if [ $? -eq 3  ]
 fi
 
 # testing the parse of stdin
-$val $print - <<< $input 2>log6.txt > /dev/null
+$val $print - <<< $input 2>logs/log6.txt > /dev/null
 if [ $? -eq 3  ]
 	then 
 		success=1
@@ -68,7 +75,7 @@ if [ $? -eq 3  ]
 fi
 
 # testing the parse of stdin with -f set to first function
-$val $print -f test1 - <<< $input 2>log7.txt > /dev/null
+$val $print -f test1 - <<< $input 2>logs/log7.txt > /dev/null
 if [ $? -eq 3  ]
 	then 
 		success=1
@@ -78,7 +85,7 @@ if [ $? -eq 3  ]
 fi
 
 # testing the parse of stdin with -f set to second function
-$val $print -f test2 - <<< $input 2>log8.txt > /dev/null
+$val $print -f test2 - <<< $input 2>logs/log8.txt > /dev/null
 if [ $? -eq 3  ]
 	then 
 		success=1
@@ -88,7 +95,7 @@ if [ $? -eq 3  ]
 fi
 
 # testing the parse of stdin with -f set to last function
-$val $print -f test3 - <<< $input 2>log9.txt > /dev/null
+$val $print -f test3 - <<< $input 2>logs/log9.txt > /dev/null
 if [ $? -eq 3  ]
 	then 
 		success=1
@@ -98,7 +105,7 @@ if [ $? -eq 3  ]
 fi
 
 # testing the parse of erronous input_error from file
-$val $print input_error 2> log_error_file.txt > /dev/null
+$val $print input_error 2> logs/log_error_file.txt > /dev/null
 if [ $? -eq 3  ]
 	then 
 		success=1
@@ -108,7 +115,7 @@ if [ $? -eq 3  ]
 fi
 
 # testing the parse of erronous input_error from stdin
-$val $print - <<< $input_error 2> log_error_stdin.txt > /dev/null
+$val $print - <<< $input_error 2> logs/log_error_stdin.txt > /dev/null
 if [ $? -eq 3  ]
 	then 
 		success=1

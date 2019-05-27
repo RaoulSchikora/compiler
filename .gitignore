@@ -8,3 +8,5 @@ builddir/
 # ignore .idea directory
 .idea/
 
+# ignore generated log files
+tmp_development/leak_tests_mc_ast_to_dot/logs/
