@@ -82,11 +82,11 @@ void mcc_symbol_table_scope_append_row(struct mcc_symbol_table_scope *scope, str
     struct mcc_symbol_table_row **head_ref = &scope->head;
     struct mcc_symbol_table_row *last_row = *head_ref;
 
-    if(*head_ref == NULL){
+    if(!*head_ref){
         *head_ref = row;
         return;
     }
-    while (last_row->next_row != NULL){
+    while (last_row->next_row){
         last_row = last_row->next_row;
     }
     last_row->next_row = row;
@@ -98,13 +98,15 @@ void mcc_symbol_table_delete_scope(struct mcc_symbol_table_scope *scope)
 {
     assert(scope);
 
+    // delete rows
     if(scope->head){
         mcc_symbol_table_delete_all_rows(scope->head);
     }
 
-    //TODO
-    // free childs
-    // link next and prev scope
+    // delete childs
+    if(scope->child_scope){
+        mcc_symbol_table_delete_all_scopes(scope->child_scope);
+    }
 
     free(scope);
 }
@@ -131,18 +133,21 @@ void mcc_symbol_table_insert_child_scope(struct mcc_symbol_table_scope *parent, 
     assert(parent);
     assert(child);
 
-    if (parent->child_scope == NULL){
+    struct mcc_symbol_table_scope *last_child = parent->child_scope;
+
+    if(!parent->child_scope){
         parent->child_scope = child;
         child->parent_scope = parent;
-    } else {
-        struct mcc_symbol_table_scope *tmp_scope = parent->child_scope;
-        while (tmp_scope->has_next){
-            tmp_scope = tmp_scope->next_scope;
-        }
-        tmp_scope->has_next = true;
-        tmp_scope->next_scope = child;
-        child->parent_scope = parent;
+        return;
     }
+    while(last_child->next_scope){
+        last_child = last_child->next_scope;
+    }
+    last_child->has_next = true;
+    last_child->next_scope = child;
+    child->parent_scope = parent;
+
+    return;
 }
 
 // ------------------------------------------------------- Symbol Table
@@ -167,11 +172,11 @@ void mcc_symbol_table_insert_scope(struct mcc_symbol_table *table, struct mcc_sy
     struct mcc_symbol_table_scope **head_ref = &table->head;
     struct mcc_symbol_table_scope *last_scope = *head_ref;
 
-    if(*head_ref == NULL){
+    if(!*head_ref){
         *head_ref = scope;
         return;
     }
-    while (last_scope->next_scope != NULL){
+    while (last_scope->next_scope){
         last_scope = last_scope->next_scope;
     }
     last_scope->has_next = true;
