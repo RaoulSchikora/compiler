@@ -1,0 +1,4 @@
+int error(int a;){
+
+return a = 1;;
+}

@@ -1,0 +1,4 @@
+void test3(int a){
+a =1;
+return;
+}
