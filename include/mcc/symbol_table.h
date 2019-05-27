@@ -64,8 +64,8 @@ struct mcc_symbol_table_scope{
 struct mcc_symbol_table_scope *mcc_symbol_table_new_scope();
 void mcc_symbol_table_scope_append_row(struct mcc_symbol_table_scope *scope, struct mcc_symbol_table_row *row);
 void mcc_symbol_table_delete_scope(struct mcc_symbol_table_scope *scope);
+void mcc_symbol_table_delete_all_scopes(struct mcc_symbol_table_scope *head);
 void mcc_symbol_table_insert_child_scope(struct mcc_symbol_table_scope *parent, struct mcc_symbol_table_scope *child);
-void mcc_symbol_table_scope_delete(struct mcc_symbol_table_scope *scope);
 
 // -------------------------------------------------------------- Symbol Table
 
@@ -76,5 +76,6 @@ struct mcc_symbol_table{
 
 struct mcc_symbol_table *mcc_symbol_table_new_table();
 void mcc_symbol_table_insert_scope(struct mcc_symbol_table *table, struct mcc_symbol_table_scope *scope);
+void mcc_symbol_table_delete_table(struct mcc_symbol_table *table);
 
 #endif //MCC_SYMBOL_TABLE_H

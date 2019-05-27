@@ -100,6 +100,8 @@ void scope_siblings(CuTest *tc)
     CuAssertStrEquals(tc, "str", current_row->next_row->name);
     CuAssertTrue(tc, !current_scope->has_next);
     CuAssertTrue(tc, current_scope->next_scope == NULL);
+
+    mcc_symbol_table_delete_table(table);
 }
 
 void nesting_scope(CuTest *tc)
@@ -108,16 +110,22 @@ void nesting_scope(CuTest *tc)
     //   int i;
     //      {
     //        bool j;
-    //        string str;
+    //        float k;
     //      }
-    //   float k;
+    //   string str;
     // }
+    struct mcc_symbol_table_row *row_int = mcc_symbol_table_new_row("i", MCC_SYMBOL_TABLE_ROW_TYPE_INT);
+    struct mcc_symbol_table_row *row_bool = mcc_symbol_table_new_row("j", MCC_SYMBOL_TABLE_ROW_TYPE_BOOL);
+    struct mcc_symbol_table_row *row_float = mcc_symbol_table_new_row("k", MCC_SYMBOL_TABLE_ROW_TYPE_FLOAT);
+    struct mcc_symbol_table_row *row_string = mcc_symbol_table_new_row("str", MCC_SYMBOL_TABLE_ROW_TYPE_STRING);
 
+    struct mcc_symbol_table_scope *outer_scope = mcc_symbol_table_new_scope();
+    struct mcc_symbol_table_scope *inner_scope = mcc_symbol_table_new_scope();
 }
 
 #define TESTS \
 	TEST(multiple_rows)   \
-//	TEST(scope_siblings)  \
+	TEST(scope_siblings)  \
 	TEST(nesting_scope)
 #include "main_stub.inc"
 #undef TESTS

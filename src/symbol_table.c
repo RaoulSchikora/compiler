@@ -80,17 +80,17 @@ void mcc_symbol_table_scope_append_row(struct mcc_symbol_table_scope *scope, str
     assert(row);
 
     struct mcc_symbol_table_row **head_ref = &scope->head;
-    struct mcc_symbol_table_row *last = *head_ref;
+    struct mcc_symbol_table_row *last_row = *head_ref;
 
     if(*head_ref == NULL){
         *head_ref = row;
         return;
     }
-    while (last->next_row != NULL){
-        last = last->next_row;
+    while (last_row->next_row != NULL){
+        last_row = last_row->next_row;
     }
-    last->next_row = row;
-    row->prev_row = last;
+    last_row->next_row = row;
+    row->prev_row = last_row;
     return;
 }
 
@@ -101,11 +101,29 @@ void mcc_symbol_table_delete_scope(struct mcc_symbol_table_scope *scope)
     if(scope->head){
         mcc_symbol_table_delete_all_rows(scope->head);
     }
+
     //TODO
     // free childs
     // link next and prev scope
 
     free(scope);
+}
+
+void mcc_symbol_table_delete_all_scopes(struct mcc_symbol_table_scope *head)
+{
+    assert(head);
+
+    struct mcc_symbol_table_scope *tmp = head;
+
+    if(head){
+        while(head){
+            tmp = head->next_scope;
+            mcc_symbol_table_delete_scope(head);
+            head = tmp;
+        }
+    }
+
+    return;
 }
 
 void mcc_symbol_table_insert_child_scope(struct mcc_symbol_table_scope *parent, struct mcc_symbol_table_scope *child)
@@ -127,11 +145,6 @@ void mcc_symbol_table_insert_child_scope(struct mcc_symbol_table_scope *parent, 
     }
 }
 
-void mcc_symbol_table_scope_delete(struct mcc_symbol_table_scope *scope)
-{
-
-}
-
 // ------------------------------------------------------- Symbol Table
 
 struct mcc_symbol_table *mcc_symbol_table_new_table()
@@ -151,4 +164,28 @@ void mcc_symbol_table_insert_scope(struct mcc_symbol_table *table, struct mcc_sy
     assert(table);
     assert(scope);
 
+    struct mcc_symbol_table_scope **head_ref = &table->head;
+    struct mcc_symbol_table_scope *last_scope = *head_ref;
+
+    if(*head_ref == NULL){
+        *head_ref = scope;
+        return;
+    }
+    while (last_scope->next_scope != NULL){
+        last_scope = last_scope->next_scope;
+    }
+    last_scope->has_next = true;
+    last_scope->next_scope = scope;
+    return;
+}
+
+void mcc_symbol_table_delete_table(struct mcc_symbol_table *table)
+{
+    assert(table);
+
+    if(table->head){
+        mcc_symbol_table_delete_all_scopes(table->head);
+    }
+
+    free(table);
 }
