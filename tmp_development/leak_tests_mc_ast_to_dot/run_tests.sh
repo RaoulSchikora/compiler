@@ -1,11 +1,10 @@
 #!/bin/bash
+cd /home/oliver/Oliver/Studium/Master\ Informatik/2.Semester/Compilerbau/PS/compiler/tmp_development/leak_tests_mc_ast_to_dot
 val="valgrind --error-exitcode=3 --leak-check=full --track-origins=yes --show-leak-kinds=all"
 print="../../builddir/mc_ast_to_dot"
 success=0
 input="int test1(){return a;int a; a = 1; } int test2(){ return a; } void test3(int a){ a =1; return; }"
 input_error="int test1(){return a;;int a;} a = 1; } int {test2(){ return a; } void test3(int a){ a =1; return; }"
-
-
 
 
 # testing the parse of input1 - input3 
