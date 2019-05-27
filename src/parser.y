@@ -346,18 +346,18 @@ void mcc_ast_delete_result(struct mcc_parser_result *result)
 	case MCC_PARSER_ENTRY_POINT_PROGRAM:
 		mcc_ast_delete(result->program);
 		break;
-    	case MCC_PARSER_ENTRY_POINT_FUNCTION_DEFINITION:
-        	mcc_ast_delete(result->function_definition);
-        	break;
-    	case MCC_PARSER_ENTRY_POINT_PARAMETERS:
-        	mcc_ast_delete(result->parameters);
-        	break;
+    case MCC_PARSER_ENTRY_POINT_FUNCTION_DEFINITION:
+        mcc_ast_delete(result->function_definition);
+        break;
+    case MCC_PARSER_ENTRY_POINT_PARAMETERS:
+        mcc_ast_delete(result->parameters);
+        break;
    	case MCC_PARSER_ENTRY_POINT_ARGUMENTS:
         	mcc_ast_delete(result->arguments);
         	break;
-    	case MCC_PARSER_ENTRY_POINT_COMPOUND_STATEMENT:
-        	mcc_ast_delete(result->compound_statement);
-        	break;
+    case MCC_PARSER_ENTRY_POINT_COMPOUND_STATEMENT:
+        mcc_ast_delete(result->compound_statement);
+        break;
 	}
 
 }
