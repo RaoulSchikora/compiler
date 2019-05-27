@@ -31,7 +31,8 @@ mcc_src = [ 'src/ast.c',
             'src/ast_print.c',
             'src/ast_visit.c',
             lgen.process('src/scanner.l'),
-            pgen.process('src/parser.y') ]
+            pgen.process('src/parser.y'),
+            'src/symbol_table.c']
 
 mcc_lib = library('mcc', mcc_src,
                   c_args: '-D_POSIX_C_SOURCE=200809L',
@@ -49,7 +50,7 @@ endforeach
 
 # ----------------------------------------------------------------------- Tests
 
-mcc_tests = [ 'parser_test' ]
+mcc_tests = [ 'parser_test', 'symbol_table_test' ]
 
 cutest_inc = include_directories('vendor/cutest')
 

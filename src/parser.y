@@ -49,10 +49,10 @@ int mcc_parser_lex();
 void mcc_parser_error();
 
 #define loc(ast_node, ast_sloc, ast_sloc_last) \
-	(ast_node)->node.sloc.start_col = (ast_sloc).first_column; \
-	(ast_node)->node.sloc.start_line = (ast_sloc).first_line;  \
-	(ast_node)->node.sloc.end_col = (ast_sloc_last).last_column;    \
-	(ast_node)->node.sloc.end_line = (ast_sloc_last).last_line;     \
+	(ast_node)->node.sloc.start_col = (ast_sloc).first_column;    \
+	(ast_node)->node.sloc.start_line = (ast_sloc).first_line;     \
+	(ast_node)->node.sloc.end_col = (ast_sloc_last).last_column;  \
+	(ast_node)->node.sloc.end_line = (ast_sloc_last).last_line;   \
 
 int start_token;
 
@@ -159,7 +159,7 @@ toplevel	: START_UNIT unit_test
 		| START_PROG program {result->entry_point = MCC_PARSER_ENTRY_POINT_PROGRAM; result->program = $2;}
 		;
 
-unit_test       : expression { result->entry_point = MCC_PARSER_ENTRY_POINT_EXPRESSION; result->expression = $1;  }
+unit_test       : expression { result->entry_point = MCC_PARSER_ENTRY_POINT_EXPRESSION; result->expression = $1;}
                 | declaration { result->entry_point = MCC_PARSER_ENTRY_POINT_DECLARATION; result->declaration = $1;}
                 | assignment { result->entry_point = MCC_PARSER_ENTRY_POINT_ASSIGNMENT; result->assignment = $1;}
                 | statement { result->entry_point = MCC_PARSER_ENTRY_POINT_STATEMENT; result->statement = $1;}
@@ -170,25 +170,25 @@ unit_test       : expression { result->entry_point = MCC_PARSER_ENTRY_POINT_EXPR
                 | program { result->entry_point = MCC_PARSER_ENTRY_POINT_PROGRAM; result->program = $1; }
                 ;
 
-expression      : literal                      { $$ = mcc_ast_new_expression_literal($1);                              loc($$, @1 ,@1); }
-                | expression PLUS  expression  { $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_ADD, $1, $3); loc($$, @1, @3); }
-                | expression MINUS expression  { $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_SUB, $1, $3); loc($$, @1, @3); }
-                | expression ASTER expression  { $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_MUL, $1, $3); loc($$, @1, @3); }
-                | expression SLASH expression  { $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_DIV, $1, $3); loc($$, @1, @3); }
+expression      : literal                      	{ $$ = mcc_ast_new_expression_literal($1);                                loc($$, @1 ,@1); }
+                | expression PLUS  expression  	{ $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_ADD, $1, $3);   loc($$, @1, @3); }
+                | expression MINUS expression  	{ $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_SUB, $1, $3);   loc($$, @1, @3); }
+                | expression ASTER expression  	{ $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_MUL, $1, $3);   loc($$, @1, @3); }
+                | expression SLASH expression  	{ $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_DIV, $1, $3);   loc($$, @1, @3); }
                 | expression LT_SIGN expression { $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_SMALLER, $1, $3); loc($$, @1, @3); }
                 | expression GT_SIGN expression { $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_GREATER, $1, $3); loc($$, @1, @3); }
                 | expression LT_EQ_SIGN expression { $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_SMALLEREQ, $1, $3); loc($$, @1, @3); }
                 | expression GT_EQ_SIGN expression { $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_GREATEREQ, $1, $3); loc($$, @1, @3); }
-                | expression ANDAND expression { $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_CONJ, $1, $3);loc($$, @1, @3); }
-                | expression OROR expression { $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_DISJ, $1, $3);  loc($$, @1, @3); }
-                | expression EQEQ expression { $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_EQUAL, $1, $3); loc($$, @1, @3); }
+                | expression ANDAND expression 	{ $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_CONJ, $1, $3);  loc($$, @1, @3); }
+                | expression OROR expression 	{ $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_DISJ, $1, $3);  loc($$, @1, @3); }
+                | expression EQEQ expression 	{ $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_EQUAL, $1, $3); loc($$, @1, @3); }
                 | expression EXKLA_EQ expression { $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_NOTEQUAL, $1, $3); loc($$, @1, @3); }
-                | LPARENTH expression RPARENTH { $$ = mcc_ast_new_expression_parenth($2);                              loc($$, @1, @3); }
-                | MINUS expression 		  { $$ = mcc_ast_new_expression_unary_op(MCC_AST_UNARY_OP_NEGATIV, $2);	  loc($$, @1, @2); }
-                | EXKLA expression 		  { $$ = mcc_ast_new_expression_unary_op(MCC_AST_UNARY_OP_NOT, $2);     loc($$, @1, @2); }
-                | IDENTIFIER			  { $$ = mcc_ast_new_expression_variable($1);				  loc($$, @1, @1); }
-                | IDENTIFIER SQUARE_OPEN expression SQUARE_CLOSE {$$ = mcc_ast_new_expression_array_element($1,$3);    loc($$, @1, @4); }
-                | IDENTIFIER LPARENTH arguments RPARENTH        { $$ = mcc_ast_new_expression_function_call(mcc_ast_new_identifier($1), $3); loc($$, @1, @4); }
+                | LPARENTH expression RPARENTH 	{ $$ = mcc_ast_new_expression_parenth($2);                                loc($$, @1, @3); }
+                | MINUS expression 		{ $$ = mcc_ast_new_expression_unary_op(MCC_AST_UNARY_OP_NEGATIV, $2);	  loc($$, @1, @2); }
+                | EXKLA expression 		{ $$ = mcc_ast_new_expression_unary_op(MCC_AST_UNARY_OP_NOT, $2);         loc($$, @1, @2); }
+                | IDENTIFIER			{ $$ = mcc_ast_new_expression_variable($1);				  loc($$, @1, @1); }
+                | IDENTIFIER SQUARE_OPEN expression SQUARE_CLOSE { $$ = mcc_ast_new_expression_array_element($1,$3);      loc($$, @1, @4); }
+                | IDENTIFIER LPARENTH arguments RPARENTH         { $$ = mcc_ast_new_expression_function_call(mcc_ast_new_identifier($1), $3); loc($$, @1, @4); }
                 ;
 
 arguments       : expression { $$ = mcc_ast_new_arguments(false, $1, NULL); loc($$, @1, @1); }
@@ -270,8 +270,8 @@ struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_par
 		filename = "<test_suit>";
 		start_token = 1;
 	} else {
-		start_token = 2;
 		filename = "<filename>";
+		start_token = 2;
 	}
 
 	input = (char*) malloc ((strlen(input_string)+1)*sizeof(char));
