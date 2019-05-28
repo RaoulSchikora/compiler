@@ -21,6 +21,7 @@ enum mcc_symbol_table_row_type{
     MCC_SYMBOL_TABLE_ROW_TYPE_INT,
     MCC_SYMBOL_TABLE_ROW_TYPE_FLOAT,
     MCC_SYMBOL_TABLE_ROW_TYPE_STRING,
+    MCC_SYMBOL_TABLE_ROW_TYPE_FUNCTION,
 };
 
 struct mcc_symbol_table_row {

@@ -102,7 +102,7 @@ void mcc_symbol_table_delete_scope(struct mcc_symbol_table_scope *scope)
         mcc_symbol_table_delete_all_rows(scope->head);
     }
 
-    // delete childs
+    // delete children
     if(scope->child_scope){
         mcc_symbol_table_delete_all_scopes(scope->child_scope);
     }
