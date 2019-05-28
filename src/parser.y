@@ -156,7 +156,8 @@ int start_token;
 %%
 
 toplevel	    : START_UNIT unit_test
-                    | START_PROG program {result->entry_point = MCC_PARSER_ENTRY_POINT_PROGRAM; result->program = $2;}
+                    | START_PROG program
+                    	{result->entry_point = MCC_PARSER_ENTRY_POINT_PROGRAM; result->program = $2;}
                     ;
 
 unit_test           : expression
@@ -169,10 +170,10 @@ unit_test           : expression
                     	{ result->entry_point = MCC_PARSER_ENTRY_POINT_STATEMENT; result->statement = $1;}
                     | compound_statement
                     	{ result->entry_point =
-                    			MCC_PARSER_ENTRY_POINT_COMPOUND_STATEMENT; result->compound_statement = $1;}
+                    		MCC_PARSER_ENTRY_POINT_COMPOUND_STATEMENT; result->compound_statement = $1;}
                     | function_def
                     	{ result->entry_point =
-                    			MCC_PARSER_ENTRY_POINT_FUNCTION_DEFINITION; result->function_definition = $1;}
+                    		MCC_PARSER_ENTRY_POINT_FUNCTION_DEFINITION; result->function_definition = $1;}
                     | parameters
                     	{ result->entry_point = MCC_PARSER_ENTRY_POINT_PARAMETERS; result->parameters = $1; }
                     | arguments
