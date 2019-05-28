@@ -8,9 +8,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-// Threshold for floating point comparisions.
-static const double EPS = 1e-3;
-
 void multiple_rows(CuTest *tc)
 {
     // {
@@ -89,7 +86,6 @@ void scope_siblings(CuTest *tc)
     CuAssertTrue(tc, current_scope == first_scope);
     CuAssertStrEquals(tc, "i", current_row->name);
     CuAssertStrEquals(tc, "j", current_row->next_row->name);
-    CuAssertTrue(tc, current_scope->has_next);
     CuAssertTrue(tc, current_scope->next_scope == second_scope);
 
     current_scope = current_scope->next_scope;
@@ -102,7 +98,6 @@ void scope_siblings(CuTest *tc)
 
     CuAssertStrEquals(tc, "k", current_row->name);
     CuAssertStrEquals(tc, "str", current_row->next_row->name);
-    CuAssertTrue(tc, !current_scope->has_next);
     CuAssertTrue(tc, current_scope->next_scope == NULL);
 
     mcc_symbol_table_delete_table(table);
@@ -155,10 +150,9 @@ void nesting_scope(CuTest *tc)
     CuAssertTrue(tc, current_scope->parent_scope == outer_scope);
     CuAssertStrEquals(tc, "j", current_row->name);
     CuAssertStrEquals(tc, "k", current_row->next_row->name);
-    CuAssertTrue(tc, current_scope->has_next);
     CuAssertTrue(tc, current_scope->next_scope == inner_scope2);
     CuAssertTrue(tc, current_scope->next_scope->parent_scope == outer_scope);
-    CuAssertTrue(tc, !current_scope->next_scope->has_next);
+    CuAssertTrue(tc, current_scope->next_scope->next_scope == NULL);
 
     mcc_symbol_table_delete_table(table);
 }

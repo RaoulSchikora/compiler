@@ -66,7 +66,6 @@ struct mcc_symbol_table_scope *mcc_symbol_table_new_scope()
     }
 
     scope->head = NULL;
-    scope->has_next = false;
     scope->next_scope = NULL;
     scope->parent_scope = NULL;
     scope->child_scope = NULL;
@@ -143,7 +142,6 @@ void mcc_symbol_table_insert_child_scope(struct mcc_symbol_table_scope *parent, 
     while(last_child->next_scope){
         last_child = last_child->next_scope;
     }
-    last_child->has_next = true;
     last_child->next_scope = child;
     child->parent_scope = parent;
 
@@ -179,7 +177,6 @@ void mcc_symbol_table_insert_scope(struct mcc_symbol_table *table, struct mcc_sy
     while (last_scope->next_scope){
         last_scope = last_scope->next_scope;
     }
-    last_scope->has_next = true;
     last_scope->next_scope = scope;
     return;
 }
