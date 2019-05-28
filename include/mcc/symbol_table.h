@@ -53,7 +53,6 @@ struct mcc_symbol_table_scope{
 //    };
 
     // next sibling scope
-    bool has_next;
     struct mcc_symbol_table_scope *next_scope;
 
     // parent and child scope
