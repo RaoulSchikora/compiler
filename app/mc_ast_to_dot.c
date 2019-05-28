@@ -75,7 +75,7 @@ enum mc_ast_to_dot_argument_status mc_ast_to_dot_check_args(struct mc_ast_to_dot
 struct mcc_parser_result *limit_result_to_function_scope(struct mcc_parser_result *result, char *wanted_function_name);
 
 // take an array of mcc_parser_results and merge them into one
-struct mcc_parser_result mc_ast_to_dot_merge_results(struct mcc_parser_result* array, int size);
+struct mcc_parser_result *mc_ast_to_dot_merge_results(struct mcc_parser_result* array, int size);
 
 int main(int argc, char *argv[])
 {
@@ -132,14 +132,15 @@ int main(int argc, char *argv[])
 		int i = 0;
 		while (i<command_line->arguments->size){
 			parse_results[i] = parse_file(*(command_line->arguments->args+i));
-
 			// If error of parser: print error and clean up
 			if (parse_results[i].status != MCC_PARSER_STATUS_OK){
 				fprintf(stderr, "%s", parse_results[i].error_buffer);
+				free(parse_results[i].error_buffer);
 				// only invalid inputs will be destroyed by parser: manually delete parser_results of other files:
 				int j = 0;
 				while (j<i){
 					mcc_ast_delete_result(parse_results+j);
+					free(parse_results+j);
 					j++;
 				}
 				mc_ast_to_dot_delete_command_line_parser(command_line);
@@ -149,7 +150,7 @@ int main(int argc, char *argv[])
 			// Continue Loop
 			i++;
 		}
-		result = mc_ast_to_dot_merge_results(parse_results, command_line->arguments->size);
+		result = *(mc_ast_to_dot_merge_results(parse_results, command_line->arguments->size));
 	}
 
 	// ---------------------------------------------------------------------- Executing option "-f"
@@ -193,7 +194,7 @@ int main(int argc, char *argv[])
 
 	// Cleanup
 	mc_ast_to_dot_delete_command_line_parser(command_line);
-	mcc_ast_delete_program(result.program);
+	mcc_ast_delete_result(&result);
 	if(intermediate != NULL) free(intermediate);
 
 	return EXIT_SUCCESS;
@@ -207,17 +208,13 @@ struct mcc_parser_result parse_file(char *filename)
 				.status = MCC_PARSER_STATUS_UNKNOWN_ERROR,
 				.error_buffer = "unable to open file\n",
 		};
+		fclose(f);
 		return result;
 	}
-	struct mcc_parser_result *result = malloc(sizeof(struct mcc_parser_result));
-	if (result == NULL){
-		struct mcc_parser_result result = {
-				.status = MCC_PARSER_STATUS_UNKNOWN_ERROR,
-				.error_buffer = "unable to allocate memory for parser result\n",
-		};
-		return result;
-	}
-	return mcc_parse_file(f,MCC_PARSER_ENTRY_POINT_PROGRAM,filename);
+	struct mcc_parser_result return_value;
+	return_value = mcc_parse_file(f,MCC_PARSER_ENTRY_POINT_PROGRAM,filename);
+	fclose(f);
+	return return_value;
 }
 
 void print_usage(const char *prg)
@@ -528,14 +525,26 @@ struct mcc_parser_result *limit_result_to_function_scope(struct mcc_parser_resul
 	}
 }
 
-struct mcc_parser_result mc_ast_to_dot_merge_results(struct mcc_parser_result* array, int size)
+struct mcc_parser_result *mc_ast_to_dot_merge_results(struct mcc_parser_result* array, int size)
 {
-	// Starting from the last element, iteratively set "next_function" of the previous element to the current one
-	int i = size-1;
-    while (i>0){
-        (*(array+i-1)).program->has_next_function = true;
-        (*(array+i-1)).program->next_function = (*(array+i)).program;
-        i--;
+	/*
+	 * In the outer loop we iterate over the array of mcc_parser_result structs.
+	 * In the inner loop we iterate over the programs within one mcc_parser_result struct, in order to find
+	 * the last program and set its "next_function" pointer to the first program of the next mcc_parser_result struct.
+	 */
+
+	struct mcc_ast_program *cur_prog = NULL;
+
+	// Iterate over array
+	for(int i = 0; i < size - 1; i++){
+		// Iterate over programs within result
+		cur_prog = array[i].program;
+		while(cur_prog->has_next_function){
+			cur_prog = cur_prog->next_function;
+		}
+		cur_prog->has_next_function = true;
+		cur_prog->next_function = array[i+1].program;
 	}
-    return *array;
+
+	return array;
 }
