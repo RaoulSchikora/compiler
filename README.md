@@ -33,10 +33,6 @@ For integration testing we try to compile mC programs and compare their output f
 
 # Known Issues
 
-## mc_ast_to_dot
-
-- mc_ast_to_dot leaks memory
-
 ## Parser
 
 - parser leaks memory when empty file is handed as input (just EOF character)
