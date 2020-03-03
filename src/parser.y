@@ -402,8 +402,8 @@ void mcc_parser_error(struct MCC_PARSER_LTYPE *yylloc, struct mcc_parser_result 
  												const char *msg)
 {
 	char* str = (char *)malloc( sizeof(char) * (strlen(msg) + 50 + strlen(yylloc->filename)) );
-	sprintf(str, "stopped while parsing %s: (%d,%d) - (%d,%d): %s\n", yylloc->filename, (yylloc->first_line - 1),
-			yylloc->first_column, (yylloc->last_line - 1), yylloc->last_column, msg);
+	sprintf(str, "%s:%d:%d: %s\n", yylloc->filename, (yylloc->first_line - 1),
+			yylloc->first_column, msg);
 
 	buffer = (char *)malloc(sizeof(char) * strlen(str) + 1);
 	strcpy(buffer, str);
