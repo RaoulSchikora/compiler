@@ -402,7 +402,7 @@ void mcc_parser_error(struct MCC_PARSER_LTYPE *yylloc, struct mcc_parser_result 
  												const char *msg)
 {
 	char* str = (char *)malloc( sizeof(char) * (strlen(msg) + 50 + strlen(yylloc->filename)) );
-	sprintf(str, "%s:%d:%d: %s\n", yylloc->filename, (yylloc->first_line - 1),
+	sprintf(str, "%s:%d:%d: %s\n", yylloc->filename, yylloc->first_line,
 			yylloc->first_column, msg);
 
 	buffer = (char *)malloc(sizeof(char) * strlen(str) + 1);
