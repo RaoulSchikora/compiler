@@ -10,3 +10,6 @@ builddir/
 
 # ignore generated log files
 tmp_development/leak_tests_mc_ast_to_dot/logs/
+
+# ignore fake make-directory
+tmp_development/cmake-build-debug
