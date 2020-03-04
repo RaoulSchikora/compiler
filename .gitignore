@@ -2,14 +2,17 @@
 *.out
 *.o
 
-# ignoring builddir directory 
+# Build directory 
 builddir/
 
-# ignore .idea directory
+# .idea directory from IDE
 .idea/
 
-# ignore generated log files
+# Generated log files
 tmp_development/leak_tests_mc_ast_to_dot/logs/
 
-# ignore fake make-directory
+# Fake make-directory
 tmp_development/cmake-build-debug
+
+# Output of integration tests
+scripts/integration_tests/*
