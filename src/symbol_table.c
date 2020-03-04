@@ -132,13 +132,14 @@ void mcc_symbol_table_insert_child_scope(struct mcc_symbol_table_scope *parent, 
     assert(parent);
     assert(child);
 
-    struct mcc_symbol_table_scope *last_child = parent->child_scope;
-
     if(!parent->child_scope){
         parent->child_scope = child;
         child->parent_scope = parent;
         return;
     }
+
+    struct mcc_symbol_table_scope *last_child = parent->child_scope;
+
     while(last_child->next_scope){
         last_child = last_child->next_scope;
     }
