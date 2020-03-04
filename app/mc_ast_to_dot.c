@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <unistd.h>
 
 #include "mcc/ast.h"
 #include "mcc/ast_print.h"
@@ -13,6 +14,7 @@
 #define BUF_SIZE 1024
 
 // Forward declarations:
+// ----------------------------------------------------------------------- Data structues
 
 enum mc_ast_to_dot_mode {
 	MC_AST_TO_DOT_MODE_FUNCTION,
@@ -23,6 +25,8 @@ enum mc_ast_to_dot_argument_status {
 	MC_AST_TO_DOT_ARGSTAT_STDIN,
 	MC_AST_TO_DOT_ARGSTAT_FILES,
 	MC_AST_TO_DOT_ARGSTAT_ERROR,
+	MC_AST_TO_DOT_ARGSTAT_FILE_NOT_FOUND,
+
 };
 
 struct mc_ast_to_dot_options {
@@ -43,6 +47,8 @@ struct mc_ast_to_dot_program_arguments {
 	int size;
 	char **args;
 };
+
+// ----------------------------------------------------------------------- Functions
 
 // Parse file and return pointer to allocated struct
 struct mcc_parser_result parse_file(char *filename);
@@ -105,6 +111,15 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
+	if (argument_status == MC_AST_TO_DOT_ARGSTAT_FILE_NOT_FOUND){
+		printf("-------------------------------------------\n");
+		printf("File not found, please provide valid input.\n");
+		printf("-------------------------------------------\n");
+		printf("\n");
+		print_usage(argv[0]);
+		mc_ast_to_dot_delete_command_line_parser(command_line);
+		return EXIT_FAILURE;
+	}
 	// ---------------------------------------------------------------------- Parsing provided input
 
 	// Declare struct that will hold the result of the parser and corresponding pointer
@@ -430,6 +445,11 @@ enum mc_ast_to_dot_argument_status mc_ast_to_dot_check_args(struct mc_ast_to_dot
 			if (strcmp(*(command_line->arguments->args + i), "-") == 0) {
 				command_line->options->print_help = true;
 				return MC_AST_TO_DOT_ARGSTAT_ERROR;
+			} else {
+				// Check if file exists
+				if (access(*(command_line->arguments->args + i), F_OK) == -1){
+					return MC_AST_TO_DOT_ARGSTAT_FILE_NOT_FOUND;
+				}
 			}
 			i++;
 		}
