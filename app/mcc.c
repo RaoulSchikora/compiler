@@ -23,11 +23,15 @@ int main(int argc, char *argv[])
 	if (strcmp("-", argv[1]) == 0) {
 		in = stdin;
 	} else {
-		in = fopen(argv[1], "r");
-		if (!in) {
-			perror("fopen");
-			return EXIT_FAILURE;
-		}
+	    if (strcmp("-o", argv[1]) == 0) {
+	        in = fopen(argv[3], "r");
+	    } else {
+            in = fopen(argv[1], "r");
+            if (!in) {
+                perror("fopen");
+                return EXIT_FAILURE;
+            }
+        }
 	}
 
 	struct mcc_ast_expression *expr = NULL;
