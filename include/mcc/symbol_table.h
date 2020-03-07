@@ -29,11 +29,13 @@ struct mcc_symbol_table_row {
     char *name;
     struct mcc_symbol_table_row *prev_row;
     struct mcc_symbol_table_row *next_row;
+    struct mcc_symbol_table_scope *child_scope;
 };
 
 struct mcc_symbol_table_row *mcc_symbol_table_new_row(char *name, enum mcc_symbol_table_row_type type);
 void mcc_symbol_table_delete_row(struct mcc_symbol_table_row *row);
 void mcc_symbol_table_delete_all_rows(struct mcc_symbol_table_row *head);
+void mcc_symbol_table_row_append_child_scope(struct mcc_symbol_table_row *row, struct mcc_symbol_table_scope *child);
 
 // ------------------------------------------------------------- Symbol Table scope
 
@@ -43,8 +45,10 @@ enum mcc_symbol_table_scope_type{
 };
 
 struct mcc_symbol_table_scope{
-    // list of rows
+    // 'list' of rows
     struct mcc_symbol_table_row *head;
+
+    struct mcc_symbol_table_row *parent_row;
 
     // pointer to the statement or compound_statement in the ast
 //    enum mcc_symbol_table_scope_type scope_type;
@@ -53,19 +57,14 @@ struct mcc_symbol_table_scope{
 //        struct mcc_ast_compound_statement *compound_statement;
 //    };
 
-    // next sibling scope
     struct mcc_symbol_table_scope *next_scope;
-
-    // parent and child scope
-    struct mcc_symbol_table_scope *parent_scope;
-    struct mcc_symbol_table_scope *child_scope;
+    struct mcc_symbol_table_scope *prev_scope;
 };
 
 struct mcc_symbol_table_scope *mcc_symbol_table_new_scope();
 void mcc_symbol_table_scope_append_row(struct mcc_symbol_table_scope *scope, struct mcc_symbol_table_row *row);
 void mcc_symbol_table_delete_scope(struct mcc_symbol_table_scope *scope);
 void mcc_symbol_table_delete_all_scopes(struct mcc_symbol_table_scope *head);
-void mcc_symbol_table_insert_child_scope(struct mcc_symbol_table_scope *parent, struct mcc_symbol_table_scope *child);
 
 // -------------------------------------------------------------- Symbol Table
 
