@@ -3,6 +3,7 @@
 #include "mcc/ast.h"
 #include "mcc/parser.h"
 #include "mcc/symbol_table.h"
+#include "mcc/symbol_table_print.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,7 +46,20 @@ void multiple_rows(CuTest *tc)
     CuAssertStrEquals(tc, "j", current_row->prev_row->prev_row->name);
     CuAssertStrEquals(tc, "i", current_row->prev_row->prev_row->prev_row->name);
 
+    // BEGIN Test printing //
+    //TODO delete
+    struct mcc_symbol_table *table = mcc_symbol_table_new_table();
+    mcc_symbol_table_insert_scope(table, scope);
+
+    mcc_symbol_table_print_dot(table, stdout);
+    // END Test printing //
+
     mcc_symbol_table_delete_scope(scope);
+
+    // BEGIN Test printing //
+    //TODO delete
+    free(table);
+    // END Test printing //
 }
 
 void scope_siblings(CuTest *tc)
@@ -100,6 +114,11 @@ void scope_siblings(CuTest *tc)
     CuAssertStrEquals(tc, "str", current_row->next_row->name);
     CuAssertTrue(tc, current_scope->next_scope == NULL);
 
+    // BEGIN Test printing //
+    //TODO delete
+    mcc_symbol_table_print_dot(table, stdout);
+    // END Test printing //
+
     mcc_symbol_table_delete_table(table);
 }
 
@@ -153,6 +172,11 @@ void nesting_scope(CuTest *tc)
     CuAssertTrue(tc, current_scope->next_scope == inner_scope2);
     CuAssertTrue(tc, current_scope->next_scope->parent_row == row_int);
     CuAssertTrue(tc, current_scope->next_scope->next_scope == NULL);
+
+    // BEGIN Test printing //
+    //TODO delete
+    mcc_symbol_table_print_dot(table, stdout);
+    // END Test printing //
 
     mcc_symbol_table_delete_table(table);
 }
