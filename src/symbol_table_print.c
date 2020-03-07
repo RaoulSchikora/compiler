@@ -44,6 +44,47 @@ static void print_dot_symbol_table_close_new_scope(FILE *out)
                  "</td></tr>\n");
 }
 
+static const char *print_dot_row_type(enum mcc_symbol_table_row_type type)
+{
+    switch (type) {
+    case MCC_SYMBOL_TABLE_ROW_TYPE_BOOL:
+        return "bool";
+    case MCC_SYMBOL_TABLE_ROW_TYPE_INT:
+        return "int";
+    case MCC_SYMBOL_TABLE_ROW_TYPE_FLOAT:
+        return "float";
+    case MCC_SYMBOL_TABLE_ROW_TYPE_STRING:
+        return "string";
+    case MCC_SYMBOL_TABLE_ROW_TYPE_FUNCTION:
+        return "function";
+    }
+
+    return "unknown type";
+}
+
+//forward declaration
+static void print_dot_symbol_table_scope(struct mcc_symbol_table_scope *scope, FILE *out);
+
+static void print_dot_symbol_table_row(struct mcc_symbol_table_row *row, FILE *out)
+{
+    assert(row);
+    assert(out);
+
+    fprintf(out, "<tr><td>%s (%s)</td></tr>\n", row->name, print_dot_row_type(row->row_type));
+
+    if(row->child_scope){
+        struct mcc_symbol_table_scope *child_scope = row->child_scope;
+
+        while(child_scope){
+            print_dot_symbol_table_open_new_scope(out);
+            print_dot_symbol_table_scope(child_scope, out);
+            print_dot_symbol_table_close_new_scope(out);
+
+            child_scope = child_scope->next_scope;
+        }
+    }
+}
+
 static void print_dot_symbol_table_scope(struct mcc_symbol_table_scope *scope, FILE *out)
 {
     assert(scope);
@@ -56,12 +97,7 @@ static void print_dot_symbol_table_scope(struct mcc_symbol_table_scope *scope, F
         struct mcc_symbol_table_row *row = scope->head;
 
         while(row) {
-            fprintf(out, "<tr><td>%s (%d)</td></tr>\n", row->name, row->row_type);
-            if(row->child_scope){
-                print_dot_symbol_table_open_new_scope(out);
-                print_dot_symbol_table_scope(row->child_scope, out);
-                print_dot_symbol_table_close_new_scope(out);
-            }
+            print_dot_symbol_table_row(row, out);
             row = row->next_row;
         }
     }
