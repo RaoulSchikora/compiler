@@ -131,8 +131,8 @@ void nesting_scope(CuTest *tc)
     mcc_symbol_table_scope_append_row(inner_scope1, row_float);
 
     mcc_symbol_table_insert_scope(table, outer_scope);
-    mcc_symbol_table_insert_child_scope(outer_scope, inner_scope1);
-    mcc_symbol_table_insert_child_scope(outer_scope, inner_scope2);
+    mcc_symbol_table_row_append_child_scope(row_int, inner_scope1);
+    mcc_symbol_table_row_append_child_scope(row_int, inner_scope2);
 
     mcc_symbol_table_scope_append_row(outer_scope, row_string);
 
@@ -142,16 +142,16 @@ void nesting_scope(CuTest *tc)
     CuAssertTrue(tc, current_scope == outer_scope);
     CuAssertStrEquals(tc, "i", current_row->name);
     CuAssertStrEquals(tc, "str", current_row->next_row->name);
-    CuAssertTrue(tc, current_scope->child_scope == inner_scope1);
+    CuAssertTrue(tc, current_row->child_scope == inner_scope1);
 
-    current_scope = current_scope->child_scope;
+    current_scope = current_row->child_scope;
     current_row = current_scope->head;
 
-    CuAssertTrue(tc, current_scope->parent_scope == outer_scope);
+    CuAssertTrue(tc, current_scope->parent_row == row_int);
     CuAssertStrEquals(tc, "j", current_row->name);
     CuAssertStrEquals(tc, "k", current_row->next_row->name);
     CuAssertTrue(tc, current_scope->next_scope == inner_scope2);
-    CuAssertTrue(tc, current_scope->next_scope->parent_scope == outer_scope);
+    CuAssertTrue(tc, current_scope->next_scope->parent_row == row_int);
     CuAssertTrue(tc, current_scope->next_scope->next_scope == NULL);
 
     mcc_symbol_table_delete_table(table);
