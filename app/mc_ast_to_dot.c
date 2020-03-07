@@ -1,81 +1,12 @@
-#include <assert.h>
-#include <getopt.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
-#include <unistd.h>
-
 #include "mcc/ast.h"
 #include "mcc/ast_print.h"
 #include "mcc/ast_visit.h"
 #include "mcc/parser.h"
+#include "mc_cl_parser.h"
 
 #define BUF_SIZE 1024
 
 // Forward declarations:
-// ----------------------------------------------------------------------- Data structues
-
-enum mc_ast_to_dot_mode {
-	MC_AST_TO_DOT_MODE_FUNCTION,
-	MC_AST_TO_DOT_MODE_PROGRAM,
-};
-
-enum mc_ast_to_dot_argument_status {
-	MC_AST_TO_DOT_ARGSTAT_STDIN,
-	MC_AST_TO_DOT_ARGSTAT_FILES,
-	MC_AST_TO_DOT_ARGSTAT_ERROR,
-	MC_AST_TO_DOT_ARGSTAT_FILE_NOT_FOUND,
-
-};
-
-struct mc_ast_to_dot_options {
-	bool write_to_file;
-	char *output_file;
-	bool print_help;
-	bool limited_scope;
-	char *function;
-	enum mc_ast_to_dot_mode mode;
-};
-
-struct mc_ast_to_dot_command_line_parser {
-	struct mc_ast_to_dot_options *options;
-	struct mc_ast_to_dot_program_arguments *arguments;
-};
-
-struct mc_ast_to_dot_program_arguments {
-	int size;
-	char **args;
-};
-
-// ----------------------------------------------------------------------- Functions
-
-// Parse file and return pointer to allocated struct
-struct mcc_parser_result parse_file(char *filename);
-
-// Print usage of mc_ast_to_dot
-void print_usage(const char *prg);
-
-// Transform a file from hard drive into a string
-char *fileToString(char *filename);
-
-// Read from stdin and write into string
-char *stdinToString();
-
-// Parse the command line from mc_ast_to_dot
-struct mc_ast_to_dot_command_line_parser *parse_command_line(int argc, char *argv[]);
-
-// Parse the command line options from mc_ast_to_dot
-struct mc_ast_to_dot_options *parse_options(int argc, char *argv[]);
-
-// Parse the command line arguments from mc_ast_to_dot
-struct mc_ast_to_dot_program_arguments *parse_arguments(int argc, char *argv[]);
-
-// Clean up command line parsing results
-void mc_ast_to_dot_delete_command_line_parser(struct mc_ast_to_dot_command_line_parser *command_line);
-
-// Check if stdin or files was supplied
-enum mc_ast_to_dot_argument_status mc_ast_to_dot_check_args(struct mc_ast_to_dot_command_line_parser *command_line);
 
 // get a function out of a mcc_parser_result
 struct mcc_parser_result *limit_result_to_function_scope(struct mcc_parser_result *result, char *wanted_function_name);
@@ -88,52 +19,48 @@ int main(int argc, char *argv[])
 	// ---------------------------------------------------------------------- Parsing and checking command line
 
 	// Get all options and arguments from command line
-	struct mc_ast_to_dot_command_line_parser *command_line = parse_command_line(argc, argv);
+	struct mc_cl_parser_command_line_parser *command_line = mc_cl_parser_parse(argc, argv);
 	if (command_line == NULL) {
-		mc_ast_to_dot_delete_command_line_parser(command_line);
+		mc_cl_parser_delete_command_line_parser(command_line);
 		return EXIT_FAILURE;
 	}
 
 	// print usage if "-h" or "--help" was specified
 	if (command_line->options->print_help == true) {
-		print_usage(argv[0]);
-		mc_ast_to_dot_delete_command_line_parser(command_line);
+		mc_cl_parser_delete_command_line_parser(command_line);
 		return EXIT_FAILURE;
 	}
-
-	// Get info, if stdin or files are used as input
-	enum mc_ast_to_dot_argument_status argument_status = mc_ast_to_dot_check_args(command_line);
 
 	// Args were malformed
-	if (argument_status == MC_AST_TO_DOT_ARGSTAT_ERROR){
-		print_usage(argv[0]);
-		mc_ast_to_dot_delete_command_line_parser(command_line);
+	if (command_line->argument_status == MC_CL_PARSER_ARGSTAT_ERROR){
+		mc_cl_parser_delete_command_line_parser(command_line);
 		return EXIT_FAILURE;
 	}
 
-	if (argument_status == MC_AST_TO_DOT_ARGSTAT_FILE_NOT_FOUND){
-		printf("-------------------------------------------\n");
-		printf("File not found, please provide valid input.\n");
-		printf("-------------------------------------------\n");
-		printf("\n");
-		print_usage(argv[0]);
-		mc_ast_to_dot_delete_command_line_parser(command_line);
+	if (command_line->argument_status == MC_CL_PARSER_ARGSTAT_FILE_NOT_FOUND){
+		mc_cl_parser_delete_command_line_parser(command_line);
 		return EXIT_FAILURE;
 	}
+
+	// Read from Stdin
+	char* input = NULL;
+	if (command_line->argument_status == MC_CL_PARSER_ARGSTAT_STDIN){
+		input = stdinToString();
+	}
+
 	// ---------------------------------------------------------------------- Parsing provided input
 
 	// Declare struct that will hold the result of the parser and corresponding pointer
 	struct mcc_parser_result result;
 
-	// Invoke parser on stdin
-	if (argument_status == MC_AST_TO_DOT_ARGSTAT_STDIN){
-		char* input = stdinToString();
+	// Invoke parser on input from Stdin
+	if (command_line->argument_status == MC_CL_PARSER_ARGSTAT_STDIN){
 		result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
 		free(input);
 		if (result.status != MCC_PARSER_STATUS_OK){
 			fprintf(stderr, "%s", result.error_buffer);
 			free(result.error_buffer);
-			mc_ast_to_dot_delete_command_line_parser(command_line);
+			mc_cl_parser_delete_command_line_parser(command_line);
 			return EXIT_FAILURE;
 		}
 	}
@@ -141,7 +68,7 @@ int main(int argc, char *argv[])
 
 	// Invoke parser on input files, merge resulting trees into one
 	struct mcc_parser_result parse_results [command_line->arguments->size];
-	if (argument_status == MC_AST_TO_DOT_ARGSTAT_FILES){
+	if (command_line->argument_status == MC_CL_PARSER_ARGSTAT_FILES){
 
 		// Iterate over all files and hand them to parser
 		int i = 0;
@@ -158,7 +85,7 @@ int main(int argc, char *argv[])
 					free(parse_results+j);
 					j++;
 				}
-				mc_ast_to_dot_delete_command_line_parser(command_line);
+				mc_cl_parser_delete_command_line_parser(command_line);
 				return EXIT_FAILURE;
 			}
 
@@ -172,17 +99,17 @@ int main(int argc, char *argv[])
 
 	// find correct node of ast tree, depending on wether "-f" was passed, result will then be set to it
 	struct mcc_parser_result *intermediate = NULL;
-	if (command_line->options->mode == MC_AST_TO_DOT_MODE_FUNCTION) {
+	if (command_line->options->mode == MC_CL_PARSER_MODE_FUNCTION) {
 	    intermediate = limit_result_to_function_scope(&result, command_line->options->function);
 	    if(intermediate == NULL){
-			mc_ast_to_dot_delete_command_line_parser(command_line);
+			mc_cl_parser_delete_command_line_parser(command_line);
 			mcc_ast_delete_program(result.program);
 			return EXIT_FAILURE;
 	    }
 	    result = *intermediate;
 		if(result.status != MCC_PARSER_STATUS_OK){
 			mcc_ast_delete_program(result.program);
-		    mc_ast_to_dot_delete_command_line_parser(command_line);
+		    mc_cl_parser_delete_command_line_parser(command_line);
 			if(intermediate != NULL) free(intermediate);
 		    return EXIT_FAILURE;
 		}
@@ -195,7 +122,7 @@ int main(int argc, char *argv[])
 		FILE *out = fopen(command_line->options->output_file, "a");
 		if (out == NULL) {
 			mcc_ast_delete_program(result.program);
-			mc_ast_to_dot_delete_command_line_parser(command_line);
+			mc_cl_parser_delete_command_line_parser(command_line);
 			if(intermediate != NULL) free(intermediate);
 			return EXIT_FAILURE;
 		}
@@ -208,7 +135,7 @@ int main(int argc, char *argv[])
 	// ---------------------------------------------------------------------- Clean up
 
 	// Cleanup
-	mc_ast_to_dot_delete_command_line_parser(command_line);
+	mc_cl_parser_delete_command_line_parser(command_line);
 	mcc_ast_delete_result(&result);
 	if(intermediate != NULL) free(intermediate);
 
@@ -230,19 +157,6 @@ struct mcc_parser_result parse_file(char *filename)
 	return_value = mcc_parse_file(f,MCC_PARSER_ENTRY_POINT_PROGRAM,filename);
 	fclose(f);
 	return return_value;
-}
-
-void print_usage(const char *prg)
-{
-	printf("usage: %s [OPTIONS] file...\n\n", prg);
-	printf("Utility for printing an abstract syntax tree in the DOT format. The output\n");
-	printf("can be visualised using graphviz. Errors are reported on invalid inputs.\n\n");
-	printf("Use '-' as input file to read from stdin.\n\n");
-	printf("OPTIONS:\n");
-	printf("  -h, --help                displays this help message\n");
-	printf("  -o, --output <file>       write the output to <file> (defaults to stdout)\n");
-	printf("  -f, --function <name>     limit scope to the given function\n");
-	printf("  -t, --test                parse rules of the grammar that are not a program\n");
 }
 
 // modified from: https://stackoverflow.com/questions/174531
@@ -297,166 +211,6 @@ char *stdinToString()
 	}
 
 	return content;
-}
-
-struct mc_ast_to_dot_options *parse_options(int argc, char *argv[])
-{
-	struct mc_ast_to_dot_options *options = malloc(sizeof(*options));
-	if (options == NULL) {
-		perror("parse_options:malloc");
-		return NULL;
-	}
-
-	options->write_to_file = false;
-	options->output_file = NULL;
-	options->print_help = false;
-	options->limited_scope = false;
-	options->function = NULL;
-	options->mode = MC_AST_TO_DOT_MODE_PROGRAM;
-	if (argc == 1) {
-		options->print_help = true;
-		return options;
-	}
-
-	static struct option long_options[] =
-			{
-					{"help", no_argument, NULL, 'h'},
-					{"output", required_argument, NULL, 'o'},
-					{"function", required_argument, NULL, 'f'},
-					{NULL,0,NULL,0}
-			};
-
-	int c;
-	while ((c = getopt_long(argc, argv, "o:hf:t",long_options,NULL)) != -1) {
-		switch (c) {
-		case 'o':
-			options->write_to_file = true;
-			options->output_file = optarg;
-			break;
-		case 'h':
-			options->print_help = true;
-			break;
-		case 'f':
-			options->limited_scope = true;
-			options->mode = MC_AST_TO_DOT_MODE_FUNCTION;
-			options->function = optarg;
-			break;
-		default:
-			options->print_help = true;
-			break;
-		}
-	}
-
-	return options;
-}
-
-struct mc_ast_to_dot_program_arguments *parse_arguments(int argc, char *argv[])
-{
-
-	int i = optind;
-
-	struct mc_ast_to_dot_program_arguments *arguments = malloc(sizeof(*arguments));
-	if (arguments == NULL) {
-		perror("parse_arguments: malloc");
-	}
-
-	if (argc == 1) {
-		arguments->size = 0;
-		arguments->args = malloc(1);
-		return arguments;
-	}
-
-	char **args = malloc(sizeof(char *) * (argc - optind));
-	if (args == NULL) {
-		perror("parse_arguments: malloc");
-		return NULL;
-	}
-
-	while (i < argc) {
-		*(args + i - optind) = argv[i];
-		i++;
-	}
-	arguments->args = args;
-	arguments->size = argc - optind;
-	return arguments;
-}
-
-struct mc_ast_to_dot_command_line_parser *parse_command_line(int argc, char *argv[])
-{
-
-	struct mc_ast_to_dot_options *options = parse_options(argc, argv);
-	if (options == NULL) {
-	    perror("parse_command_line: parse_options");
-		return NULL;
-	}
-
-	struct mc_ast_to_dot_command_line_parser *parser = malloc(sizeof(*parser));
-	if (parser == NULL) {
-		perror("parse_command_line: malloc");
-		return NULL;
-	}
-
-	struct mc_ast_to_dot_program_arguments *arguments = parse_arguments(argc, argv);
-
-	if (arguments->size == 0) {
-		options->print_help = true;
-	}
-
-	parser->options = options;
-	parser->arguments = arguments;
-
-	return parser;
-}
-
-void mc_ast_to_dot_delete_command_line_parser(struct mc_ast_to_dot_command_line_parser *command_line)
-{
-	if (command_line->arguments->args != NULL) {
-		free(command_line->arguments->args);
-	}
-	if (command_line->arguments != NULL) {
-		free(command_line->arguments);
-	}
-	if (command_line->options != NULL) {
-		free(command_line->options);
-	}
-	if (command_line != NULL) {
-		free(command_line);
-	}
-}
-
-enum mc_ast_to_dot_argument_status mc_ast_to_dot_check_args(struct mc_ast_to_dot_command_line_parser *command_line)
-{
-	// 0 arguments
-	if (command_line->arguments->size == 0){
-		return MC_AST_TO_DOT_ARGSTAT_ERROR;
-	}
-
-	// 1 argument -> stdin ?
-	if (command_line->arguments->size == 1 && strcmp(*(command_line->arguments->args), "-") == 0) {
-		return MC_AST_TO_DOT_ARGSTAT_STDIN;
-
-	// 1+ arguments -> does "-" appear among arguments?
-	} else {
-
-		int i = 0;
-
-		// Check if one of the specified files is stdin
-		while (i < command_line->arguments->size) {
-			if (strcmp(*(command_line->arguments->args + i), "-") == 0) {
-				command_line->options->print_help = true;
-				return MC_AST_TO_DOT_ARGSTAT_ERROR;
-			} else {
-				// Check if file exists
-				if (access(*(command_line->arguments->args + i), F_OK) == -1){
-					return MC_AST_TO_DOT_ARGSTAT_FILE_NOT_FOUND;
-				}
-			}
-			i++;
-		}
-		// 1+ arguments, all of which are files
-		return MC_AST_TO_DOT_ARGSTAT_FILES;
-
-	}
 }
 
 struct mcc_parser_result *limit_result_to_function_scope(struct mcc_parser_result *result, char *wanted_function_name)
