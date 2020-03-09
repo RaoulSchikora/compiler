@@ -9,6 +9,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+void empty_table(CuTest *tc)
+{
+    struct mcc_symbol_table *table = mcc_symbol_table_new_table();
+
+    CuAssertTrue(tc, table->head == NULL);
+
+    mcc_symbol_table_delete_table(table);
+}
+
 void multiple_rows(CuTest *tc)
 {
     // {
@@ -159,6 +168,7 @@ void nesting_scope(CuTest *tc)
 }
 
 #define TESTS \
+    TEST(empty_table)     \
 	TEST(multiple_rows)   \
 	TEST(scope_siblings)  \
 	TEST(nesting_scope)
