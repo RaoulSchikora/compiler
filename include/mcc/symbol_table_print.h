@@ -1,6 +1,6 @@
 //
 // Created by raoul on 07.03.20.
-// This module provides basic printing infrastructure for the symbol_table. It is stored in DOT format.
+// This module provides basic printing infrastructure for the symbol_table. It uses nested HTML tables in DOT format.
 // It can be visualized via GraphViz
 //
 
