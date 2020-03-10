@@ -1,4 +1,5 @@
 #include "mcc/symbol_table.h"
+#include "mcc/ast_visit.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -186,6 +187,13 @@ void mcc_symbol_table_insert_scope(struct mcc_symbol_table *table, struct mcc_sy
     return;
 }
 
+void mcc_symbol_table_insert_new_scope(struct mcc_symbol_table *table)
+{
+    assert(table);
+
+    mcc_symbol_table_insert_scope(table, mcc_symbol_table_new_scope());
+}
+
 void mcc_symbol_table_delete_table(struct mcc_symbol_table *table)
 {
     assert(table);
@@ -195,4 +203,51 @@ void mcc_symbol_table_delete_table(struct mcc_symbol_table *table)
     }
 
     free(table);
+}
+
+// --------------------------------------------------------------- traversing AST and create symbol table
+
+static void create_row_function_definition(struct mcc_ast_function_definition *function_definition, void *data)
+{
+    assert(function_definition);
+    assert(data);
+
+    struct mcc_symbol_table *table = data;
+
+    if(!table->head){
+        mcc_symbol_table_insert_new_scope(table);
+    }
+
+    struct mcc_symbol_table_row *row = mcc_symbol_table_new_row(function_definition->identifier->identifier_name,
+            MCC_SYMBOL_TABLE_ROW_TYPE_FUNCTION);
+    mcc_symbol_table_scope_append_row(table->head, row);
+
+    // TODO insert function body
+}
+
+// Setup an AST visitor for traversing the AST and filling the symbol table.
+static struct mcc_ast_visitor create_symbol_table_visitor(struct mcc_symbol_table *table)
+{
+    assert(table);
+
+    return (struct mcc_ast_visitor){
+            .traversal = MCC_AST_VISIT_DEPTH_FIRST,
+            .order = MCC_AST_VISIT_PRE_ORDER,
+
+            .userdata = table,
+
+            .function_definition = create_row_function_definition,
+    };
+}
+
+struct mcc_symbol_table *mcc_symbol_table_create(struct mcc_ast_program *program)
+{
+    assert(program);
+
+    struct mcc_symbol_table *table = mcc_symbol_table_new_table();
+
+    struct mcc_ast_visitor visitor = create_symbol_table_visitor(table);
+    mcc_ast_visit(program, &visitor);
+
+    return table;
 }

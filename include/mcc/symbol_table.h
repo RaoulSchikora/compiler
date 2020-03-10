@@ -14,6 +14,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "mcc/ast.h"
+
 // ------------------------------------------------------------ Symbol Table row
 
 enum mcc_symbol_table_row_type{
@@ -76,5 +78,9 @@ struct mcc_symbol_table{
 struct mcc_symbol_table *mcc_symbol_table_new_table();
 void mcc_symbol_table_insert_scope(struct mcc_symbol_table *table, struct mcc_symbol_table_scope *scope);
 void mcc_symbol_table_delete_table(struct mcc_symbol_table *table);
+
+// --------------------------------------------------------------- traversing AST and create symbol table
+
+struct mcc_symbol_table *mcc_symbol_table_create(struct mcc_ast_program *program);
 
 #endif //MCC_SYMBOL_TABLE_H
