@@ -207,6 +207,53 @@ void mcc_symbol_table_delete_table(struct mcc_symbol_table *table)
 
 // --------------------------------------------------------------- traversing AST and create symbol table
 
+static void create_row_variable_declaration(struct mcc_ast_declaration *declaration, void *data)
+{
+
+}
+
+static void create_row_parameter(struct mcc_symbol_table_scope *child_scope, struct mcc_ast_parameters *parameters)
+{
+    assert(child_scope);
+    assert(parameters);
+
+    struct mcc_ast_declaration *declaration = parameters->declaration;
+    struct mcc_symbol_table_row *row;
+
+    switch (declaration->declaration_type){
+    case MCC_AST_DECLARATION_TYPE_VARIABLE:
+        // TODO enum
+        row = mcc_symbol_table_new_row(declaration->variable_identifier->identifier_name, 2);
+        mcc_symbol_table_scope_append_row(child_scope, row);
+        break;
+    case MCC_AST_DECLARATION_TYPE_ARRAY:
+        // TODO
+        break;
+    }
+}
+
+static void create_rows_function_parameters(struct mcc_ast_function_definition *function_definition,
+                                            struct mcc_symbol_table_row *row)
+{
+    assert(function_definition);
+    assert(row);
+
+    struct mcc_symbol_table_scope *child_scope = mcc_symbol_table_new_scope();
+    mcc_symbol_table_row_append_child_scope(row, child_scope);
+
+    if(!function_definition->parameters->is_empty){
+        struct mcc_ast_parameters *parameters = function_definition->parameters;
+
+        create_row_parameter(child_scope, parameters);
+
+        while (parameters->next_parameters){
+            parameters = parameters->next_parameters;
+            create_row_parameter(child_scope, parameters);
+        }
+    }
+}
+
+
 static void create_row_function_definition(struct mcc_ast_function_definition *function_definition, void *data)
 {
     assert(function_definition);
@@ -222,7 +269,7 @@ static void create_row_function_definition(struct mcc_ast_function_definition *f
             MCC_SYMBOL_TABLE_ROW_TYPE_FUNCTION);
     mcc_symbol_table_scope_append_row(table->head, row);
 
-    // TODO insert function body
+    create_rows_function_parameters(function_definition, row);
 }
 
 // Setup an AST visitor for traversing the AST and filling the symbol table.
@@ -237,6 +284,7 @@ static struct mcc_ast_visitor create_symbol_table_visitor(struct mcc_symbol_tabl
             .userdata = table,
 
             .function_definition = create_row_function_definition,
+            .variable_declaration = create_row_variable_declaration,
     };
 }
 
