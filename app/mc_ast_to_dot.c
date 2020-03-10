@@ -14,12 +14,23 @@ struct mcc_parser_result *limit_result_to_function_scope(struct mcc_parser_resul
 // take an array of mcc_parser_results and merge them into one
 struct mcc_parser_result *mc_ast_to_dot_merge_results(struct mcc_parser_result* array, int size);
 
+// Hand file to the parser
+struct mcc_parser_result parse_file(char *filename);
+
+// Convert file input to string
+char *fileToString(char *filename);
+
+// Convert Stdin stream to string
+char *stdinToString();
+
 int main(int argc, char *argv[])
 {
 	// ---------------------------------------------------------------------- Parsing and checking command line
 
 	// Get all options and arguments from command line
-	struct mc_cl_parser_command_line_parser *command_line = mc_cl_parser_parse(argc, argv);
+	char* usage_string = "Utility for printing an abstract syntax tree in the DOT format. The output\n"
+					  "can be visualised using Graphviz. Errors are reported on invalid inputs.\n";
+	struct mc_cl_parser_command_line_parser *command_line = mc_cl_parser_parse(argc, argv, usage_string);
 	if (command_line == NULL) {
 		mc_cl_parser_delete_command_line_parser(command_line);
 		return EXIT_FAILURE;
@@ -37,6 +48,7 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
+	// Given file does not exist
 	if (command_line->argument_status == MC_CL_PARSER_ARGSTAT_FILE_NOT_FOUND){
 		mc_cl_parser_delete_command_line_parser(command_line);
 		return EXIT_FAILURE;
@@ -134,7 +146,6 @@ int main(int argc, char *argv[])
 
 	// ---------------------------------------------------------------------- Clean up
 
-	// Cleanup
 	mc_cl_parser_delete_command_line_parser(command_line);
 	mcc_ast_delete_result(&result);
 	if(intermediate != NULL) free(intermediate);

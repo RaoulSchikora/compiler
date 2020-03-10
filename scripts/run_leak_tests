@@ -1,21 +1,36 @@
 #!/bin/bash
-cd /home/oliver/Oliver/Studium/Master\ Informatik/2.Semester/Compilerbau/PS/compiler/tmp_development/leak_tests_mc_ast_to_dot
+
+# See usage info (call with "-h") 
+
+if [[ "$1" == "-h" ]]
+	then
+		echo "Runs leak tests on given executable with specific inputs."
+		echo ""
+		echo "Usage: ./run_leak_tests <program>"
+		echo ""
+		echo "<program> can be mcc, mc_ast_to_dot, mc_symbol_table"
+		exit
+fi
+
+readonly SCRIPTS_DIR=$(dirname "$(readlink -f "$0")")
+cd "${SCRIPTS_DIR}/leak_tests"
 val="valgrind --error-exitcode=3 --leak-check=full --track-origins=yes --show-leak-kinds=all"
-print="../../builddir/mc_ast_to_dot"
+print="../../builddir/${1}"
+logs="../../builddir/leak_test_logs/${1}"
+echo $logs
 success=0
 input="int test1(){return a;int a; a = 1; } int test2(){ return a; } void test3(int a){ a =1; return; }"
 input_error="int test1(){return a;;int a;} a = 1; } int {test2(){ return a; } void test3(int a){ a =1; return; }"
 
-if [ -d logs ]
-then
-	echo "writing to directory logs"
-else
-	echo "creating directory logs"
-	mkdir logs
+if !([ -d $logs ])
+	then
+		mkdir $logs
+	else
+		rm "${logs}/*"
 fi
 
 # testing the parse of input1 - input3 
-$val $print input_test input_test2 input_test3 2> logs/log1.txt > /dev/null
+$val $print input_test input_test2 input_test3 2> $logs/log1.txt > /dev/null
 if [ $? -eq 3  ]
 	then 
 		success=1
@@ -25,7 +40,7 @@ if [ $? -eq 3  ]
 fi
 
 # testing the parse of input1 - input3 with -f set to first function
-$val $print -f test1 input_test input_test2 input_test3 2> logs/log2.txt > /dev/null
+$val $print -f test1 input_test input_test2 input_test3 2> $logs/log2.txt > /dev/null
 if [ $? -eq 3  ]
 	then 
 		success=1
@@ -35,7 +50,7 @@ if [ $? -eq 3  ]
 fi
 
 # testing the parse of input1 - input3 with -f set to second function
-$val $print -f test2 input_test input_test2 input_test3 2> logs/log3.txt > /dev/null
+$val $print -f test2 input_test input_test2 input_test3 2> $logs/log3.txt > /dev/null
 if [ $? -eq 3  ]
 	then 
 		success=1
@@ -45,7 +60,7 @@ if [ $? -eq 3  ]
 fi
 
 # testing the parse of input1 - input3 with -f set to last function
-$val $print -f test3 input_test input_test2 input_test3 2> logs/log4.txt > /dev/null
+$val $print -f test3 input_test input_test2 input_test3 2> $logs/log4.txt > /dev/null
 if [ $? -eq 3  ]
 	then 
 		success=1
@@ -55,7 +70,7 @@ if [ $? -eq 3  ]
 fi
 
 # testing the parse of single input file 
-$val $print input_test3 2> logs/log5.txt > /dev/null
+$val $print input_test3 2> $logs/log5.txt > /dev/null
 if [ $? -eq 3  ]
 	then 
 		success=1
@@ -65,7 +80,7 @@ if [ $? -eq 3  ]
 fi
 
 # testing the parse of stdin
-$val $print - <<< $input 2>logs/log6.txt > /dev/null
+$val $print - <<< $input 2>$logs/log6.txt > /dev/null
 if [ $? -eq 3  ]
 	then 
 		success=1
@@ -75,7 +90,7 @@ if [ $? -eq 3  ]
 fi
 
 # testing the parse of stdin with -f set to first function
-$val $print -f test1 - <<< $input 2>logs/log7.txt > /dev/null
+$val $print -f test1 - <<< $input 2>$logs/log7.txt > /dev/null
 if [ $? -eq 3  ]
 	then 
 		success=1
@@ -85,7 +100,7 @@ if [ $? -eq 3  ]
 fi
 
 # testing the parse of stdin with -f set to second function
-$val $print -f test2 - <<< $input 2>logs/log8.txt > /dev/null
+$val $print -f test2 - <<< $input 2>$logs/log8.txt > /dev/null
 if [ $? -eq 3  ]
 	then 
 		success=1
@@ -95,7 +110,7 @@ if [ $? -eq 3  ]
 fi
 
 # testing the parse of stdin with -f set to last function
-$val $print -f test3 - <<< $input 2>logs/log9.txt > /dev/null
+$val $print -f test3 - <<< $input 2>$logs/log9.txt > /dev/null
 if [ $? -eq 3  ]
 	then 
 		success=1
@@ -105,7 +120,7 @@ if [ $? -eq 3  ]
 fi
 
 # testing the parse of erronous input_error from file
-$val $print input_error 2> logs/log_error_file.txt > /dev/null
+$val $print input_error 2> $logs/log_error_file.txt > /dev/null
 if [ $? -eq 3  ]
 	then 
 		success=1
@@ -115,7 +130,7 @@ if [ $? -eq 3  ]
 fi
 
 # testing the parse of erronous input_error from stdin
-$val $print - <<< $input_error 2> logs/log_error_stdin.txt > /dev/null
+$val $print - <<< $input_error 2> $logs/log_error_stdin.txt > /dev/null
 if [ $? -eq 3  ]
 	then 
 		success=1

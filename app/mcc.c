@@ -26,6 +26,11 @@ struct mcc_parser_result *mc_ast_to_dot_merge_results(struct mcc_parser_result* 
 // Hand file to the parser
 struct mcc_parser_result parse_file(char *filename);
 
+// Convert file input to string
+char *fileToString(char *filename);
+
+// Convert Stdin stream to string
+char *stdinToString();
 
 int main(int argc, char *argv[])
 {
@@ -33,7 +38,9 @@ int main(int argc, char *argv[])
 	// ---------------------------------------------------------------------- Parsing and checking command line
 
 	// Get all options and arguments from command line
-	struct mc_cl_parser_command_line_parser *command_line = mc_cl_parser_parse(argc, argv);
+	char* usage_string = "The mC compiler. It takes an mC input file and produces an executable.\n"
+					  "Errors are reported on invalid inputs.\n";
+	struct mc_cl_parser_command_line_parser *command_line = mc_cl_parser_parse(argc, argv, usage_string);
 	if (command_line == NULL) {
 		mc_cl_parser_delete_command_line_parser(command_line);
 		return EXIT_FAILURE;
@@ -51,6 +58,7 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
+	// Given file does not exist
 	if (command_line->argument_status == MC_CL_PARSER_ARGSTAT_FILE_NOT_FOUND){
 		mc_cl_parser_delete_command_line_parser(command_line);
 		return EXIT_FAILURE;
@@ -62,8 +70,52 @@ int main(int argc, char *argv[])
 		input = stdinToString();
 	}
 
-    // ---------------------------------------------------------------------- Create empty output file for int. tests
-    // TODO: Call parser
+	// ---------------------------------------------------------------------- Parsing provided input
+
+	// Declare struct that will hold the result of the parser and corresponding pointer
+	struct mcc_parser_result result;
+
+	// Invoke parser on input from Stdin
+	if (command_line->argument_status == MC_CL_PARSER_ARGSTAT_STDIN){
+		result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+		free(input);
+		if (result.status != MCC_PARSER_STATUS_OK){
+			fprintf(stderr, "%s", result.error_buffer);
+			free(result.error_buffer);
+			mc_cl_parser_delete_command_line_parser(command_line);
+			return EXIT_FAILURE;
+		}
+	}
+
+
+	// Invoke parser on input files, merge resulting trees into one
+	struct mcc_parser_result parse_results [command_line->arguments->size];
+	if (command_line->argument_status == MC_CL_PARSER_ARGSTAT_FILES){
+
+		// Iterate over all files and hand them to parser
+		int i = 0;
+		while (i<command_line->arguments->size){
+			parse_results[i] = parse_file(*(command_line->arguments->args+i));
+			// If error of parser: print error and clean up
+			if (parse_results[i].status != MCC_PARSER_STATUS_OK){
+				fprintf(stderr, "%s", parse_results[i].error_buffer);
+				free(parse_results[i].error_buffer);
+				// only invalid inputs will be destroyed by parser: manually delete parser_results of other files:
+				int j = 0;
+				while (j<i){
+					mcc_ast_delete_result(parse_results+j);
+					free(parse_results+j);
+					j++;
+				}
+				mc_cl_parser_delete_command_line_parser(command_line);
+				return EXIT_FAILURE;
+			}
+
+			// Continue Loop
+			i++;
+		}
+		result = *(mc_ast_to_dot_merge_results(parse_results, command_line->arguments->size));
+	}
 
     // Print to file or stdout
     if (command_line->options->write_to_file == true) {
@@ -81,6 +133,7 @@ int main(int argc, char *argv[])
 	// ---------------------------------------------------------------------- Clean up
 
 	mc_cl_parser_delete_command_line_parser(command_line);
+	mcc_ast_delete_result(&result);
 
 	// TODO:
 	// - run semantic checks
