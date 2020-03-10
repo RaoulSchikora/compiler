@@ -38,8 +38,10 @@ char *stdinToString();
 int main(int argc, char *argv[]) {
     // ---------------------------------------------------------------------- Parsing and checking command line
 
+    char* usage_string = "Utility for displaying the generated symbol tables. \n"
+                         "Errors are reported on invalid inputs.\n";
     // Get all options and arguments from command line
-    struct mc_cl_parser_command_line_parser *command_line = mc_cl_parser_parse(argc, argv);
+    struct mc_cl_parser_command_line_parser *command_line = mc_cl_parser_parse(argc, argv, usage_string);
     if (command_line == NULL) {
         mc_cl_parser_delete_command_line_parser(command_line);
         return EXIT_FAILURE;

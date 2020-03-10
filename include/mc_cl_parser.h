@@ -51,13 +51,13 @@ struct mc_cl_parser_program_arguments {
 // ----------------------------------------------------------------------- Functions
 
 // Main function. Parses command line and returns struct
-struct mc_cl_parser_command_line_parser* mc_cl_parser_parse (int argc, char *argv[]);
+struct mc_cl_parser_command_line_parser* mc_cl_parser_parse (int argc, char *argv[], char* usage_string);
 
 // Parse file and return pointer to allocated struct
 struct mcc_parser_result parse_file(char *filename);
 
 // Print usage of mc_cl_parser
-void print_usage(const char *prg);
+void print_usage(const char *prg, const char *usage_string);
 
 // Transform a file from hard drive into a string
 char *fileToString(char *filename);

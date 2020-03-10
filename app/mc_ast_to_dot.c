@@ -28,7 +28,9 @@ int main(int argc, char *argv[])
 	// ---------------------------------------------------------------------- Parsing and checking command line
 
 	// Get all options and arguments from command line
-	struct mc_cl_parser_command_line_parser *command_line = mc_cl_parser_parse(argc, argv);
+	char* usage_string = "Utility for printing an abstract syntax tree in the DOT format. The output\n"
+					  "can be visualised using Graphviz. Errors are reported on invalid inputs.\n";
+	struct mc_cl_parser_command_line_parser *command_line = mc_cl_parser_parse(argc, argv, usage_string);
 	if (command_line == NULL) {
 		mc_cl_parser_delete_command_line_parser(command_line);
 		return EXIT_FAILURE;

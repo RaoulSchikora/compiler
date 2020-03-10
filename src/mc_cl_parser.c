@@ -2,7 +2,7 @@
 
 #define BUF_SIZE 1024
 
-struct mc_cl_parser_command_line_parser* mc_cl_parser_parse (int argc, char *argv[])
+struct mc_cl_parser_command_line_parser* mc_cl_parser_parse (int argc, char *argv[], char* usage_string)
 {
     // ------------------------------------------------------------ Parsing and checking command line
 
@@ -15,7 +15,7 @@ struct mc_cl_parser_command_line_parser* mc_cl_parser_parse (int argc, char *arg
 
     // print usage if "-h" or "--help" was specified
     if (command_line->options->print_help == true) {
-        print_usage(argv[0]);
+        print_usage(argv[0],usage_string);
         command_line->argument_status=MC_CL_PARSER_ARGSTAT_PRINT_HELP;
         return command_line;
     }
@@ -25,7 +25,7 @@ struct mc_cl_parser_command_line_parser* mc_cl_parser_parse (int argc, char *arg
 
     // Args were malformed
     if (command_line->argument_status == MC_CL_PARSER_ARGSTAT_ERROR){
-        print_usage(argv[0]);
+        print_usage(argv[0],usage_string);
         return command_line;
     }
 
@@ -34,18 +34,17 @@ struct mc_cl_parser_command_line_parser* mc_cl_parser_parse (int argc, char *arg
         printf("File not found, please provide valid input.\n");
         printf("-------------------------------------------\n");
         printf("\n");
-        print_usage(argv[0]);
+        print_usage(argv[0],usage_string);
         return command_line;
     }
 
     return command_line;
 }
 
-void print_usage(const char *prg)
+void print_usage(const char *prg, const char *usage_string)
 {
     printf("usage: %s [OPTIONS] file...\n\n", prg);
-    printf("Utility for printing an abstract syntax tree in the DOT format. The output\n");
-    printf("can be visualised using graphviz. Errors are reported on invalid inputs.\n\n");
+    printf("%s\n",usage_string);
     printf("Use '-' as input file to read from stdin.\n\n");
     printf("OPTIONS:\n");
     printf("  -h, --help                displays this help message\n");
