@@ -2,6 +2,18 @@
 
 #define BUF_SIZE 1024
 
+// ------------------------------------------------------------- Forward declarations
+
+void print_usage(const char *prg, const char *usage_string);
+char *mc_cl_stdin_to_string();
+struct mc_cl_parser_options *parse_options(int argc, char *argv[]);
+struct mc_cl_parser_program_arguments *parse_arguments(int argc, char *argv[]);
+struct mc_cl_parser_command_line_parser *parse_command_line(int argc, char *argv[]);
+enum mc_cl_parser_argument_status mc_cl_parser_check_args(struct mc_cl_parser_command_line_parser *command_line);
+
+
+// ------------------------------------------------------------- Definitions
+
 struct mc_cl_parser_command_line_parser* mc_cl_parser_parse (int argc, char *argv[], char* usage_string)
 {
     // ------------------------------------------------------------ Parsing and checking command line
@@ -53,36 +65,15 @@ void print_usage(const char *prg, const char *usage_string)
     printf("  -t, --test                parse rules of the grammar that are not a program\n");
 }
 
-// modified from: https://stackoverflow.com/questions/174531
-char *fileToString(char *filename)
-{
-    FILE *f = fopen(filename, "rt");
-    if (f == NULL) {
-        return NULL;
-    }
-    fseek(f, 0, SEEK_END);
-    long length = ftell(f);
-    fseek(f, 0, SEEK_SET);
-    char *buffer = (char *)malloc(length + 1);
-    buffer[length] = '\0';
-    size_t ret = fread(buffer, 1, length, f);
-    if (ret == 0){
-        perror("fileToString: fread");
-        return NULL;
-    }
-    fclose(f);
-    return buffer;
-}
-
 // from: https://stackoverflow.com/questions/2496668
-char *stdinToString()
+char *mc_cl_stdin_to_string()
 {
     char buffer[BUF_SIZE];
     size_t contentSize = 1; // includes NULL
     /* Preallocate space. */
     char *content = malloc(sizeof(char) * BUF_SIZE);
     if (content == NULL) {
-        perror("stdinToString:Failed to allocate content");
+        perror("mc_cl_stdin_to_string:Failed to allocate content");
         exit(1);
     }
     content[0] = '\0'; // make null-terminated
@@ -91,7 +82,7 @@ char *stdinToString()
         contentSize += strlen(buffer);
         content = realloc(content, contentSize);
         if (content == NULL) {
-            perror("stdinToString:Failed to reallocate content");
+            perror("mc_cl_stdin_to_string:Failed to reallocate content");
             free(old);
             exit(2);
         }

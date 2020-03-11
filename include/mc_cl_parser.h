@@ -53,26 +53,12 @@ struct mc_cl_parser_program_arguments {
 // Main function. Parses command line and returns struct
 struct mc_cl_parser_command_line_parser* mc_cl_parser_parse (int argc, char *argv[], char* usage_string);
 
-// Parse file and return pointer to allocated struct
-struct mcc_parser_result parse_file(char *filename);
-
-// Print usage of mc_cl_parser
-void print_usage(const char *prg, const char *usage_string);
-
 // Transform a file from hard drive into a string
-char *fileToString(char *filename);
+// char *fileToString(char *filename);
+char *mc_cl_file_to_string(char *filename);
 
 // Read from stdin and write into string
-char *stdinToString();
-
-// Parse the command line from mc_cl_parser
-struct mc_cl_parser_command_line_parser *parse_command_line(int argc, char *argv[]);
-
-// Parse the command line options from mc_cl_parser
-struct mc_cl_parser_options *parse_options(int argc, char *argv[]);
-
-// Parse the command line arguments from mc_cl_parser
-struct mc_cl_parser_program_arguments *parse_arguments(int argc, char *argv[]);
+char *mc_cl_stdin_to_string();
 
 // Clean up command line parsing results
 void mc_cl_parser_delete_command_line_parser(struct mc_cl_parser_command_line_parser *command_line);

@@ -27,12 +27,6 @@ struct mcc_parser_result *mc_ast_to_dot_merge_results(struct mcc_parser_result* 
 // Hand file to the parser
 struct mcc_parser_result parse_file(char *filename);
 
-// Convert file input to string
-char *fileToString(char *filename);
-
-// Convert Stdin stream to string
-char *stdinToString();
-
 // ----------------------------------------------------------------------- Main
 
 int main(int argc, char *argv[]) {
@@ -68,7 +62,7 @@ int main(int argc, char *argv[]) {
     // Read from Stdin
     char* input = NULL;
     if (command_line->argument_status == MC_CL_PARSER_ARGSTAT_STDIN){
-        input = stdinToString();
+        input = mc_cl_stdin_to_string();
         free(input);
     }
 
@@ -161,60 +155,6 @@ struct mcc_parser_result parse_file(char *filename)
     return_value = mcc_parse_file(f,MCC_PARSER_ENTRY_POINT_PROGRAM,filename);
     fclose(f);
     return return_value;
-}
-
-// modified from: https://stackoverflow.com/questions/174531
-char *fileToString(char *filename)
-{
-    FILE *f = fopen(filename, "rt");
-    if (f == NULL) {
-        return NULL;
-    }
-    fseek(f, 0, SEEK_END);
-    long length = ftell(f);
-    fseek(f, 0, SEEK_SET);
-    char *buffer = (char *)malloc(length + 1);
-    buffer[length] = '\0';
-    size_t ret = fread(buffer, 1, length, f);
-    if (ret == 0){
-        perror("fileToString: fread");
-        return NULL;
-    }
-    fclose(f);
-    return buffer;
-}
-
-// from: https://stackoverflow.com/questions/2496668
-char *stdinToString()
-{
-    char buffer[BUF_SIZE];
-    size_t contentSize = 1; // includes NULL
-    /* Preallocate space. */
-    char *content = malloc(sizeof(char) * BUF_SIZE);
-    if (content == NULL) {
-        perror("stdinToString:Failed to allocate content");
-        exit(1);
-    }
-    content[0] = '\0'; // make null-terminated
-    while (fgets(buffer, BUF_SIZE, stdin)) {
-        char *old = content;
-        contentSize += strlen(buffer);
-        content = realloc(content, contentSize);
-        if (content == NULL) {
-            perror("stdinToString:Failed to reallocate content");
-            free(old);
-            exit(2);
-        }
-        strcat(content, buffer);
-    }
-
-    if (ferror(stdin)) {
-        free(content);
-        perror("Error reading from stdin.");
-        exit(3);
-    }
-
-    return content;
 }
 
 struct mcc_parser_result *limit_result_to_function_scope(struct mcc_parser_result *result, char *wanted_function_name)
