@@ -4,11 +4,15 @@
 
 // ------------------------------------------------------------- Forward declarations
 
-void print_usage(const char *prg, const char *usage_string);
-struct mc_cl_parser_options *parse_options(int argc, char *argv[]);
-struct mc_cl_parser_program_arguments *parse_arguments(int argc, char *argv[]);
-struct mc_cl_parser_command_line_parser *parse_command_line(int argc, char *argv[]);
-enum mc_cl_parser_argument_status check_args(struct mc_cl_parser_command_line_parser *command_line);
+static void print_usage(const char *prg, const char *usage_string);
+
+static struct mc_cl_parser_options *parse_options(int argc, char *argv[]);
+
+static struct mc_cl_parser_program_arguments *parse_arguments(int argc, char *argv[]);
+
+static struct mc_cl_parser_command_line_parser *parse_command_line(int argc, char *argv[]);
+
+static enum mc_cl_parser_argument_status check_args(struct mc_cl_parser_command_line_parser *command_line);
 
 
 // ------------------------------------------------------------- Definitions
@@ -52,7 +56,23 @@ struct mc_cl_parser_command_line_parser* mc_cl_parser_parse (int argc, char *arg
     return command_line;
 }
 
-void print_usage(const char *prg, const char *usage_string)
+void mc_cl_parser_delete_command_line_parser(struct mc_cl_parser_command_line_parser *command_line)
+{
+    if (command_line->arguments->args != NULL) {
+        free(command_line->arguments->args);
+    }
+    if (command_line->arguments != NULL) {
+        free(command_line->arguments);
+    }
+    if (command_line->options != NULL) {
+        free(command_line->options);
+    }
+    if (command_line != NULL) {
+        free(command_line);
+    }
+}
+
+static void print_usage(const char *prg, const char *usage_string)
 {
     printf("usage: %s [OPTIONS] file...\n\n", prg);
     printf("%s\n",usage_string);
@@ -97,7 +117,7 @@ char *mc_cl_parser_stdin_to_string()
     return content;
 }
 
-struct mc_cl_parser_options *parse_options(int argc, char *argv[])
+static struct mc_cl_parser_options *parse_options(int argc, char *argv[])
 {
     struct mc_cl_parser_options *options = malloc(sizeof(*options));
     if (options == NULL) {
@@ -148,7 +168,7 @@ struct mc_cl_parser_options *parse_options(int argc, char *argv[])
     return options;
 }
 
-struct mc_cl_parser_program_arguments *parse_arguments(int argc, char *argv[])
+static struct mc_cl_parser_program_arguments *parse_arguments(int argc, char *argv[])
 {
 
     int i = optind;
@@ -179,7 +199,7 @@ struct mc_cl_parser_program_arguments *parse_arguments(int argc, char *argv[])
     return arguments;
 }
 
-struct mc_cl_parser_command_line_parser *parse_command_line(int argc, char *argv[])
+static struct mc_cl_parser_command_line_parser *parse_command_line(int argc, char *argv[])
 {
 
     struct mc_cl_parser_options *options = parse_options(argc, argv);
@@ -206,23 +226,7 @@ struct mc_cl_parser_command_line_parser *parse_command_line(int argc, char *argv
     return parser;
 }
 
-void mc_cl_parser_delete_command_line_parser(struct mc_cl_parser_command_line_parser *command_line)
-{
-    if (command_line->arguments->args != NULL) {
-        free(command_line->arguments->args);
-    }
-    if (command_line->arguments != NULL) {
-        free(command_line->arguments);
-    }
-    if (command_line->options != NULL) {
-        free(command_line->options);
-    }
-    if (command_line != NULL) {
-        free(command_line);
-    }
-}
-
-enum mc_cl_parser_argument_status check_args(struct mc_cl_parser_command_line_parser *command_line)
+static enum mc_cl_parser_argument_status check_args(struct mc_cl_parser_command_line_parser *command_line)
 {
     // 0 arguments
     if (command_line->arguments->size == 0){
