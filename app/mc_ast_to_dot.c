@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
 	// Read from Stdin
 	char* input = NULL;
 	if (command_line->argument_status == MC_CL_PARSER_ARGSTAT_STDIN){
-		input = mc_cl_stdin_to_string();
+		input = mc_cl_parser_stdin_to_string();
 	}
 
 	// ---------------------------------------------------------------------- Parsing provided input

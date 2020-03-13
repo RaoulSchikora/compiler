@@ -53,17 +53,10 @@ struct mc_cl_parser_program_arguments {
 // Main function. Parses command line and returns struct
 struct mc_cl_parser_command_line_parser* mc_cl_parser_parse (int argc, char *argv[], char* usage_string);
 
-// Transform a file from hard drive into a string
-// char *fileToString(char *filename);
-char *mc_cl_file_to_string(char *filename);
-
 // Read from stdin and write into string
-char *mc_cl_stdin_to_string();
+char *mc_cl_parser_stdin_to_string();
 
 // Clean up command line parsing results
 void mc_cl_parser_delete_command_line_parser(struct mc_cl_parser_command_line_parser *command_line);
-
-// Check if stdin or files was supplied
-enum mc_cl_parser_argument_status mc_cl_parser_check_args(struct mc_cl_parser_command_line_parser *command_line);
 
 #endif //PROJECT_MC_CL_PARSER_H

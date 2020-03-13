@@ -5,11 +5,10 @@
 // ------------------------------------------------------------- Forward declarations
 
 void print_usage(const char *prg, const char *usage_string);
-char *mc_cl_stdin_to_string();
 struct mc_cl_parser_options *parse_options(int argc, char *argv[]);
 struct mc_cl_parser_program_arguments *parse_arguments(int argc, char *argv[]);
 struct mc_cl_parser_command_line_parser *parse_command_line(int argc, char *argv[]);
-enum mc_cl_parser_argument_status mc_cl_parser_check_args(struct mc_cl_parser_command_line_parser *command_line);
+enum mc_cl_parser_argument_status check_args(struct mc_cl_parser_command_line_parser *command_line);
 
 
 // ------------------------------------------------------------- Definitions
@@ -33,7 +32,7 @@ struct mc_cl_parser_command_line_parser* mc_cl_parser_parse (int argc, char *arg
     }
 
     // Get info, if stdin or files are used as input
-    command_line->argument_status = mc_cl_parser_check_args(command_line);
+    command_line->argument_status = check_args(command_line);
 
     // Args were malformed
     if (command_line->argument_status == MC_CL_PARSER_ARGSTAT_ERROR){
@@ -66,7 +65,7 @@ void print_usage(const char *prg, const char *usage_string)
 }
 
 // from: https://stackoverflow.com/questions/2496668
-char *mc_cl_stdin_to_string()
+char *mc_cl_parser_stdin_to_string()
 {
     char buffer[BUF_SIZE];
     size_t contentSize = 1; // includes NULL
@@ -223,7 +222,7 @@ void mc_cl_parser_delete_command_line_parser(struct mc_cl_parser_command_line_pa
     }
 }
 
-enum mc_cl_parser_argument_status mc_cl_parser_check_args(struct mc_cl_parser_command_line_parser *command_line)
+enum mc_cl_parser_argument_status check_args(struct mc_cl_parser_command_line_parser *command_line)
 {
     // 0 arguments
     if (command_line->arguments->size == 0){
