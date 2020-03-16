@@ -6,6 +6,9 @@
 
 #include <assert.h>
 
+//forward declaration
+static void print_dot_symbol_table_scope(struct mcc_symbol_table_scope *scope, FILE *out);
+
 
 static void print_dot_symbol_table_begin(FILE *out)
 {
@@ -61,9 +64,6 @@ static const char *print_dot_row_type(enum mcc_symbol_table_row_type type)
 
     return "unknown type";
 }
-
-//forward declaration
-static void print_dot_symbol_table_scope(struct mcc_symbol_table_scope *scope, FILE *out);
 
 static void print_dot_symbol_table_row(struct mcc_symbol_table_row *row, FILE *out)
 {
