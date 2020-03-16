@@ -135,6 +135,7 @@ int main(int argc, char *argv[]) {
 
     mc_cl_parser_delete_command_line_parser(command_line);
     mcc_ast_delete_result(&result);
+    mcc_symbol_table_delete_table(table);
     return EXIT_SUCCESS;
 }
 
