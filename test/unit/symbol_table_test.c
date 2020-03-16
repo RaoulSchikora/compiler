@@ -26,10 +26,10 @@ void multiple_rows(CuTest *tc)
     //   float k;
     //   string str;
     // }
-    struct mcc_symbol_table_row *row_int = mcc_symbol_table_new_row("i", MCC_SYMBOL_TABLE_ROW_TYPE_INT);
-    struct mcc_symbol_table_row *row_bool = mcc_symbol_table_new_row("j", MCC_SYMBOL_TABLE_ROW_TYPE_BOOL);
-    struct mcc_symbol_table_row *row_float = mcc_symbol_table_new_row("k", MCC_SYMBOL_TABLE_ROW_TYPE_FLOAT);
-    struct mcc_symbol_table_row *row_string = mcc_symbol_table_new_row("str", MCC_SYMBOL_TABLE_ROW_TYPE_STRING);
+    struct mcc_symbol_table_row *row_int = mcc_symbol_table_new_row_variable("i", MCC_SYMBOL_TABLE_ROW_TYPE_INT);
+    struct mcc_symbol_table_row *row_bool = mcc_symbol_table_new_row_variable("j", MCC_SYMBOL_TABLE_ROW_TYPE_BOOL);
+    struct mcc_symbol_table_row *row_float = mcc_symbol_table_new_row_variable("k", MCC_SYMBOL_TABLE_ROW_TYPE_FLOAT);
+    struct mcc_symbol_table_row *row_string = mcc_symbol_table_new_row_variable("str", MCC_SYMBOL_TABLE_ROW_TYPE_STRING);
 
     struct mcc_symbol_table_scope *scope = mcc_symbol_table_new_scope();
 
@@ -70,10 +70,10 @@ void scope_siblings(CuTest *tc)
     //    float k;
     //    string str;
     // }
-    struct mcc_symbol_table_row *row_int = mcc_symbol_table_new_row("i", MCC_SYMBOL_TABLE_ROW_TYPE_INT);
-    struct mcc_symbol_table_row *row_bool = mcc_symbol_table_new_row("j", MCC_SYMBOL_TABLE_ROW_TYPE_BOOL);
-    struct mcc_symbol_table_row *row_float = mcc_symbol_table_new_row("k", MCC_SYMBOL_TABLE_ROW_TYPE_FLOAT);
-    struct mcc_symbol_table_row *row_string = mcc_symbol_table_new_row("str", MCC_SYMBOL_TABLE_ROW_TYPE_STRING);
+    struct mcc_symbol_table_row *row_int = mcc_symbol_table_new_row_variable("i", MCC_SYMBOL_TABLE_ROW_TYPE_INT);
+    struct mcc_symbol_table_row *row_bool = mcc_symbol_table_new_row_variable("j", MCC_SYMBOL_TABLE_ROW_TYPE_BOOL);
+    struct mcc_symbol_table_row *row_float = mcc_symbol_table_new_row_variable("k", MCC_SYMBOL_TABLE_ROW_TYPE_FLOAT);
+    struct mcc_symbol_table_row *row_string = mcc_symbol_table_new_row_variable("str", MCC_SYMBOL_TABLE_ROW_TYPE_STRING);
 
     struct mcc_symbol_table_scope *first_scope = mcc_symbol_table_new_scope();
     struct mcc_symbol_table_scope *second_scope = mcc_symbol_table_new_scope();
@@ -125,10 +125,10 @@ void nesting_scope(CuTest *tc)
     //      }
     //   string str;
     // }
-    struct mcc_symbol_table_row *row_int = mcc_symbol_table_new_row("i", MCC_SYMBOL_TABLE_ROW_TYPE_INT);
-    struct mcc_symbol_table_row *row_bool = mcc_symbol_table_new_row("j", MCC_SYMBOL_TABLE_ROW_TYPE_BOOL);
-    struct mcc_symbol_table_row *row_float = mcc_symbol_table_new_row("k", MCC_SYMBOL_TABLE_ROW_TYPE_FLOAT);
-    struct mcc_symbol_table_row *row_string = mcc_symbol_table_new_row("str", MCC_SYMBOL_TABLE_ROW_TYPE_STRING);
+    struct mcc_symbol_table_row *row_int = mcc_symbol_table_new_row_variable("i", MCC_SYMBOL_TABLE_ROW_TYPE_INT);
+    struct mcc_symbol_table_row *row_bool = mcc_symbol_table_new_row_variable("j", MCC_SYMBOL_TABLE_ROW_TYPE_BOOL);
+    struct mcc_symbol_table_row *row_float = mcc_symbol_table_new_row_variable("k", MCC_SYMBOL_TABLE_ROW_TYPE_FLOAT);
+    struct mcc_symbol_table_row *row_string = mcc_symbol_table_new_row_variable("str", MCC_SYMBOL_TABLE_ROW_TYPE_STRING);
 
     struct mcc_symbol_table_scope *outer_scope = mcc_symbol_table_new_scope();
     struct mcc_symbol_table_scope *inner_scope1 = mcc_symbol_table_new_scope();
@@ -151,6 +151,7 @@ void nesting_scope(CuTest *tc)
 
     CuAssertTrue(tc, current_scope == outer_scope);
     CuAssertStrEquals(tc, "i", current_row->name);
+    CuAssertTrue(tc, current_row->row_structure == MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE);
     CuAssertStrEquals(tc, "str", current_row->next_row->name);
     CuAssertTrue(tc, current_row->child_scope == inner_scope1);
 
@@ -167,10 +168,24 @@ void nesting_scope(CuTest *tc)
     mcc_symbol_table_delete_table(table);
 }
 
+void array_row(CuTest *tc)
+{
+    //{
+    //  int[42] i;
+    //}
+    struct mcc_symbol_table_row *int_array_row = mcc_symbol_table_new_row_array("i", 42, MCC_SYMBOL_TABLE_ROW_TYPE_INT);
+
+    CuAssertTrue(tc, int_array_row->row_structure == MCC_SYMBOL_TABLE_ROW_STRUCTURE_ARRAY);
+    CuAssertTrue(tc, int_array_row->array_size == 42);
+
+    mcc_symbol_table_delete_row(int_array_row);
+}
+
 #define TESTS \
     TEST(empty_table)     \
 	TEST(multiple_rows)   \
 	TEST(scope_siblings)  \
-	TEST(nesting_scope)
+	TEST(nesting_scope)   \
+	TEST(array_row)
 #include "main_stub.inc"
 #undef TESTS

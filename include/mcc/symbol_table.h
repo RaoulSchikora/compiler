@@ -18,23 +18,32 @@
 
 // ------------------------------------------------------------ Symbol Table row
 
+enum mcc_symbol_table_row_structure{
+    MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE,
+    MCC_SYMBOL_TABLE_ROW_STRUCTURE_ARRAY,
+};
+
 enum mcc_symbol_table_row_type{
-    MCC_SYMBOL_TABLE_ROW_TYPE_BOOL,
     MCC_SYMBOL_TABLE_ROW_TYPE_INT,
     MCC_SYMBOL_TABLE_ROW_TYPE_FLOAT,
+    MCC_SYMBOL_TABLE_ROW_TYPE_BOOL,
     MCC_SYMBOL_TABLE_ROW_TYPE_STRING,
     MCC_SYMBOL_TABLE_ROW_TYPE_FUNCTION,
 };
 
 struct mcc_symbol_table_row {
+    enum mcc_symbol_table_row_structure row_structure;
     enum mcc_symbol_table_row_type row_type;
+    int array_size; //-1 if no array
     char *name;
     struct mcc_symbol_table_row *prev_row;
     struct mcc_symbol_table_row *next_row;
     struct mcc_symbol_table_scope *child_scope;
 };
 
-struct mcc_symbol_table_row *mcc_symbol_table_new_row(char *name, enum mcc_symbol_table_row_type type);
+struct mcc_symbol_table_row *mcc_symbol_table_new_row_variable(char *name, enum mcc_symbol_table_row_type type);
+struct mcc_symbol_table_row *mcc_symbol_table_new_row_array(char *name, int array_size,
+        enum mcc_symbol_table_row_type type);
 void mcc_symbol_table_delete_row(struct mcc_symbol_table_row *row);
 void mcc_symbol_table_delete_all_rows(struct mcc_symbol_table_row *head);
 void mcc_symbol_table_row_append_child_scope(struct mcc_symbol_table_row *row, struct mcc_symbol_table_scope *child);

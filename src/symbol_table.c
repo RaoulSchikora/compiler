@@ -7,13 +7,35 @@
 
 // ------------------------------------------------------- Symbol Table row
 
-struct mcc_symbol_table_row *mcc_symbol_table_new_row(char *name, enum mcc_symbol_table_row_type type)
+struct mcc_symbol_table_row *mcc_symbol_table_new_row_variable(char *name, enum mcc_symbol_table_row_type type)
 {
     struct mcc_symbol_table_row *row = malloc(sizeof(*row));
     if(!row){
         return NULL;
     }
 
+    row->row_structure = MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE;
+    row->array_size = -1;
+    row->row_type = type;
+    row->name = malloc(sizeof(char) * strlen(name) + 1);
+    strcpy(row->name, name);
+    row->prev_row = NULL;
+    row->next_row = NULL;
+    row->child_scope = NULL;
+
+    return row;
+}
+
+struct mcc_symbol_table_row *mcc_symbol_table_new_row_array(char *name, int array_size,
+                                                            enum mcc_symbol_table_row_type type)
+{
+    struct mcc_symbol_table_row *row = malloc(sizeof(*row));
+    if(!row){
+        return NULL;
+    }
+
+    row->row_structure = MCC_SYMBOL_TABLE_ROW_STRUCTURE_ARRAY;
+    row->array_size = array_size;
     row->row_type = type;
     row->name = malloc(sizeof(char) * strlen(name) + 1);
     strcpy(row->name, name);
@@ -207,11 +229,6 @@ void mcc_symbol_table_delete_table(struct mcc_symbol_table *table)
 
 // --------------------------------------------------------------- traversing AST and create symbol table
 
-static void create_row_variable_declaration(struct mcc_ast_declaration *declaration, void *data)
-{
-
-}
-
 static void create_row_parameter(struct mcc_symbol_table_scope *child_scope, struct mcc_ast_parameters *parameters)
 {
     assert(child_scope);
@@ -222,12 +239,16 @@ static void create_row_parameter(struct mcc_symbol_table_scope *child_scope, str
 
     switch (declaration->declaration_type){
     case MCC_AST_DECLARATION_TYPE_VARIABLE:
-        // TODO enum
-        row = mcc_symbol_table_new_row(declaration->variable_identifier->identifier_name, 2);
+        // TODO enum-test for equality
+        row = mcc_symbol_table_new_row_variable(declaration->variable_identifier->identifier_name,
+                declaration->variable_type->type_value);
         mcc_symbol_table_scope_append_row(child_scope, row);
         break;
     case MCC_AST_DECLARATION_TYPE_ARRAY:
-        // TODO
+        row = mcc_symbol_table_new_row_array(declaration->array_identifier->identifier_name,
+                declaration->array_size->i_value,
+                declaration->array_type->type_value);
+        mcc_symbol_table_scope_append_row(child_scope, row);
         break;
     }
 }
@@ -254,38 +275,21 @@ static void create_rows_function_parameters(struct mcc_ast_function_definition *
 }
 
 
-static void create_row_function_definition(struct mcc_ast_function_definition *function_definition, void *data)
+static void create_row_function_definition(struct mcc_ast_function_definition *function_definition,
+        struct mcc_symbol_table *table)
 {
     assert(function_definition);
-    assert(data);
-
-    struct mcc_symbol_table *table = data;
+    assert(table);
 
     if(!table->head){
         mcc_symbol_table_insert_new_scope(table);
     }
 
-    struct mcc_symbol_table_row *row = mcc_symbol_table_new_row(function_definition->identifier->identifier_name,
-            MCC_SYMBOL_TABLE_ROW_TYPE_FUNCTION);
+    struct mcc_symbol_table_row *row = mcc_symbol_table_new_row_variable(
+            function_definition->identifier->identifier_name, MCC_SYMBOL_TABLE_ROW_TYPE_FUNCTION);
     mcc_symbol_table_scope_append_row(table->head, row);
 
     create_rows_function_parameters(function_definition, row);
-}
-
-// Setup an AST visitor for traversing the AST and filling the symbol table.
-static struct mcc_ast_visitor create_symbol_table_visitor(struct mcc_symbol_table *table)
-{
-    assert(table);
-
-    return (struct mcc_ast_visitor){
-            .traversal = MCC_AST_VISIT_DEPTH_FIRST,
-            .order = MCC_AST_VISIT_PRE_ORDER,
-
-            .userdata = table,
-
-            .function_definition = create_row_function_definition,
-            .variable_declaration = create_row_variable_declaration,
-    };
 }
 
 struct mcc_symbol_table *mcc_symbol_table_create(struct mcc_ast_program *program)
@@ -294,8 +298,17 @@ struct mcc_symbol_table *mcc_symbol_table_create(struct mcc_ast_program *program
 
     struct mcc_symbol_table *table = mcc_symbol_table_new_table();
 
-    struct mcc_ast_visitor visitor = create_symbol_table_visitor(table);
-    mcc_ast_visit(program, &visitor);
+    if(program->function){
+
+        struct mcc_ast_function_definition *function = program->function;
+        create_row_function_definition(function, table);
+
+        while(program->next_function){
+            program = program->next_function;
+            function = program->function;
+            create_row_function_definition(function, table);
+        }
+    }
 
     return table;
 }
