@@ -29,6 +29,7 @@ enum mcc_symbol_table_row_type{
     MCC_SYMBOL_TABLE_ROW_TYPE_BOOL,
     MCC_SYMBOL_TABLE_ROW_TYPE_STRING,
     MCC_SYMBOL_TABLE_ROW_TYPE_FUNCTION,
+    MCC_SYMBOL_TABLE_ROW_TYPE_PSEUDO,
 };
 
 struct mcc_symbol_table_row {
@@ -61,18 +62,12 @@ struct mcc_symbol_table_scope{
 
     struct mcc_symbol_table_row *parent_row;
 
-    // pointer to the statement or compound_statement in the ast
-//    enum mcc_symbol_table_scope_type scope_type;
-//    union {
-//        struct mcc_ast_statement *statement;
-//        struct mcc_ast_compound_statement *compound_statement;
-//    };
-
     struct mcc_symbol_table_scope *next_scope;
     struct mcc_symbol_table_scope *prev_scope;
 };
 
 struct mcc_symbol_table_scope *mcc_symbol_table_new_scope();
+struct mcc_symbol_table_row *mcc_symbol_table_scope_get_last_row(struct mcc_symbol_table_scope *scope);
 void mcc_symbol_table_scope_append_row(struct mcc_symbol_table_scope *scope, struct mcc_symbol_table_row *row);
 void mcc_symbol_table_delete_scope(struct mcc_symbol_table_scope *scope);
 void mcc_symbol_table_delete_all_scopes(struct mcc_symbol_table_scope *head);

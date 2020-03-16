@@ -113,7 +113,6 @@ void mcc_symbol_table_row_append_child_scope(struct mcc_symbol_table_row *row, s
 
 struct mcc_symbol_table_scope *mcc_symbol_table_new_scope()
 {
-
     struct mcc_symbol_table_scope *scope = malloc(sizeof(*scope));
     if(!scope){
         return NULL;
@@ -125,6 +124,21 @@ struct mcc_symbol_table_scope *mcc_symbol_table_new_scope()
     scope->prev_scope = NULL;
 
     return scope;
+}
+
+struct mcc_symbol_table_row *mcc_symbol_table_scope_get_last_row(struct mcc_symbol_table_scope *scope)
+{
+    assert(scope);
+
+    if(!scope->head){
+        return NULL;
+    }
+
+    struct mcc_symbol_table_row *row = scope->head;
+    while(row->next_row){
+        row = row->next_row;
+    }
+    return row;
 }
 
 void mcc_symbol_table_scope_append_row(struct mcc_symbol_table_scope *scope, struct mcc_symbol_table_row *row)
@@ -229,12 +243,11 @@ void mcc_symbol_table_delete_table(struct mcc_symbol_table *table)
 
 // --------------------------------------------------------------- traversing AST and create symbol table
 
-static void create_row_parameter(struct mcc_symbol_table_scope *child_scope, struct mcc_ast_parameters *parameters)
+static void create_row_declaration(struct mcc_symbol_table_scope *scope, struct mcc_ast_declaration *declaration)
 {
-    assert(child_scope);
-    assert(parameters);
+    assert(scope);
+    assert(declaration);
 
-    struct mcc_ast_declaration *declaration = parameters->declaration;
     struct mcc_symbol_table_row *row;
 
     switch (declaration->declaration_type){
@@ -242,13 +255,13 @@ static void create_row_parameter(struct mcc_symbol_table_scope *child_scope, str
         // TODO enum-test for equality
         row = mcc_symbol_table_new_row_variable(declaration->variable_identifier->identifier_name,
                 declaration->variable_type->type_value);
-        mcc_symbol_table_scope_append_row(child_scope, row);
+        mcc_symbol_table_scope_append_row(scope, row);
         break;
     case MCC_AST_DECLARATION_TYPE_ARRAY:
         row = mcc_symbol_table_new_row_array(declaration->array_identifier->identifier_name,
                 declaration->array_size->i_value,
                 declaration->array_type->type_value);
-        mcc_symbol_table_scope_append_row(child_scope, row);
+        mcc_symbol_table_scope_append_row(scope, row);
         break;
     }
 }
@@ -265,15 +278,94 @@ static void create_rows_function_parameters(struct mcc_ast_function_definition *
     if(!function_definition->parameters->is_empty){
         struct mcc_ast_parameters *parameters = function_definition->parameters;
 
-        create_row_parameter(child_scope, parameters);
+        create_row_declaration(child_scope, parameters->declaration);
 
         while (parameters->next_parameters){
             parameters = parameters->next_parameters;
-            create_row_parameter(child_scope, parameters);
+            create_row_declaration(child_scope, parameters->declaration);
         }
     }
 }
 
+static struct mcc_symbol_table_row *create_pseudo_row(struct mcc_symbol_table_scope *scope)
+{
+    assert(scope);
+
+    scope->head = mcc_symbol_table_new_row_variable("-", MCC_SYMBOL_TABLE_ROW_TYPE_PSEUDO);
+    return scope->head;
+}
+
+static struct mcc_symbol_table_scope *insert_child_scope_to_last_row(struct mcc_symbol_table_scope *scope)
+{
+    assert(scope);
+
+    struct mcc_symbol_table_row *row = mcc_symbol_table_scope_get_last_row(scope);
+    // if row == NULL create pseudo row
+    if(!row){
+        row = create_pseudo_row(scope);
+    }
+    struct mcc_symbol_table_scope *new_scope = mcc_symbol_table_new_scope();
+    mcc_symbol_table_row_append_child_scope(row, new_scope);
+
+    return new_scope;
+}
+
+static void create_rows_statement(struct mcc_ast_statement *statement, struct mcc_symbol_table_scope *scope)
+{
+    assert(statement);
+    assert(scope);
+
+    switch (statement->type){
+    case MCC_AST_STATEMENT_TYPE_DECLARATION:
+        create_row_declaration(scope, statement->declaration);
+        break;
+    case MCC_AST_STATEMENT_TYPE_IF_STMT:
+        create_rows_statement(statement->if_on_true, scope);
+        break;
+    case MCC_AST_STATEMENT_TYPE_IF_ELSE_STMT:
+        create_rows_statement(statement->if_else_on_true, scope);
+        create_rows_statement(statement->if_else_on_false, scope);
+        break;
+    case MCC_AST_STATEMENT_TYPE_WHILE:
+        create_rows_statement(statement->while_on_true, scope);
+        break;
+    case MCC_AST_STATEMENT_TYPE_COMPOUND_STMT:
+        create_rows_statement(statement->compound_statement->statement, insert_child_scope_to_last_row(scope));
+        break;
+    case MCC_AST_STATEMENT_TYPE_EXPRESSION:
+        // do nothing
+        break;
+    case MCC_AST_STATEMENT_TYPE_ASSIGNMENT:
+        // do nothing
+        break;
+    case MCC_AST_STATEMENT_TYPE_RETURN:
+        // do nothing
+        break;
+    }
+}
+
+static void create_rows_function_body(struct mcc_ast_function_definition *function_definition,
+                                      struct mcc_symbol_table_row *row)
+{
+    assert(function_definition);
+    assert(row);
+
+    if(!row->child_scope){
+        struct mcc_symbol_table_scope *child_scope = mcc_symbol_table_new_scope();
+        mcc_symbol_table_row_append_child_scope(row, child_scope);
+    }
+
+    struct mcc_ast_compound_statement *compound_stmt = function_definition->compound_stmt;
+
+    if(compound_stmt->statement) {
+        create_rows_statement(compound_stmt->statement, row->child_scope);
+    }
+
+    while(compound_stmt->next_compound_statement){
+        compound_stmt = compound_stmt->next_compound_statement;
+        create_rows_statement(compound_stmt->statement, row->child_scope);
+    }
+}
 
 static void create_row_function_definition(struct mcc_ast_function_definition *function_definition,
         struct mcc_symbol_table *table)
@@ -290,6 +382,7 @@ static void create_row_function_definition(struct mcc_ast_function_definition *f
     mcc_symbol_table_scope_append_row(table->head, row);
 
     create_rows_function_parameters(function_definition, row);
+    create_rows_function_body(function_definition, row);
 }
 
 struct mcc_symbol_table *mcc_symbol_table_create(struct mcc_ast_program *program)

@@ -181,11 +181,70 @@ void array_row(CuTest *tc)
     mcc_symbol_table_delete_row(int_array_row);
 }
 
+void get_last(CuTest *tc)
+{
+    //{
+    //  int i;
+    //  bool j;
+    //  float k;
+    //}
+    struct mcc_symbol_table_row *row_int = mcc_symbol_table_new_row_variable("i", MCC_SYMBOL_TABLE_ROW_TYPE_INT);
+    struct mcc_symbol_table_row *row_bool = mcc_symbol_table_new_row_variable("j", MCC_SYMBOL_TABLE_ROW_TYPE_BOOL);
+    struct mcc_symbol_table_row *row_float = mcc_symbol_table_new_row_variable("k", MCC_SYMBOL_TABLE_ROW_TYPE_FLOAT);
+
+    struct mcc_symbol_table_scope *scope = mcc_symbol_table_new_scope();
+
+    mcc_symbol_table_scope_append_row(scope, row_int);
+    mcc_symbol_table_scope_append_row(scope, row_bool);
+    mcc_symbol_table_scope_append_row(scope, row_float);
+
+    struct mcc_symbol_table_row *row = mcc_symbol_table_scope_get_last_row(scope);
+
+    CuAssertTrue(tc, row == row_float);
+
+    mcc_symbol_table_delete_scope(scope);
+}
+
+void function_parameters(CuTest *tc)
+{
+    const char input[] = "int func(bool a, int b){}";
+    struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+
+    struct mcc_symbol_table *table = mcc_symbol_table_create(result.program);
+
+    struct mcc_symbol_table_scope *scope = table->head;
+
+    CuAssertStrEquals(tc, "func", scope->head->name);
+    CuAssertStrEquals(tc, "a", scope->head->child_scope->head->name);
+    CuAssertStrEquals(tc, "b", scope->head->child_scope->head->next_row->name);
+
+    mcc_symbol_table_delete_table(table);
+    mcc_ast_delete(result.program);
+}
+
+void nested_if(CuTest *tc)
+{
+    const char input[] = "int main(){if(true)if(true){int a;}return 0;}";
+    struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+
+    struct mcc_symbol_table *table = mcc_symbol_table_create(result.program);
+
+    struct mcc_symbol_table_scope *scope = table->head;
+
+    CuAssertStrEquals(tc, "a", scope->head->child_scope->head->child_scope->head->name);
+
+    mcc_symbol_table_delete_table(table);
+    mcc_ast_delete(result.program);
+}
+
 #define TESTS \
-    TEST(empty_table)     \
-	TEST(multiple_rows)   \
-	TEST(scope_siblings)  \
-	TEST(nesting_scope)   \
-	TEST(array_row)
+    TEST(empty_table)         \
+	TEST(multiple_rows)       \
+	TEST(scope_siblings)      \
+	TEST(nesting_scope)       \
+	TEST(array_row)           \
+	TEST(get_last)            \
+	TEST(function_parameters) \
+	TEST(nested_if)
 #include "main_stub.inc"
 #undef TESTS

@@ -60,6 +60,8 @@ static const char *print_dot_row_type(enum mcc_symbol_table_row_type type)
         return "string";
     case MCC_SYMBOL_TABLE_ROW_TYPE_FUNCTION:
         return "function";
+    case MCC_SYMBOL_TABLE_ROW_TYPE_PSEUDO:
+        return "-";
     }
 
     return "unknown type";
