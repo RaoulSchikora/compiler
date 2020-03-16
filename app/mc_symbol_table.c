@@ -63,7 +63,6 @@ int main(int argc, char *argv[]) {
     char* input = NULL;
     if (command_line->argument_status == MC_CL_PARSER_ARGSTAT_STDIN){
         input = mc_cl_parser_stdin_to_string();
-        free(input);
     }
 
     // ---------------------------------------------------------------------- Parsing provided input
@@ -122,6 +121,7 @@ int main(int argc, char *argv[]) {
         FILE *out = fopen(command_line->options->output_file, "a");
         if (out == NULL) {
             mcc_ast_delete_program(result.program);
+            mcc_symbol_table_delete_table(table);
             mc_cl_parser_delete_command_line_parser(command_line);
             return EXIT_FAILURE;
         }
