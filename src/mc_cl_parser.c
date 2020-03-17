@@ -15,7 +15,7 @@ static struct mc_cl_parser_command_line_parser *parse_command_line(int argc, cha
 static enum mc_cl_parser_argument_status check_args(struct mc_cl_parser_command_line_parser *command_line);
 
 
-// ------------------------------------------------------------- Definitions
+// ------------------------------------------------------------- Definitions, Interface
 
 struct mc_cl_parser_command_line_parser* mc_cl_parser_parse (int argc, char *argv[], char* usage_string)
 {
@@ -116,6 +116,8 @@ char *mc_cl_parser_stdin_to_string()
 
     return content;
 }
+
+// ------------------------------------------------------------- Definitions, Helpers
 
 static struct mc_cl_parser_options *parse_options(int argc, char *argv[])
 {
