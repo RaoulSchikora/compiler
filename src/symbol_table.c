@@ -320,7 +320,9 @@ static void create_rows_compound_statement(struct mcc_ast_compound_statement *co
     assert(compound_stmt);
     assert(scope);
 
-    create_rows_statement(compound_stmt->statement, scope);
+    if(compound_stmt->statement){
+        create_rows_statement(compound_stmt->statement, scope);
+    }
 
     while(compound_stmt->next_compound_statement){
         compound_stmt = compound_stmt->next_compound_statement;
