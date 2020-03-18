@@ -491,12 +491,12 @@ void nested_statement(CuTest *tc)
 
     // TODO: uncomment
     // "int c": child_scope
-    // CuAssertIntEquals(tc,table->head->head->child_scope->head->child_scope->head->next_row->row_type,
-                      // MCC_SYMBOL_TABLE_ROW_TYPE_INT);
-    // CuAssertIntEquals(tc,table->head->head->child_scope->head->child_scope->head->next_row->row_structure,
-                      // MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE);
-    // CuAssertIntEquals(tc,table->head->head->child_scope->head->child_scope->head->next_row->array_size,-1);
-    // CuAssertStrEquals(tc,table->head->head->child_scope->head->child_scope->head->next_row->name,"c");
+    CuAssertIntEquals(tc,table->head->head->child_scope->head->child_scope->head->next_row->row_type,
+                      MCC_SYMBOL_TABLE_ROW_TYPE_INT);
+    CuAssertIntEquals(tc,table->head->head->child_scope->head->child_scope->head->next_row->row_structure,
+                      MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE);
+    CuAssertIntEquals(tc,table->head->head->child_scope->head->child_scope->head->next_row->array_size,-1);
+    CuAssertStrEquals(tc,table->head->head->child_scope->head->child_scope->head->next_row->name,"c");
 
     // Cleanup
     mcc_ast_delete(parser_result.program);
