@@ -16,7 +16,7 @@
 
 #include "mcc/ast.h"
 
-// ------------------------------------------------------------ Symbol Table row
+// ------------------------------------------------------------ Data structure: Symbol Table row
 
 enum mcc_symbol_table_row_structure{
     MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE,
@@ -42,6 +42,8 @@ struct mcc_symbol_table_row {
     struct mcc_symbol_table_scope *child_scope;
 };
 
+// ------------------------------------------------------------ Functions: Symbol Table row
+
 struct mcc_symbol_table_row *mcc_symbol_table_new_row_variable(char *name, enum mcc_symbol_table_row_type type);
 struct mcc_symbol_table_row *mcc_symbol_table_new_row_array(char *name, int array_size,
         enum mcc_symbol_table_row_type type);
@@ -49,7 +51,7 @@ void mcc_symbol_table_delete_row(struct mcc_symbol_table_row *row);
 void mcc_symbol_table_delete_all_rows(struct mcc_symbol_table_row *head);
 void mcc_symbol_table_row_append_child_scope(struct mcc_symbol_table_row *row, struct mcc_symbol_table_scope *child);
 
-// ------------------------------------------------------------- Symbol Table scope
+// ------------------------------------------------------------- Data structure: Symbol Table scope
 
 enum mcc_symbol_table_scope_type{
     MCC_SYMBOL_TABLE_SCOPE_TYPE_STATEMENT,
@@ -66,13 +68,15 @@ struct mcc_symbol_table_scope{
     struct mcc_symbol_table_scope *prev_scope;
 };
 
+// ------------------------------------------------------------ Functions: Symbol Table scope
+
 struct mcc_symbol_table_scope *mcc_symbol_table_new_scope();
 struct mcc_symbol_table_row *mcc_symbol_table_scope_get_last_row(struct mcc_symbol_table_scope *scope);
 void mcc_symbol_table_scope_append_row(struct mcc_symbol_table_scope *scope, struct mcc_symbol_table_row *row);
 void mcc_symbol_table_delete_scope(struct mcc_symbol_table_scope *scope);
 void mcc_symbol_table_delete_all_scopes(struct mcc_symbol_table_scope *head);
 
-// -------------------------------------------------------------- Symbol Table
+// -------------------------------------------------------------- Data structure: Symbol Table
 
 struct mcc_symbol_table{
     // list of scopes
@@ -83,7 +87,7 @@ struct mcc_symbol_table *mcc_symbol_table_new_table();
 void mcc_symbol_table_insert_scope(struct mcc_symbol_table *table, struct mcc_symbol_table_scope *scope);
 void mcc_symbol_table_delete_table(struct mcc_symbol_table *table);
 
-// --------------------------------------------------------------- traversing AST and create symbol table
+// --------------------------------------------------------------- Functions: traversing AST and create symbol table
 
 struct mcc_symbol_table *mcc_symbol_table_create(struct mcc_ast_program *program);
 
