@@ -243,7 +243,7 @@ void mcc_symbol_table_delete_table(struct mcc_symbol_table *table)
 
 // --------------------------------------------------------------- traversing AST and create symbol table
 
-static void create_row_declaration(struct mcc_symbol_table_scope *scope, struct mcc_ast_declaration *declaration)
+static void create_row_declaration(struct mcc_ast_declaration *declaration, struct mcc_symbol_table_scope *scope)
 {
     assert(scope);
     assert(declaration);
@@ -278,11 +278,11 @@ static void create_rows_function_parameters(struct mcc_ast_function_definition *
     if(!function_definition->parameters->is_empty){
         struct mcc_ast_parameters *parameters = function_definition->parameters;
 
-        create_row_declaration(child_scope, parameters->declaration);
+        create_row_declaration(parameters->declaration, child_scope);
 
         while (parameters->next_parameters){
             parameters = parameters->next_parameters;
-            create_row_declaration(child_scope, parameters->declaration);
+            create_row_declaration(parameters->declaration, child_scope);
         }
     }
 }
@@ -295,7 +295,7 @@ static struct mcc_symbol_table_row *create_pseudo_row(struct mcc_symbol_table_sc
     return scope->head;
 }
 
-static struct mcc_symbol_table_scope *insert_child_scope_to_last_row(struct mcc_symbol_table_scope *scope)
+static struct mcc_symbol_table_scope *append_child_scope_to_last_row(struct mcc_symbol_table_scope *scope)
 {
     assert(scope);
 
@@ -317,7 +317,7 @@ static void create_rows_statement(struct mcc_ast_statement *statement, struct mc
 
     switch (statement->type){
     case MCC_AST_STATEMENT_TYPE_DECLARATION:
-        create_row_declaration(scope, statement->declaration);
+        create_row_declaration(statement->declaration, scope);
         break;
     case MCC_AST_STATEMENT_TYPE_IF_STMT:
         create_rows_statement(statement->if_on_true, scope);
@@ -330,7 +330,7 @@ static void create_rows_statement(struct mcc_ast_statement *statement, struct mc
         create_rows_statement(statement->while_on_true, scope);
         break;
     case MCC_AST_STATEMENT_TYPE_COMPOUND_STMT:
-        create_rows_statement(statement->compound_statement->statement, insert_child_scope_to_last_row(scope));
+        create_rows_statement(statement->compound_statement->statement, append_child_scope_to_last_row(scope));
         break;
     case MCC_AST_STATEMENT_TYPE_EXPRESSION:
         // do nothing
