@@ -5,6 +5,10 @@
 #include <stdio.h>
 #include <string.h>
 
+// ------------------------------------------------------- Forward declaration
+
+static void create_rows_statement(struct mcc_ast_statement *statement, struct mcc_symbol_table_scope *scope);
+
 // ------------------------------------------------------- Symbol Table row
 
 struct mcc_symbol_table_row *mcc_symbol_table_new_row_variable(char *name, enum mcc_symbol_table_row_type type)
@@ -310,6 +314,20 @@ static struct mcc_symbol_table_scope *append_child_scope_to_last_row(struct mcc_
     return new_scope;
 }
 
+static void create_rows_compound_statement(struct mcc_ast_compound_statement *compound_stmt,
+        struct mcc_symbol_table_scope *scope)
+{
+    assert(compound_stmt);
+    assert(scope);
+
+    create_rows_statement(compound_stmt->statement, scope);
+
+    while(compound_stmt->next_compound_statement){
+        compound_stmt = compound_stmt->next_compound_statement;
+        create_rows_statement(compound_stmt->statement, scope);
+    }
+}
+
 static void create_rows_statement(struct mcc_ast_statement *statement, struct mcc_symbol_table_scope *scope)
 {
     assert(statement);
@@ -330,7 +348,7 @@ static void create_rows_statement(struct mcc_ast_statement *statement, struct mc
         create_rows_statement(statement->while_on_true, scope);
         break;
     case MCC_AST_STATEMENT_TYPE_COMPOUND_STMT:
-        create_rows_statement(statement->compound_statement->statement, append_child_scope_to_last_row(scope));
+        create_rows_compound_statement(statement->compound_statement, append_child_scope_to_last_row(scope));
         break;
     case MCC_AST_STATEMENT_TYPE_EXPRESSION:
         // do nothing
