@@ -222,9 +222,42 @@ void function_parameters(CuTest *tc)
     mcc_ast_delete(result.program);
 }
 
+void function_parameters2(CuTest *tc)
+{
+    const char input[] = "int func1(int a, float[10] b, string c, bool d){}";
+    struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+
+    struct mcc_symbol_table *table = mcc_symbol_table_create(result.program);
+
+    struct mcc_symbol_table_row *row = table->head->head->child_scope->head;
+
+    CuAssertStrEquals(tc, "a", row->name);
+    CuAssertTrue(tc, row->row_structure == MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE);
+    CuAssertTrue(tc, row->row_type == MCC_SYMBOL_TABLE_ROW_TYPE_INT);
+    CuAssertTrue(tc, row->array_size == -1);
+
+    CuAssertStrEquals(tc, "b", row->next_row->name);
+    CuAssertTrue(tc, row->next_row->row_structure == MCC_SYMBOL_TABLE_ROW_STRUCTURE_ARRAY);
+    CuAssertTrue(tc, row->next_row->row_type == MCC_SYMBOL_TABLE_ROW_TYPE_FLOAT);
+    CuAssertTrue(tc, row->next_row->array_size == 10);
+
+    CuAssertStrEquals(tc, "c", row->next_row->next_row->name);
+    CuAssertTrue(tc, row->next_row->next_row->row_structure == MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE);
+    CuAssertTrue(tc, row->next_row->next_row->row_type == MCC_SYMBOL_TABLE_ROW_TYPE_STRING);
+    CuAssertTrue(tc, row->next_row->next_row->array_size == -1);
+
+    CuAssertStrEquals(tc, "d", row->next_row->next_row->next_row->name);
+    CuAssertTrue(tc, row->next_row->next_row->next_row->row_structure == MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE);
+    CuAssertTrue(tc, row->next_row->next_row->next_row->row_type == MCC_SYMBOL_TABLE_ROW_TYPE_BOOL);
+    CuAssertTrue(tc, row->next_row->next_row->next_row->array_size == -1);
+
+    mcc_symbol_table_delete_table(table);
+    mcc_ast_delete(result.program);
+}
+
 void nested_if(CuTest *tc)
 {
-    const char input[] = "int main(){if(true)if(true){int a;}return 0;}";
+    const char input[] = "int main(){if(true)if(true){int a;int b;}return 0;}";
     struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
 
     struct mcc_symbol_table *table = mcc_symbol_table_create(result.program);
@@ -232,6 +265,76 @@ void nested_if(CuTest *tc)
     struct mcc_symbol_table_scope *scope = table->head;
 
     CuAssertStrEquals(tc, "a", scope->head->child_scope->head->child_scope->head->name);
+    CuAssertStrEquals(tc, "b", scope->head->child_scope->head->child_scope->head->next_row->name);
+
+    mcc_symbol_table_delete_table(table);
+    mcc_ast_delete(result.program);
+}
+
+void function_definition(CuTest *tc)
+{
+    const char input[] = "float func1(){} bool func2(){} int main(){} string func3(){}";
+    struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+
+    struct mcc_symbol_table *table = mcc_symbol_table_create(result.program);
+
+    struct mcc_symbol_table_row *row = table->head->head;
+
+    CuAssertStrEquals(tc, "func1", row->name);
+    CuAssertTrue(tc, row->row_structure == MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE);
+    CuAssertTrue(tc, row->row_type == MCC_SYMBOL_TABLE_ROW_TYPE_FUNCTION);
+    CuAssertTrue(tc, row->array_size == -1);
+
+    CuAssertStrEquals(tc, "func2", row->next_row->name);
+    CuAssertTrue(tc, row->next_row->row_structure == MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE);
+    CuAssertTrue(tc, row->next_row->row_type == MCC_SYMBOL_TABLE_ROW_TYPE_FUNCTION);
+    CuAssertTrue(tc, row->next_row->array_size == -1);
+
+    CuAssertStrEquals(tc, "main", row->next_row->next_row->name);
+    CuAssertTrue(tc, row->next_row->next_row->row_structure == MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE);
+    CuAssertTrue(tc, row->next_row->next_row->row_type == MCC_SYMBOL_TABLE_ROW_TYPE_FUNCTION);
+    CuAssertTrue(tc, row->next_row->next_row->array_size == -1);
+
+    CuAssertStrEquals(tc, "func3", row->next_row->next_row->next_row->name);
+    CuAssertTrue(tc, row->next_row->next_row->next_row->row_structure == MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE);
+    CuAssertTrue(tc, row->next_row->next_row->next_row->row_type == MCC_SYMBOL_TABLE_ROW_TYPE_FUNCTION);
+    CuAssertTrue(tc, row->next_row->next_row->next_row->array_size == -1);
+
+    mcc_symbol_table_delete_table(table);
+    mcc_ast_delete(result.program);
+}
+
+void function_body(CuTest *tc)
+{
+    const char input[] = "float func(){int n;n=0; while(n<42)n=n+1; int b;}";
+    struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+
+    struct mcc_symbol_table *table = mcc_symbol_table_create(result.program);
+
+    struct mcc_symbol_table_row *row = table->head->head->child_scope->head;
+
+    CuAssertStrEquals(tc, "n", row->name);
+    CuAssertStrEquals(tc, "b", row->next_row->name);
+
+    mcc_symbol_table_delete_table(table);
+    mcc_ast_delete(result.program);
+}
+
+void empty_nested_function_body(CuTest *tc)
+{
+    const char input[] = "float func(){ { { {} } } }";
+    struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+
+    struct mcc_symbol_table *table = mcc_symbol_table_create(result.program);
+
+    struct mcc_symbol_table_row *row = table->head->head;
+
+    CuAssertTrue(tc, row->child_scope->head->row_type == MCC_SYMBOL_TABLE_ROW_TYPE_PSEUDO);
+
+    row = row->child_scope->head->child_scope->head->child_scope->head;
+
+    CuAssertTrue(tc, row->row_type == MCC_SYMBOL_TABLE_ROW_TYPE_PSEUDO);
+    CuAssertTrue(tc, row->child_scope->head == NULL);
 
     mcc_symbol_table_delete_table(table);
     mcc_ast_delete(result.program);
@@ -245,6 +348,10 @@ void nested_if(CuTest *tc)
 	TEST(array_row)           \
 	TEST(get_last)            \
 	TEST(function_parameters) \
-	TEST(nested_if)
+	TEST(function_parameters2)\
+	TEST(nested_if)           \
+	TEST(function_definition) \
+	TEST(function_body)       \
+	TEST(empty_nested_function_body)
 #include "main_stub.inc"
 #undef TESTS
