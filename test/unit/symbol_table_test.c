@@ -340,40 +340,6 @@ void empty_nested_function_body(CuTest *tc)
     mcc_ast_delete(result.program);
 }
 
-// TODO: check back references and that forward references are initialized to NULL
-void declaration(CuTest *tc)
-{
-    // Define test input and create symbol table
-    const char input[] = "int main(){int a;float b;}";
-    struct mcc_parser_result parser_result;
-    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
-    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
-    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
-
-    // "main": table->head->head
-    CuAssertIntEquals(tc,table->head->head->row_type,MCC_SYMBOL_TABLE_ROW_TYPE_FUNCTION);
-    CuAssertStrEquals(tc,table->head->head->name,"main");
-
-    // "int a": table->head->head->child_scope->head
-    CuAssertIntEquals(tc,table->head->head->child_scope->head->row_structure,
-            MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE);
-    CuAssertIntEquals(tc,table->head->head->child_scope->head->row_type,MCC_SYMBOL_TABLE_ROW_TYPE_INT);
-    CuAssertStrEquals(tc,table->head->head->child_scope->head->name,"a");
-    CuAssertPtrEquals(tc,NULL,table->head->head->child_scope->head->prev_row);
-
-    // "int b": table->head->head->child_scope->head->next_row
-    CuAssertIntEquals(tc,table->head->head->child_scope->head->next_row->row_structure,
-            MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE);
-    CuAssertIntEquals(tc,table->head->head->child_scope->head->next_row->row_type,MCC_SYMBOL_TABLE_ROW_TYPE_FLOAT);
-    CuAssertStrEquals(tc,table->head->head->child_scope->head->next_row->name,"b");
-    CuAssertPtrEquals(tc,NULL,table->head->head->child_scope->head->next_row->next_row);
-
-    // Cleanup
-    mcc_ast_delete(parser_result.program);
-    mcc_symbol_table_delete_table(table);
-}
-
-// TODO: check back references and that forward references are initialized to NULL
 void function_parameters_from_parser(CuTest *tc)
 {
     // Define test input and create symbol table
@@ -390,21 +356,24 @@ void function_parameters_from_parser(CuTest *tc)
 
     // "test": table->head->head
     CuAssertIntEquals(tc,table->head->head->row_type,MCC_SYMBOL_TABLE_ROW_TYPE_FUNCTION);
+    CuAssertIntEquals(tc,table->head->head->row_structure,MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE);
     CuAssertIntEquals(tc,table->head->head->array_size,-1);
     CuAssertStrEquals(tc,table->head->head->name,"test");
     CuAssertPtrEquals(tc,NULL,table->head->head->prev_row);
     CuAssertPtrEquals(tc,NULL,table->head->head->next_row);
 
+    // "int[52] a": table->head->head->child_scope
+    CuAssertPtrEquals(tc,NULL,table->head->head->child_scope->next_scope);
+    CuAssertPtrEquals(tc,NULL,table->head->head->child_scope->prev_scope);
+    CuAssertPtrEquals(tc,table->head->head,table->head->head->child_scope->parent_row);
     // "int[52] a": table->head->head->child_scope->head
     CuAssertIntEquals(tc,table->head->head->child_scope->head->row_type,MCC_SYMBOL_TABLE_ROW_TYPE_INT);
     CuAssertIntEquals(tc,table->head->head->child_scope->head->row_structure,
             MCC_SYMBOL_TABLE_ROW_STRUCTURE_ARRAY);
     CuAssertIntEquals(tc,table->head->head->child_scope->head->array_size,52);
     CuAssertStrEquals(tc,table->head->head->child_scope->head->name,"a");
-    CuAssertPtrEquals(tc,table->head->head,table->head->head->child_scope->parent_row);
-    CuAssertPtrEquals(tc,NULL,table->head->head->child_scope->next_scope);
-    CuAssertPtrEquals(tc,NULL,table->head->head->child_scope->prev_scope);
     CuAssertPtrEquals(tc,NULL,table->head->head->child_scope->head->prev_row);
+    CuAssertPtrEquals(tc,NULL,table->head->head->child_scope->head->child_scope);
 
     // "bool test": table->head->head->child_scope->head->next_row
     CuAssertIntEquals(tc,table->head->head->child_scope->head->next_row->row_type,MCC_SYMBOL_TABLE_ROW_TYPE_BOOL);
@@ -423,7 +392,6 @@ void function_parameters_from_parser(CuTest *tc)
     mcc_symbol_table_delete_table(table);
 }
 
-// TODO: check back references and that forward references are initialized to NULL
 void pseudo_row(CuTest *tc)
 {
     // Define test input and create symbol table
@@ -433,25 +401,49 @@ void pseudo_row(CuTest *tc)
     CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
     struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 
+    // check that no other functions and thus no sibling scopes exist
+    CuAssertPtrEquals(tc,NULL,table->head->parent_row);
+    CuAssertPtrEquals(tc,NULL,table->head->next_scope);
+    CuAssertPtrEquals(tc,NULL,table->head->prev_scope);
+
     // "test": table->head->head
     CuAssertIntEquals(tc,table->head->head->row_type,MCC_SYMBOL_TABLE_ROW_TYPE_FUNCTION);
+    CuAssertIntEquals(tc,table->head->head->row_structure,MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE);
     CuAssertIntEquals(tc,table->head->head->array_size,-1);
     CuAssertStrEquals(tc,table->head->head->name,"test");
+    CuAssertPtrEquals(tc,NULL,table->head->head->prev_row);
+    CuAssertPtrEquals(tc,NULL,table->head->head->next_row);
 
-    // pseudo_row
+    // pseudo_row: table->head->head->child_scope
+    CuAssertPtrEquals(tc,table->head->head,table->head->head->child_scope->parent_row);
+    CuAssertPtrEquals(tc,NULL,table->head->head->child_scope->next_scope);
+    CuAssertPtrEquals(tc,NULL,table->head->head->child_scope->prev_scope);
+
+    // pseudo_row: table->head->head->child_scope->head
     CuAssertIntEquals(tc,table->head->head->child_scope->head->row_type,MCC_SYMBOL_TABLE_ROW_TYPE_PSEUDO);
     CuAssertIntEquals(tc,table->head->head->child_scope->head->row_structure,
                       MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE);
     CuAssertIntEquals(tc,table->head->head->child_scope->head->array_size,-1);
     CuAssertStrEquals(tc,table->head->head->child_scope->head->name,"-");
+    CuAssertPtrEquals(tc,NULL,table->head->head->child_scope->head->prev_row);
+    CuAssertPtrEquals(tc,NULL,table->head->head->child_scope->head->next_row);
 
-    // "int a": pseudo_row->child_scope
+    // "int a": table->head->head->child_scope->head->child_scope
+    CuAssertPtrEquals(tc,table->head->head->child_scope->head,
+            table->head->head->child_scope->head->child_scope->parent_row);
+    CuAssertPtrEquals(tc,NULL,table->head->head->child_scope->head->child_scope->next_scope);
+    CuAssertPtrEquals(tc,NULL,table->head->head->child_scope->head->child_scope->prev_scope);
+
+    // "int a": table->head->head->child_scope->head->child_scope->head
     CuAssertIntEquals(tc,table->head->head->child_scope->head->child_scope->head->row_type,
             MCC_SYMBOL_TABLE_ROW_TYPE_INT);
     CuAssertIntEquals(tc,table->head->head->child_scope->head->child_scope->head->row_structure,
                       MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE);
     CuAssertIntEquals(tc,table->head->head->child_scope->head->child_scope->head->array_size,-1);
     CuAssertStrEquals(tc,table->head->head->child_scope->head->child_scope->head->name,"a");
+    CuAssertPtrEquals(tc,NULL,table->head->head->child_scope->head->child_scope->head->prev_row);
+    CuAssertPtrEquals(tc,NULL,table->head->head->child_scope->head->child_scope->head->next_row);
+    CuAssertPtrEquals(tc,NULL,table->head->head->child_scope->head->child_scope->head->child_scope);
 
     // Cleanup
     mcc_ast_delete(parser_result.program);
@@ -459,7 +451,6 @@ void pseudo_row(CuTest *tc)
 
 }
 
-// TODO: check back references and that forward references are initialized to NULL
 void nested_statement(CuTest *tc)
 {
     // Define test input and create symbol table
@@ -469,43 +460,117 @@ void nested_statement(CuTest *tc)
     CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
     struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 
+    // check that no other functions and thus no sibling scopes exist
+    CuAssertPtrEquals(tc,NULL,table->head->parent_row);
+    CuAssertPtrEquals(tc,NULL,table->head->next_scope);
+    CuAssertPtrEquals(tc,NULL,table->head->prev_scope);
+
     // "test": table->head->head
     CuAssertIntEquals(tc,table->head->head->row_type,MCC_SYMBOL_TABLE_ROW_TYPE_FUNCTION);
+    CuAssertIntEquals(tc,table->head->head->row_structure,MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE);
     CuAssertIntEquals(tc,table->head->head->array_size,-1);
     CuAssertStrEquals(tc,table->head->head->name,"test");
+    CuAssertPtrEquals(tc,NULL,table->head->head->prev_row);
+    CuAssertPtrEquals(tc,NULL,table->head->head->next_row);
 
-    // "int a"
+    // "int a": table->head->head->child_scope
+    CuAssertPtrEquals(tc,NULL,table->head->head->child_scope->next_scope);
+    CuAssertPtrEquals(tc,NULL,table->head->head->child_scope->prev_scope);
+    CuAssertPtrEquals(tc,table->head->head,table->head->head->child_scope->parent_row);
+    // "int a": table->head->head->child_scope->head
     CuAssertIntEquals(tc,table->head->head->child_scope->head->row_type,MCC_SYMBOL_TABLE_ROW_TYPE_INT);
     CuAssertIntEquals(tc,table->head->head->child_scope->head->row_structure,
                       MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE);
     CuAssertIntEquals(tc,table->head->head->child_scope->head->array_size,-1);
     CuAssertStrEquals(tc,table->head->head->child_scope->head->name,"a");
+    CuAssertPtrEquals(tc,NULL,table->head->head->child_scope->head->prev_row);
+    CuAssertPtrEquals(tc,NULL,table->head->head->child_scope->head->next_row);
 
-    // "int b": child_scope
+    // "int b": table->head->head->child_scope->head->child_scope
+    CuAssertPtrEquals(tc,NULL,table->head->head->child_scope->head->child_scope->next_scope);
+    CuAssertPtrEquals(tc,NULL,table->head->head->child_scope->head->child_scope->prev_scope);
+    CuAssertPtrEquals(tc,table->head->head->child_scope->head,
+            table->head->head->child_scope->head->child_scope->parent_row);
+    // "int b": table->head->head->child_scope->head->child_scope->head
     CuAssertIntEquals(tc,table->head->head->child_scope->head->child_scope->head->row_type,
-                      MCC_SYMBOL_TABLE_ROW_TYPE_INT);
+            MCC_SYMBOL_TABLE_ROW_TYPE_INT);
     CuAssertIntEquals(tc,table->head->head->child_scope->head->child_scope->head->row_structure,
                       MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE);
     CuAssertIntEquals(tc,table->head->head->child_scope->head->child_scope->head->array_size,-1);
     CuAssertStrEquals(tc,table->head->head->child_scope->head->child_scope->head->name,"b");
+    CuAssertPtrEquals(tc,NULL,table->head->head->child_scope->head->child_scope->head->prev_row);
+    CuAssertPtrEquals(tc,NULL,table->head->head->child_scope->head->child_scope->head->child_scope);
 
-    // TODO: uncomment
-    // "int c": child_scope
+    // "int c": table->head->head->child_scope->head->child_scope->next_row
     CuAssertIntEquals(tc,table->head->head->child_scope->head->child_scope->head->next_row->row_type,
                       MCC_SYMBOL_TABLE_ROW_TYPE_INT);
     CuAssertIntEquals(tc,table->head->head->child_scope->head->child_scope->head->next_row->row_structure,
                       MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE);
     CuAssertIntEquals(tc,table->head->head->child_scope->head->child_scope->head->next_row->array_size,-1);
     CuAssertStrEquals(tc,table->head->head->child_scope->head->child_scope->head->next_row->name,"c");
+    CuAssertPtrEquals(tc,table->head->head->child_scope->head->child_scope->head,
+            table->head->head->child_scope->head->child_scope->head->next_row->prev_row);
+    CuAssertPtrEquals(tc,NULL,table->head->head->child_scope->head->child_scope->head->next_row->next_row);
+    CuAssertPtrEquals(tc,NULL,table->head->head->child_scope->head->child_scope->head->next_row->child_scope);
 
     // Cleanup
     mcc_ast_delete(parser_result.program);
     mcc_symbol_table_delete_table(table);
 }
 
-// TODO: Everything
 void multiple_functions(CuTest *tc){
 
+    // Define test input and create symbol table
+    const char input[] = "int test(){return;} void main(int a){a=1;}";
+    struct mcc_parser_result parser_result;
+    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
+    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+
+    // symbol table: no previous or next scopes, no parent row
+    CuAssertPtrEquals(tc,NULL,table->head->parent_row);
+    CuAssertPtrEquals(tc,NULL,table->head->next_scope);
+    CuAssertPtrEquals(tc,NULL,table->head->prev_scope);
+
+    // "test": table->head->head
+    CuAssertIntEquals(tc,table->head->head->row_type,MCC_SYMBOL_TABLE_ROW_TYPE_FUNCTION);
+    CuAssertIntEquals(tc,table->head->head->row_structure,MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE);
+    CuAssertIntEquals(tc,table->head->head->array_size,-1);
+    CuAssertStrEquals(tc,table->head->head->name,"test");
+    CuAssertPtrEquals(tc,NULL,table->head->head->prev_row);
+
+    // "return"
+    CuAssertPtrEquals(tc,NULL,table->head->head->child_scope->head);
+    CuAssertPtrEquals(tc,NULL,table->head->head->child_scope->next_scope);
+    CuAssertPtrEquals(tc,NULL,table->head->head->child_scope->prev_scope);
+    CuAssertPtrEquals(tc,table->head->head,table->head->head->child_scope->parent_row);
+
+    // "main": table->head->head->next_row;
+    CuAssertIntEquals(tc,table->head->head->next_row->row_type,MCC_SYMBOL_TABLE_ROW_TYPE_FUNCTION);
+    CuAssertIntEquals(tc,table->head->head->next_row->row_structure,MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE);
+    CuAssertIntEquals(tc,table->head->head->next_row->array_size,-1);
+    CuAssertStrEquals(tc,table->head->head->next_row->name,"main");
+    CuAssertPtrEquals(tc,table->head->head,table->head->head->next_row->prev_row);
+    CuAssertPtrEquals(tc,NULL,table->head->head->next_row->next_row);
+
+    // "int a" : table->head->head->next_row->child_scope
+    CuAssertPtrEquals(tc,NULL,table->head->head->next_row->child_scope->next_scope);
+    CuAssertPtrEquals(tc,NULL,table->head->head->next_row->child_scope->prev_scope);
+    CuAssertPtrEquals(tc,table->head->head->next_row,table->head->head->next_row->child_scope->parent_row);
+
+    // "int a" : table->head->head->next_row->child_scope->head
+    CuAssertIntEquals(tc,table->head->head->next_row->child_scope->head->row_type,MCC_SYMBOL_TABLE_ROW_TYPE_INT);
+    CuAssertIntEquals(tc,table->head->head->next_row->child_scope->head->row_structure,
+                      MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE);
+    CuAssertIntEquals(tc,table->head->head->next_row->child_scope->head->array_size,-1);
+    CuAssertStrEquals(tc,table->head->head->next_row->child_scope->head->name,"a");
+    CuAssertPtrEquals(tc,NULL,table->head->head->next_row->child_scope->head->prev_row);
+    CuAssertPtrEquals(tc,NULL,table->head->head->next_row->child_scope->head->next_row);
+    CuAssertPtrEquals(tc,NULL,table->head->head->next_row->child_scope->head->child_scope);
+
+    // Cleanup
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
 }
 
 #define TESTS \
@@ -521,7 +586,6 @@ void multiple_functions(CuTest *tc){
 	TEST(function_definition) \
 	TEST(function_body)       \
 	TEST(empty_nested_function_body) \
-    TEST(declaration)         \
     TEST(function_parameters_from_parser) \
     TEST(pseudo_row)          \
     TEST(nested_statement)    \
