@@ -2,14 +2,23 @@
 
 # See usage info (call with "-h") 
 
-if [[ "$1" == "-h" ]]
-	then
+function print_usage(){
 		echo "Runs leak tests on given executable with specific inputs."
 		echo ""
 		echo "Usage: ./run_leak_tests <program>"
 		echo ""
 		echo "<program> can be mcc, mc_ast_to_dot, mc_symbol_table"
 		exit
+}
+
+if [[ "$1" == "-h" ]]
+	then
+		print_usage
+fi
+
+if [ "$#" -ne 1 ]
+	then
+		print_usage
 fi
 
 readonly SCRIPTS_DIR=$(dirname "$(readlink -f "$0")")
