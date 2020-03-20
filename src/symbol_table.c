@@ -349,6 +349,20 @@ static void create_rows_compound_statement(struct mcc_ast_compound_statement *co
     }
 }
 
+static void link_pointer(struct mcc_ast_assignment *assignment, struct mcc_symbol_table_scope *scope)
+{
+    assert(assignment);
+    assert(scope);
+
+    struct mcc_symbol_table_row *row = mcc_symbol_table_scope_get_last_row(scope);
+
+    if(!row){
+        row = create_pseudo_row(scope);
+    }
+
+    assignment->row = row;
+}
+
 static void create_rows_statement(struct mcc_ast_statement *statement, struct mcc_symbol_table_scope *scope)
 {
     assert(statement);
@@ -371,10 +385,10 @@ static void create_rows_statement(struct mcc_ast_statement *statement, struct mc
     case MCC_AST_STATEMENT_TYPE_COMPOUND_STMT:
         create_rows_compound_statement(statement->compound_statement, append_child_scope_to_last_row(scope));
         break;
-    case MCC_AST_STATEMENT_TYPE_EXPRESSION:
-        // do nothing
-        break;
     case MCC_AST_STATEMENT_TYPE_ASSIGNMENT:
+        link_pointer(statement->assignment, scope);
+        break;
+    case MCC_AST_STATEMENT_TYPE_EXPRESSION:
         // do nothing
         break;
     case MCC_AST_STATEMENT_TYPE_RETURN:

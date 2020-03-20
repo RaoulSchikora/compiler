@@ -573,6 +573,24 @@ void multiple_functions(CuTest *tc){
     mcc_symbol_table_delete_table(table);
 }
 
+void assignment_linking(CuTest *tc) {
+    const char input[] = "int func(){int n;if(true){n=n+1;}}";
+    struct mcc_parser_result parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+
+    struct mcc_symbol_table *table = mcc_symbol_table_create(parser_result.program);
+
+    struct mcc_symbol_table_row *row = table->head->head->child_scope->head->child_scope->head;
+
+    struct mcc_ast_program *program = parser_result.program;
+    struct mcc_ast_statement *statement = program->function->compound_stmt->next_compound_statement->statement;
+    struct mcc_ast_assignment *assignment = statement->if_on_true->compound_statement->statement->assignment;
+
+    CuAssertTrue(tc, assignment->row == row);
+
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+}
+
 #define TESTS \
     TEST(empty_table)         \
 	TEST(multiple_rows)       \
@@ -589,6 +607,7 @@ void multiple_functions(CuTest *tc){
     TEST(function_parameters_from_parser) \
     TEST(pseudo_row)          \
     TEST(nested_statement)    \
-    TEST(multiple_functions)
+    TEST(multiple_functions)  \
+    TEST(assignment_linking)
 #include "main_stub.inc"
 #undef TESTS
