@@ -21,6 +21,7 @@
 enum mcc_symbol_table_row_structure{
     MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE,
     MCC_SYMBOL_TABLE_ROW_STRUCTURE_ARRAY,
+    MCC_SYMBOL_TABLE_ROW_STRUCTURE_FUNCTION, // THIS HAS BEEN ADDED
 };
 
 enum mcc_symbol_table_row_type{
@@ -28,7 +29,8 @@ enum mcc_symbol_table_row_type{
     MCC_SYMBOL_TABLE_ROW_TYPE_FLOAT,
     MCC_SYMBOL_TABLE_ROW_TYPE_BOOL,
     MCC_SYMBOL_TABLE_ROW_TYPE_STRING,
-    MCC_SYMBOL_TABLE_ROW_TYPE_FUNCTION,
+    MCC_SYMBOL_TABLE_ROW_TYPE_VOID,
+    // MCC_SYMBOL_TABLE_ROW_TYPE_FUNCTION, THIS HAS BEEN REMOVED
     MCC_SYMBOL_TABLE_ROW_TYPE_PSEUDO,
 };
 
@@ -45,6 +47,7 @@ struct mcc_symbol_table_row {
 // ------------------------------------------------------------ Functions: Symbol Table row
 
 struct mcc_symbol_table_row *mcc_symbol_table_new_row_variable(char *name, enum mcc_symbol_table_row_type type);
+struct mcc_symbol_table_row *mcc_symbol_table_new_row_function(char *name, enum mcc_symbol_table_row_type type);
 struct mcc_symbol_table_row *mcc_symbol_table_new_row_array(char *name, int array_size,
         enum mcc_symbol_table_row_type type);
 void mcc_symbol_table_delete_row(struct mcc_symbol_table_row *row);

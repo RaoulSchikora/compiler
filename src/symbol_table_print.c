@@ -58,8 +58,8 @@ static const char *print_dot_row_type(enum mcc_symbol_table_row_type type)
         return "float";
     case MCC_SYMBOL_TABLE_ROW_TYPE_STRING:
         return "string";
-    case MCC_SYMBOL_TABLE_ROW_TYPE_FUNCTION:
-        return "function";
+    case MCC_SYMBOL_TABLE_ROW_TYPE_VOID:
+        return "void";
     case MCC_SYMBOL_TABLE_ROW_TYPE_PSEUDO:
         return "-";
     }
@@ -75,6 +75,9 @@ static void print_dot_symbol_table_row(struct mcc_symbol_table_row *row, FILE *o
     switch (row->row_structure) {
     case MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE:
         fprintf(out, "<tr><td>%s (%s)</td></tr>\n", row->name, print_dot_row_type(row->row_type));
+        break;
+    case MCC_SYMBOL_TABLE_ROW_STRUCTURE_FUNCTION:
+        fprintf(out, "<tr><td>%s (%s function)</td></tr>\n", row->name, print_dot_row_type(row->row_type));
         break;
     case MCC_SYMBOL_TABLE_ROW_STRUCTURE_ARRAY:
         fprintf(out, "<tr><td>%s (%s[%d])</td></tr>\n", row->name, print_dot_row_type(row->row_type), row->array_size);

@@ -30,6 +30,25 @@ struct mcc_symbol_table_row *mcc_symbol_table_new_row_variable(char *name, enum 
     return row;
 }
 
+struct mcc_symbol_table_row *mcc_symbol_table_new_row_function(char *name, enum mcc_symbol_table_row_type type)
+{
+    struct mcc_symbol_table_row *row = malloc(sizeof(*row));
+    if(!row){
+        return NULL;
+    }
+
+    row->row_structure = MCC_SYMBOL_TABLE_ROW_STRUCTURE_FUNCTION;
+    row->array_size = -1;
+    row->row_type = type;
+    row->name = malloc(sizeof(char) * strlen(name) + 1);
+    strcpy(row->name, name);
+    row->prev_row = NULL;
+    row->next_row = NULL;
+    row->child_scope = NULL;
+
+    return row;
+}
+
 struct mcc_symbol_table_row *mcc_symbol_table_new_row_array(char *name, int array_size,
                                                             enum mcc_symbol_table_row_type type)
 {
@@ -397,8 +416,31 @@ static void create_row_function_definition(struct mcc_ast_function_definition *f
         mcc_symbol_table_insert_new_scope(table);
     }
 
-    struct mcc_symbol_table_row *row = mcc_symbol_table_new_row_variable(
-            function_definition->identifier->identifier_name, MCC_SYMBOL_TABLE_ROW_TYPE_FUNCTION);
+    struct mcc_symbol_table_row *row;
+
+    switch(function_definition->type){
+        case MCC_AST_FUNCTION_TYPE_INT:
+            row = mcc_symbol_table_new_row_function(function_definition->identifier->identifier_name,
+                    MCC_SYMBOL_TABLE_ROW_TYPE_INT);
+            break;
+        case MCC_AST_FUNCTION_TYPE_FLOAT:
+            row = mcc_symbol_table_new_row_function(function_definition->identifier->identifier_name,
+                                                    MCC_SYMBOL_TABLE_ROW_TYPE_FLOAT);
+            break;
+        case MCC_AST_FUNCTION_TYPE_STRING:
+            row = mcc_symbol_table_new_row_function(function_definition->identifier->identifier_name,
+                                                    MCC_SYMBOL_TABLE_ROW_TYPE_STRING);
+            break;
+        case MCC_AST_FUNCTION_TYPE_BOOL:
+            row = mcc_symbol_table_new_row_function(function_definition->identifier->identifier_name,
+                                                    MCC_SYMBOL_TABLE_ROW_TYPE_BOOL);
+            break;
+        case MCC_AST_FUNCTION_TYPE_VOID:
+            row = mcc_symbol_table_new_row_function(function_definition->identifier->identifier_name,
+                                                    MCC_SYMBOL_TABLE_ROW_TYPE_VOID);
+            break;
+    }
+
     mcc_symbol_table_scope_append_row(table->head, row);
 
     create_rows_function_parameters(function_definition, row);

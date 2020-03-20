@@ -281,23 +281,23 @@ void function_definition(CuTest *tc)
     struct mcc_symbol_table_row *row = table->head->head;
 
     CuAssertStrEquals(tc, "func1", row->name);
-    CuAssertTrue(tc, row->row_structure == MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE);
-    CuAssertTrue(tc, row->row_type == MCC_SYMBOL_TABLE_ROW_TYPE_FUNCTION);
+    CuAssertTrue(tc, row->row_structure == MCC_SYMBOL_TABLE_ROW_STRUCTURE_FUNCTION);
+    CuAssertTrue(tc, row->row_type == MCC_SYMBOL_TABLE_ROW_TYPE_FLOAT);
     CuAssertTrue(tc, row->array_size == -1);
 
     CuAssertStrEquals(tc, "func2", row->next_row->name);
-    CuAssertTrue(tc, row->next_row->row_structure == MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE);
-    CuAssertTrue(tc, row->next_row->row_type == MCC_SYMBOL_TABLE_ROW_TYPE_FUNCTION);
+    CuAssertTrue(tc, row->next_row->row_structure == MCC_SYMBOL_TABLE_ROW_STRUCTURE_FUNCTION);
+    CuAssertTrue(tc, row->next_row->row_type == MCC_SYMBOL_TABLE_ROW_TYPE_BOOL);
     CuAssertTrue(tc, row->next_row->array_size == -1);
 
     CuAssertStrEquals(tc, "main", row->next_row->next_row->name);
-    CuAssertTrue(tc, row->next_row->next_row->row_structure == MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE);
-    CuAssertTrue(tc, row->next_row->next_row->row_type == MCC_SYMBOL_TABLE_ROW_TYPE_FUNCTION);
+    CuAssertTrue(tc, row->next_row->next_row->row_structure == MCC_SYMBOL_TABLE_ROW_STRUCTURE_FUNCTION);
+    CuAssertTrue(tc, row->next_row->next_row->row_type == MCC_SYMBOL_TABLE_ROW_TYPE_INT);
     CuAssertTrue(tc, row->next_row->next_row->array_size == -1);
 
     CuAssertStrEquals(tc, "func3", row->next_row->next_row->next_row->name);
-    CuAssertTrue(tc, row->next_row->next_row->next_row->row_structure == MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE);
-    CuAssertTrue(tc, row->next_row->next_row->next_row->row_type == MCC_SYMBOL_TABLE_ROW_TYPE_FUNCTION);
+    CuAssertTrue(tc, row->next_row->next_row->next_row->row_structure == MCC_SYMBOL_TABLE_ROW_STRUCTURE_FUNCTION);
+    CuAssertTrue(tc, row->next_row->next_row->next_row->row_type == MCC_SYMBOL_TABLE_ROW_TYPE_STRING);
     CuAssertTrue(tc, row->next_row->next_row->next_row->array_size == -1);
 
     mcc_symbol_table_delete_table(table);
@@ -355,8 +355,8 @@ void function_parameters_from_parser(CuTest *tc)
     CuAssertPtrEquals(tc,NULL,table->head->prev_scope);
 
     // "test": table->head->head
-    CuAssertIntEquals(tc,table->head->head->row_type,MCC_SYMBOL_TABLE_ROW_TYPE_FUNCTION);
-    CuAssertIntEquals(tc,table->head->head->row_structure,MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE);
+    CuAssertIntEquals(tc,table->head->head->row_type,MCC_SYMBOL_TABLE_ROW_TYPE_INT);
+    CuAssertIntEquals(tc,table->head->head->row_structure,MCC_SYMBOL_TABLE_ROW_STRUCTURE_FUNCTION);
     CuAssertIntEquals(tc,table->head->head->array_size,-1);
     CuAssertStrEquals(tc,table->head->head->name,"test");
     CuAssertPtrEquals(tc,NULL,table->head->head->prev_row);
@@ -407,8 +407,8 @@ void pseudo_row(CuTest *tc)
     CuAssertPtrEquals(tc,NULL,table->head->prev_scope);
 
     // "test": table->head->head
-    CuAssertIntEquals(tc,table->head->head->row_type,MCC_SYMBOL_TABLE_ROW_TYPE_FUNCTION);
-    CuAssertIntEquals(tc,table->head->head->row_structure,MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE);
+    CuAssertIntEquals(tc,table->head->head->row_type,MCC_SYMBOL_TABLE_ROW_TYPE_INT);
+    CuAssertIntEquals(tc,table->head->head->row_structure,MCC_SYMBOL_TABLE_ROW_STRUCTURE_FUNCTION);
     CuAssertIntEquals(tc,table->head->head->array_size,-1);
     CuAssertStrEquals(tc,table->head->head->name,"test");
     CuAssertPtrEquals(tc,NULL,table->head->head->prev_row);
@@ -466,8 +466,8 @@ void nested_statement(CuTest *tc)
     CuAssertPtrEquals(tc,NULL,table->head->prev_scope);
 
     // "test": table->head->head
-    CuAssertIntEquals(tc,table->head->head->row_type,MCC_SYMBOL_TABLE_ROW_TYPE_FUNCTION);
-    CuAssertIntEquals(tc,table->head->head->row_structure,MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE);
+    CuAssertIntEquals(tc,table->head->head->row_type,MCC_SYMBOL_TABLE_ROW_TYPE_INT);
+    CuAssertIntEquals(tc,table->head->head->row_structure,MCC_SYMBOL_TABLE_ROW_STRUCTURE_FUNCTION);
     CuAssertIntEquals(tc,table->head->head->array_size,-1);
     CuAssertStrEquals(tc,table->head->head->name,"test");
     CuAssertPtrEquals(tc,NULL,table->head->head->prev_row);
@@ -533,8 +533,8 @@ void multiple_functions(CuTest *tc){
     CuAssertPtrEquals(tc,NULL,table->head->prev_scope);
 
     // "test": table->head->head
-    CuAssertIntEquals(tc,table->head->head->row_type,MCC_SYMBOL_TABLE_ROW_TYPE_FUNCTION);
-    CuAssertIntEquals(tc,table->head->head->row_structure,MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE);
+    CuAssertIntEquals(tc,table->head->head->row_type,MCC_SYMBOL_TABLE_ROW_TYPE_INT);
+    CuAssertIntEquals(tc,table->head->head->row_structure,MCC_SYMBOL_TABLE_ROW_STRUCTURE_FUNCTION);
     CuAssertIntEquals(tc,table->head->head->array_size,-1);
     CuAssertStrEquals(tc,table->head->head->name,"test");
     CuAssertPtrEquals(tc,NULL,table->head->head->prev_row);
@@ -546,8 +546,8 @@ void multiple_functions(CuTest *tc){
     CuAssertPtrEquals(tc,table->head->head,table->head->head->child_scope->parent_row);
 
     // "main": table->head->head->next_row;
-    CuAssertIntEquals(tc,table->head->head->next_row->row_type,MCC_SYMBOL_TABLE_ROW_TYPE_FUNCTION);
-    CuAssertIntEquals(tc,table->head->head->next_row->row_structure,MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE);
+    CuAssertIntEquals(tc,table->head->head->next_row->row_type,MCC_SYMBOL_TABLE_ROW_TYPE_VOID);
+    CuAssertIntEquals(tc,table->head->head->next_row->row_structure,MCC_SYMBOL_TABLE_ROW_STRUCTURE_FUNCTION);
     CuAssertIntEquals(tc,table->head->head->next_row->array_size,-1);
     CuAssertStrEquals(tc,table->head->head->next_row->name,"main");
     CuAssertPtrEquals(tc,table->head->head,table->head->head->next_row->prev_row);
