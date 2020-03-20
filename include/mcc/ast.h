@@ -206,6 +206,8 @@ struct mcc_ast_assignment {
 			struct mcc_ast_expression *array_assigned_value;
 		};
 	};
+	// pointer to symbol table
+	struct mcc_symbol_table_row *row;
 };
 
 struct mcc_ast_assignment *mcc_ast_new_variable_assignment(char *identifier, struct mcc_ast_expression *assigned_value);
