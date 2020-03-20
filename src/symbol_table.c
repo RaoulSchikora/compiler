@@ -416,7 +416,7 @@ static void create_row_function_definition(struct mcc_ast_function_definition *f
         mcc_symbol_table_insert_new_scope(table);
     }
 
-    struct mcc_symbol_table_row *row;
+    struct mcc_symbol_table_row *row = NULL;
 
     switch(function_definition->type){
         case MCC_AST_FUNCTION_TYPE_INT:
