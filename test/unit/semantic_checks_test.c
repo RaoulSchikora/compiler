@@ -204,6 +204,28 @@ void multiple_function_definitions(CuTest *tc){
     mcc_semantic_check_delete_single_check(check);
 }
 
+// a function is defined multiple times within a couple of functions
+void multiple_function_definitions2(CuTest *tc){
+
+    // Define test input and create symbol table
+    const char input[] = "int func1(){} int test(){} int func2(){} int func3(){} int test(){} int func4(){}";
+    struct mcc_parser_result parser_result;
+    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
+    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_multiple_function_definitions(
+            (&parser_result)->program,table);
+
+    CuAssertPtrNotNull(tc, check);
+    CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_MULTIPLE_FUNCTION_DEFINITIONS);
+
+    // Cleanup
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+    mcc_semantic_check_delete_single_check(check);
+}
+
 // A variable is declared more than once in the same scope
 void multiple_variable_declarations(CuTest *tc){
 
@@ -256,6 +278,7 @@ void use_undeclared_variable(CuTest *tc){
     //TEST(main_function_3)                 \
     //TEST(unknown_function_call)           \
     //TEST(multiple_function_definitions)   \
+    //TEST(multiple_function_definitions2)  \
     //TEST(multiple_variable_declarations)  \
     //TEST(use_undeclared_variable)
 #include "main_stub.inc"
