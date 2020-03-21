@@ -281,12 +281,12 @@ void use_undeclared_variable(CuTest *tc){
 }
 
 #define TESTS \
+    TEST(main_function_1)                 \
+    TEST(main_function_2)                 \
+    TEST(main_function_3)
     //TEST(positive)                        \
     //TEST(type_check)                      \
     //TEST(nonvoid_check)                   \
-    //TEST(main_function_1)                 \
-    //TEST(main_function_2)                 \
-    //TEST(main_function_3)                 \
     //TEST(unknown_function_call)           \
     //TEST(multiple_function_definitions)   \
     //TEST(multiple_function_definitions2)  \
