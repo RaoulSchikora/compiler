@@ -21,6 +21,7 @@ enum mcc_semantic_check_status{
 
 struct mcc_semantic_check_all_checks{
    enum mcc_semantic_check_status status;
+   char* error_buffer;
    struct mcc_semantic_check *type_check;
    struct mcc_semantic_check *nonvoid_check;
    struct mcc_semantic_check *main_function;
@@ -46,6 +47,8 @@ enum mcc_semantic_check_type{
 struct mcc_semantic_check {
     enum mcc_semantic_check_status status;
     enum mcc_semantic_check_type type;
+    // error_buffer is set to NULL if status is OK
+    char* error_buffer;
 };
 
 // ------------------------------------------------------------- Functions: Running all semantic checks
