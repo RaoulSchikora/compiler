@@ -40,6 +40,7 @@ void multiple_rows(CuTest *tc)
 
     struct mcc_symbol_table_row *current_row = scope->head;
 
+    CuAssertTrue(tc,current_row->scope == scope);
     CuAssertStrEquals(tc, "i", current_row->name);
     CuAssertIntEquals(tc, MCC_SYMBOL_TABLE_ROW_TYPE_INT, current_row->row_type);
     CuAssertStrEquals(tc, "j", current_row->next_row->name);
@@ -54,6 +55,8 @@ void multiple_rows(CuTest *tc)
     CuAssertStrEquals(tc, "k", current_row->prev_row->name);
     CuAssertStrEquals(tc, "j", current_row->prev_row->prev_row->name);
     CuAssertStrEquals(tc, "i", current_row->prev_row->prev_row->prev_row->name);
+
+    CuAssertTrue(tc,current_row->scope == scope);
 
     mcc_symbol_table_delete_scope(scope);
 }
@@ -217,6 +220,10 @@ void function_parameters(CuTest *tc)
     CuAssertStrEquals(tc, "func", scope->head->name);
     CuAssertStrEquals(tc, "a", scope->head->child_scope->head->name);
     CuAssertStrEquals(tc, "b", scope->head->child_scope->head->next_row->name);
+
+    CuAssertTrue(tc, scope->head->scope == scope);
+    CuAssertTrue(tc, scope->head->child_scope->head->scope == scope->head->child_scope);
+    CuAssertTrue(tc, scope->head->child_scope->head->next_row->scope == scope->head->child_scope);
 
     mcc_symbol_table_delete_table(table);
     mcc_ast_delete(result.program);
@@ -591,6 +598,28 @@ void assignment_linking(CuTest *tc) {
     mcc_symbol_table_delete_table(table);
 }
 
+void check_upward(CuTest *tc) {
+    const char input[] = "int func(){int a;if(true){a=a+1;int b;}int c;float d;}";
+    struct mcc_parser_result parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+
+    struct mcc_symbol_table *table = mcc_symbol_table_create(parser_result.program);
+
+    struct mcc_symbol_table_row *row_a = table->head->head->child_scope->head;
+    struct mcc_symbol_table_row *row = table->head->head->child_scope->head->child_scope->head->next_row;
+    struct mcc_symbol_table_scope *scope = table->head->head->child_scope->head->child_scope;
+
+    CuAssertTrue(tc, row_a == mcc_symbol_table_check_upwards_for_declaration("a", row, scope));
+
+    row = table->head->head->child_scope->head->next_row->next_row;
+    scope = table->head->head->child_scope;
+
+    CuAssertTrue(tc, NULL == mcc_symbol_table_check_upwards_for_declaration("b", row, scope));
+    CuAssertTrue(tc, row_a == mcc_symbol_table_check_upwards_for_declaration("a", row, scope));
+
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+}
+
 #define TESTS \
     TEST(empty_table)         \
 	TEST(multiple_rows)       \
@@ -608,6 +637,7 @@ void assignment_linking(CuTest *tc) {
     TEST(pseudo_row)          \
     TEST(nested_statement)    \
     TEST(multiple_functions)  \
-    TEST(assignment_linking)
+    TEST(assignment_linking)  \
+    TEST(check_upward)
 #include "main_stub.inc"
 #undef TESTS

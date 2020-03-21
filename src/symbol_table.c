@@ -25,6 +25,7 @@ struct mcc_symbol_table_row *mcc_symbol_table_new_row_variable(char *name, enum 
     strcpy(row->name, name);
     row->prev_row = NULL;
     row->next_row = NULL;
+    row->scope = NULL;
     row->child_scope = NULL;
 
     return row;
@@ -44,6 +45,7 @@ struct mcc_symbol_table_row *mcc_symbol_table_new_row_function(char *name, enum 
     strcpy(row->name, name);
     row->prev_row = NULL;
     row->next_row = NULL;
+    row->scope = NULL;
     row->child_scope = NULL;
 
     return row;
@@ -64,6 +66,7 @@ struct mcc_symbol_table_row *mcc_symbol_table_new_row_array(char *name, int arra
     strcpy(row->name, name);
     row->prev_row = NULL;
     row->next_row = NULL;
+    row->scope = NULL;
     row->child_scope = NULL;
 
     return row;
@@ -171,6 +174,7 @@ void mcc_symbol_table_scope_append_row(struct mcc_symbol_table_scope *scope, str
 
     struct mcc_symbol_table_row **head_ref = &scope->head;
     struct mcc_symbol_table_row *last_row = *head_ref;
+    row->scope = scope;
 
     if(!*head_ref){
         *head_ref = row;
@@ -459,6 +463,39 @@ static void create_row_function_definition(struct mcc_ast_function_definition *f
 
     create_rows_function_parameters(function_definition, row);
     create_rows_function_body(function_definition, row);
+}
+
+struct mcc_symbol_table_row *mcc_symbol_table_check_upwards_for_declaration(char *wanted_name,
+                                                                            struct mcc_symbol_table_row *start_row,
+                                                                            struct mcc_symbol_table_scope *start_scope)
+{
+    assert(wanted_name);
+    assert(start_row);
+    assert(start_scope);
+
+    struct mcc_symbol_table_row *row = start_row;
+    struct mcc_symbol_table_scope *scope = start_scope;
+
+    if(strcmp(wanted_name, row->name) == 0){
+        return row;
+    }
+
+    while(scope->parent_row){
+        if(strcmp(wanted_name, row->name) == 0){
+            return row;
+        }
+
+        while(row->prev_row){
+            row = row->prev_row;
+
+            if(strcmp(wanted_name, row->name) == 0){
+                return row;
+            }
+        }
+        row = scope->parent_row;
+        scope = row->scope;
+    }
+    return NULL;
 }
 
 struct mcc_symbol_table *mcc_symbol_table_create(struct mcc_ast_program *program)
