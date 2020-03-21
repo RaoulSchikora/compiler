@@ -620,6 +620,30 @@ void check_upward(CuTest *tc) {
     mcc_symbol_table_delete_table(table);
 }
 
+void check_upward_same_scope(CuTest *tc) {
+
+    // Define test input and create symbol table
+    const char input[] = "int func(){int a; int b; int c; a=a+1;}";
+    struct mcc_parser_result parser_result;
+    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
+    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+
+    // symbol table: no previous or next scopes, no parent row
+    CuAssertPtrEquals(tc,NULL,table->head->parent_row);
+    CuAssertPtrEquals(tc,NULL,table->head->next_scope);
+    CuAssertPtrEquals(tc,NULL,table->head->prev_scope);
+
+    struct mcc_symbol_table_row *row_a = table->head->head->child_scope->head;
+    struct mcc_symbol_table_row *row = table->head->head->child_scope->head->next_row->next_row;
+    struct mcc_symbol_table_scope *scope = table->head->head->child_scope;
+
+    CuAssertTrue(tc, row_a == mcc_symbol_table_check_upwards_for_declaration("a", row, scope));
+
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+}
+
 #define TESTS \
     TEST(empty_table)         \
 	TEST(multiple_rows)       \
@@ -638,6 +662,7 @@ void check_upward(CuTest *tc) {
     TEST(nested_statement)    \
     TEST(multiple_functions)  \
     TEST(assignment_linking)  \
-    TEST(check_upward)
+    TEST(check_upward)        \
+    TEST(check_upward_same_scope)
 #include "main_stub.inc"
 #undef TESTS
