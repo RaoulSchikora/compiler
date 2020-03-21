@@ -23,14 +23,14 @@ struct mcc_semantic_check_all_checks* mcc_semantic_check_run_all(struct mcc_ast_
 // ------------------------------------------------------------- Functions: Running single semantic checks
 
 // Write error message into existing mcc_semantic_check struct
-static void write_error_message_to_check(struct mcc_semantic_check* check, const char* string){
+static void write_error_message_to_check(struct mcc_semantic_check* check, struct mcc_ast_node node, const char* string){
 
-    int size = sizeof(char)*strlen(string);
+    int size = sizeof(char)*(strlen(string)+50);
     char* buffer = malloc(size);
     if(buffer == NULL){
         perror("write_error_message_to_check: malloc");
     }
-    strncpy(buffer,string,size);
+    snprintf(buffer,size,"%d:%d: %s\n",node.sloc.start_line,node.sloc.start_col,string);
     check->error_buffer = buffer;
 }
 
@@ -69,6 +69,7 @@ struct mcc_semantic_check* mcc_semantic_check_run_main_function(struct mcc_ast_p
     if (strcmp(ast->function->identifier->identifier_name,"main")==0){
         number_of_mains += 1;
         if(!(ast->function->parameters->is_empty)){
+            write_error_message_to_check(check,ast->function->node,"Main has wrong signature. Must be `int main()`");
             check->status = MCC_SEMANTIC_CHECK_FAIL;
             return check;
         }
@@ -77,23 +78,23 @@ struct mcc_semantic_check* mcc_semantic_check_run_main_function(struct mcc_ast_p
         ast = ast->next_function;
         if (strcmp(ast->function->identifier->identifier_name,"main")==0){
             number_of_mains += 1;
+            if (number_of_mains > 1){
+                write_error_message_to_check(check,ast->function->node,"Too many main functions defined.");
+                check->status = MCC_SEMANTIC_CHECK_FAIL;
+            }
             if(!(ast->function->parameters->is_empty)){
-                write_error_message_to_check(check,"Main has wrong signature. Must be `int main()`");
+                write_error_message_to_check(check,ast->function->node,"Main has wrong signature. Must be `int main()`");
                 check->status = MCC_SEMANTIC_CHECK_FAIL;
                 return check;
             }
         }
     }
-
-    if (number_of_mains > 1){
-        write_error_message_to_check(check,"Too many main functions defined.");
-        check->status = MCC_SEMANTIC_CHECK_FAIL;
-    }
-
     if (number_of_mains == 0){
-        write_error_message_to_check(check,"No main function defined.");
+        write_error_message_to_check(check,ast->node,"No main function defined.");
         check->status = MCC_SEMANTIC_CHECK_FAIL;
+        return check;
     }
+
 
     return check;
 }
