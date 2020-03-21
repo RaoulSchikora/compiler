@@ -31,6 +31,7 @@ mcc_src = [ 'src/ast.c',
             'src/ast_print.c',
             'src/ast_visit.c',
             'src/mc_cl_parser.c',
+            'src/semantic_checks.c',
             lgen.process('src/scanner.l'),
             pgen.process('src/parser.y'),
             'src/symbol_table.c',
@@ -52,7 +53,7 @@ endforeach
 
 # ----------------------------------------------------------------------- Tests
 
-mcc_tests = [ 'parser_test', 'symbol_table_test' ]
+mcc_tests = [ 'parser_test', 'symbol_table_test', 'semantic_checks_test' ]
 
 cutest_inc = include_directories('vendor/cutest')
 
