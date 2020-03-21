@@ -8,6 +8,7 @@
 // ------------------------------------------------------- Forward declaration
 
 static void create_rows_statement(struct mcc_ast_statement *statement, struct mcc_symbol_table_scope *scope);
+static void link_pointer_expression(struct mcc_ast_expression *expression, struct mcc_symbol_table_scope *scope);
 
 // ------------------------------------------------------- Symbol Table row
 
@@ -353,7 +354,7 @@ static void create_rows_compound_statement(struct mcc_ast_compound_statement *co
     }
 }
 
-static void link_pointer(struct mcc_ast_assignment *assignment, struct mcc_symbol_table_scope *scope)
+static void link_pointer_assignment(struct mcc_ast_assignment *assignment, struct mcc_symbol_table_scope *scope)
 {
     assert(assignment);
     assert(scope);
@@ -365,6 +366,63 @@ static void link_pointer(struct mcc_ast_assignment *assignment, struct mcc_symbo
     }
 
     assignment->row = row;
+
+    switch (assignment->assignment_type){
+    case MCC_AST_ASSIGNMENT_TYPE_VARIABLE:
+        link_pointer_expression(assignment->variable_assigned_value, scope);
+        break;
+    case MCC_AST_ASSIGNMENT_TYPE_ARRAY:
+        link_pointer_expression(assignment->array_assigned_value, scope);
+        link_pointer_expression(assignment->array_index, scope);
+        break;
+    }
+}
+
+static void link_pointer_expression(struct mcc_ast_expression *expression, struct mcc_symbol_table_scope *scope)
+{
+    assert(expression);
+    assert(scope);
+
+    struct mcc_symbol_table_row *row = mcc_symbol_table_scope_get_last_row(scope);
+
+    if(!row){
+        row = create_pseudo_row(scope);
+    }
+
+    switch(expression->type){
+    case MCC_AST_EXPRESSION_TYPE_LITERAL:
+        // do nothing
+        break;
+    case MCC_AST_EXPRESSION_TYPE_BINARY_OP:
+        link_pointer_expression(expression->lhs, scope);
+        link_pointer_expression(expression->rhs, scope);
+        break;
+    case MCC_AST_EXPRESSION_TYPE_PARENTH:
+        link_pointer_expression(expression->expression, scope);
+        break;
+    case MCC_AST_EXPRESSION_TYPE_UNARY_OP:
+        link_pointer_expression(expression->child, scope);
+        break;
+    case MCC_AST_EXPRESSION_TYPE_VARIABLE:
+        expression->variable_row = row;
+        break;
+    case MCC_AST_EXPRESSION_TYPE_ARRAY_ELEMENT:
+        expression->array_row = row;
+        break;
+    case MCC_AST_EXPRESSION_TYPE_FUNCTION_CALL:
+        expression->function_row = row;
+        break;
+    }
+}
+
+static void link_pointer_return(struct mcc_ast_statement *statement, struct mcc_symbol_table_scope *scope)
+{
+    assert(statement);
+    assert(scope);
+
+    if(statement->return_value){
+        link_pointer_expression(statement->return_value, scope);
+    }
 }
 
 static void create_rows_statement(struct mcc_ast_statement *statement, struct mcc_symbol_table_scope *scope)
@@ -377,26 +435,29 @@ static void create_rows_statement(struct mcc_ast_statement *statement, struct mc
         create_row_declaration(statement->declaration, scope);
         break;
     case MCC_AST_STATEMENT_TYPE_IF_STMT:
+        link_pointer_expression(statement->if_condition, scope);
         create_rows_statement(statement->if_on_true, scope);
         break;
     case MCC_AST_STATEMENT_TYPE_IF_ELSE_STMT:
+        link_pointer_expression(statement->if_else_condition, scope);
         create_rows_statement(statement->if_else_on_true, scope);
         create_rows_statement(statement->if_else_on_false, scope);
         break;
     case MCC_AST_STATEMENT_TYPE_WHILE:
+        link_pointer_expression(statement->while_condition, scope);
         create_rows_statement(statement->while_on_true, scope);
         break;
     case MCC_AST_STATEMENT_TYPE_COMPOUND_STMT:
         create_rows_compound_statement(statement->compound_statement, append_child_scope_to_last_row(scope));
         break;
     case MCC_AST_STATEMENT_TYPE_ASSIGNMENT:
-        link_pointer(statement->assignment, scope);
+        link_pointer_assignment(statement->assignment, scope);
         break;
     case MCC_AST_STATEMENT_TYPE_EXPRESSION:
-        // do nothing
+        link_pointer_expression(statement->stmt_expression, scope);
         break;
     case MCC_AST_STATEMENT_TYPE_RETURN:
-        // do nothing
+        link_pointer_return(statement, scope);
         break;
     }
 }

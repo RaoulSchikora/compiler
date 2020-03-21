@@ -91,18 +91,21 @@ struct mcc_ast_expression {
 		// MCC_AST_EXPRESSION_TYPE_VARIABLE
 		struct {
 			struct mcc_ast_identifier *identifier;
+			struct mcc_symbol_table_row *variable_row;
 		};
 
 		// MCC AST_EXPRESSION_TYPE_ARRAY_ELEMENT
 		struct {
 			struct mcc_ast_identifier *array_identifier;
 			struct mcc_ast_expression *index;
+			struct mcc_symbol_table_row *array_row;
 		};
 
 		// MCC AST_EXPRESSION_TYPE_FUNCTION_CALL
 		struct {
 			struct mcc_ast_identifier *function_identifier;
 			struct mcc_ast_arguments *arguments;
+			struct mcc_symbol_table_row *function_row;
 		};
 	};
 };

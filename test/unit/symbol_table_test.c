@@ -644,6 +644,50 @@ void check_upward_same_scope(CuTest *tc) {
     mcc_symbol_table_delete_table(table);
 }
 
+void variable_expression_linking(CuTest *tc){
+
+    // Define test input and create symbol table
+    const char input[] = "int func(){int a; a=a+1;}";
+    struct mcc_parser_result parser_result;
+    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
+    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+
+    struct mcc_symbol_table_row *row = table->head->head->child_scope->head;
+    struct mcc_ast_compound_statement *stmt=(&parser_result)->program->function->compound_stmt->next_compound_statement;
+    struct mcc_ast_expression *expr = stmt->statement->assignment->variable_assigned_value->lhs;
+
+    CuAssertPtrNotNull(tc, row);
+    CuAssertPtrNotNull(tc, expr);
+    CuAssertIntEquals(tc, expr->type, MCC_AST_EXPRESSION_TYPE_VARIABLE);
+    CuAssertPtrEquals(tc, expr->variable_row, row);
+
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+}
+
+void if_condition_expression(CuTest *tc){
+
+    // Define test input and create symbol table
+    const char input[] = "int func(){int a; if(a==6){}}";
+    struct mcc_parser_result parser_result;
+    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
+    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+
+    struct mcc_symbol_table_row *row = table->head->head->child_scope->head;
+    struct mcc_ast_compound_statement *stmt=(&parser_result)->program->function->compound_stmt->next_compound_statement;
+    struct mcc_ast_expression *expr = stmt->statement->if_condition->lhs;
+
+    CuAssertPtrNotNull(tc, row);
+    CuAssertPtrNotNull(tc, expr);
+    CuAssertIntEquals(tc, expr->type, MCC_AST_EXPRESSION_TYPE_VARIABLE);
+    CuAssertPtrEquals(tc, expr->variable_row, row);
+
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+}
+
 #define TESTS \
     TEST(empty_table)         \
 	TEST(multiple_rows)       \
@@ -663,6 +707,8 @@ void check_upward_same_scope(CuTest *tc) {
     TEST(multiple_functions)  \
     TEST(assignment_linking)  \
     TEST(check_upward)        \
-    TEST(check_upward_same_scope)
+    TEST(check_upward_same_scope) \
+    TEST(variable_expression_linking) \
+    TEST(if_condition_expression)
 #include "main_stub.inc"
 #undef TESTS
