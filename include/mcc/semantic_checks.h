@@ -46,15 +46,6 @@ enum mcc_semantic_check_type{
 struct mcc_semantic_check {
     enum mcc_semantic_check_status status;
     enum mcc_semantic_check_type type;
-    union{
-        struct mcc_semantic_check_type_check *type_check;
-        struct mcc_semantic_check_nonvoid_check *nonvoid_check;
-        struct mcc_semantic_check_main_function *main_function;
-        struct mcc_semantic_check_unknown_function_call *unknown_function_call;
-        struct mcc_semantic_check_multiple_function_definitions *multiple_function_definitions;
-        struct mcc_semantic_check_multiple_variable_declarations *multiple_variable_declarations;
-        struct mcc_semantic_check_use_undeclared_variable *use_undeclared_variable;
-    };
 };
 
 // ------------------------------------------------------------- Functions: Running all semantic checks

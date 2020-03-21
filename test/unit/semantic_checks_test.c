@@ -68,7 +68,6 @@ void type_check(CuTest *tc)
     struct mcc_semantic_check *check = mcc_semantic_check_run_type_check((&parser_result)->program,table);
 
     CuAssertPtrNotNull(tc, check);
-    CuAssertPtrNotNull(tc, check->type_check);
     CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
     CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CHECK);
 
@@ -90,7 +89,6 @@ void nonvoid_check(CuTest *tc){
     struct mcc_semantic_check *check = mcc_semantic_check_run_nonvoid_check((&parser_result)->program,table);
 
     CuAssertPtrNotNull(tc, check);
-    CuAssertPtrNotNull(tc, check->nonvoid_check);
     CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
     CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_NONVOID_CHECK);
 
@@ -112,7 +110,6 @@ void main_function_1(CuTest *tc){
     struct mcc_semantic_check *check = mcc_semantic_check_run_main_function((&parser_result)->program,table);
 
     CuAssertPtrNotNull(tc, check);
-    CuAssertPtrNotNull(tc, check->nonvoid_check);
     CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
     CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_MAIN_FUNCTION);
 
@@ -134,7 +131,6 @@ void main_function_2(CuTest *tc){
     struct mcc_semantic_check *check = mcc_semantic_check_run_main_function((&parser_result)->program,table);
 
     CuAssertPtrNotNull(tc, check);
-    CuAssertPtrNotNull(tc, check->nonvoid_check);
     CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
     CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_MAIN_FUNCTION);
 
@@ -156,7 +152,6 @@ void main_function_3(CuTest *tc){
     struct mcc_semantic_check *check = mcc_semantic_check_run_main_function((&parser_result)->program,table);
 
     CuAssertPtrNotNull(tc, check);
-    CuAssertPtrNotNull(tc, check->nonvoid_check);
     CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
     CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_MAIN_FUNCTION);
 
@@ -178,7 +173,6 @@ void unknown_function_call(CuTest *tc){
     struct mcc_semantic_check *check = mcc_semantic_check_run_unknown_function_call((&parser_result)->program,table);
 
     CuAssertPtrNotNull(tc, check);
-    CuAssertPtrNotNull(tc, check->nonvoid_check);
     CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
     CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_UNKNOWN_FUNCTION_CALL);
 
@@ -201,7 +195,6 @@ void multiple_function_definitions(CuTest *tc){
     struct mcc_semantic_check *check = mcc_semantic_check_run_multiple_function_definitions((&parser_result)->program,table);
 
     CuAssertPtrNotNull(tc, check);
-    CuAssertPtrNotNull(tc, check->nonvoid_check);
     CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
     CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_MULTIPLE_FUNCTION_DEFINITIONS);
 
@@ -223,7 +216,6 @@ void multiple_variable_declarations(CuTest *tc){
     struct mcc_semantic_check *check = mcc_semantic_check_run_multiple_variable_declarations((&parser_result)->program,table);
 
     CuAssertPtrNotNull(tc, check);
-    CuAssertPtrNotNull(tc, check->nonvoid_check);
     CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
     CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_MULTIPLE_VARIABLE_DECLARATIONS);
 
@@ -246,7 +238,6 @@ void use_undeclared_variable(CuTest *tc){
     struct mcc_semantic_check *check = mcc_semantic_check_run_use_undeclared_variable((&parser_result)->program,table);
 
     CuAssertPtrNotNull(tc, check);
-    CuAssertPtrNotNull(tc, check->nonvoid_check);
     CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
     CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_USE_UNDECLARED_VARIABLE);
 
