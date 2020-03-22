@@ -367,7 +367,6 @@ void function_parameters_from_parser(CuTest *tc)
     CuAssertIntEquals(tc,table->head->head->array_size,-1);
     CuAssertStrEquals(tc,table->head->head->name,"test");
     CuAssertPtrEquals(tc,NULL,table->head->head->prev_row);
-    CuAssertPtrEquals(tc,NULL,table->head->head->next_row);
 
     // "int[52] a": table->head->head->child_scope
     CuAssertPtrEquals(tc,NULL,table->head->head->child_scope->next_scope);
@@ -419,7 +418,6 @@ void pseudo_row(CuTest *tc)
     CuAssertIntEquals(tc,table->head->head->array_size,-1);
     CuAssertStrEquals(tc,table->head->head->name,"test");
     CuAssertPtrEquals(tc,NULL,table->head->head->prev_row);
-    CuAssertPtrEquals(tc,NULL,table->head->head->next_row);
 
     // pseudo_row: table->head->head->child_scope
     CuAssertPtrEquals(tc,table->head->head,table->head->head->child_scope->parent_row);
@@ -478,7 +476,6 @@ void nested_statement(CuTest *tc)
     CuAssertIntEquals(tc,table->head->head->array_size,-1);
     CuAssertStrEquals(tc,table->head->head->name,"test");
     CuAssertPtrEquals(tc,NULL,table->head->head->prev_row);
-    CuAssertPtrEquals(tc,NULL,table->head->head->next_row);
 
     // "int a": table->head->head->child_scope
     CuAssertPtrEquals(tc,NULL,table->head->head->child_scope->next_scope);
@@ -558,7 +555,6 @@ void multiple_functions(CuTest *tc){
     CuAssertIntEquals(tc,table->head->head->next_row->array_size,-1);
     CuAssertStrEquals(tc,table->head->head->next_row->name,"main");
     CuAssertPtrEquals(tc,table->head->head,table->head->head->next_row->prev_row);
-    CuAssertPtrEquals(tc,NULL,table->head->head->next_row->next_row);
 
     // "int a" : table->head->head->next_row->child_scope
     CuAssertPtrEquals(tc,NULL,table->head->head->next_row->child_scope->next_scope);
