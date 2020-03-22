@@ -146,6 +146,23 @@ struct mcc_semantic_check_all_checks* mcc_semantic_check_run_all(struct mcc_ast_
             }
         }
     }*/
+
+    // No use of the names of the built_in functions in function definitions
+    checks->define_built_in = mcc_semantic_check_run_define_built_in(ast, symbol_table);
+    if(checks->define_built_in == NULL){
+        checks->status = MCC_SEMANTIC_CHECK_FAIL;
+        if(checks->error_buffer == NULL){
+            write_error_message_to_all_checks(checks,"mcc_semantic_check_run_define_built_in returned NULL pointer.");
+        }
+    } else {
+        if(checks->define_built_in->status != MCC_SEMANTIC_CHECK_OK){
+            checks->status = MCC_SEMANTIC_CHECK_FAIL;
+            if(checks->error_buffer == NULL){
+                write_error_message_to_all_checks(checks,checks->define_built_in->error_buffer);
+            }
+        }
+    }
+
     return checks;
 }
 
@@ -313,6 +330,75 @@ struct mcc_semantic_check* mcc_semantic_check_run_use_undeclared_variable(struct
     return NULL;
 }
 
+// No use of the names of the built_in functions in function definitions
+struct mcc_semantic_check* mcc_semantic_check_run_define_built_in(struct mcc_ast_program* ast,
+                                                                          struct mcc_symbol_table* symbol_table){
+    UNUSED(symbol_table);
+
+    struct mcc_semantic_check* check = malloc(sizeof(*check));
+    if (!check){
+        return NULL;
+    }
+
+    check->status = MCC_SEMANTIC_CHECK_OK;
+    check->type = MCC_SEMANTIC_CHECK_DEFINE_BUILT_IN;
+    check->error_buffer = NULL;
+
+    if (!(ast->function)){
+        return check;
+    }
+
+
+    // Check if we encounter built_ins as userdefined functions
+    // Since we walk the AST, the first encounter already is an error, the built_ins
+    // are only later added to the symbol table
+
+    do {
+
+        if (strcmp(ast->function->identifier->identifier_name,"print")==0){
+            write_error_message_to_check(check,ast->function->node,"Multiple definitions of function `print` found."
+                                                          "`print` is reserved for the built_in function.");
+            check->status = MCC_SEMANTIC_CHECK_FAIL;
+            return check;
+        }
+        if (strcmp(ast->function->identifier->identifier_name,"print_nl")==0){
+            write_error_message_to_check(check,ast->function->node,"Multiple definitions of function `print_nl` found."
+                                                          "`print_nl` is reserved for the built_in function.");
+            check->status = MCC_SEMANTIC_CHECK_FAIL;
+            return check;
+        }
+        if (strcmp(ast->function->identifier->identifier_name,"print_int")==0){
+            write_error_message_to_check(check,ast->function->node,"Multiple definitions of function `print_int` found."
+                                                          "`print_int` is reserved for the built_in function.");
+            check->status = MCC_SEMANTIC_CHECK_FAIL;
+            return check;
+        }
+        if (strcmp(ast->function->identifier->identifier_name,"print_float")==0){
+            write_error_message_to_check(check,ast->function->node,"Multiple definitions of function `print_float` found."
+                                                          "`print_float` is reserved for the built_in function.");
+            check->status = MCC_SEMANTIC_CHECK_FAIL;
+            return check;
+        }
+        if (strcmp(ast->function->identifier->identifier_name,"read_int")==0){
+            write_error_message_to_check(check,ast->function->node,"Multiple definitions of function `read_int` found."
+                                                          "`read_int` is reserved for the built_in function.");
+            check->status = MCC_SEMANTIC_CHECK_FAIL;
+            return check;
+        }
+        if (strcmp(ast->function->identifier->identifier_name,"read_float")==0){
+            write_error_message_to_check(check,ast->function->node,"Multiple definitions of function `read_float` found."
+                                                          "`read_float` is reserved for the built_in function.");
+            check->status = MCC_SEMANTIC_CHECK_FAIL;
+            return check;
+        }
+
+        ast = ast->next_function;
+
+    } while (ast);
+
+    return check;
+}
+
 // ------------------------------------------------------------- Functions: Cleanup
 
 // Delete all checks
@@ -350,6 +436,10 @@ void mcc_semantic_check_delete_all_checks(struct mcc_semantic_check_all_checks *
     {
         mcc_semantic_check_delete_single_check(checks->use_undeclared_variable);
     }*/
+    if (checks->define_built_in != NULL)
+    {
+        mcc_semantic_check_delete_single_check(checks->define_built_in);
+    }
     if (checks->error_buffer != NULL){
         free(checks->error_buffer);
     }
