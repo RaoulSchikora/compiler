@@ -29,6 +29,7 @@ struct mcc_semantic_check_all_checks{
    struct mcc_semantic_check *multiple_function_definitions;
    struct mcc_semantic_check *multiple_variable_declarations;
    struct mcc_semantic_check *use_undeclared_variable;
+   struct mcc_semantic_check *define_built_in;
 };
 
 // ------------------------------------------------------------ Data structure: A single semantic check
@@ -41,7 +42,7 @@ enum mcc_semantic_check_type{
     MCC_SEMANTIC_CHECK_MULTIPLE_FUNCTION_DEFINITIONS,
     MCC_SEMANTIC_CHECK_MULTIPLE_VARIABLE_DECLARATIONS,
     MCC_SEMANTIC_CHECK_USE_UNDECLARED_VARIABLE,
-
+    MCC_SEMANTIC_CHECK_DEFINE_BUILT_IN,
 };
 
 struct mcc_semantic_check {
@@ -80,6 +81,10 @@ struct mcc_semantic_check* mcc_semantic_check_run_multiple_variable_declarations
 // No use of undeclared variables
 struct mcc_semantic_check* mcc_semantic_check_run_use_undeclared_variable(struct mcc_ast_program* ast,
                                                                 struct mcc_symbol_table* symbol_table);
+
+// No use of the names of the built_in functions in function definitions
+struct mcc_semantic_check* mcc_semantic_check_run_define_built_in(struct mcc_ast_program* ast,
+                                                                          struct mcc_symbol_table* symbol_table);
 
 // ------------------------------------------------------------- Functions: Running all semantic checks
 

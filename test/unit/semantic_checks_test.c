@@ -22,6 +22,14 @@ void positive(CuTest *tc)
     struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
     struct mcc_semantic_check_all_checks *checks = mcc_semantic_check_run_all((&parser_result)->program,table);
 
+    if(checks->status == MCC_SEMANTIC_CHECK_FAIL){
+        if (checks->error_buffer == NULL){
+            printf("Semantic check failed, error buffer is empty.");
+        } else {
+            printf("Semantic check failed:\n%s", checks->error_buffer);
+        }
+    }
+
     CuAssertIntEquals(tc,checks->status,MCC_SEMANTIC_CHECK_OK);
     CuAssertPtrEquals(tc,NULL, checks->error_buffer);
 
@@ -33,6 +41,7 @@ void positive(CuTest *tc)
     CuAssertPtrNotNull(tc,checks->multiple_function_definitions);
     //CuAssertPtrNotNull(tc,checks->multiple_variable_declarations);
     CuAssertPtrNotNull(tc,checks->use_undeclared_variable);
+    CuAssertPtrNotNull(tc,checks->define_built_in);
 
     //CuAssertIntEquals(tc,checks->type_check->type,MCC_SEMANTIC_CHECK_TYPE_CHECK);
     //CuAssertIntEquals(tc,checks->nonvoid_check->type,MCC_SEMANTIC_CHECK_NONVOID_CHECK);
@@ -41,6 +50,7 @@ void positive(CuTest *tc)
     CuAssertIntEquals(tc,checks->multiple_function_definitions->type,MCC_SEMANTIC_CHECK_MULTIPLE_FUNCTION_DEFINITIONS);
     //CuAssertIntEquals(tc,checks->multiple_variable_declarations->type,MCC_SEMANTIC_CHECK_MULTIPLE_VARIABLE_DECLARATIONS);
     CuAssertIntEquals(tc,checks->use_undeclared_variable->type,MCC_SEMANTIC_CHECK_USE_UNDECLARED_VARIABLE);
+    CuAssertIntEquals(tc,checks->define_built_in->type,MCC_SEMANTIC_CHECK_DEFINE_BUILT_IN);
 
     //CuAssertIntEquals(tc,checks->type_check->status,MCC_SEMANTIC_CHECK_OK);
     //CuAssertIntEquals(tc,checks->nonvoid_check->status,MCC_SEMANTIC_CHECK_OK);
@@ -49,6 +59,7 @@ void positive(CuTest *tc)
     CuAssertIntEquals(tc,checks->multiple_function_definitions->status,MCC_SEMANTIC_CHECK_OK);
     //CuAssertIntEquals(tc,checks->multiple_variable_declarations->status,MCC_SEMANTIC_CHECK_OK);
     CuAssertIntEquals(tc,checks->use_undeclared_variable->status,MCC_SEMANTIC_CHECK_OK);
+    CuAssertIntEquals(tc,checks->define_built_in->status,MCC_SEMANTIC_CHECK_OK);
 
     // Cleanup
     mcc_ast_delete(parser_result.program);
@@ -369,6 +380,29 @@ void use_undeclared_variable4(CuTest *tc){
     mcc_semantic_check_delete_single_check(check);
 }
 
+// A function is declared that has the same name as one of the built ins
+void define_built_in(CuTest *tc){
+
+    // Define test input and create symbol table
+    const char input[] = "int print_nl(){}";
+    struct mcc_parser_result parser_result;
+    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
+    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_define_built_in((&parser_result)->program,table);
+
+    CuAssertPtrNotNull(tc, check);
+    CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
+    CuAssertPtrNotNull(tc, check->error_buffer);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_DEFINE_BUILT_IN);
+
+    // Cleanup
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+    mcc_semantic_check_delete_single_check(check);
+}
+
+
 #define TESTS \
     TEST(positive)                        \
     TEST(main_function_1)                 \
@@ -380,7 +414,9 @@ void use_undeclared_variable4(CuTest *tc){
     TEST(use_undeclared_variable)         \
     TEST(use_undeclared_variable2)        \
     TEST(use_undeclared_variable3)        \
-    TEST(use_undeclared_variable4)
+    TEST(use_undeclared_variable4)        \
+    TEST(define_built_in)                 \
+    TEST(multiple_function_definitions3)
     //TEST(type_check)                      \
     //TEST(nonvoid_check)                   \
     //TEST(unknown_function_call)           \
