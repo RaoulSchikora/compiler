@@ -26,29 +26,29 @@ void positive(CuTest *tc)
     CuAssertPtrEquals(tc,NULL, checks->error_buffer);
 
     CuAssertPtrNotNull(tc, checks);
-    CuAssertPtrNotNull(tc,checks->type_check);
-    CuAssertPtrNotNull(tc,checks->nonvoid_check);
+    //CuAssertPtrNotNull(tc,checks->type_check);
+    //CuAssertPtrNotNull(tc,checks->nonvoid_check);
     CuAssertPtrNotNull(tc,checks->main_function);
-    CuAssertPtrNotNull(tc,checks->unknown_function_call);
+    //CuAssertPtrNotNull(tc,checks->unknown_function_call);
     CuAssertPtrNotNull(tc,checks->multiple_function_definitions);
-    CuAssertPtrNotNull(tc,checks->multiple_variable_declarations);
-    CuAssertPtrNotNull(tc,checks->use_undeclared_variable);
+    //CuAssertPtrNotNull(tc,checks->multiple_variable_declarations);
+    //CuAssertPtrNotNull(tc,checks->use_undeclared_variable);
 
-    CuAssertIntEquals(tc,checks->type_check->type,MCC_SEMANTIC_CHECK_TYPE_CHECK);
-    CuAssertIntEquals(tc,checks->nonvoid_check->type,MCC_SEMANTIC_CHECK_NONVOID_CHECK);
+    //CuAssertIntEquals(tc,checks->type_check->type,MCC_SEMANTIC_CHECK_TYPE_CHECK);
+    //CuAssertIntEquals(tc,checks->nonvoid_check->type,MCC_SEMANTIC_CHECK_NONVOID_CHECK);
     CuAssertIntEquals(tc,checks->main_function->type,MCC_SEMANTIC_CHECK_MAIN_FUNCTION);
-    CuAssertIntEquals(tc,checks->unknown_function_call->type,MCC_SEMANTIC_CHECK_UNKNOWN_FUNCTION_CALL);
+    //CuAssertIntEquals(tc,checks->unknown_function_call->type,MCC_SEMANTIC_CHECK_UNKNOWN_FUNCTION_CALL);
     CuAssertIntEquals(tc,checks->multiple_function_definitions->type,MCC_SEMANTIC_CHECK_MULTIPLE_FUNCTION_DEFINITIONS);
-    CuAssertIntEquals(tc,checks->multiple_variable_declarations->type,MCC_SEMANTIC_CHECK_MULTIPLE_VARIABLE_DECLARATIONS);
-    CuAssertIntEquals(tc,checks->use_undeclared_variable->type,MCC_SEMANTIC_CHECK_USE_UNDECLARED_VARIABLE);
+    //CuAssertIntEquals(tc,checks->multiple_variable_declarations->type,MCC_SEMANTIC_CHECK_MULTIPLE_VARIABLE_DECLARATIONS);
+    //CuAssertIntEquals(tc,checks->use_undeclared_variable->type,MCC_SEMANTIC_CHECK_USE_UNDECLARED_VARIABLE);
 
-    CuAssertIntEquals(tc,checks->type_check->status,MCC_SEMANTIC_CHECK_OK);
-    CuAssertIntEquals(tc,checks->nonvoid_check->status,MCC_SEMANTIC_CHECK_OK);
+    //CuAssertIntEquals(tc,checks->type_check->status,MCC_SEMANTIC_CHECK_OK);
+    //CuAssertIntEquals(tc,checks->nonvoid_check->status,MCC_SEMANTIC_CHECK_OK);
     CuAssertIntEquals(tc,checks->main_function->status,MCC_SEMANTIC_CHECK_OK);
-    CuAssertIntEquals(tc,checks->unknown_function_call->status,MCC_SEMANTIC_CHECK_OK);
+    //CuAssertIntEquals(tc,checks->unknown_function_call->status,MCC_SEMANTIC_CHECK_OK);
     CuAssertIntEquals(tc,checks->multiple_function_definitions->status,MCC_SEMANTIC_CHECK_OK);
-    CuAssertIntEquals(tc,checks->multiple_variable_declarations->status,MCC_SEMANTIC_CHECK_OK);
-    CuAssertIntEquals(tc,checks->use_undeclared_variable->status,MCC_SEMANTIC_CHECK_OK);
+    //CuAssertIntEquals(tc,checks->multiple_variable_declarations->status,MCC_SEMANTIC_CHECK_OK);
+    //CuAssertIntEquals(tc,checks->use_undeclared_variable->status,MCC_SEMANTIC_CHECK_OK);
 
     // Cleanup
     mcc_ast_delete(parser_result.program);
@@ -235,6 +235,29 @@ void multiple_function_definitions2(CuTest *tc){
     mcc_semantic_check_delete_single_check(check);
 }
 
+// a function is defined multiple times within a couple of functions at the end
+void multiple_function_definitions3(CuTest *tc){
+
+    // Define test input and create symbol table
+    const char input[] = "int func1(){} int func2(){} int func3(){} int func4(){} int test(){} int test(){} ";
+    struct mcc_parser_result parser_result;
+    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
+    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_multiple_function_definitions(
+            (&parser_result)->program,table);
+
+    CuAssertPtrNotNull(tc, check->error_buffer);
+    CuAssertPtrNotNull(tc, check);
+    CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_MULTIPLE_FUNCTION_DEFINITIONS);
+
+    // Cleanup
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+    mcc_semantic_check_delete_single_check(check);
+}
+
 // A variable is declared more than once in the same scope
 void multiple_variable_declarations(CuTest *tc){
 
@@ -281,15 +304,16 @@ void use_undeclared_variable(CuTest *tc){
 }
 
 #define TESTS \
+    TEST(positive)                        \
     TEST(main_function_1)                 \
     TEST(main_function_2)                 \
-    TEST(main_function_3)
-    //TEST(positive)                        \
+    TEST(main_function_3)                 \
+    TEST(multiple_function_definitions)   \
+    TEST(multiple_function_definitions2)  \
+    TEST(multiple_function_definitions3)
     //TEST(type_check)                      \
     //TEST(nonvoid_check)                   \
     //TEST(unknown_function_call)           \
-    //TEST(multiple_function_definitions)   \
-    //TEST(multiple_function_definitions2)  \
     //TEST(multiple_variable_declarations)  \
     //TEST(use_undeclared_variable)
 #include "main_stub.inc"

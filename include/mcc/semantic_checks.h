@@ -51,12 +51,6 @@ struct mcc_semantic_check {
     char* error_buffer;
 };
 
-// ------------------------------------------------------------- Functions: Running all semantic checks
-
-// Run all semantic checks
-struct mcc_semantic_check_all_checks* mcc_semantic_check_run_all(struct mcc_ast_program* ast,
-        struct mcc_symbol_table* symbol_table);
-
 // ------------------------------------------------------------- Functions: Running single semantic checks
 
 // Types of used variables
@@ -86,6 +80,13 @@ struct mcc_semantic_check* mcc_semantic_check_run_multiple_variable_declarations
 // No use of undeclared variables
 struct mcc_semantic_check* mcc_semantic_check_run_use_undeclared_variable(struct mcc_ast_program* ast,
                                                                 struct mcc_symbol_table* symbol_table);
+
+// ------------------------------------------------------------- Functions: Running all semantic checks
+
+// Run all semantic checks
+struct mcc_semantic_check_all_checks* mcc_semantic_check_run_all(struct mcc_ast_program* ast,
+                                                                 struct mcc_symbol_table* symbol_table);
+
 
 // ------------------------------------------------------------- Functions: Cleanup
 
