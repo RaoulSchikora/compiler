@@ -559,6 +559,67 @@ struct mcc_symbol_table_row *mcc_symbol_table_check_upwards_for_declaration(char
     return NULL;
 }
 
+static void add_built_in_function_definitions(struct mcc_symbol_table *table)
+{
+    assert(table);
+
+    if(!table->head){
+        mcc_symbol_table_insert_new_scope(table);
+    }
+
+    struct mcc_symbol_table_row *row_print = mcc_symbol_table_new_row_function("print",
+                                                                               MCC_SYMBOL_TABLE_ROW_TYPE_VOID);
+    struct mcc_symbol_table_row *row_print_nl = mcc_symbol_table_new_row_function("print_nl",
+                                                                                  MCC_SYMBOL_TABLE_ROW_TYPE_VOID);
+    struct mcc_symbol_table_row *row_print_int = mcc_symbol_table_new_row_function("print_int",
+                                                                                   MCC_SYMBOL_TABLE_ROW_TYPE_VOID);
+    struct mcc_symbol_table_row *row_print_float = mcc_symbol_table_new_row_function("print_float",
+                                                                                     MCC_SYMBOL_TABLE_ROW_TYPE_VOID);
+    struct mcc_symbol_table_row *row_read_int = mcc_symbol_table_new_row_function("read_int",
+                                                                                  MCC_SYMBOL_TABLE_ROW_TYPE_INT);
+    struct mcc_symbol_table_row *row_read_float = mcc_symbol_table_new_row_function("read_float",
+                                                                                     MCC_SYMBOL_TABLE_ROW_TYPE_FLOAT);
+
+    mcc_symbol_table_scope_append_row(table->head, row_print);
+    mcc_symbol_table_scope_append_row(table->head, row_print_nl);
+    mcc_symbol_table_scope_append_row(table->head, row_print_int);
+    mcc_symbol_table_scope_append_row(table->head, row_print_float);
+    mcc_symbol_table_scope_append_row(table->head, row_read_int);
+    mcc_symbol_table_scope_append_row(table->head, row_read_float);
+
+    // No function body scope needed (will not be checked by semantic checks anyways)
+
+    // Function parameters:
+
+    struct mcc_symbol_table_scope *child_scope_print = mcc_symbol_table_new_scope();
+    struct mcc_symbol_table_scope *child_scope_print_nl = mcc_symbol_table_new_scope();
+    struct mcc_symbol_table_scope *child_scope_print_int = mcc_symbol_table_new_scope();
+    struct mcc_symbol_table_scope *child_scope_print_float = mcc_symbol_table_new_scope();
+    struct mcc_symbol_table_scope *child_scope_read_int = mcc_symbol_table_new_scope();
+    struct mcc_symbol_table_scope *child_scope_read_float = mcc_symbol_table_new_scope();
+
+    mcc_symbol_table_row_append_child_scope(row_print,child_scope_print);
+    mcc_symbol_table_row_append_child_scope(row_print_nl,child_scope_print_nl);
+    mcc_symbol_table_row_append_child_scope(row_print_int,child_scope_print_int);
+    mcc_symbol_table_row_append_child_scope(row_print_float,child_scope_print_float);
+    mcc_symbol_table_row_append_child_scope(row_read_int,child_scope_read_int);
+    mcc_symbol_table_row_append_child_scope(row_read_float,child_scope_read_float);
+
+
+    // print_int(int)
+    struct mcc_symbol_table_row *row_print_int_params;
+    row_print_int_params = mcc_symbol_table_new_row_variable("a",INT);
+    mcc_symbol_table_scope_append_row(child_scope_print_int, row_print_int_params);
+
+    // print_float(float)
+    struct mcc_symbol_table_row *row_print_float_params;
+    row_print_float_params = mcc_symbol_table_new_row_variable("a",FLOAT);
+    mcc_symbol_table_scope_append_row(child_scope_print_float, row_print_float_params);
+
+
+
+}
+
 struct mcc_symbol_table *mcc_symbol_table_create(struct mcc_ast_program *program)
 {
     assert(program);
@@ -577,5 +638,8 @@ struct mcc_symbol_table *mcc_symbol_table_create(struct mcc_ast_program *program
         }
     }
 
+    add_built_in_function_definitions(table);
+
     return table;
 }
+
