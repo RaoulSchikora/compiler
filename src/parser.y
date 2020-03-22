@@ -401,9 +401,9 @@ void mcc_ast_delete_result(struct mcc_parser_result *result)
 void mcc_parser_error(struct MCC_PARSER_LTYPE *yylloc, struct mcc_parser_result *result, yyscan_t *scanner,
  												const char *msg)
 {
-	char* str = (char *)malloc( sizeof(char) * (strlen(msg) + 50 + strlen(yylloc->filename)) );
-	sprintf(str, "%s:%d:%d: %s\n", yylloc->filename, yylloc->first_line,
-			yylloc->first_column, msg);
+	int size = strlen(msg) + 50 + strlen(yylloc->filename);
+	char* str = (char *)malloc( sizeof(char) * size);
+	snprintf(str, size, "%s:%d:%d: %s\n", yylloc->filename, yylloc->first_line, yylloc->first_column, msg);
 
 	buffer = (char *)malloc(sizeof(char) * strlen(str) + 1);
 	strcpy(buffer, str);

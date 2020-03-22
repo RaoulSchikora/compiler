@@ -284,8 +284,9 @@ struct mcc_semantic_check* mcc_semantic_check_run_multiple_function_definitions(
 
         // if name of program_to_check and name of program_to_compare equals
         if(strcmp(name_of_check, name_of_compare)==0){
-            char* error_msg = (char *)malloc( sizeof(char) * (20 + strlen(name_of_check)));
-            sprintf(error_msg, "redefinintion of %s", name_of_check);
+            int size = 20 + strlen(name_of_check);
+            char* error_msg = (char *)malloc( sizeof(char) * size);
+            snprintf(error_msg, size, "redefinintion of %s", name_of_check);
             write_error_message_to_check(check,program_to_compare->node, error_msg);
             check->status = MCC_SEMANTIC_CHECK_FAIL;
             free(error_msg);
@@ -299,8 +300,9 @@ struct mcc_semantic_check* mcc_semantic_check_run_multiple_function_definitions(
 
             // if name of program_to_check and name of program_to_compare equals
             if(strcmp(name_of_check, name_of_compare)==0){
-                char* error_msg = (char *)malloc( sizeof(char) * (20 + strlen(name_of_check)));
-                sprintf(error_msg, "redefinintion of %s", name_of_check);
+                int size = 20 + strlen(name_of_check);
+                char* error_msg = (char *)malloc( sizeof(char) * size);
+                snprintf(error_msg, size, "redefinintion of %s", name_of_check);
                 write_error_message_to_check(check,program_to_compare->node, error_msg);
                 check->status = MCC_SEMANTIC_CHECK_FAIL;
                 free(error_msg);
