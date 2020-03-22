@@ -12,12 +12,140 @@
 
 // ------------------------------------------------------------- Functions: Running all semantic checks
 
-// Run all semantic checks
+// Write error message into existing mcc_semantic_check struct
+static void write_error_message_to_all_checks(struct mcc_semantic_check_all_checks* checks, const char* string){
+
+    int size = sizeof(char)*(strlen(string)+2);
+    char* buffer = malloc(size);
+    if(buffer == NULL){
+        perror("write_error_message_to_check: malloc");
+    }
+    snprintf(buffer,size,"%s\n",string);
+    checks->error_buffer = buffer;
+}
+
+// Run all semantic checks. First encountered error is written into error buffer
 struct mcc_semantic_check_all_checks* mcc_semantic_check_run_all(struct mcc_ast_program* ast,
                                                                  struct mcc_symbol_table* symbol_table){
-    UNUSED(ast);
-    UNUSED(symbol_table);
-    return NULL;
+    struct mcc_semantic_check_all_checks* checks = malloc(sizeof(*checks));
+    if (checks == NULL){
+        return NULL;
+    }
+    checks->status = MCC_SEMANTIC_CHECK_OK;
+    checks->error_buffer = NULL;
+
+    // Types of used variables
+    checks->type_check = mcc_semantic_check_run_type_check(ast, symbol_table);
+    if(checks->type_check == NULL){
+        checks->status = MCC_SEMANTIC_CHECK_FAIL;
+        if(checks->error_buffer == NULL){
+            write_error_message_to_all_checks(checks,"mcc_semantic_check_run_type_check returned NULL pointer.");
+        }
+    } else {
+        if(checks->type_check->status != MCC_SEMANTIC_CHECK_OK){
+            checks->status = MCC_SEMANTIC_CHECK_FAIL;
+            if(checks->error_buffer == NULL){
+                write_error_message_to_all_checks(checks,checks->type_check->error_buffer);
+            }
+        }
+    }
+
+    // Each execution path of non-void function returns a value
+    checks->nonvoid_check = mcc_semantic_check_run_nonvoid_check(ast, symbol_table);
+    if(checks->nonvoid_check == NULL){
+        checks->status = MCC_SEMANTIC_CHECK_FAIL;
+        if(checks->error_buffer == NULL){
+            write_error_message_to_all_checks(checks,"mcc_semantic_check_run_nonvoid_check returned NULL pointer.");
+        }
+    } else {
+        if(checks->nonvoid_check->status != MCC_SEMANTIC_CHECK_OK){
+            checks->status = MCC_SEMANTIC_CHECK_FAIL;
+            if(checks->error_buffer == NULL){
+                write_error_message_to_all_checks(checks,checks->nonvoid_check->error_buffer);
+            }
+        }
+    }
+
+    // Main function exists and has correct signature
+    checks->main_function = mcc_semantic_check_run_main_function(ast, symbol_table);
+    if(checks->main_function == NULL){
+        checks->status = MCC_SEMANTIC_CHECK_FAIL;
+        if(checks->error_buffer == NULL){
+            write_error_message_to_all_checks(checks,"mcc_semantic_check_run_main_function returned NULL pointer.");
+        }
+    } else {
+        if(checks->main_function->status != MCC_SEMANTIC_CHECK_OK){
+            checks->status = MCC_SEMANTIC_CHECK_FAIL;
+            if(checks->error_buffer == NULL){
+                write_error_message_to_all_checks(checks,checks->main_function->error_buffer);
+            }
+        }
+    }
+
+    // No Calls to unknown functions
+    checks->unknown_function_call = mcc_semantic_check_run_unknown_function_call(ast, symbol_table);
+    if(checks->unknown_function_call == NULL){
+        checks->status = MCC_SEMANTIC_CHECK_FAIL;
+        if(checks->error_buffer == NULL){
+            write_error_message_to_all_checks(checks,"mcc_semantic_check_run_unknown_function_call returned NULL pointer.");
+        }
+    } else {
+        if(checks->unknown_function_call->status != MCC_SEMANTIC_CHECK_OK){
+            checks->status = MCC_SEMANTIC_CHECK_FAIL;
+            if(checks->error_buffer == NULL){
+                write_error_message_to_all_checks(checks,checks->unknown_function_call->error_buffer);
+            }
+        }
+    }
+
+    // No multiple definitions of the same function
+    checks->multiple_function_definitions = mcc_semantic_check_run_multiple_function_definitions(ast, symbol_table);
+    if(checks->multiple_function_definitions == NULL){
+        checks->status = MCC_SEMANTIC_CHECK_FAIL;
+        if(checks->error_buffer == NULL){
+            write_error_message_to_all_checks(checks,"mcc_semantic_check_run_multiple_function_definitions returned NULL pointer.");
+        }
+    } else {
+        if(checks->multiple_function_definitions->status != MCC_SEMANTIC_CHECK_OK){
+            checks->status = MCC_SEMANTIC_CHECK_FAIL;
+            if(checks->error_buffer == NULL){
+                write_error_message_to_all_checks(checks,checks->multiple_function_definitions->error_buffer);
+            }
+        }
+    }
+
+    // No multiple declarations of a variable in the same scope
+    checks->multiple_variable_declarations = mcc_semantic_check_run_multiple_variable_declarations(ast, symbol_table);
+    if(checks->multiple_variable_declarations == NULL){
+        checks->status = MCC_SEMANTIC_CHECK_FAIL;
+        if(checks->error_buffer == NULL){
+            write_error_message_to_all_checks(checks,"mcc_semantic_check_run_multiple_variable_declarations returned NULL pointer.");
+        }
+    } else {
+        if(checks->multiple_variable_declarations->status != MCC_SEMANTIC_CHECK_OK){
+            checks->status = MCC_SEMANTIC_CHECK_FAIL;
+            if(checks->error_buffer == NULL){
+                write_error_message_to_all_checks(checks,checks->multiple_variable_declarations->error_buffer);
+            }
+        }
+    }
+
+    // No use of undeclared variables
+    checks->use_undeclared_variable = mcc_semantic_check_run_use_undeclared_variable(ast, symbol_table);
+    if(checks->use_undeclared_variable == NULL){
+        checks->status = MCC_SEMANTIC_CHECK_FAIL;
+        if(checks->error_buffer == NULL){
+            write_error_message_to_all_checks(checks,"mcc_semantic_check_run_use_undeclared_variable returned NULL pointer.");
+        }
+    } else {
+        if(checks->use_undeclared_variable->status != MCC_SEMANTIC_CHECK_OK){
+            checks->status = MCC_SEMANTIC_CHECK_FAIL;
+            if(checks->error_buffer == NULL){
+                write_error_message_to_all_checks(checks,checks->use_undeclared_variable->error_buffer);
+            }
+        }
+    }
+    return checks;
 }
 
 // ------------------------------------------------------------- Functions: Running single semantic checks
@@ -138,9 +266,10 @@ struct mcc_semantic_check* mcc_semantic_check_run_use_undeclared_variable(struct
 // Delete all checks
 void mcc_semantic_check_delete_all_checks(struct mcc_semantic_check_all_checks *checks){
 
-    // checks->error_buffer does not have to be deleted, because the pointer points to the error_buffer
-    // inside the single check that has failed
 
+    if (checks->error_buffer != NULL){
+        free(checks->error_buffer);
+    }
     if (checks->type_check != NULL)
     {
         mcc_semantic_check_delete_single_check(checks->type_check);
