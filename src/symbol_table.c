@@ -527,15 +527,13 @@ static void create_row_function_definition(struct mcc_ast_function_definition *f
 }
 
 struct mcc_symbol_table_row *mcc_symbol_table_check_upwards_for_declaration(char *wanted_name,
-                                                                            struct mcc_symbol_table_row *start_row,
-                                                                            struct mcc_symbol_table_scope *start_scope)
+                                                                            struct mcc_symbol_table_row *start_row)
 {
     assert(wanted_name);
     assert(start_row);
-    assert(start_scope);
 
     struct mcc_symbol_table_row *row = start_row;
-    struct mcc_symbol_table_scope *scope = start_scope;
+    struct mcc_symbol_table_scope *scope = row->scope;
 
     if(strcmp(wanted_name, row->name) == 0){
         return row;

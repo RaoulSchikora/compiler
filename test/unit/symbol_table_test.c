@@ -602,15 +602,13 @@ void check_upward(CuTest *tc) {
 
     struct mcc_symbol_table_row *row_a = table->head->head->child_scope->head;
     struct mcc_symbol_table_row *row = table->head->head->child_scope->head->child_scope->head->next_row;
-    struct mcc_symbol_table_scope *scope = table->head->head->child_scope->head->child_scope;
 
-    CuAssertTrue(tc, row_a == mcc_symbol_table_check_upwards_for_declaration("a", row, scope));
+    CuAssertTrue(tc, row_a == mcc_symbol_table_check_upwards_for_declaration("a", row));
 
     row = table->head->head->child_scope->head->next_row->next_row;
-    scope = table->head->head->child_scope;
 
-    CuAssertTrue(tc, NULL == mcc_symbol_table_check_upwards_for_declaration("b", row, scope));
-    CuAssertTrue(tc, row_a == mcc_symbol_table_check_upwards_for_declaration("a", row, scope));
+    CuAssertTrue(tc, NULL == mcc_symbol_table_check_upwards_for_declaration("b", row));
+    CuAssertTrue(tc, row_a == mcc_symbol_table_check_upwards_for_declaration("a", row));
 
     mcc_ast_delete(parser_result.program);
     mcc_symbol_table_delete_table(table);
@@ -632,9 +630,8 @@ void check_upward_same_scope(CuTest *tc) {
 
     struct mcc_symbol_table_row *row_a = table->head->head->child_scope->head;
     struct mcc_symbol_table_row *row = table->head->head->child_scope->head->next_row->next_row;
-    struct mcc_symbol_table_scope *scope = table->head->head->child_scope;
 
-    CuAssertTrue(tc, row_a == mcc_symbol_table_check_upwards_for_declaration("a", row, scope));
+    CuAssertTrue(tc, row_a == mcc_symbol_table_check_upwards_for_declaration("a", row));
 
     mcc_ast_delete(parser_result.program);
     mcc_symbol_table_delete_table(table);
