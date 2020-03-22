@@ -32,7 +32,7 @@ void positive(CuTest *tc)
     //CuAssertPtrNotNull(tc,checks->unknown_function_call);
     CuAssertPtrNotNull(tc,checks->multiple_function_definitions);
     //CuAssertPtrNotNull(tc,checks->multiple_variable_declarations);
-    //CuAssertPtrNotNull(tc,checks->use_undeclared_variable);
+    CuAssertPtrNotNull(tc,checks->use_undeclared_variable);
 
     //CuAssertIntEquals(tc,checks->type_check->type,MCC_SEMANTIC_CHECK_TYPE_CHECK);
     //CuAssertIntEquals(tc,checks->nonvoid_check->type,MCC_SEMANTIC_CHECK_NONVOID_CHECK);
@@ -40,7 +40,7 @@ void positive(CuTest *tc)
     //CuAssertIntEquals(tc,checks->unknown_function_call->type,MCC_SEMANTIC_CHECK_UNKNOWN_FUNCTION_CALL);
     CuAssertIntEquals(tc,checks->multiple_function_definitions->type,MCC_SEMANTIC_CHECK_MULTIPLE_FUNCTION_DEFINITIONS);
     //CuAssertIntEquals(tc,checks->multiple_variable_declarations->type,MCC_SEMANTIC_CHECK_MULTIPLE_VARIABLE_DECLARATIONS);
-    //CuAssertIntEquals(tc,checks->use_undeclared_variable->type,MCC_SEMANTIC_CHECK_USE_UNDECLARED_VARIABLE);
+    CuAssertIntEquals(tc,checks->use_undeclared_variable->type,MCC_SEMANTIC_CHECK_USE_UNDECLARED_VARIABLE);
 
     //CuAssertIntEquals(tc,checks->type_check->status,MCC_SEMANTIC_CHECK_OK);
     //CuAssertIntEquals(tc,checks->nonvoid_check->status,MCC_SEMANTIC_CHECK_OK);
@@ -48,7 +48,7 @@ void positive(CuTest *tc)
     //CuAssertIntEquals(tc,checks->unknown_function_call->status,MCC_SEMANTIC_CHECK_OK);
     CuAssertIntEquals(tc,checks->multiple_function_definitions->status,MCC_SEMANTIC_CHECK_OK);
     //CuAssertIntEquals(tc,checks->multiple_variable_declarations->status,MCC_SEMANTIC_CHECK_OK);
-    //CuAssertIntEquals(tc,checks->use_undeclared_variable->status,MCC_SEMANTIC_CHECK_OK);
+    CuAssertIntEquals(tc,checks->use_undeclared_variable->status,MCC_SEMANTIC_CHECK_OK);
 
     // Cleanup
     mcc_ast_delete(parser_result.program);
@@ -303,6 +303,72 @@ void use_undeclared_variable(CuTest *tc){
     mcc_semantic_check_delete_single_check(check);
 }
 
+// An undeclared variable is used in an if-condition
+void use_undeclared_variable2(CuTest *tc){
+
+    // Define test input and create symbol table
+    const char input[] = "int main(){ int a; if(i == 0) return a;return a;}";
+    struct mcc_parser_result parser_result;
+    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
+    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_use_undeclared_variable((&parser_result)->program,table);
+
+    CuAssertPtrNotNull(tc, check);
+    CuAssertPtrNotNull(tc, check->error_buffer);
+    CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_USE_UNDECLARED_VARIABLE);
+
+    // Cleanup
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+    mcc_semantic_check_delete_single_check(check);
+}
+
+// An undeclared variable is used in an while-condition
+void use_undeclared_variable3(CuTest *tc){
+
+    // Define test input and create symbol table
+    const char input[] = "int main(){ int a; while(i == 0) return a;return a;}";
+    struct mcc_parser_result parser_result;
+    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
+    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_use_undeclared_variable((&parser_result)->program,table);
+
+    CuAssertPtrNotNull(tc, check);
+    CuAssertPtrNotNull(tc, check->error_buffer);
+    CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_USE_UNDECLARED_VARIABLE);
+
+    // Cleanup
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+    mcc_semantic_check_delete_single_check(check);
+}
+
+// An undeclared variable is used in a return-statement
+void use_undeclared_variable4(CuTest *tc){
+
+    // Define test input and create symbol table
+    const char input[] = "int main(){ int a; return i[10];}";
+    struct mcc_parser_result parser_result;
+    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
+    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_use_undeclared_variable((&parser_result)->program,table);
+
+    CuAssertPtrNotNull(tc, check);
+    CuAssertPtrNotNull(tc, check->error_buffer);
+    CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_USE_UNDECLARED_VARIABLE);
+
+    // Cleanup
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+    mcc_semantic_check_delete_single_check(check);
+}
+
 #define TESTS \
     TEST(positive)                        \
     TEST(main_function_1)                 \
@@ -310,7 +376,11 @@ void use_undeclared_variable(CuTest *tc){
     TEST(main_function_3)                 \
     TEST(multiple_function_definitions)   \
     TEST(multiple_function_definitions2)  \
-    TEST(multiple_function_definitions3)
+    TEST(multiple_function_definitions3)  \
+    TEST(use_undeclared_variable)         \
+    TEST(use_undeclared_variable2)        \
+    TEST(use_undeclared_variable3)        \
+    TEST(use_undeclared_variable4)
     //TEST(type_check)                      \
     //TEST(nonvoid_check)                   \
     //TEST(unknown_function_call)           \

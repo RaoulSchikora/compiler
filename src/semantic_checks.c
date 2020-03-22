@@ -1,4 +1,5 @@
 #include "mcc/semantic_checks.h"
+#include "mcc/ast_visit.h"
 #include "utils/unused.h"
 #include <stdio.h>
 #include <string.h>
@@ -132,7 +133,7 @@ struct mcc_semantic_check_all_checks* mcc_semantic_check_run_all(struct mcc_ast_
     }*/
 
     // No use of undeclared variables
-    /*checks->use_undeclared_variable = mcc_semantic_check_run_use_undeclared_variable(ast, symbol_table);
+    checks->use_undeclared_variable = mcc_semantic_check_run_use_undeclared_variable(ast, symbol_table);
     if(checks->use_undeclared_variable == NULL){
         checks->status = MCC_SEMANTIC_CHECK_FAIL;
         if(checks->error_buffer == NULL){
@@ -145,7 +146,7 @@ struct mcc_semantic_check_all_checks* mcc_semantic_check_run_all(struct mcc_ast_
                 write_error_message_to_all_checks(checks,checks->use_undeclared_variable->error_buffer);
             }
         }
-    }*/
+    }
     return checks;
 }
 
@@ -269,7 +270,7 @@ struct mcc_semantic_check* mcc_semantic_check_run_multiple_function_definitions(
         if(strcmp(name_of_check, name_of_compare)==0){
             int size = 20 + strlen(name_of_check);
             char* error_msg = (char *)malloc( sizeof(char) * size);
-            snprintf(error_msg, size, "redefinintion of %s", name_of_check);
+            snprintf(error_msg, size, "redefinition of %s", name_of_check);
             write_error_message_to_check(check,program_to_compare->node, error_msg);
             check->status = MCC_SEMANTIC_CHECK_FAIL;
             free(error_msg);
@@ -285,7 +286,7 @@ struct mcc_semantic_check* mcc_semantic_check_run_multiple_function_definitions(
             if(strcmp(name_of_check, name_of_compare)==0){
                 int size = 20 + strlen(name_of_check);
                 char* error_msg = (char *)malloc( sizeof(char) * size);
-                snprintf(error_msg, size, "redefinintion of %s", name_of_check);
+                snprintf(error_msg, size, "redefinition of %s", name_of_check);
                 write_error_message_to_check(check,program_to_compare->node, error_msg);
                 check->status = MCC_SEMANTIC_CHECK_FAIL;
                 free(error_msg);
@@ -307,12 +308,81 @@ struct mcc_semantic_check* mcc_semantic_check_run_multiple_variable_declarations
     return NULL;
 }
 
+static void use_undeclared_variable_variable(struct mcc_ast_expression *expression, void *data)
+{
+    assert(expression);
+    assert(data);
+
+    struct mcc_semantic_check *check = data;
+    struct mcc_symbol_table_row *row = expression->variable_row;
+    char* name = expression->identifier->identifier_name;
+
+    struct mcc_symbol_table_row *upward_declaration = mcc_symbol_table_check_upwards_for_declaration(name, row);
+
+    if(!upward_declaration){
+        int size = 50 + strlen(name);
+        char* error_msg = (char *)malloc( sizeof(char) * size);
+        snprintf(error_msg, size, "'%s' undeclared (first use in this function).", name);
+        write_error_message_to_check(check, expression->node, error_msg);
+        check->status = MCC_SEMANTIC_CHECK_FAIL;
+        free(error_msg);
+    }
+}
+
+static void use_undeclared_variable_array(struct mcc_ast_expression *expression, void *data)
+{
+    assert(expression);
+    assert(data);
+
+    struct mcc_semantic_check *check = data;
+    struct mcc_symbol_table_row *row = expression->array_row;
+    char* name = expression->array_identifier->identifier_name;
+
+    struct mcc_symbol_table_row *upward_declaration = mcc_symbol_table_check_upwards_for_declaration(name, row);
+
+    if(!upward_declaration){
+        int size = 50 + strlen(name);
+        char* error_msg = (char *)malloc( sizeof(char) * size);
+        snprintf(error_msg, size, "'%s' undeclared (first use in this function).", name);
+        write_error_message_to_check(check, expression->node, error_msg);
+        check->status = MCC_SEMANTIC_CHECK_FAIL;
+        free(error_msg);
+    }
+}
+
+// Setup an AST Visitor for checking undeclared variables.
+static struct mcc_ast_visitor use_undeclared_variable_visitor(struct mcc_semantic_check *check)
+{
+
+    return (struct mcc_ast_visitor){
+            .traversal = MCC_AST_VISIT_DEPTH_FIRST,
+            .order = MCC_AST_VISIT_PRE_ORDER,
+
+            .userdata = check,
+
+            .expression_variable = use_undeclared_variable_variable,
+            .expression_array_element = use_undeclared_variable_array,
+    };
+}
+
 // No use of undeclared variables
 struct mcc_semantic_check* mcc_semantic_check_run_use_undeclared_variable(struct mcc_ast_program* ast,
                                                                           struct mcc_symbol_table* symbol_table){
-    UNUSED(ast);
     UNUSED(symbol_table);
-    return NULL;
+
+    assert(ast);
+    struct mcc_semantic_check *check = malloc(sizeof(*check));
+    if (!check){
+        return NULL;
+    }
+
+    check->status = MCC_SEMANTIC_CHECK_OK;
+    check->type = MCC_SEMANTIC_CHECK_USE_UNDECLARED_VARIABLE;
+    check->error_buffer = NULL;
+
+    struct mcc_ast_visitor visitor = use_undeclared_variable_visitor(check);
+    mcc_ast_visit(ast, &visitor);
+    return check;
 }
 
 // ------------------------------------------------------------- Functions: Cleanup
@@ -348,10 +418,10 @@ void mcc_semantic_check_delete_all_checks(struct mcc_semantic_check_all_checks *
     {
         mcc_semantic_check_delete_single_check(checks->multiple_variable_declarations);
     }*/
-    /*if (checks->use_undeclared_variable != NULL)
+    if (checks->use_undeclared_variable != NULL)
     {
         mcc_semantic_check_delete_single_check(checks->use_undeclared_variable);
-    }*/
+    }
     if (checks->error_buffer != NULL){
         free(checks->error_buffer);
     }

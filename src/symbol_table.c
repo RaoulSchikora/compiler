@@ -407,6 +407,7 @@ static void link_pointer_expression(struct mcc_ast_expression *expression, struc
         expression->variable_row = row;
         break;
     case MCC_AST_EXPRESSION_TYPE_ARRAY_ELEMENT:
+        link_pointer_expression(expression->index, scope);
         expression->array_row = row;
         break;
     case MCC_AST_EXPRESSION_TYPE_FUNCTION_CALL:
