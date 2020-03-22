@@ -262,24 +262,31 @@ struct mcc_semantic_check* mcc_semantic_check_run_multiple_function_definitions(
 
     while(program_to_check->next_function){
         struct mcc_ast_program *program_to_compare = program_to_check->next_function;
+        char *name_of_check = program_to_check->function->identifier->identifier_name;
+        char *name_of_compare = program_to_compare->function->identifier->identifier_name;
 
         // if name of program_to_check and name of program_to_compare equals
-        if(strcmp(program_to_check->function->identifier->identifier_name,
-                  program_to_compare->function->identifier->identifier_name)==0){
-            write_error_message_to_check(check,program_to_compare->node,"redefinition of ");
+        if(strcmp(name_of_check, name_of_compare)==0){
+            char* error_msg = (char *)malloc( sizeof(char) * (20 + strlen(name_of_check)));
+            sprintf(error_msg, "redefinintion of %s", name_of_check);
+            write_error_message_to_check(check,program_to_compare->node, error_msg);
             check->status = MCC_SEMANTIC_CHECK_FAIL;
+            free(error_msg);
             return check;
         }
 
         // compare all next_functions
         while(program_to_compare->next_function){
             program_to_compare = program_to_compare->next_function;
+            char *name_of_compare = program_to_compare->function->identifier->identifier_name;
 
             // if name of program_to_check and name of program_to_compare equals
-            if(strcmp(program_to_check->function->identifier->identifier_name,
-                      program_to_compare->function->identifier->identifier_name)==0){
-                write_error_message_to_check(check,program_to_compare->node,"redefinition of ");
+            if(strcmp(name_of_check, name_of_compare)==0){
+                char* error_msg = (char *)malloc( sizeof(char) * (20 + strlen(name_of_check)));
+                sprintf(error_msg, "redefinintion of %s", name_of_check);
+                write_error_message_to_check(check,program_to_compare->node, error_msg);
                 check->status = MCC_SEMANTIC_CHECK_FAIL;
+                free(error_msg);
                 return check;
             }
         }
