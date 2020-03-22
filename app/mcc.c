@@ -7,6 +7,7 @@
 #include "mcc/parser.h"
 #include "mcc/ast_print.h"
 #include "mcc/ast_visit.h"
+#include "mcc/semantic_checks.h"
 #include "mc_cl_parser.h"
 
 #define BUF_SIZE 1024
@@ -58,7 +59,7 @@ int main(int argc, char *argv[])
 		input = mc_cl_parser_stdin_to_string();
 	}
 
-	// ---------------------------------------------------------------------- Parsing provided input
+	// ---------------------------------------------------------------------- Parsing provided input and create AST
 
 	// Declare struct that will hold the result of the parser and corresponding pointer
 	struct mcc_parser_result result;
@@ -116,6 +117,24 @@ int main(int argc, char *argv[])
         fclose(out);
     } else {
     	printf("Teststring for integration testing\n");
+    }
+
+	// ---------------------------------------------------------------------- Create Symbol Table
+
+	struct mcc_symbol_table *table = mcc_symbol_table_create((&result)->program);
+    if (table == NULL){
+    	perror("mcc_symbol_table_create: returned NULL pointer.");
+    }
+
+	// ---------------------------------------------------------------------- Run semantic checks
+
+	struct mcc_semantic_check_all_checks *checks = mcc_semantic_check_run_all((&result)->program,table);
+    if (checks->status != MCC_SEMANTIC_CHECK_OK){
+    	if (checks->error_buffer == NULL){
+			printf("Semantic check failed, error buffer is empty.");
+    	} else {
+			printf("Semantic check failed:\n%s", checks->error_buffer);
+		}
     }
 
 	// ---------------------------------------------------------------------- Clean up
