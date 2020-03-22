@@ -137,13 +137,52 @@ struct mcc_semantic_check* mcc_semantic_check_run_use_undeclared_variable(struct
 
 // Delete all checks
 void mcc_semantic_check_delete_all_checks(struct mcc_semantic_check_all_checks *checks){
-    UNUSED(checks);
+
+    // checks->error_buffer does not have to be deleted, because the pointer points to the error_buffer
+    // inside the single check that has failed
+
+    if (checks->type_check != NULL)
+    {
+        mcc_semantic_check_delete_single_check(checks->type_check);
+    }
+    if (checks->nonvoid_check != NULL)
+    {
+        mcc_semantic_check_delete_single_check(checks->nonvoid_check);
+    }
+    if (checks->main_function != NULL)
+    {
+        mcc_semantic_check_delete_single_check(checks->main_function);
+    }
+    if (checks->unknown_function_call != NULL)
+    {
+        mcc_semantic_check_delete_single_check(checks->unknown_function_call);
+    }
+    if (checks->multiple_function_definitions != NULL)
+    {
+        mcc_semantic_check_delete_single_check(checks->multiple_function_definitions);
+    }
+    if (checks->multiple_variable_declarations != NULL)
+    {
+        mcc_semantic_check_delete_single_check(checks->multiple_variable_declarations);
+    }
+    if (checks->use_undeclared_variable != NULL)
+    {
+        mcc_semantic_check_delete_single_check(checks->use_undeclared_variable);
+    }
     return;
 }
 
 // Delete single checks
 void mcc_semantic_check_delete_single_check(struct mcc_semantic_check *check){
-    UNUSED(check);
-    return;
+
+    if (check == NULL){
+        return;
+    }
+
+    if (check->error_buffer != NULL){
+        free(check->error_buffer);
+    }
+
+    free(check);
 }
 
