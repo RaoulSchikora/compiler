@@ -4,21 +4,12 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <assert.h>
 
 
 // unused.h contains macro to suppress warnings of unused variables
 
 // TODO: Implementation
-
-// ------------------------------------------------------------- Functions: Running all semantic checks
-
-// Run all semantic checks
-struct mcc_semantic_check_all_checks* mcc_semantic_check_run_all(struct mcc_ast_program* ast,
-                                                                 struct mcc_symbol_table* symbol_table){
-    UNUSED(ast);
-    UNUSED(symbol_table);
-    return NULL;
-}
 
 // ------------------------------------------------------------- Functions: Running single semantic checks
 
@@ -112,9 +103,53 @@ struct mcc_semantic_check* mcc_semantic_check_run_unknown_function_call(struct m
 // No multiple definitions of the same function
 struct mcc_semantic_check* mcc_semantic_check_run_multiple_function_definitions(struct mcc_ast_program* ast,
                                                                                 struct mcc_symbol_table* symbol_table){
-    UNUSED(ast);
     UNUSED(symbol_table);
-    return NULL;
+
+    assert(ast);
+    struct mcc_semantic_check *check = malloc(sizeof(*check));
+    if (!check){
+        return NULL;
+    }
+
+    check->status = MCC_SEMANTIC_CHECK_OK;
+    check->type = MCC_SEMANTIC_CHECK_MULTIPLE_FUNCTION_DEFINITIONS;
+    check->error_buffer = NULL;
+
+    struct mcc_ast_program *program_to_check = ast;
+
+    // Program has only one function
+    if(!program_to_check->next_function){
+        return check;
+    }
+
+    while(program_to_check->next_function){
+        struct mcc_ast_program *program_to_compare = program_to_check->next_function;
+
+        // if name of program_to_check and name of program_to_compare equals
+        if(strcmp(program_to_check->function->identifier->identifier_name,
+                  program_to_compare->function->identifier->identifier_name)==0){
+            write_error_message_to_check(check,program_to_compare->node,"redefinition of ");
+            check->status = MCC_SEMANTIC_CHECK_FAIL;
+            return check;
+        }
+
+        // compare all next_functions
+        while(program_to_compare->next_function){
+            program_to_compare = program_to_compare->next_function;
+
+            // if name of program_to_check and name of program_to_compare equals
+            if(strcmp(program_to_check->function->identifier->identifier_name,
+                      program_to_compare->function->identifier->identifier_name)==0){
+                write_error_message_to_check(check,program_to_compare->node,"redefinition of ");
+                check->status = MCC_SEMANTIC_CHECK_FAIL;
+                return check;
+            }
+        }
+
+        program_to_check = program_to_check->next_function;
+    }
+
+    return check;
 }
 
 // No multiple declarations of a variable in the same scope
@@ -131,6 +166,45 @@ struct mcc_semantic_check* mcc_semantic_check_run_use_undeclared_variable(struct
     UNUSED(ast);
     UNUSED(symbol_table);
     return NULL;
+}
+
+// ------------------------------------------------------------- Functions: Running all semantic checks
+
+// Run all semantic checks
+struct mcc_semantic_check_all_checks* mcc_semantic_check_run_all(struct mcc_ast_program* ast,
+                                                                 struct mcc_symbol_table* symbol_table){
+    assert(ast);
+    assert(symbol_table);
+
+    struct mcc_semantic_check_all_checks* checks = malloc(sizeof(*checks));
+    if (!checks){
+        return NULL;
+    }
+
+    checks->status = MCC_SEMANTIC_CHECK_OK;
+    checks->error_buffer = NULL;
+
+    checks->type_check = mcc_semantic_check_run_type_check(ast, symbol_table);
+    checks->nonvoid_check = mcc_semantic_check_run_nonvoid_check(ast, symbol_table);
+    checks->main_function = mcc_semantic_check_run_main_function(ast, symbol_table);
+    checks->unknown_function_call = mcc_semantic_check_run_unknown_function_call(ast, symbol_table);
+    checks->multiple_function_definitions = mcc_semantic_check_run_multiple_function_definitions(ast, symbol_table);
+    checks->multiple_variable_declarations = mcc_semantic_check_run_multiple_variable_declarations(ast, symbol_table);
+    checks->use_undeclared_variable = mcc_semantic_check_run_use_undeclared_variable(ast, symbol_table);
+
+    //if(checks->type_check->status == MCC_SEMANTIC_CHECK_FAIL){}
+    //if(checks->nonvoid_check->status == MCC_SEMANTIC_CHECK_FAIL){}
+    if(checks->main_function->status == MCC_SEMANTIC_CHECK_FAIL){
+        checks->status = MCC_SEMANTIC_CHECK_FAIL;
+    }
+    //if(checks->unknown_function_call->status == MCC_SEMANTIC_CHECK_FAIL){}
+    if(checks->multiple_function_definitions->status == MCC_SEMANTIC_CHECK_FAIL){
+        checks->status = MCC_SEMANTIC_CHECK_FAIL;
+    }
+    //if(checks->multiple_variable_declarations->status == MCC_SEMANTIC_CHECK_FAIL){}
+    //if(checks->use_undeclared_variable->status == MCC_SEMANTIC_CHECK_FAIL){}
+
+    return checks;
 }
 
 // ------------------------------------------------------------- Functions: Cleanup
