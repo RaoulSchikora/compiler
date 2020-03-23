@@ -618,6 +618,10 @@ static void add_built_in_function_definitions(struct mcc_symbol_table *table)
     mcc_symbol_table_row_append_child_scope(row_read_int,child_scope_read_int);
     mcc_symbol_table_row_append_child_scope(row_read_float,child_scope_read_float);
 
+    // print (string)
+    struct mcc_symbol_table_row *row_print_params;
+    row_print_params = mcc_symbol_table_new_row_variable("a",STRING, NULL);
+    mcc_symbol_table_scope_append_row(child_scope_print, row_print_params);
 
     // print_int(int)
     struct mcc_symbol_table_row *row_print_int_params;
