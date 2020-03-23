@@ -329,7 +329,10 @@ static struct mcc_symbol_table_row *create_pseudo_row(struct mcc_symbol_table_sc
 {
     assert(scope);
 
-    scope->head = mcc_symbol_table_new_row_variable("-", MCC_SYMBOL_TABLE_ROW_TYPE_PSEUDO, NULL);
+    if(!scope->head){
+        struct mcc_symbol_table_row *row = mcc_symbol_table_new_row_variable("-", MCC_SYMBOL_TABLE_ROW_TYPE_PSEUDO, NULL);
+        mcc_symbol_table_scope_append_row(scope, row);
+    }
     return scope->head;
 }
 

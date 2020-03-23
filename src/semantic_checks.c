@@ -323,6 +323,9 @@ static void generate_error_msg_multiple_function_defintion(char* name,
                                                            struct mcc_ast_program *program,
                                                            struct mcc_semantic_check *check)
 {
+    assert(program);
+    assert(check);
+
     if(check->error_buffer){
         return;
     }
@@ -389,9 +392,13 @@ struct mcc_semantic_check* mcc_semantic_check_run_multiple_function_definitions(
 static void generate_error_msg_multiple_variable_declaration(struct mcc_symbol_table_row *row,
                                                              struct mcc_semantic_check *check)
 {
+    assert(row);
+    assert(check);
+
     if(check->error_buffer){
         return;
     }
+
     int size = 20 + strlen(row->name);
     char* error_msg = (char *)malloc( sizeof(char) * size);
     snprintf(error_msg, size, "redefinition of '%s'", row->name);
@@ -479,6 +486,8 @@ struct mcc_semantic_check* mcc_semantic_check_run_multiple_variable_declarations
 static void generate_error_msg_undeclared_variable(char *name, struct mcc_ast_node node,
                                                        struct mcc_semantic_check *check)
 {
+    assert(check);
+
     if(check->error_buffer){
         return;
     }
