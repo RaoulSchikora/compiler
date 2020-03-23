@@ -36,18 +36,50 @@ struct mcc_semantic_check_all_checks* mcc_semantic_check_run_all(struct mcc_ast_
     checks->status = MCC_SEMANTIC_CHECK_OK;
     checks->error_buffer = NULL;
 
-    // Types of used variables
-    /*checks->type_check = mcc_semantic_check_run_type_check(ast, symbol_table);
-    if(checks->type_check == NULL){
+    // No type conversion
+    /*checks->type_conversion = mcc_semantic_check_run_type_conversion(ast, symbol_table);
+    if(checks->type_conversion == NULL){
         checks->status = MCC_SEMANTIC_CHECK_FAIL;
         if(checks->error_buffer == NULL){
-            write_error_message_to_all_checks(checks,"mcc_semantic_check_run_type_check returned NULL pointer.");
+            write_error_message_to_all_checks(checks,"mcc_semantic_check_run_type_conversion returned NULL pointer.");
         }
     } else {
-        if(checks->type_check->status != MCC_SEMANTIC_CHECK_OK){
+        if(checks->type_conversion->status != MCC_SEMANTIC_CHECK_OK){
             checks->status = MCC_SEMANTIC_CHECK_FAIL;
             if(checks->error_buffer == NULL){
-                write_error_message_to_all_checks(checks,checks->type_check->error_buffer);
+                write_error_message_to_all_checks(checks,checks->type_conversion->error_buffer);
+            }
+        }
+    }*/
+
+    // No invalid array operation
+    /*checks->array_types = mcc_semantic_check_run_array_types(ast, symbol_table);
+    if(checks->array_types == NULL){
+        checks->status = MCC_SEMANTIC_CHECK_FAIL;
+        if(checks->error_buffer == NULL){
+            write_error_message_to_all_checks(checks,"mcc_semantic_check_run_array_types returned NULL pointer.");
+        }
+    } else {
+        if(checks->array_types->status != MCC_SEMANTIC_CHECK_OK){
+            checks->status = MCC_SEMANTIC_CHECK_FAIL;
+            if(checks->error_buffer == NULL){
+                write_error_message_to_all_checks(checks,checks->array_types->error_buffer);
+            }
+        }
+    }*/
+
+    // No invalid function calls
+    /*checks->function_arguments = mcc_semantic_check_run_function_arguments(ast, symbol_table);
+    if(checks->function_arguments == NULL){
+        checks->status = MCC_SEMANTIC_CHECK_FAIL;
+        if(checks->error_buffer == NULL){
+            write_error_message_to_all_checks(checks,"mcc_semantic_check_run_function_arguments returned NULL pointer.");
+        }
+    } else {
+        if(checks->function_arguments->status != MCC_SEMANTIC_CHECK_OK){
+            checks->status = MCC_SEMANTIC_CHECK_FAIL;
+            if(checks->error_buffer == NULL){
+                write_error_message_to_all_checks(checks,checks->function_arguments->error_buffer);
             }
         }
     }*/
@@ -89,7 +121,8 @@ struct mcc_semantic_check_all_checks* mcc_semantic_check_run_all(struct mcc_ast_
     if(checks->unknown_function_call == NULL){
         checks->status = MCC_SEMANTIC_CHECK_FAIL;
         if(checks->error_buffer == NULL){
-            write_error_message_to_all_checks(checks,"mcc_semantic_check_run_unknown_function_call returned NULL pointer.");
+            write_error_message_to_all_checks(checks,
+                    "mcc_semantic_check_run_unknown_function_call returned NULL pointer.");
         }
     } else {
         if(checks->unknown_function_call->status != MCC_SEMANTIC_CHECK_OK){
@@ -105,7 +138,8 @@ struct mcc_semantic_check_all_checks* mcc_semantic_check_run_all(struct mcc_ast_
     if(checks->multiple_function_definitions == NULL){
         checks->status = MCC_SEMANTIC_CHECK_FAIL;
         if(checks->error_buffer == NULL){
-            write_error_message_to_all_checks(checks,"mcc_semantic_check_run_multiple_function_definitions returned NULL pointer.");
+            write_error_message_to_all_checks(checks,
+                    "mcc_semantic_check_run_multiple_function_definitions returned NULL pointer.");
         }
     } else {
         if(checks->multiple_function_definitions->status != MCC_SEMANTIC_CHECK_OK){
@@ -121,7 +155,8 @@ struct mcc_semantic_check_all_checks* mcc_semantic_check_run_all(struct mcc_ast_
     if(checks->multiple_variable_declarations == NULL){
         checks->status = MCC_SEMANTIC_CHECK_FAIL;
         if(checks->error_buffer == NULL){
-            write_error_message_to_all_checks(checks,"mcc_semantic_check_run_multiple_variable_declarations returned NULL pointer.");
+            write_error_message_to_all_checks(checks,
+                    "mcc_semantic_check_run_multiple_variable_declarations returned NULL pointer.");
         }
     } else {
         if(checks->multiple_variable_declarations->status != MCC_SEMANTIC_CHECK_OK){
@@ -137,7 +172,8 @@ struct mcc_semantic_check_all_checks* mcc_semantic_check_run_all(struct mcc_ast_
     if(checks->use_undeclared_variable == NULL){
         checks->status = MCC_SEMANTIC_CHECK_FAIL;
         if(checks->error_buffer == NULL){
-            write_error_message_to_all_checks(checks,"mcc_semantic_check_run_use_undeclared_variable returned NULL pointer.");
+            write_error_message_to_all_checks(checks,
+                    "mcc_semantic_check_run_use_undeclared_variable returned NULL pointer.");
         }
     } else {
         if(checks->use_undeclared_variable->status != MCC_SEMANTIC_CHECK_OK){
@@ -170,8 +206,8 @@ struct mcc_semantic_check_all_checks* mcc_semantic_check_run_all(struct mcc_ast_
 // ------------------------------------------------------------- Functions: Running single semantic checks
 
 // Write error message into existing mcc_semantic_check struct
-static void write_error_message_to_check(struct mcc_semantic_check* check, struct mcc_ast_node node, const char* string){
-
+static void write_error_message_to_check(struct mcc_semantic_check* check, struct mcc_ast_node node, const char* string)
+{
     int size = sizeof(char)*(strlen(string)+50);
     char* buffer = malloc(size);
     if(buffer == NULL){
@@ -181,9 +217,29 @@ static void write_error_message_to_check(struct mcc_semantic_check* check, struc
     check->error_buffer = buffer;
 }
 
-// -------------------------------------------------------------- Types of used variables
-struct mcc_semantic_check* mcc_semantic_check_run_type_check(struct mcc_ast_program* ast,
-                                                             struct mcc_symbol_table* symbol_table){
+
+// ------------------------------------------------------------- No Type conversions
+
+struct mcc_semantic_check* mcc_semantic_check_run_type_conversion(struct mcc_ast_program* ast,
+                                                                  struct mcc_symbol_table* symbol_table){
+    UNUSED(ast);
+    UNUSED(symbol_table);
+    return NULL;
+}
+
+// ------------------------------------------------------------- No invalid array operations
+
+struct mcc_semantic_check* mcc_semantic_check_run_array_types(struct mcc_ast_program* ast,
+                                                              struct mcc_symbol_table* symbol_table){
+    UNUSED(ast);
+    UNUSED(symbol_table);
+    return NULL;
+}
+
+// ------------------------------------------------------------- No invalid function calls
+
+struct mcc_semantic_check* mcc_semantic_check_run_function_arguments(struct mcc_ast_program* ast,
+                                                                     struct mcc_symbol_table* symbol_table){
     UNUSED(ast);
     UNUSED(symbol_table);
     return NULL;

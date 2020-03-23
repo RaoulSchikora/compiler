@@ -37,7 +37,9 @@ void positive(CuTest *tc)
     CuAssertPtrEquals(tc,NULL, checks->error_buffer);
 
     CuAssertPtrNotNull(tc, checks);
-    //CuAssertPtrNotNull(tc,checks->type_check);
+    //CuAssertPtrNotNull(tc,checks->type_conversion);
+    //CuAssertPtrNotNull(tc,checks->array_types);
+    //CuAssertPtrNotNull(tc,checks->function_arguments);
     //CuAssertPtrNotNull(tc,checks->nonvoid_check);
     CuAssertPtrNotNull(tc,checks->main_function);
     CuAssertPtrNotNull(tc,checks->unknown_function_call);
@@ -46,7 +48,9 @@ void positive(CuTest *tc)
     CuAssertPtrNotNull(tc,checks->use_undeclared_variable);
     CuAssertPtrNotNull(tc,checks->define_built_in);
 
-    //CuAssertIntEquals(tc,checks->type_check->type,MCC_SEMANTIC_CHECK_TYPE_CHECK);
+    //CuAssertIntEquals(tc,checks->type_check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION);
+    //CuAssertIntEquals(tc,checks->type_check->type,MCC_SEMANTIC_CHECK_TYPE_ARRAY_TYPES);
+    //CuAssertIntEquals(tc,checks->type_check->type,MCC_SEMANTIC_CHECK_TYPE_FUNCTION_ARGUMENTS);
     //CuAssertIntEquals(tc,checks->nonvoid_check->type,MCC_SEMANTIC_CHECK_NONVOID_CHECK);
     CuAssertIntEquals(tc,checks->main_function->type,MCC_SEMANTIC_CHECK_MAIN_FUNCTION);
     CuAssertIntEquals(tc,checks->unknown_function_call->type,MCC_SEMANTIC_CHECK_UNKNOWN_FUNCTION_CALL);
@@ -55,7 +59,9 @@ void positive(CuTest *tc)
     CuAssertIntEquals(tc,checks->use_undeclared_variable->type,MCC_SEMANTIC_CHECK_USE_UNDECLARED_VARIABLE);
     CuAssertIntEquals(tc,checks->define_built_in->type,MCC_SEMANTIC_CHECK_DEFINE_BUILT_IN);
 
-    //CuAssertIntEquals(tc,checks->type_check->status,MCC_SEMANTIC_CHECK_OK);
+    //CuAssertIntEquals(tc,checks->type_conversion->status,MCC_SEMANTIC_CHECK_OK);
+    //CuAssertIntEquals(tc,checks->array_types->status,MCC_SEMANTIC_CHECK_OK);
+    //CuAssertIntEquals(tc,checks->function_arguments->status,MCC_SEMANTIC_CHECK_OK);
     //CuAssertIntEquals(tc,checks->nonvoid_check->status,MCC_SEMANTIC_CHECK_OK);
     CuAssertIntEquals(tc,checks->main_function->status,MCC_SEMANTIC_CHECK_OK);
     CuAssertIntEquals(tc,checks->unknown_function_call->status,MCC_SEMANTIC_CHECK_OK);
@@ -72,7 +78,7 @@ void positive(CuTest *tc)
 }
 
 // Invalid add with float and int
-void type_check(CuTest *tc)
+void type_conversion(CuTest *tc)
 {
     // Define test input and create symbol table
     const char input[] = "int main(){int a; int b; float c; a = b + c;}";
@@ -80,12 +86,12 @@ void type_check(CuTest *tc)
     parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
     CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
     struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
-    struct mcc_semantic_check *check = mcc_semantic_check_run_type_check((&parser_result)->program,table);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion((&parser_result)->program,table);
 
     CuAssertPtrNotNull(tc, check->error_buffer);
     CuAssertPtrNotNull(tc, check);
     CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
-    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CHECK);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION);
 
     // Cleanup
     mcc_ast_delete(parser_result.program);
@@ -491,8 +497,8 @@ void define_built_in(CuTest *tc){
     TEST(use_undeclared_variable5)        \
     TEST(use_undeclared_variable6)        \
     TEST(define_built_in)
-    //TEST(type_check)                      \
-    //TEST(nonvoid_check)                   \
+    //TEST(type_conversion)               \
+    //TEST(nonvoid_check)                 \
     //TEST(use_undeclared_variable)
 #include "main_stub.inc"
 #undef TESTS

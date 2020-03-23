@@ -22,7 +22,9 @@ enum mcc_semantic_check_status{
 struct mcc_semantic_check_all_checks{
    enum mcc_semantic_check_status status;
    char* error_buffer;
-   struct mcc_semantic_check *type_check;
+   struct mcc_semantic_check *type_conversion;
+   struct mcc_semantic_check *array_types;
+   struct mcc_semantic_check *function_arguments;
    struct mcc_semantic_check *nonvoid_check;
    struct mcc_semantic_check *main_function;
    struct mcc_semantic_check *unknown_function_call;
@@ -35,7 +37,9 @@ struct mcc_semantic_check_all_checks{
 // ------------------------------------------------------------ Data structure: A single semantic check
 
 enum mcc_semantic_check_type{
-    MCC_SEMANTIC_CHECK_TYPE_CHECK,
+    MCC_SEMANTIC_CHECK_TYPE_CONVERSION,
+    MCC_SEMANTIC_CHECK_TYPE_ARRAY_TYPES,
+    MCC_SEMANTIC_CHECK_TYPE_FUNCTION_ARGUMENTS,
     MCC_SEMANTIC_CHECK_NONVOID_CHECK,
     MCC_SEMANTIC_CHECK_MAIN_FUNCTION,
     MCC_SEMANTIC_CHECK_UNKNOWN_FUNCTION_CALL,
@@ -54,9 +58,17 @@ struct mcc_semantic_check {
 
 // ------------------------------------------------------------- Functions: Running single semantic checks
 
-// Types of used variables
-struct mcc_semantic_check* mcc_semantic_check_run_type_check(struct mcc_ast_program* ast,
+// No Type conversions
+struct mcc_semantic_check* mcc_semantic_check_run_type_conversion(struct mcc_ast_program* ast,
                                                                 struct mcc_symbol_table* symbol_table);
+
+// No invalid array operations
+struct mcc_semantic_check* mcc_semantic_check_run_array_types(struct mcc_ast_program* ast,
+                                                             struct mcc_symbol_table* symbol_table);
+
+// No invalid function calls
+struct mcc_semantic_check* mcc_semantic_check_run_function_arguments(struct mcc_ast_program* ast,
+                                                             struct mcc_symbol_table* symbol_table);
 
 // Each execution path of non-void function returns a value
 struct mcc_semantic_check* mcc_semantic_check_run_nonvoid_check(struct mcc_ast_program* ast,
