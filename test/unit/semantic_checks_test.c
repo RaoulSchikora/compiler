@@ -490,8 +490,7 @@ void define_built_in(CuTest *tc){
     TEST(use_undeclared_variable4)        \
     TEST(use_undeclared_variable5)        \
     TEST(use_undeclared_variable6)        \
-    TEST(define_built_in)                 \
-    TEST(multiple_function_definitions3)
+    TEST(define_built_in)
     //TEST(type_check)                      \
     //TEST(nonvoid_check)                   \
     //TEST(use_undeclared_variable)
