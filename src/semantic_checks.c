@@ -181,7 +181,7 @@ static void write_error_message_to_check(struct mcc_semantic_check* check, struc
     check->error_buffer = buffer;
 }
 
-// Types of used variables
+// -------------------------------------------------------------- Types of used variables
 struct mcc_semantic_check* mcc_semantic_check_run_type_check(struct mcc_ast_program* ast,
                                                              struct mcc_symbol_table* symbol_table){
     UNUSED(ast);
@@ -189,7 +189,7 @@ struct mcc_semantic_check* mcc_semantic_check_run_type_check(struct mcc_ast_prog
     return NULL;
 }
 
-// Each execution path of non-void function returns a value
+// -------------------------------------------------------------- Each execution path of non-void function returns a value
 struct mcc_semantic_check* mcc_semantic_check_run_nonvoid_check(struct mcc_ast_program* ast,
                                                                 struct mcc_symbol_table* symbol_table){
     UNUSED(ast);
@@ -197,7 +197,7 @@ struct mcc_semantic_check* mcc_semantic_check_run_nonvoid_check(struct mcc_ast_p
     return NULL;
 }
 
-// Main function exists and has correct signature
+// -------------------------------------------------------------- Main function exists and has correct signature
 struct mcc_semantic_check* mcc_semantic_check_run_main_function(struct mcc_ast_program* ast,
                                                                 struct mcc_symbol_table* symbol_table){
     UNUSED(symbol_table);
@@ -247,7 +247,7 @@ struct mcc_semantic_check* mcc_semantic_check_run_main_function(struct mcc_ast_p
 }
 
 
-// No Calls to unknown functions
+// -------------------------------------------------------------- No Calls to unknown functions
 struct mcc_semantic_check* mcc_semantic_check_run_unknown_function_call(struct mcc_ast_program* ast,
                                                                         struct mcc_symbol_table* symbol_table){
 
@@ -256,6 +256,8 @@ struct mcc_semantic_check* mcc_semantic_check_run_unknown_function_call(struct m
     return NULL;
 }
 
+// -------------------------------------------------------------- No multiple definitions of the same function
+// generate error message
 static void generate_error_msg_multiple_function_defintion(char* name,
                                                            struct mcc_ast_program *program,
                                                            struct mcc_semantic_check *check)
@@ -271,7 +273,7 @@ static void generate_error_msg_multiple_function_defintion(char* name,
     free(error_msg);
 }
 
-// No multiple definitions of the same function
+// check for no multiple definitions of the same function
 struct mcc_semantic_check* mcc_semantic_check_run_multiple_function_definitions(struct mcc_ast_program* ast,
                                                                                 struct mcc_symbol_table* symbol_table){
     UNUSED(symbol_table);
@@ -320,6 +322,9 @@ struct mcc_semantic_check* mcc_semantic_check_run_multiple_function_definitions(
     return check;
 }
 
+// -------------------------------------------------------------- No multiple declarations of a variable in the same
+//                                                                scope
+// generate error meassage
 static void generate_error_msg_multiple_variable_declaration(struct mcc_symbol_table_row *row,
                                                              struct mcc_semantic_check *check)
 {
@@ -334,6 +339,7 @@ static void generate_error_msg_multiple_variable_declaration(struct mcc_symbol_t
     free(error_msg);
 }
 
+// check scopes individually
 static void check_scope_for_multiple_variable_declaration(struct mcc_symbol_table_scope *scope,
                                                           struct mcc_semantic_check *check)
 {
@@ -375,7 +381,7 @@ static void check_scope_for_multiple_variable_declaration(struct mcc_symbol_tabl
 
 }
 
-// No multiple declarations of a variable in the same scope
+// check for no multiple declarations of a variable in the same scope
 struct mcc_semantic_check* mcc_semantic_check_run_multiple_variable_declarations(struct mcc_ast_program* ast,
                                                                                  struct mcc_symbol_table* symbol_table){
     UNUSED(ast);
@@ -406,7 +412,7 @@ struct mcc_semantic_check* mcc_semantic_check_run_multiple_variable_declarations
 
     return check;
 }
-
+// -------------------------------------------------------------- No use of undeclared variables
 // callback for expression of variable type concerning the check of undeclared variables
 static void cb_use_undeclared_variable(struct mcc_ast_expression *expression, void *data)
 {
@@ -486,7 +492,8 @@ struct mcc_semantic_check* mcc_semantic_check_run_use_undeclared_variable(struct
     return check;
 }
 
-// No use of the names of the built_in functions in function definitions
+// -------------------------------------------------------------- No use of the names of the built_in functions in
+//                                                                function definitions
 struct mcc_semantic_check* mcc_semantic_check_run_define_built_in(struct mcc_ast_program* ast,
                                                                   struct mcc_symbol_table* symbol_table){
     UNUSED(symbol_table);
