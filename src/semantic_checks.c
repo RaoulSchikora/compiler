@@ -408,7 +408,7 @@ struct mcc_semantic_check* mcc_semantic_check_run_multiple_variable_declarations
 }
 
 // callback for expression of variable type concerning the check of undeclared variables
-static void use_undeclared_variable_variable(struct mcc_ast_expression *expression, void *data)
+static void cb_use_undeclared_variable(struct mcc_ast_expression *expression, void *data)
 {
     assert(expression);
     assert(data);
@@ -430,7 +430,7 @@ static void use_undeclared_variable_variable(struct mcc_ast_expression *expressi
 }
 
 // callback for expression of array type concerning the check of undeclared variables
-static void use_undeclared_variable_array(struct mcc_ast_expression *expression, void *data)
+static void cb_use_undeclared_array(struct mcc_ast_expression *expression, void *data)
 {
     assert(expression);
     assert(data);
@@ -461,8 +461,8 @@ static struct mcc_ast_visitor use_undeclared_variable_visitor(struct mcc_semanti
 
             .userdata = check,
 
-            .expression_variable = use_undeclared_variable_variable,
-            .expression_array_element = use_undeclared_variable_array,
+            .expression_variable = cb_use_undeclared_variable,
+            .expression_array_element = cb_use_undeclared_array,
     };
 }
 
