@@ -681,6 +681,173 @@ void if_condition_expression(CuTest *tc){
     mcc_symbol_table_delete_table(table);
 }
 
+void built_ins(CuTest *tc){
+
+    // Define test input and create symbol table
+    const char input[] = "int test(){return;}";
+    struct mcc_parser_result parser_result;
+    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
+    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+
+    // symbol table: no previous or next scopes, no parent row
+    CuAssertPtrEquals(tc,NULL,table->head->parent_row);
+    CuAssertPtrEquals(tc,NULL,table->head->next_scope);
+    CuAssertPtrEquals(tc,NULL,table->head->prev_scope);
+
+    // "test": table->head->head
+    CuAssertIntEquals(tc,table->head->head->row_type,MCC_SYMBOL_TABLE_ROW_TYPE_INT);
+    CuAssertIntEquals(tc,table->head->head->row_structure,MCC_SYMBOL_TABLE_ROW_STRUCTURE_FUNCTION);
+    CuAssertIntEquals(tc,table->head->head->array_size,-1);
+    CuAssertStrEquals(tc,table->head->head->name,"test");
+    CuAssertPtrEquals(tc,NULL,table->head->head->prev_row);
+
+    // "return"
+    CuAssertPtrEquals(tc,NULL,table->head->head->child_scope->head);
+    CuAssertPtrEquals(tc,NULL,table->head->head->child_scope->next_scope);
+    CuAssertPtrEquals(tc,NULL,table->head->head->child_scope->prev_scope);
+    CuAssertPtrEquals(tc,table->head->head,table->head->head->child_scope->parent_row);
+
+    // -------------------------------------------------------------------------------- First built_in: print(string a)
+    // "print": table->head->head->next_row;
+    CuAssertIntEquals(tc,table->head->head->next_row->row_type,MCC_SYMBOL_TABLE_ROW_TYPE_VOID);
+    CuAssertIntEquals(tc,table->head->head->next_row->row_structure,MCC_SYMBOL_TABLE_ROW_STRUCTURE_FUNCTION);
+    CuAssertIntEquals(tc,table->head->head->next_row->array_size,-1);
+    CuAssertStrEquals(tc,table->head->head->next_row->name,"print");
+    CuAssertPtrEquals(tc,table->head->head,table->head->head->next_row->prev_row);
+
+    // "string a" : table->head->head->next_row->child_scope
+    CuAssertPtrEquals(tc,NULL,table->head->head->next_row->child_scope->next_scope);
+    CuAssertPtrEquals(tc,NULL,table->head->head->next_row->child_scope->prev_scope);
+    CuAssertPtrEquals(tc,table->head->head->next_row,table->head->head->next_row->child_scope->parent_row);
+
+    // "string a" : table->head->head->next_row->child_scope->head
+    CuAssertIntEquals(tc,table->head->head->next_row->child_scope->head->row_type,MCC_SYMBOL_TABLE_ROW_TYPE_STRING);
+    CuAssertIntEquals(tc,table->head->head->next_row->child_scope->head->row_structure,
+                      MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE);
+    CuAssertIntEquals(tc,table->head->head->next_row->child_scope->head->array_size,-1);
+    CuAssertStrEquals(tc,table->head->head->next_row->child_scope->head->name,"a");
+    CuAssertPtrEquals(tc,NULL,table->head->head->next_row->child_scope->head->prev_row);
+    CuAssertPtrEquals(tc,NULL,table->head->head->next_row->child_scope->head->next_row);
+    CuAssertPtrEquals(tc,NULL,table->head->head->next_row->child_scope->head->child_scope);
+
+    // -------------------------------------------------------------------------------- Second built_in: print_nl()
+    // "print": table->head->head->next_row->next_row;
+    CuAssertIntEquals(tc,table->head->head->next_row->next_row->row_type,MCC_SYMBOL_TABLE_ROW_TYPE_VOID);
+    CuAssertIntEquals(tc,table->head->head->next_row->next_row->row_structure,MCC_SYMBOL_TABLE_ROW_STRUCTURE_FUNCTION);
+    CuAssertIntEquals(tc,table->head->head->next_row->next_row->array_size,-1);
+    CuAssertStrEquals(tc,table->head->head->next_row->next_row->name,"print_nl");
+    CuAssertPtrEquals(tc,table->head->head->next_row,table->head->head->next_row->next_row->prev_row);
+
+    // "()" : table->head->head->next_row->next_row->child_scope
+    CuAssertPtrEquals(tc,NULL,table->head->head->next_row->next_row->child_scope->next_scope);
+    CuAssertPtrEquals(tc,NULL,table->head->head->next_row->next_row->child_scope->prev_scope);
+    CuAssertPtrEquals(tc,table->head->head->next_row->next_row,
+            table->head->head->next_row->next_row->child_scope->parent_row);
+
+    // "()" : table->head->head->next_row->next_row->child_scope->head
+    CuAssertPtrEquals(tc,NULL,table->head->head->next_row->next_row->child_scope->head);
+
+    // -------------------------------------------------------------------------------- Third built_in: print_int(int a)
+    // "print_int": table->head->head->next_row->next_row->next_row;
+    CuAssertIntEquals(tc,table->head->head->next_row->next_row->next_row->row_type,MCC_SYMBOL_TABLE_ROW_TYPE_VOID);
+    CuAssertIntEquals(tc,table->head->head->next_row->next_row->next_row->row_structure,
+            MCC_SYMBOL_TABLE_ROW_STRUCTURE_FUNCTION);
+    CuAssertIntEquals(tc,table->head->head->next_row->next_row->next_row->array_size,-1);
+    CuAssertStrEquals(tc,table->head->head->next_row->next_row->next_row->name,"print_int");
+    CuAssertPtrEquals(tc,table->head->head->next_row->next_row,
+            table->head->head->next_row->next_row->next_row->prev_row);
+
+    // "int a" : table->head->head->next_row->next_row->next_row->child_scope
+    CuAssertPtrEquals(tc,NULL,table->head->head->next_row->next_row->next_row->child_scope->next_scope);
+    CuAssertPtrEquals(tc,NULL,table->head->head->next_row->next_row->next_row->child_scope->prev_scope);
+    CuAssertPtrEquals(tc,table->head->head->next_row->next_row->next_row,
+            table->head->head->next_row->next_row->next_row->child_scope->parent_row);
+
+    // "int a" : table->head->head->next_row->next_row->next_row->child_scope->head
+    CuAssertIntEquals(tc,table->head->head->next_row->next_row->next_row->child_scope->head->row_type,
+            MCC_SYMBOL_TABLE_ROW_TYPE_INT);
+    CuAssertIntEquals(tc,table->head->head->next_row->next_row->next_row->child_scope->head->row_structure,
+            MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE);
+    CuAssertIntEquals(tc,table->head->head->next_row->next_row->next_row->child_scope->head->array_size,-1);
+    CuAssertStrEquals(tc,table->head->head->next_row->next_row->next_row->child_scope->head->name,"a");
+    CuAssertPtrEquals(tc,NULL,table->head->head->next_row->next_row->next_row->child_scope->head->prev_row);
+    CuAssertPtrEquals(tc,NULL,table->head->head->next_row->next_row->next_row->child_scope->head->next_row);
+    CuAssertPtrEquals(tc,NULL,table->head->head->next_row->next_row->next_row->child_scope->head->child_scope);
+
+    // -------------------------------------------------------------------------- Fourth built_in: print_float(float a)
+    // "print_float": table->head->head->next_row->next_row->next_row->next_row;
+    CuAssertIntEquals(tc,table->head->head->next_row->next_row->next_row->next_row->row_type,
+                      MCC_SYMBOL_TABLE_ROW_TYPE_VOID);
+    CuAssertIntEquals(tc,table->head->head->next_row->next_row->next_row->next_row->row_structure,
+                      MCC_SYMBOL_TABLE_ROW_STRUCTURE_FUNCTION);
+    CuAssertIntEquals(tc,table->head->head->next_row->next_row->next_row->next_row->array_size,-1);
+    CuAssertStrEquals(tc,table->head->head->next_row->next_row->next_row->next_row->name,"print_float");
+    CuAssertPtrEquals(tc,table->head->head->next_row->next_row->next_row,
+                      table->head->head->next_row->next_row->next_row->next_row->prev_row);
+
+    // "float a" : table->head->head->next_row->next_row->next_row->next_row->child_scope
+    CuAssertPtrEquals(tc,NULL,table->head->head->next_row->next_row->next_row->next_row->child_scope->next_scope);
+    CuAssertPtrEquals(tc,NULL,table->head->head->next_row->next_row->next_row->next_row->child_scope->prev_scope);
+    CuAssertPtrEquals(tc,table->head->head->next_row->next_row->next_row->next_row,
+                      table->head->head->next_row->next_row->next_row->next_row->child_scope->parent_row);
+
+    // "float a" : table->head->head->next_row->next_row->next_row->next_row->child_scope->head
+    CuAssertIntEquals(tc,table->head->head->next_row->next_row->next_row->next_row->child_scope->head->row_type,
+                      MCC_SYMBOL_TABLE_ROW_TYPE_FLOAT);
+    CuAssertIntEquals(tc,table->head->head->next_row->next_row->next_row->next_row->child_scope->head->row_structure,
+                      MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE);
+    CuAssertIntEquals(tc,table->head->head->next_row->next_row->next_row->next_row->child_scope->head->array_size,-1);
+    CuAssertStrEquals(tc,table->head->head->next_row->next_row->next_row->next_row->child_scope->head->name,"a");
+    CuAssertPtrEquals(tc,NULL,table->head->head->next_row->next_row->next_row->next_row->child_scope->head->prev_row);
+    CuAssertPtrEquals(tc,NULL,table->head->head->next_row->next_row->next_row->next_row->child_scope->head->next_row);
+    CuAssertPtrEquals(tc,NULL,table->head->head->next_row->next_row->next_row->next_row->child_scope->head->child_scope);
+
+
+    // -------------------------------------------------------------------------- Fifth built_in: read_int()
+    // "read_int": table->head->head->next_row->next_row->next_row->next_row->next_row;
+    CuAssertIntEquals(tc,table->head->head->next_row->next_row->next_row->next_row->next_row->row_type,
+            MCC_SYMBOL_TABLE_ROW_TYPE_INT);
+    CuAssertIntEquals(tc,table->head->head->next_row->next_row->next_row->next_row->next_row->row_structure,
+                      MCC_SYMBOL_TABLE_ROW_STRUCTURE_FUNCTION);
+    CuAssertIntEquals(tc,table->head->head->next_row->next_row->next_row->next_row->next_row->array_size,-1);
+    CuAssertStrEquals(tc,table->head->head->next_row->next_row->next_row->next_row->next_row->name,"read_int");
+    CuAssertPtrEquals(tc,table->head->head->next_row->next_row->next_row->next_row,
+                      table->head->head->next_row->next_row->next_row->next_row->next_row->prev_row);
+
+    // "()" : table->head->head->next_row->next_row->next_row->next_row->next_row->child_scope
+    CuAssertPtrEquals(tc,NULL,
+            table->head->head->next_row->next_row->next_row->next_row->next_row->child_scope->next_scope);
+    CuAssertPtrEquals(tc,NULL,
+            table->head->head->next_row->next_row->next_row->next_row->next_row->child_scope->prev_scope);
+    CuAssertPtrEquals(tc,table->head->head->next_row->next_row->next_row->next_row->next_row,
+          table->head->head->next_row->next_row->next_row->next_row->next_row->child_scope->parent_row);
+
+    // -------------------------------------------------------------------------- Sixth built_in: read_float()
+    // "read_float": table->head->head->next_row->next_row->next_row->next_row->next_row->next_row;
+    CuAssertIntEquals(tc,table->head->head->next_row->next_row->next_row->next_row->next_row->next_row->row_type,
+                      MCC_SYMBOL_TABLE_ROW_TYPE_FLOAT);
+    CuAssertIntEquals(tc,table->head->head->next_row->next_row->next_row->next_row->next_row->next_row->row_structure,
+                      MCC_SYMBOL_TABLE_ROW_STRUCTURE_FUNCTION);
+    CuAssertIntEquals(tc,table->head->head->next_row->next_row->next_row->next_row->next_row->next_row->array_size,-1);
+    CuAssertStrEquals(tc,table->head->head->next_row->next_row->next_row->next_row->next_row->next_row->name,
+                      "read_float");
+    CuAssertPtrEquals(tc,table->head->head->next_row->next_row->next_row->next_row->next_row,
+                      table->head->head->next_row->next_row->next_row->next_row->next_row->next_row->prev_row);
+
+    // "()" : table->head->head->next_row->next_row->next_row->next_row->next_row->next_row->child_scope
+    CuAssertPtrEquals(tc,NULL,
+              table->head->head->next_row->next_row->next_row->next_row->next_row->next_row->child_scope->next_scope);
+    CuAssertPtrEquals(tc,NULL,
+              table->head->head->next_row->next_row->next_row->next_row->next_row->next_row->child_scope->prev_scope);
+    CuAssertPtrEquals(tc,table->head->head->next_row->next_row->next_row->next_row->next_row->next_row,
+              table->head->head->next_row->next_row->next_row->next_row->next_row->next_row->child_scope->parent_row);
+
+    // Cleanup
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+}
+
 #define TESTS \
     TEST(empty_table)         \
 	TEST(multiple_rows)       \
@@ -702,6 +869,7 @@ void if_condition_expression(CuTest *tc){
     TEST(check_upward)        \
     TEST(check_upward_same_scope) \
     TEST(variable_expression_linking) \
-    TEST(if_condition_expression)
+    TEST(if_condition_expression)   \
+    TEST(built_ins)
 #include "main_stub.inc"
 #undef TESTS
