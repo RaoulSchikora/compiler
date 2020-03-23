@@ -85,7 +85,7 @@ struct mcc_semantic_check_all_checks* mcc_semantic_check_run_all(struct mcc_ast_
     }
 
     // No Calls to unknown functions
-    /*checks->unknown_function_call = mcc_semantic_check_run_unknown_function_call(ast, symbol_table);
+    checks->unknown_function_call = mcc_semantic_check_run_unknown_function_call(ast, symbol_table);
     if(checks->unknown_function_call == NULL){
         checks->status = MCC_SEMANTIC_CHECK_FAIL;
         if(checks->error_buffer == NULL){
@@ -98,7 +98,7 @@ struct mcc_semantic_check_all_checks* mcc_semantic_check_run_all(struct mcc_ast_
                 write_error_message_to_all_checks(checks,checks->unknown_function_call->error_buffer);
             }
         }
-    }*/
+    }
 
     // No multiple definitions of the same function
     checks->multiple_function_definitions = mcc_semantic_check_run_multiple_function_definitions(ast, symbol_table);
@@ -248,12 +248,73 @@ struct mcc_semantic_check* mcc_semantic_check_run_main_function(struct mcc_ast_p
 
 
 // -------------------------------------------------------------- No Calls to unknown functions
+
+// generate error message
+static void generate_error_msg_unkonw_function_call(char* name,
+                                                           struct mcc_ast_node node,
+                                                           struct mcc_semantic_check *check)
+{
+    if(check->error_buffer){
+        return;
+    }
+    int size = 60 + strlen(name);
+    char* error_msg = (char *)malloc( sizeof(char) * size);
+    snprintf(error_msg, size, "function  '%s' undeclared (first use in this function).", name);
+    write_error_message_to_check(check, node, error_msg);
+    check->status = MCC_SEMANTIC_CHECK_FAIL;
+    free(error_msg);
+}
+
+// callback for expression of variable type concerning the check of undeclared variables
+static void cb_unknown_function_call(struct mcc_ast_expression *expression, void *data)
+{
+    assert(expression);
+    assert(data);
+
+    struct mcc_semantic_check *check = data;
+    struct mcc_symbol_table_row *row = expression->function_row;
+    char* name = expression->function_identifier->identifier_name;
+
+    struct mcc_symbol_table_row *upward_declaration = mcc_symbol_table_check_upwards_for_declaration(name, row);
+
+    if(!upward_declaration){
+        generate_error_msg_unkonw_function_call(name, expression->node, check);
+    }
+}
+
+// Setup an AST Visitor for checking undeclared variables.
+static struct mcc_ast_visitor unknown_function_call_visitor(struct mcc_semantic_check *check)
+{
+
+    return (struct mcc_ast_visitor){
+            .traversal = MCC_AST_VISIT_DEPTH_FIRST,
+            .order = MCC_AST_VISIT_PRE_ORDER,
+
+            .userdata = check,
+
+            .expression_function_call = cb_unknown_function_call,
+    };
+}
+
+// check for calls to unknown functions
 struct mcc_semantic_check* mcc_semantic_check_run_unknown_function_call(struct mcc_ast_program* ast,
                                                                         struct mcc_symbol_table* symbol_table){
 
-    UNUSED(ast);
     UNUSED(symbol_table);
-    return NULL;
+
+    assert(ast);
+    struct mcc_semantic_check *check = malloc(sizeof(*check));
+    if (!check){
+        return NULL;
+    }
+
+    check->status = MCC_SEMANTIC_CHECK_OK;
+    check->type = MCC_SEMANTIC_CHECK_UNKNOWN_FUNCTION_CALL;
+    check->error_buffer = NULL;
+
+    struct mcc_ast_visitor visitor = unknown_function_call_visitor(check);
+    mcc_ast_visit(ast, &visitor);
+    return check;
 }
 
 // -------------------------------------------------------------- No multiple definitions of the same function
@@ -415,7 +476,7 @@ struct mcc_semantic_check* mcc_semantic_check_run_multiple_variable_declarations
 // -------------------------------------------------------------- No use of undeclared variables
 
 // generate messaage
-static void generate_error_msg_for_undeclared_variable(char *name, struct mcc_ast_node node,
+static void generate_error_msg_undeclared_variable(char *name, struct mcc_ast_node node,
                                                        struct mcc_semantic_check *check)
 {
     if(check->error_buffer){
@@ -442,7 +503,7 @@ static void cb_use_undeclared_variable(struct mcc_ast_expression *expression, vo
     struct mcc_symbol_table_row *upward_declaration = mcc_symbol_table_check_upwards_for_declaration(name, row);
 
     if(!upward_declaration){
-        generate_error_msg_for_undeclared_variable(name, expression->node, check);
+        generate_error_msg_undeclared_variable(name, expression->node, check);
     }
 }
 
@@ -459,7 +520,7 @@ static void cb_use_undeclared_array(struct mcc_ast_expression *expression, void 
     struct mcc_symbol_table_row *upward_declaration = mcc_symbol_table_check_upwards_for_declaration(name, row);
 
     if(!upward_declaration){
-        generate_error_msg_for_undeclared_variable(name, expression->node, check);
+        generate_error_msg_undeclared_variable(name, expression->node, check);
     }
 }
 
@@ -476,7 +537,7 @@ static void cb_use_undeclared_variable_assignment(struct mcc_ast_assignment *ass
     struct mcc_symbol_table_row *upward_declaration = mcc_symbol_table_check_upwards_for_declaration(name, row);
 
     if(!upward_declaration){
-        generate_error_msg_for_undeclared_variable(name, assignment->node, check);
+        generate_error_msg_undeclared_variable(name, assignment->node, check);
     }
 }
 
@@ -493,7 +554,7 @@ static void cb_use_undeclared_array_assignment(struct mcc_ast_assignment *assign
     struct mcc_symbol_table_row *upward_declaration = mcc_symbol_table_check_upwards_for_declaration(name, row);
 
     if(!upward_declaration){
-        generate_error_msg_for_undeclared_variable(name, assignment->node, check);
+        generate_error_msg_undeclared_variable(name, assignment->node, check);
     }
 }
 
@@ -626,10 +687,10 @@ void mcc_semantic_check_delete_all_checks(struct mcc_semantic_check_all_checks *
     {
         mcc_semantic_check_delete_single_check(checks->main_function);
     }
-    /*if (checks->unknown_function_call != NULL)
+    if (checks->unknown_function_call != NULL)
     {
         mcc_semantic_check_delete_single_check(checks->unknown_function_call);
-    }*/
+    }
     if (checks->multiple_function_definitions != NULL)
     {
         mcc_semantic_check_delete_single_check(checks->multiple_function_definitions);

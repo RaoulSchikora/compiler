@@ -40,7 +40,7 @@ void positive(CuTest *tc)
     //CuAssertPtrNotNull(tc,checks->type_check);
     //CuAssertPtrNotNull(tc,checks->nonvoid_check);
     CuAssertPtrNotNull(tc,checks->main_function);
-    //CuAssertPtrNotNull(tc,checks->unknown_function_call);
+    CuAssertPtrNotNull(tc,checks->unknown_function_call);
     CuAssertPtrNotNull(tc,checks->multiple_function_definitions);
     CuAssertPtrNotNull(tc,checks->multiple_variable_declarations);
     CuAssertPtrNotNull(tc,checks->use_undeclared_variable);
@@ -49,7 +49,7 @@ void positive(CuTest *tc)
     //CuAssertIntEquals(tc,checks->type_check->type,MCC_SEMANTIC_CHECK_TYPE_CHECK);
     //CuAssertIntEquals(tc,checks->nonvoid_check->type,MCC_SEMANTIC_CHECK_NONVOID_CHECK);
     CuAssertIntEquals(tc,checks->main_function->type,MCC_SEMANTIC_CHECK_MAIN_FUNCTION);
-    //CuAssertIntEquals(tc,checks->unknown_function_call->type,MCC_SEMANTIC_CHECK_UNKNOWN_FUNCTION_CALL);
+    CuAssertIntEquals(tc,checks->unknown_function_call->type,MCC_SEMANTIC_CHECK_UNKNOWN_FUNCTION_CALL);
     CuAssertIntEquals(tc,checks->multiple_function_definitions->type,MCC_SEMANTIC_CHECK_MULTIPLE_FUNCTION_DEFINITIONS);
     CuAssertIntEquals(tc,checks->multiple_variable_declarations->type,MCC_SEMANTIC_CHECK_MULTIPLE_VARIABLE_DECLARATIONS);
     CuAssertIntEquals(tc,checks->use_undeclared_variable->type,MCC_SEMANTIC_CHECK_USE_UNDECLARED_VARIABLE);
@@ -58,7 +58,7 @@ void positive(CuTest *tc)
     //CuAssertIntEquals(tc,checks->type_check->status,MCC_SEMANTIC_CHECK_OK);
     //CuAssertIntEquals(tc,checks->nonvoid_check->status,MCC_SEMANTIC_CHECK_OK);
     CuAssertIntEquals(tc,checks->main_function->status,MCC_SEMANTIC_CHECK_OK);
-    //CuAssertIntEquals(tc,checks->unknown_function_call->status,MCC_SEMANTIC_CHECK_OK);
+    CuAssertIntEquals(tc,checks->unknown_function_call->status,MCC_SEMANTIC_CHECK_OK);
     CuAssertIntEquals(tc,checks->multiple_function_definitions->status,MCC_SEMANTIC_CHECK_OK);
     CuAssertIntEquals(tc,checks->multiple_variable_declarations->status,MCC_SEMANTIC_CHECK_OK);
     CuAssertIntEquals(tc,checks->use_undeclared_variable->status,MCC_SEMANTIC_CHECK_OK);
@@ -478,6 +478,7 @@ void define_built_in(CuTest *tc){
     TEST(main_function_1)                 \
     TEST(main_function_2)                 \
     TEST(main_function_3)                 \
+    TEST(unknown_function_call)           \
     TEST(multiple_function_definitions)   \
     TEST(multiple_function_definitions2)  \
     TEST(multiple_function_definitions3)  \
@@ -493,7 +494,6 @@ void define_built_in(CuTest *tc){
     TEST(multiple_function_definitions3)
     //TEST(type_check)                      \
     //TEST(nonvoid_check)                   \
-    //TEST(unknown_function_call)           \
     //TEST(use_undeclared_variable)
 #include "main_stub.inc"
 #undef TESTS
