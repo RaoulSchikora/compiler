@@ -183,7 +183,7 @@ unit_test           : expression
                     ;
 
 expression          : literal { $$ = mcc_ast_new_expression_literal($1); 			    loc($$, @1 ,@1);}
-                    | expression PLUS  expression
+                    | expression PLUS expression
                     	{ $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_ADD, $1, $3);     loc($$, @1, @3);}
                     | expression MINUS expression
                     	{ $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_SUB, $1, $3);     loc($$, @1, @3);}

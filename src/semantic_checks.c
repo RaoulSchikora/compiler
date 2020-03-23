@@ -424,7 +424,7 @@ struct mcc_semantic_check* mcc_semantic_check_run_main_function(struct mcc_ast_p
 // -------------------------------------------------------------- No Calls to unknown functions
 
 // generate error message
-static void generate_error_msg_unknown_function_call(char* name,
+static void generate_error_msg_unknown_function_call(const char* name,
                                                            struct mcc_ast_node node,
                                                            struct mcc_semantic_check *check)
 {
@@ -493,7 +493,7 @@ struct mcc_semantic_check* mcc_semantic_check_run_unknown_function_call(struct m
 
 // -------------------------------------------------------------- No multiple definitions of the same function
 // generate error message
-static void generate_error_msg_multiple_function_defintion(char* name,
+static void generate_error_msg_multiple_function_defintion(const char* name,
                                                            struct mcc_ast_program *program,
                                                            struct mcc_semantic_check *check)
 {
@@ -657,7 +657,7 @@ struct mcc_semantic_check* mcc_semantic_check_run_multiple_variable_declarations
 // -------------------------------------------------------------- No use of undeclared variables
 
 // generate messaage
-static void generate_error_msg_undeclared_variable(char *name, struct mcc_ast_node node,
+static void generate_error_msg_undeclared_variable(const char *name, struct mcc_ast_node node,
                                                        struct mcc_semantic_check *check)
 {
     assert(check);
