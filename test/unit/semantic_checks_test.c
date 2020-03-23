@@ -18,7 +18,8 @@ void positive(CuTest *tc)
     const char input[] = "int main(){int a; a = 2; int b; int c; b = 2; c = a + b; return c;} \
                          void func1(int a, bool[10] b){a = a + 2; int i; i = 0; b[i] = 0;} \
                          bool func2(){return true;} \
-                         int func3(){if(true)if(true){while(false){return 2;}} return 3;}";
+                         int func3(){if(true)if(true){while(false){return 2;}} return 3;} \
+                         int func4(){if(true){} return 3;}";
     struct mcc_parser_result parser_result;
     parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
     CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
@@ -40,7 +41,7 @@ void positive(CuTest *tc)
     //CuAssertPtrNotNull(tc,checks->type_conversion);
     //CuAssertPtrNotNull(tc,checks->array_types);
     //CuAssertPtrNotNull(tc,checks->function_arguments);
-    //CuAssertPtrNotNull(tc,checks->nonvoid_check);
+    CuAssertPtrNotNull(tc,checks->nonvoid_check);
     CuAssertPtrNotNull(tc,checks->main_function);
     CuAssertPtrNotNull(tc,checks->unknown_function_call);
     CuAssertPtrNotNull(tc,checks->multiple_function_definitions);
@@ -51,7 +52,7 @@ void positive(CuTest *tc)
     //CuAssertIntEquals(tc,checks->type_check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION);
     //CuAssertIntEquals(tc,checks->type_check->type,MCC_SEMANTIC_CHECK_TYPE_ARRAY_TYPES);
     //CuAssertIntEquals(tc,checks->type_check->type,MCC_SEMANTIC_CHECK_TYPE_FUNCTION_ARGUMENTS);
-    //CuAssertIntEquals(tc,checks->nonvoid_check->type,MCC_SEMANTIC_CHECK_NONVOID_CHECK);
+    CuAssertIntEquals(tc,checks->nonvoid_check->type,MCC_SEMANTIC_CHECK_NONVOID_CHECK);
     CuAssertIntEquals(tc,checks->main_function->type,MCC_SEMANTIC_CHECK_MAIN_FUNCTION);
     CuAssertIntEquals(tc,checks->unknown_function_call->type,MCC_SEMANTIC_CHECK_UNKNOWN_FUNCTION_CALL);
     CuAssertIntEquals(tc,checks->multiple_function_definitions->type,MCC_SEMANTIC_CHECK_MULTIPLE_FUNCTION_DEFINITIONS);
@@ -62,7 +63,7 @@ void positive(CuTest *tc)
     //CuAssertIntEquals(tc,checks->type_conversion->status,MCC_SEMANTIC_CHECK_OK);
     //CuAssertIntEquals(tc,checks->array_types->status,MCC_SEMANTIC_CHECK_OK);
     //CuAssertIntEquals(tc,checks->function_arguments->status,MCC_SEMANTIC_CHECK_OK);
-    //CuAssertIntEquals(tc,checks->nonvoid_check->status,MCC_SEMANTIC_CHECK_OK);
+    CuAssertIntEquals(tc,checks->nonvoid_check->status,MCC_SEMANTIC_CHECK_OK);
     CuAssertIntEquals(tc,checks->main_function->status,MCC_SEMANTIC_CHECK_OK);
     CuAssertIntEquals(tc,checks->unknown_function_call->status,MCC_SEMANTIC_CHECK_OK);
     CuAssertIntEquals(tc,checks->multiple_function_definitions->status,MCC_SEMANTIC_CHECK_OK);
@@ -99,11 +100,77 @@ void type_conversion(CuTest *tc)
     mcc_semantic_check_delete_single_check(check);
 }
 
-// int-function returns without value
+// int-function without return in if_else_on_ture
 void nonvoid_check(CuTest *tc){
 
     // Define test input and create symbol table
-    const char input[] = "int main(int a){if(a==2){return;} else {return 3;}}";
+    const char input[] = "int func(int a){if(a==2){} else {return 3;}}";
+    struct mcc_parser_result parser_result;
+    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
+    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_nonvoid_check((&parser_result)->program,table);
+
+    CuAssertPtrNotNull(tc, check);
+    CuAssertPtrNotNull(tc, check->error_buffer);
+    CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_NONVOID_CHECK);
+
+    // Cleanup
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+    mcc_semantic_check_delete_single_check(check);
+}
+
+// int-function without return in if_else_on_false
+void nonvoid_check2(CuTest *tc){
+
+    // Define test input and create symbol table
+    const char input[] = "int func(int a){if(a==2){return 3;} else {}}";
+    struct mcc_parser_result parser_result;
+    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
+    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_nonvoid_check((&parser_result)->program,table);
+
+    CuAssertPtrNotNull(tc, check);
+    CuAssertPtrNotNull(tc, check->error_buffer);
+    CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_NONVOID_CHECK);
+
+    // Cleanup
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+    mcc_semantic_check_delete_single_check(check);
+}
+
+// int-function returns value only in if-condition
+void nonvoid_check3(CuTest *tc){
+
+    // Define test input and create symbol table
+    const char input[] = "int func(int a){if(true){return 3;}}";
+    struct mcc_parser_result parser_result;
+    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
+    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_nonvoid_check((&parser_result)->program,table);
+
+    CuAssertPtrNotNull(tc, check);
+    CuAssertPtrNotNull(tc, check->error_buffer);
+    CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_NONVOID_CHECK);
+
+    // Cleanup
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+    mcc_semantic_check_delete_single_check(check);
+}
+
+// int-function has no return
+void nonvoid_check4(CuTest *tc){
+
+    // Define test input and create symbol table
+    const char input[] = "int func(int a){int b; if(true){} int c; int d;}";
     struct mcc_parser_result parser_result;
     parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
     CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
@@ -169,7 +236,7 @@ void main_function_2(CuTest *tc){
 void main_function_3(CuTest *tc){
 
     // Define test input and create symbol table
-    const char input[] = "int test(int a){if(a==2){return;} else {return 3;}}";
+    const char input[] = "int func(int a){if(a==2){return;} else {return 3;}}";
     struct mcc_parser_result parser_result;
     parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
     CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
@@ -614,6 +681,10 @@ void function_arguments2(CuTest *tc)
 
 #define TESTS \
     TEST(positive)                        \
+    TEST(nonvoid_check)                   \
+    TEST(nonvoid_check2)                  \
+    TEST(nonvoid_check3)                  \
+    TEST(nonvoid_check4)                  \
     TEST(main_function_1)                 \
     TEST(main_function_2)                 \
     TEST(main_function_3)                 \

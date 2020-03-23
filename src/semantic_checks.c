@@ -12,6 +12,10 @@
 
 // TODO: Implementation
 
+// ------------------------------------------------------------- Forward declaration
+
+static bool recursively_check_nonvoid_property(struct mcc_ast_compound_statement *compound_statement);
+
 // ------------------------------------------------------------- Functions: Running all semantic checks
 
 // Write error message into existing mcc_semantic_check struct
@@ -85,7 +89,7 @@ struct mcc_semantic_check_all_checks* mcc_semantic_check_run_all(struct mcc_ast_
     }*/
 
     // Each execution path of non-void function returns a value
-    /*checks->nonvoid_check = mcc_semantic_check_run_nonvoid_check(ast, symbol_table);
+    checks->nonvoid_check = mcc_semantic_check_run_nonvoid_check(ast, symbol_table);
     if(checks->nonvoid_check == NULL){
         checks->status = MCC_SEMANTIC_CHECK_FAIL;
         if(checks->error_buffer == NULL){
@@ -98,7 +102,7 @@ struct mcc_semantic_check_all_checks* mcc_semantic_check_run_all(struct mcc_ast_
                 write_error_message_to_all_checks(checks,checks->nonvoid_check->error_buffer);
             }
         }
-    }*/
+    }
 
     // Main function exists and has correct signature
     checks->main_function = mcc_semantic_check_run_main_function(ast, symbol_table);
@@ -245,12 +249,126 @@ struct mcc_semantic_check* mcc_semantic_check_run_function_arguments(struct mcc_
     return NULL;
 }
 
-// -------------------------------------------------------------- Each execution path of non-void function returns a value
+// -------------------------------------------------------------- Each execution path of non-void function returns a
+//                                                                value
+
+// generate error msg for nonvoid check
+static void generate_error_msg_failed_nonvoid_check(const char *name,
+                                                    struct mcc_ast_node node,
+                                                    struct mcc_semantic_check *check)
+{
+    if(check->error_buffer){
+        return;
+    }
+    int size = 50 + strlen(name);
+    char* error_msg = (char *)malloc( sizeof(char) * size);
+    snprintf(error_msg, size, "control reaches end of non-void function '%s'.", name);
+    write_error_message_to_check(check, node, error_msg);
+    check->status = MCC_SEMANTIC_CHECK_FAIL;
+    free(error_msg);
+}
+
+// check a single statement on non-void property, i.e. either success if return or invoke recursive check for if_else
+static bool check_nonvoid_property(struct mcc_ast_statement *statement)
+{
+    assert(statement);
+
+    bool success = false;
+
+    switch(statement->type){
+    case MCC_AST_STATEMENT_TYPE_IF_STMT:
+        // do nothing
+        break;
+    case MCC_AST_STATEMENT_TYPE_IF_ELSE_STMT:
+        success = check_nonvoid_property(statement->if_else_on_true)
+                && check_nonvoid_property(statement->if_else_on_false);
+        break;
+    case MCC_AST_STATEMENT_TYPE_EXPRESSION:
+        // do nothing
+        break;
+    case MCC_AST_STATEMENT_TYPE_WHILE:
+        // do nothing
+        break;
+    case MCC_AST_STATEMENT_TYPE_DECLARATION:
+        // do nothing
+        break;
+    case MCC_AST_STATEMENT_TYPE_ASSIGNMENT:
+        // do nothing
+        break;
+    case MCC_AST_STATEMENT_TYPE_RETURN:
+        success = true;
+        break;
+    case MCC_AST_STATEMENT_TYPE_COMPOUND_STMT:
+        success = recursively_check_nonvoid_property(statement->compound_statement);
+        break;
+    }
+
+    return success;
+}
+
+// recursively check non-void property, i.e. all execution paths end in a return
+static bool recursively_check_nonvoid_property(struct mcc_ast_compound_statement *compound_statement)
+{
+    assert(compound_statement);
+
+    bool success = false;
+
+    // check recursively statements, start with last compound_statement
+    if(compound_statement->next_compound_statement){
+        success = recursively_check_nonvoid_property(compound_statement->next_compound_statement);
+    }
+    // if not successfully found any return on all execution paths
+    if(success == false && compound_statement->statement){
+        struct mcc_ast_statement *statement = compound_statement->statement;
+        success = check_nonvoid_property(statement);
+    }
+
+    return success;
+}
+
+static void run_nonvoid_check(struct mcc_ast_function_definition *function, struct mcc_semantic_check *check)
+{
+    assert(function);
+    assert(check);
+
+    bool success = false;
+
+    if(function->type != MCC_AST_FUNCTION_TYPE_VOID){
+        success = recursively_check_nonvoid_property(function->compound_stmt);
+    } else {
+        success = true;
+    }
+
+    if(success == false){
+        //TODO write error msg:
+        // 1. no return statement in function returning non-void
+        // 2. control reaches end of non-void function
+        generate_error_msg_failed_nonvoid_check(function->identifier->identifier_name, function->node, check);
+    }
+}
+
+// run non-void check
 struct mcc_semantic_check* mcc_semantic_check_run_nonvoid_check(struct mcc_ast_program* ast,
                                                                 struct mcc_symbol_table* symbol_table){
-    UNUSED(ast);
     UNUSED(symbol_table);
-    return NULL;
+    assert(ast);
+
+    struct mcc_semantic_check* check = malloc(sizeof(*check));
+    if (!check){
+        return NULL;
+    }
+
+    check->status = MCC_SEMANTIC_CHECK_OK;
+    check->type = MCC_SEMANTIC_CHECK_NONVOID_CHECK;
+    check->error_buffer = NULL;
+
+    do{
+        run_nonvoid_check(ast->function, check);
+
+        ast = ast->next_function;
+    } while (ast);
+
+    return check;
 }
 
 // -------------------------------------------------------------- Main function exists and has correct signature
@@ -306,7 +424,7 @@ struct mcc_semantic_check* mcc_semantic_check_run_main_function(struct mcc_ast_p
 // -------------------------------------------------------------- No Calls to unknown functions
 
 // generate error message
-static void generate_error_msg_unkonw_function_call(char* name,
+static void generate_error_msg_unknown_function_call(char* name,
                                                            struct mcc_ast_node node,
                                                            struct mcc_semantic_check *check)
 {
@@ -334,7 +452,7 @@ static void cb_unknown_function_call(struct mcc_ast_expression *expression, void
     struct mcc_symbol_table_row *upward_declaration = mcc_symbol_table_check_upwards_for_declaration(name, row);
 
     if(!upward_declaration){
-        generate_error_msg_unkonw_function_call(name, expression->node, check);
+        generate_error_msg_unknown_function_call(name, expression->node, check);
     }
 }
 
@@ -744,10 +862,10 @@ void mcc_semantic_check_delete_all_checks(struct mcc_semantic_check_all_checks *
     {
         mcc_semantic_check_delete_single_check(checks->type_check);
     }*/
-    /*if (checks->nonvoid_check != NULL)
+    if (checks->nonvoid_check != NULL)
     {
         mcc_semantic_check_delete_single_check(checks->nonvoid_check);
-    }*/
+    }
     if (checks->main_function != NULL)
     {
         mcc_semantic_check_delete_single_check(checks->main_function);
