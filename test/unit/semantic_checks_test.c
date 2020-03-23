@@ -522,6 +522,51 @@ void type_conversion2(CuTest *tc)
     mcc_semantic_check_delete_single_check(check);
 }
 
+// Calling a function with the wrong type of parameters
+void function_arguments1(CuTest *tc)
+{
+    // Define test input and create symbol table
+    const char input[] = "int main(){float a; a = 1.0; print_int(a);}";
+    struct mcc_parser_result parser_result;
+    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
+    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_function_arguments((&parser_result)->program,table);
+
+    CuAssertPtrNotNull(tc, check->error_buffer);
+    CuAssertPtrNotNull(tc, check);
+    CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_FUNCTION_ARGUMENTS);
+
+    // Cleanup
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+    mcc_semantic_check_delete_single_check(check);
+}
+
+// Calling a function with the wrong type of parameters
+void function_arguments2(CuTest *tc)
+{
+    // Define test input and create symbol table
+    const char input[] = "int main(){string a; a = \" teststring \"; call_me_with_int(a);} "
+                         "void call_me_with_int(int a){return;}";
+    struct mcc_parser_result parser_result;
+    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
+    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_function_arguments((&parser_result)->program,table);
+
+    CuAssertPtrNotNull(tc, check->error_buffer);
+    CuAssertPtrNotNull(tc, check);
+    CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_FUNCTION_ARGUMENTS);
+
+    // Cleanup
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+    mcc_semantic_check_delete_single_check(check);
+}
+
 #define TESTS \
     TEST(positive)                        \
     TEST(main_function_1)                 \
@@ -543,6 +588,8 @@ void type_conversion2(CuTest *tc)
     //TEST(type_conversion)               \
     //TEST(type_conversion1)              \
     //TEST(type_conversion2)              \
+    //TEST(funciton_arguments1)           \
+    //TEST(function_arguments2)           \
     //TEST(nonvoid_check)                 \
     //TEST(use_undeclared_variable)
 #include "main_stub.inc"
