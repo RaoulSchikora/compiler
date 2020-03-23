@@ -117,7 +117,7 @@ struct mcc_semantic_check_all_checks* mcc_semantic_check_run_all(struct mcc_ast_
     }
 
     // No multiple declarations of a variable in the same scope
-    /*checks->multiple_variable_declarations = mcc_semantic_check_run_multiple_variable_declarations(ast, symbol_table);
+    checks->multiple_variable_declarations = mcc_semantic_check_run_multiple_variable_declarations(ast, symbol_table);
     if(checks->multiple_variable_declarations == NULL){
         checks->status = MCC_SEMANTIC_CHECK_FAIL;
         if(checks->error_buffer == NULL){
@@ -130,7 +130,7 @@ struct mcc_semantic_check_all_checks* mcc_semantic_check_run_all(struct mcc_ast_
                 write_error_message_to_all_checks(checks,checks->multiple_variable_declarations->error_buffer);
             }
         }
-    }*/
+    }
 
     // No use of undeclared variables
     checks->use_undeclared_variable = mcc_semantic_check_run_use_undeclared_variable(ast, symbol_table);
@@ -256,6 +256,21 @@ struct mcc_semantic_check* mcc_semantic_check_run_unknown_function_call(struct m
     return NULL;
 }
 
+static void generate_error_msg_multiple_function_defintion(char* name,
+                                                           struct mcc_ast_program *program,
+                                                           struct mcc_semantic_check *check)
+{
+    if(check->error_buffer){
+        return;
+    }
+    int size = 20 + strlen(name);
+    char* error_msg = (char *)malloc( sizeof(char) * size);
+    snprintf(error_msg, size, "redefinition of '%s'", name);
+    write_error_message_to_check(check,program->node, error_msg);
+    check->status = MCC_SEMANTIC_CHECK_FAIL;
+    free(error_msg);
+}
+
 // No multiple definitions of the same function
 struct mcc_semantic_check* mcc_semantic_check_run_multiple_function_definitions(struct mcc_ast_program* ast,
                                                                                 struct mcc_symbol_table* symbol_table){
@@ -284,29 +299,17 @@ struct mcc_semantic_check* mcc_semantic_check_run_multiple_function_definitions(
         char *name_of_compare = program_to_compare->function->identifier->identifier_name;
 
         // if name of program_to_check and name of program_to_compare equals
-        if(strcmp(name_of_check, name_of_compare)==0){
-            int size = 20 + strlen(name_of_check);
-            char* error_msg = (char *)malloc( sizeof(char) * size);
-            snprintf(error_msg, size, "redefinition of %s", name_of_check);
-            write_error_message_to_check(check,program_to_compare->node, error_msg);
-            check->status = MCC_SEMANTIC_CHECK_FAIL;
-            free(error_msg);
+        if(strcmp(name_of_check, name_of_compare) == 0){
+            generate_error_msg_multiple_function_defintion(name_of_compare, program_to_compare, check);
             return check;
         }
-
         // compare all next_functions
         while(program_to_compare->next_function){
             program_to_compare = program_to_compare->next_function;
             char *name_of_compare = program_to_compare->function->identifier->identifier_name;
-
             // if name of program_to_check and name of program_to_compare equals
-            if(strcmp(name_of_check, name_of_compare)==0){
-                int size = 20 + strlen(name_of_check);
-                char* error_msg = (char *)malloc( sizeof(char) * size);
-                snprintf(error_msg, size, "redefinition of %s", name_of_check);
-                write_error_message_to_check(check,program_to_compare->node, error_msg);
-                check->status = MCC_SEMANTIC_CHECK_FAIL;
-                free(error_msg);
+            if(strcmp(name_of_check, name_of_compare) == 0){
+                generate_error_msg_multiple_function_defintion(name_of_compare, program_to_compare, check);
                 return check;
             }
         }
@@ -317,12 +320,91 @@ struct mcc_semantic_check* mcc_semantic_check_run_multiple_function_definitions(
     return check;
 }
 
+static void generate_error_msg_multiple_variable_declaration(struct mcc_symbol_table_row *row,
+                                                             struct mcc_semantic_check *check)
+{
+    if(check->error_buffer){
+        return;
+    }
+    int size = 20 + strlen(row->name);
+    char* error_msg = (char *)malloc( sizeof(char) * size);
+    snprintf(error_msg, size, "redefinition of '%s'", row->name);
+    write_error_message_to_check(check,*(row->node), error_msg);
+    check->status = MCC_SEMANTIC_CHECK_FAIL;
+    free(error_msg);
+}
+
+static void check_scope_for_multiple_variable_declaration(struct mcc_symbol_table_scope *scope,
+                                                          struct mcc_semantic_check *check)
+{
+    assert(scope);
+    assert(check);
+
+    if(!scope->head){
+        return;
+    }
+
+    struct mcc_symbol_table_row *row_to_check = scope->head;
+
+    if(row_to_check->child_scope){
+        check_scope_for_multiple_variable_declaration(row_to_check->child_scope, check);
+    }
+
+    while(row_to_check->next_row){
+        struct mcc_symbol_table_row *row_to_compare = row_to_check->next_row;
+
+        if(strcmp(row_to_check->name, row_to_compare->name) == 0){
+            generate_error_msg_multiple_variable_declaration(row_to_compare, check);
+            return;
+        }
+
+        while(row_to_compare->next_row){
+            row_to_compare = row_to_compare->next_row;
+            if(strcmp(row_to_check->name, row_to_compare->name) == 0){
+                generate_error_msg_multiple_variable_declaration(row_to_compare, check);
+                return;
+            }
+        }
+
+        row_to_check = row_to_check->next_row;
+    }
+
+    if(row_to_check->child_scope){
+        check_scope_for_multiple_variable_declaration(row_to_check->child_scope, check);
+    }
+
+}
+
 // No multiple declarations of a variable in the same scope
 struct mcc_semantic_check* mcc_semantic_check_run_multiple_variable_declarations(struct mcc_ast_program* ast,
                                                                                  struct mcc_symbol_table* symbol_table){
     UNUSED(ast);
-    UNUSED(symbol_table);
-    return NULL;
+
+    assert(symbol_table);
+    struct mcc_semantic_check *check = malloc(sizeof(*check));
+    if (!check){
+        return NULL;
+    }
+
+    check->status = MCC_SEMANTIC_CHECK_OK;
+    check->type = MCC_SEMANTIC_CHECK_MULTIPLE_VARIABLE_DECLARATIONS;
+    check->error_buffer = NULL;
+
+    struct mcc_symbol_table_scope *scope = symbol_table->head;
+    struct mcc_symbol_table_row *function_row = scope->head;
+
+    if(function_row->child_scope){
+        check_scope_for_multiple_variable_declaration(function_row->child_scope, check);
+    }
+
+    while(function_row->next_row){
+        function_row = function_row->next_row;
+        if(function_row->child_scope){
+            check_scope_for_multiple_variable_declaration(function_row->child_scope, check);
+        }
+    }
+
+    return check;
 }
 
 // callback for expression of variable type concerning the check of undeclared variables
@@ -502,10 +584,10 @@ void mcc_semantic_check_delete_all_checks(struct mcc_semantic_check_all_checks *
     {
         mcc_semantic_check_delete_single_check(checks->multiple_function_definitions);
     }
-    /*if (checks->multiple_variable_declarations != NULL)
+    if (checks->multiple_variable_declarations != NULL)
     {
         mcc_semantic_check_delete_single_check(checks->multiple_variable_declarations);
-    }*/
+    }
     if (checks->use_undeclared_variable != NULL)
     {
         mcc_semantic_check_delete_single_check(checks->use_undeclared_variable);

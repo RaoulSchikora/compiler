@@ -43,14 +43,22 @@ struct mcc_symbol_table_row {
     struct mcc_symbol_table_row *next_row;
     struct mcc_symbol_table_scope *scope;
     struct mcc_symbol_table_scope *child_scope;
+
+    struct mcc_ast_node *node;
 };
 
 // ------------------------------------------------------------ Functions: Symbol Table row
 
-struct mcc_symbol_table_row *mcc_symbol_table_new_row_variable(char *name, enum mcc_symbol_table_row_type type);
-struct mcc_symbol_table_row *mcc_symbol_table_new_row_function(char *name, enum mcc_symbol_table_row_type type);
-struct mcc_symbol_table_row *mcc_symbol_table_new_row_array(char *name, int array_size,
-        enum mcc_symbol_table_row_type type);
+struct mcc_symbol_table_row *mcc_symbol_table_new_row_variable(char *name,
+                                                               enum mcc_symbol_table_row_type type,
+                                                               struct mcc_ast_node *node);
+struct mcc_symbol_table_row *mcc_symbol_table_new_row_function(char *name,
+                                                               enum mcc_symbol_table_row_type type,
+                                                               struct mcc_ast_node *node);
+struct mcc_symbol_table_row *mcc_symbol_table_new_row_array(char *name,
+                                                            int array_size,
+                                                            enum mcc_symbol_table_row_type type,
+                                                            struct mcc_ast_node *node);
 void mcc_symbol_table_delete_row(struct mcc_symbol_table_row *row);
 void mcc_symbol_table_delete_all_rows(struct mcc_symbol_table_row *head);
 void mcc_symbol_table_row_append_child_scope(struct mcc_symbol_table_row *row, struct mcc_symbol_table_scope *child);

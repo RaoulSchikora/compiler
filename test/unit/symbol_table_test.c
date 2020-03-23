@@ -26,10 +26,10 @@ void multiple_rows(CuTest *tc)
     //   float k;
     //   string str;
     // }
-    struct mcc_symbol_table_row *row_int = mcc_symbol_table_new_row_variable("i", MCC_SYMBOL_TABLE_ROW_TYPE_INT);
-    struct mcc_symbol_table_row *row_bool = mcc_symbol_table_new_row_variable("j", MCC_SYMBOL_TABLE_ROW_TYPE_BOOL);
-    struct mcc_symbol_table_row *row_float = mcc_symbol_table_new_row_variable("k", MCC_SYMBOL_TABLE_ROW_TYPE_FLOAT);
-    struct mcc_symbol_table_row *row_string = mcc_symbol_table_new_row_variable("str", MCC_SYMBOL_TABLE_ROW_TYPE_STRING);
+    struct mcc_symbol_table_row *row_int = mcc_symbol_table_new_row_variable("i", MCC_SYMBOL_TABLE_ROW_TYPE_INT, NULL);
+    struct mcc_symbol_table_row *row_bool = mcc_symbol_table_new_row_variable("j", MCC_SYMBOL_TABLE_ROW_TYPE_BOOL, NULL);
+    struct mcc_symbol_table_row *row_float = mcc_symbol_table_new_row_variable("k", MCC_SYMBOL_TABLE_ROW_TYPE_FLOAT, NULL);
+    struct mcc_symbol_table_row *row_string = mcc_symbol_table_new_row_variable("str", MCC_SYMBOL_TABLE_ROW_TYPE_STRING, NULL);
 
     struct mcc_symbol_table_scope *scope = mcc_symbol_table_new_scope();
 
@@ -73,10 +73,10 @@ void scope_siblings(CuTest *tc)
     //    float k;
     //    string str;
     // }
-    struct mcc_symbol_table_row *row_int = mcc_symbol_table_new_row_variable("i", MCC_SYMBOL_TABLE_ROW_TYPE_INT);
-    struct mcc_symbol_table_row *row_bool = mcc_symbol_table_new_row_variable("j", MCC_SYMBOL_TABLE_ROW_TYPE_BOOL);
-    struct mcc_symbol_table_row *row_float = mcc_symbol_table_new_row_variable("k", MCC_SYMBOL_TABLE_ROW_TYPE_FLOAT);
-    struct mcc_symbol_table_row *row_string = mcc_symbol_table_new_row_variable("str", MCC_SYMBOL_TABLE_ROW_TYPE_STRING);
+    struct mcc_symbol_table_row *row_int = mcc_symbol_table_new_row_variable("i", MCC_SYMBOL_TABLE_ROW_TYPE_INT, NULL);
+    struct mcc_symbol_table_row *row_bool = mcc_symbol_table_new_row_variable("j", MCC_SYMBOL_TABLE_ROW_TYPE_BOOL, NULL);
+    struct mcc_symbol_table_row *row_float = mcc_symbol_table_new_row_variable("k", MCC_SYMBOL_TABLE_ROW_TYPE_FLOAT, NULL);
+    struct mcc_symbol_table_row *row_string = mcc_symbol_table_new_row_variable("str", MCC_SYMBOL_TABLE_ROW_TYPE_STRING, NULL);
 
     struct mcc_symbol_table_scope *first_scope = mcc_symbol_table_new_scope();
     struct mcc_symbol_table_scope *second_scope = mcc_symbol_table_new_scope();
@@ -128,10 +128,10 @@ void nesting_scope(CuTest *tc)
     //      }
     //   string str;
     // }
-    struct mcc_symbol_table_row *row_int = mcc_symbol_table_new_row_variable("i", MCC_SYMBOL_TABLE_ROW_TYPE_INT);
-    struct mcc_symbol_table_row *row_bool = mcc_symbol_table_new_row_variable("j", MCC_SYMBOL_TABLE_ROW_TYPE_BOOL);
-    struct mcc_symbol_table_row *row_float = mcc_symbol_table_new_row_variable("k", MCC_SYMBOL_TABLE_ROW_TYPE_FLOAT);
-    struct mcc_symbol_table_row *row_string = mcc_symbol_table_new_row_variable("str", MCC_SYMBOL_TABLE_ROW_TYPE_STRING);
+    struct mcc_symbol_table_row *row_int = mcc_symbol_table_new_row_variable("i", MCC_SYMBOL_TABLE_ROW_TYPE_INT, NULL);
+    struct mcc_symbol_table_row *row_bool = mcc_symbol_table_new_row_variable("j", MCC_SYMBOL_TABLE_ROW_TYPE_BOOL, NULL);
+    struct mcc_symbol_table_row *row_float = mcc_symbol_table_new_row_variable("k", MCC_SYMBOL_TABLE_ROW_TYPE_FLOAT, NULL);
+    struct mcc_symbol_table_row *row_string = mcc_symbol_table_new_row_variable("str", MCC_SYMBOL_TABLE_ROW_TYPE_STRING, NULL);
 
     struct mcc_symbol_table_scope *outer_scope = mcc_symbol_table_new_scope();
     struct mcc_symbol_table_scope *inner_scope1 = mcc_symbol_table_new_scope();
@@ -176,7 +176,7 @@ void array_row(CuTest *tc)
     //{
     //  int[42] i;
     //}
-    struct mcc_symbol_table_row *int_array_row = mcc_symbol_table_new_row_array("i", 42, MCC_SYMBOL_TABLE_ROW_TYPE_INT);
+    struct mcc_symbol_table_row *int_array_row = mcc_symbol_table_new_row_array("i", 42, MCC_SYMBOL_TABLE_ROW_TYPE_INT, NULL);
 
     CuAssertTrue(tc, int_array_row->row_structure == MCC_SYMBOL_TABLE_ROW_STRUCTURE_ARRAY);
     CuAssertTrue(tc, int_array_row->array_size == 42);
@@ -191,9 +191,9 @@ void get_last(CuTest *tc)
     //  bool j;
     //  float k;
     //}
-    struct mcc_symbol_table_row *row_int = mcc_symbol_table_new_row_variable("i", MCC_SYMBOL_TABLE_ROW_TYPE_INT);
-    struct mcc_symbol_table_row *row_bool = mcc_symbol_table_new_row_variable("j", MCC_SYMBOL_TABLE_ROW_TYPE_BOOL);
-    struct mcc_symbol_table_row *row_float = mcc_symbol_table_new_row_variable("k", MCC_SYMBOL_TABLE_ROW_TYPE_FLOAT);
+    struct mcc_symbol_table_row *row_int = mcc_symbol_table_new_row_variable("i", MCC_SYMBOL_TABLE_ROW_TYPE_INT, NULL);
+    struct mcc_symbol_table_row *row_bool = mcc_symbol_table_new_row_variable("j", MCC_SYMBOL_TABLE_ROW_TYPE_BOOL, NULL);
+    struct mcc_symbol_table_row *row_float = mcc_symbol_table_new_row_variable("k", MCC_SYMBOL_TABLE_ROW_TYPE_FLOAT, NULL);
 
     struct mcc_symbol_table_scope *scope = mcc_symbol_table_new_scope();
 
