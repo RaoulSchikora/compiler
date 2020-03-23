@@ -15,7 +15,10 @@
 void positive(CuTest *tc)
 {
     // Define test input and create symbol table
-    const char input[] = "int main(){int a; a = 2; int b; int c; b = 2; c = a + b; return c;}";
+    const char input[] = "int main(){int a; a = 2; int b; int c; b = 2; c = a + b; return c;} \
+                         void func1(int a, bool[10] b){a = a + 2; int i; i = 0; b[i] = 0;} \
+                         bool func2(){return true;} \
+                         int func3(){if(true)if(true){while(false){return 2;}} return 3;}";
     struct mcc_parser_result parser_result;
     parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
     CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
