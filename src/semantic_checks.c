@@ -413,6 +413,22 @@ struct mcc_semantic_check* mcc_semantic_check_run_multiple_variable_declarations
     return check;
 }
 // -------------------------------------------------------------- No use of undeclared variables
+
+// generate messaage
+static void generate_error_msg_for_undeclared_variable(char *name, struct mcc_ast_node node,
+                                                       struct mcc_semantic_check *check)
+{
+    if(check->error_buffer){
+        return;
+    }
+    int size = 50 + strlen(name);
+    char* error_msg = (char *)malloc( sizeof(char) * size);
+    snprintf(error_msg, size, "'%s' undeclared (first use in this function).", name);
+    write_error_message_to_check(check, node, error_msg);
+    check->status = MCC_SEMANTIC_CHECK_FAIL;
+    free(error_msg);
+}
+
 // callback for expression of variable type concerning the check of undeclared variables
 static void cb_use_undeclared_variable(struct mcc_ast_expression *expression, void *data)
 {
@@ -426,12 +442,7 @@ static void cb_use_undeclared_variable(struct mcc_ast_expression *expression, vo
     struct mcc_symbol_table_row *upward_declaration = mcc_symbol_table_check_upwards_for_declaration(name, row);
 
     if(!upward_declaration){
-        int size = 50 + strlen(name);
-        char* error_msg = (char *)malloc( sizeof(char) * size);
-        snprintf(error_msg, size, "'%s' undeclared (first use in this function).", name);
-        write_error_message_to_check(check, expression->node, error_msg);
-        check->status = MCC_SEMANTIC_CHECK_FAIL;
-        free(error_msg);
+        generate_error_msg_for_undeclared_variable(name, expression->node, check);
     }
 }
 
@@ -448,12 +459,41 @@ static void cb_use_undeclared_array(struct mcc_ast_expression *expression, void 
     struct mcc_symbol_table_row *upward_declaration = mcc_symbol_table_check_upwards_for_declaration(name, row);
 
     if(!upward_declaration){
-        int size = 50 + strlen(name);
-        char* error_msg = (char *)malloc( sizeof(char) * size);
-        snprintf(error_msg, size, "'%s' undeclared (first use in this function).", name);
-        write_error_message_to_check(check, expression->node, error_msg);
-        check->status = MCC_SEMANTIC_CHECK_FAIL;
-        free(error_msg);
+        generate_error_msg_for_undeclared_variable(name, expression->node, check);
+    }
+}
+
+// callback for assignment of variable type concerning the check of undeclared variables
+static void cb_use_undeclared_variable_assignment(struct mcc_ast_assignment *assignment, void *data)
+{
+    assert(assignment);
+    assert(data);
+
+    struct mcc_semantic_check *check = data;
+    struct mcc_symbol_table_row *row = assignment->row;
+    char* name = assignment->variable_identifier->identifier_name;
+
+    struct mcc_symbol_table_row *upward_declaration = mcc_symbol_table_check_upwards_for_declaration(name, row);
+
+    if(!upward_declaration){
+        generate_error_msg_for_undeclared_variable(name, assignment->node, check);
+    }
+}
+
+// callback for assignment of array type concerning the check of undeclared variables
+static void cb_use_undeclared_array_assignment(struct mcc_ast_assignment *assignment, void *data)
+{
+    assert(assignment);
+    assert(data);
+
+    struct mcc_semantic_check *check = data;
+    struct mcc_symbol_table_row *row = assignment->row;
+    char* name = assignment->array_identifier->identifier_name;
+
+    struct mcc_symbol_table_row *upward_declaration = mcc_symbol_table_check_upwards_for_declaration(name, row);
+
+    if(!upward_declaration){
+        generate_error_msg_for_undeclared_variable(name, assignment->node, check);
     }
 }
 
@@ -469,6 +509,9 @@ static struct mcc_ast_visitor use_undeclared_variable_visitor(struct mcc_semanti
 
             .expression_variable = cb_use_undeclared_variable,
             .expression_array_element = cb_use_undeclared_array,
+
+            .variable_assignment = cb_use_undeclared_variable_assignment,
+            .array_assignment = cb_use_undeclared_array_assignment,
     };
 }
 

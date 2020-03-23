@@ -406,6 +406,50 @@ void use_undeclared_variable4(CuTest *tc){
     mcc_semantic_check_delete_single_check(check);
 }
 
+// An undeclared variable is used in an while-condition
+void use_undeclared_variable5(CuTest *tc){
+
+    // Define test input and create symbol table
+    const char input[] = "int main(){ int a; b = a;}";
+    struct mcc_parser_result parser_result;
+    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
+    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_use_undeclared_variable((&parser_result)->program,table);
+
+    CuAssertPtrNotNull(tc, check);
+    CuAssertPtrNotNull(tc, check->error_buffer);
+    CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_USE_UNDECLARED_VARIABLE);
+
+    // Cleanup
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+    mcc_semantic_check_delete_single_check(check);
+}
+
+// An undeclared variable is used in an while-condition
+void use_undeclared_variable6(CuTest *tc){
+
+    // Define test input and create symbol table
+    const char input[] = "int main(){ int a; b[1] = a;}";
+    struct mcc_parser_result parser_result;
+    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
+    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_use_undeclared_variable((&parser_result)->program,table);
+
+    CuAssertPtrNotNull(tc, check);
+    CuAssertPtrNotNull(tc, check->error_buffer);
+    CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_USE_UNDECLARED_VARIABLE);
+
+    // Cleanup
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+    mcc_semantic_check_delete_single_check(check);
+}
+
 // A function is declared that has the same name as one of the built ins
 void define_built_in(CuTest *tc){
 
@@ -443,6 +487,8 @@ void define_built_in(CuTest *tc){
     TEST(use_undeclared_variable2)        \
     TEST(use_undeclared_variable3)        \
     TEST(use_undeclared_variable4)        \
+    TEST(use_undeclared_variable5)        \
+    TEST(use_undeclared_variable6)        \
     TEST(define_built_in)                 \
     TEST(multiple_function_definitions3)
     //TEST(type_check)                      \
