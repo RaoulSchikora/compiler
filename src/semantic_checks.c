@@ -224,18 +224,59 @@ static void write_error_message_to_check(struct mcc_semantic_check* check, struc
 
 // ------------------------------------------------------------- No Type conversions in expressions
 
-// generate error msg for type conversion in exoression
-static void generate_error_msg_type_conversion_expression(const char *name,
-                                                    struct mcc_ast_node node,
-                                                    struct mcc_semantic_check *check)
+// generate error msg for type conversion in expression
+static void generate_error_msg_type_conversion_expression(struct mcc_ast_node node, struct mcc_semantic_check *check)
 {
     if(check->error_buffer){
         return;
     }
-    int size = 30 + strlen(name);
+    int size = 35;
     char* error_msg = (char *)malloc( sizeof(char) * size);
-    // TODO meaningful error msg
-    snprintf(error_msg, size, "type conversion not '%s'.", name);
+    snprintf(error_msg, size, "type conversion not possible.");
+    write_error_message_to_check(check, node, error_msg);
+    check->status = MCC_SEMANTIC_CHECK_FAIL;
+    free(error_msg);
+}
+
+// generate error msg for using logical connectives with non-boolean variables
+static void generate_error_msg_type_conversion_non_boolean(struct mcc_ast_node node, struct mcc_semantic_check *check)
+{
+    if(check->error_buffer){
+        return;
+    }
+    int size = 71;
+    char* error_msg = (char *)malloc( sizeof(char) * size);
+    snprintf(error_msg, size, "using non-boolean variable or expression with logical connective");
+    write_error_message_to_check(check, node, error_msg);
+    check->status = MCC_SEMANTIC_CHECK_FAIL;
+    free(error_msg);
+}
+
+// generate error msg for using binary operations on strings or whole arrays
+static void generate_error_msg_type_conversion_invalid_operands(struct mcc_ast_node node,
+                                                                 struct mcc_semantic_check *check)
+{
+    if(check->error_buffer){
+        return;
+    }
+    int size = 45;
+    char* error_msg = (char *)malloc( sizeof(char) * size);
+    snprintf(error_msg, size, "invalid operands to binary operation");
+    write_error_message_to_check(check, node, error_msg);
+    check->status = MCC_SEMANTIC_CHECK_FAIL;
+    free(error_msg);
+}
+
+// generate error msg for using unary operations on strings or whole arrays
+static void generate_error_msg_type_conversion_invalid_operand(struct mcc_ast_node node,
+                                                               struct mcc_semantic_check *check)
+{
+    if(check->error_buffer){
+        return;
+    }
+    int size = 45;
+    char* error_msg = (char *)malloc( sizeof(char) * size);
+    snprintf(error_msg, size, "invalid operand to unary operation");
     write_error_message_to_check(check, node, error_msg);
     check->status = MCC_SEMANTIC_CHECK_FAIL;
     free(error_msg);
@@ -372,8 +413,7 @@ static void cb_type_conversion_expression_binary_op(struct mcc_ast_expression *e
     struct mcc_ast_expression *rhs = expression->rhs;
 
     if(is_string(lhs) || is_string(rhs) || is_whole_array(lhs) || is_whole_array(rhs)){
-        // TODO change error msg to sth meaningful
-        generate_error_msg_type_conversion_expression("to be changed to sth meaningful", expression->node, check);
+        generate_error_msg_type_conversion_invalid_operands(expression->node, check);
         return;
     }
 
@@ -419,9 +459,12 @@ static void cb_type_conversion_expression_binary_op(struct mcc_ast_expression *e
     }
 
     // since we visit post order the innermost expression is visited first
+    if((!is_permitted_op) && ((expression->op == MCC_AST_BINARY_OP_CONJ)||(expression->op == MCC_AST_BINARY_OP_DISJ))){
+        generate_error_msg_type_conversion_non_boolean(expression->node, check);
+        return;
+    }
     if(!is_permitted_op){
-        // TODO change error msg to sth meaningful
-        generate_error_msg_type_conversion_expression("to be changed to sth meaningful", expression->node, check);
+        generate_error_msg_type_conversion_expression(expression->node, check);
     }
 }
 
@@ -434,10 +477,10 @@ static void cb_type_conversion_expression_unary_op(struct mcc_ast_expression *ex
 
     struct mcc_semantic_check *check = data;
     struct mcc_ast_expression *child = expression->child;
+    bool child_is_bool = is_bool(child);
 
     if(is_string(child) || is_whole_array(child)){
-        // TODO change error msg to sth meaningful
-        generate_error_msg_type_conversion_expression("to be changed to sth meaningful", expression->node, check);
+        generate_error_msg_type_conversion_invalid_operand(expression->node, check);
         return;
     }
 
@@ -445,17 +488,20 @@ static void cb_type_conversion_expression_unary_op(struct mcc_ast_expression *ex
 
     switch(expression->u_op){
     case MCC_AST_UNARY_OP_NEGATIV:
-        is_permitted_op = !is_bool(child);
+        is_permitted_op = !child_is_bool;
         break;
     case MCC_AST_UNARY_OP_NOT:
-        is_permitted_op = is_bool(child);
+        is_permitted_op = child_is_bool;
         break;
     }
 
     // since we visit post order the innermost expression is visited first
+    if((!is_permitted_op) && (expression->u_op == MCC_AST_UNARY_OP_NOT)){
+        generate_error_msg_type_conversion_non_boolean(expression->node, check);
+        return;
+    }
     if(!is_permitted_op){
-        // TODO change error msg to sth meaningful
-        generate_error_msg_type_conversion_expression("to be changed to sth meaningful", expression->node, check);
+        generate_error_msg_type_conversion_expression(expression->node, check);
     }
 }
 
