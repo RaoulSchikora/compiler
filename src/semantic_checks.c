@@ -377,49 +377,49 @@ static void cb_type_conversion_expression_binary_op(struct mcc_ast_expression *e
         return;
     }
 
-    bool permitted_op = true;
+    bool is_permitted_op = true;
 
     switch(expression->op){
     case MCC_AST_BINARY_OP_ADD:
-        permitted_op = is_of_same_type(lhs, rhs) && !is_bool(lhs) && !is_bool(rhs);
+        is_permitted_op = is_of_same_type(lhs, rhs) && !is_bool(lhs) && !is_bool(rhs);
         break;
     case MCC_AST_BINARY_OP_SUB:
-        permitted_op = is_of_same_type(lhs, rhs) && !is_bool(lhs) && !is_bool(rhs);
+        is_permitted_op = is_of_same_type(lhs, rhs) && !is_bool(lhs) && !is_bool(rhs);
         break;
     case MCC_AST_BINARY_OP_MUL:
-        permitted_op = is_of_same_type(lhs, rhs) && !is_bool(lhs) && !is_bool(rhs);
+        is_permitted_op = is_of_same_type(lhs, rhs) && !is_bool(lhs) && !is_bool(rhs);
         break;
     case MCC_AST_BINARY_OP_DIV:
-        permitted_op = is_of_same_type(lhs, rhs) && !is_bool(lhs) && !is_bool(rhs);
+        is_permitted_op = is_of_same_type(lhs, rhs) && !is_bool(lhs) && !is_bool(rhs);
         break;
     case MCC_AST_BINARY_OP_SMALLER:
-        permitted_op = is_of_same_type(lhs, rhs) && !is_bool(lhs) && !is_bool(rhs);
+        is_permitted_op = is_of_same_type(lhs, rhs) && !is_bool(lhs) && !is_bool(rhs);
         break;
     case MCC_AST_BINARY_OP_GREATER:
-        permitted_op = is_of_same_type(lhs, rhs) && !is_bool(lhs) && !is_bool(rhs);
+        is_permitted_op = is_of_same_type(lhs, rhs) && !is_bool(lhs) && !is_bool(rhs);
         break;
     case MCC_AST_BINARY_OP_SMALLEREQ:
-        permitted_op = is_of_same_type(lhs, rhs) && !is_bool(lhs) && !is_bool(rhs);
+        is_permitted_op = is_of_same_type(lhs, rhs) && !is_bool(lhs) && !is_bool(rhs);
         break;
     case MCC_AST_BINARY_OP_GREATEREQ:
-        permitted_op = is_of_same_type(lhs, rhs) && !is_bool(lhs) && !is_bool(rhs);
+        is_permitted_op = is_of_same_type(lhs, rhs) && !is_bool(lhs) && !is_bool(rhs);
         break;
     case MCC_AST_BINARY_OP_CONJ:
-        permitted_op = is_bool(lhs) && is_bool(rhs); // Conjunction can only be used with bool
+        is_permitted_op = is_bool(lhs) && is_bool(rhs); // Conjunction can only be used with bool
         break;
     case MCC_AST_BINARY_OP_DISJ:
-        permitted_op = is_bool(lhs) && is_bool(rhs); // Disjunction can only be used with bool
+        is_permitted_op = is_bool(lhs) && is_bool(rhs); // Disjunction can only be used with bool
         break;
     case MCC_AST_BINARY_OP_EQUAL:
-        permitted_op = is_of_same_type(lhs, rhs);
+        is_permitted_op = is_of_same_type(lhs, rhs);
         break;
     case MCC_AST_BINARY_OP_NOTEQUAL:
-        permitted_op = is_of_same_type(lhs, rhs);
+        is_permitted_op = is_of_same_type(lhs, rhs);
         break;
     }
 
     // since we visit post order the innermost expression is visited first
-    if(!permitted_op){
+    if(!is_permitted_op){
         // TODO change error msg to sth meaningful
         generate_error_msg_type_conversion_expression("to be changed to sth meaningful", expression->node, check);
     }
@@ -441,19 +441,19 @@ static void cb_type_conversion_expression_unary_op(struct mcc_ast_expression *ex
         return;
     }
 
-    bool permitted_op = true;
+    bool is_permitted_op = true;
 
     switch(expression->u_op){
     case MCC_AST_UNARY_OP_NEGATIV:
-        permitted_op = !is_bool(child);
+        is_permitted_op = !is_bool(child);
         break;
     case MCC_AST_UNARY_OP_NOT:
-        permitted_op = is_bool(child);
+        is_permitted_op = is_bool(child);
         break;
     }
 
     // since we visit post order the innermost expression is visited first
-    if(!permitted_op){
+    if(!is_permitted_op){
         // TODO change error msg to sth meaningful
         generate_error_msg_type_conversion_expression("to be changed to sth meaningful", expression->node, check);
     }
@@ -471,12 +471,6 @@ static struct mcc_ast_visitor type_conversion_expression_visitor(struct mcc_sema
 
             .expression_binary_op = cb_type_conversion_expression_binary_op,
             .expression_unary_op = cb_type_conversion_expression_unary_op,
-            /*mcc_ast_visit_expression_cb expression;
-            mcc_ast_visit_expression_cb expression_literal;
-            mcc_ast_visit_expression_cb expression_parenth;
-            mcc_ast_visit_expression_cb expression_variable;
-            mcc_ast_visit_expression_cb expression_array_element;
-            mcc_ast_visit_expression_cb expression_function_call;*/
     };
 }
 
@@ -550,14 +544,14 @@ static bool check_nonvoid_property(struct mcc_ast_statement *statement)
 {
     assert(statement);
 
-    bool success = false;
+    bool is_successful = false;
 
     switch(statement->type){
     case MCC_AST_STATEMENT_TYPE_IF_STMT:
         // do nothing
         break;
     case MCC_AST_STATEMENT_TYPE_IF_ELSE_STMT:
-        success = check_nonvoid_property(statement->if_else_on_true)
+        is_successful = check_nonvoid_property(statement->if_else_on_true)
                 && check_nonvoid_property(statement->if_else_on_false);
         break;
     case MCC_AST_STATEMENT_TYPE_EXPRESSION:
@@ -573,14 +567,14 @@ static bool check_nonvoid_property(struct mcc_ast_statement *statement)
         // do nothing
         break;
     case MCC_AST_STATEMENT_TYPE_RETURN:
-        success = true;
+        is_successful = true;
         break;
     case MCC_AST_STATEMENT_TYPE_COMPOUND_STMT:
-        success = recursively_check_nonvoid_property(statement->compound_statement);
+        is_successful = recursively_check_nonvoid_property(statement->compound_statement);
         break;
     }
 
-    return success;
+    return is_successful;
 }
 
 // recursively check non-void property, i.e. all execution paths end in a return
@@ -588,19 +582,19 @@ static bool recursively_check_nonvoid_property(struct mcc_ast_compound_statement
 {
     assert(compound_statement);
 
-    bool success = false;
+    bool is_successful = false;
 
     // check recursively statements, start with last compound_statement
     if(compound_statement->next_compound_statement){
-        success = recursively_check_nonvoid_property(compound_statement->next_compound_statement);
+        is_successful = recursively_check_nonvoid_property(compound_statement->next_compound_statement);
     }
     // if not successfully found any return on all execution paths
-    if(success == false && compound_statement->statement){
+    if(is_successful == false && compound_statement->statement){
         struct mcc_ast_statement *statement = compound_statement->statement;
-        success = check_nonvoid_property(statement);
+        is_successful = check_nonvoid_property(statement);
     }
 
-    return success;
+    return is_successful;
 }
 
 static void run_nonvoid_check(struct mcc_ast_function_definition *function, struct mcc_semantic_check *check)
@@ -608,15 +602,15 @@ static void run_nonvoid_check(struct mcc_ast_function_definition *function, stru
     assert(function);
     assert(check);
 
-    bool success = false;
+    bool is_successful = false;
 
     if(function->type != MCC_AST_FUNCTION_TYPE_VOID){
-        success = recursively_check_nonvoid_property(function->compound_stmt);
+        is_successful = recursively_check_nonvoid_property(function->compound_stmt);
     } else {
-        success = true;
+        is_successful = true;
     }
 
-    if(success == false){
+    if(is_successful == false){
         generate_error_msg_failed_nonvoid_check(function->identifier->identifier_name, function->node, check);
     }
 }
