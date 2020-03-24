@@ -16,7 +16,7 @@ void positive(CuTest *tc)
 {
     // Define test input and create symbol table
     const char input[] = "int main(){int a; a = 2; int b; int c; b = 2; c = a + b; return c;} \
-                         void func1(int a, bool[10] b){a = a + 2; int i; i = 0; b[i] = 0;} \
+                         void func1(int a, bool[10] b){a = a + 2; int i; i = 0; b[i] = true;} \
                          bool func2(){return true;} \
                          int func3(){if(true)if(true){while(false){return 2;}} return 3;} \
                          int func4(){if(true){} return 3;} \
@@ -42,7 +42,7 @@ void positive(CuTest *tc)
     CuAssertPtrEquals(tc,NULL, checks->error_buffer);
 
     CuAssertPtrNotNull(tc, checks);
-    CuAssertPtrNotNull(tc,checks->type_conversion_expression);
+    CuAssertPtrNotNull(tc,checks->type_conversion);
     //CuAssertPtrNotNull(tc,checks->type_conversion_assignment);
     //CuAssertPtrNotNull(tc,checks->array_types);
     //CuAssertPtrNotNull(tc,checks->function_arguments);
@@ -54,7 +54,7 @@ void positive(CuTest *tc)
     CuAssertPtrNotNull(tc,checks->use_undeclared_variable);
     CuAssertPtrNotNull(tc,checks->define_built_in);
 
-    CuAssertIntEquals(tc,checks->type_conversion_expression->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION_EXPRESSION);
+    CuAssertIntEquals(tc,checks->type_conversion->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION);
     //CuAssertIntEquals(tc,checks->type_conversion_assignment->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION_ASSIGNMENT);
     //CuAssertIntEquals(tc,checks->array_types->type,MCC_SEMANTIC_CHECK_TYPE_ARRAY_TYPES);
     //CuAssertIntEquals(tc,checks->function_arguments->type,MCC_SEMANTIC_CHECK_TYPE_FUNCTION_ARGUMENTS);
@@ -66,7 +66,7 @@ void positive(CuTest *tc)
     CuAssertIntEquals(tc,checks->use_undeclared_variable->type,MCC_SEMANTIC_CHECK_USE_UNDECLARED_VARIABLE);
     CuAssertIntEquals(tc,checks->define_built_in->type,MCC_SEMANTIC_CHECK_DEFINE_BUILT_IN);
 
-    CuAssertIntEquals(tc,checks->type_conversion_expression->status,MCC_SEMANTIC_CHECK_OK);
+    CuAssertIntEquals(tc,checks->type_conversion->status,MCC_SEMANTIC_CHECK_OK);
     //CuAssertIntEquals(tc,checks->type_conversion_assignment->status,MCC_SEMANTIC_CHECK_OK);
     //CuAssertIntEquals(tc,checks->array_types->status,MCC_SEMANTIC_CHECK_OK);
     //CuAssertIntEquals(tc,checks->function_arguments->status,MCC_SEMANTIC_CHECK_OK);
@@ -94,12 +94,12 @@ void type_conversion_expression(CuTest *tc)
     parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
     CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
     struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
-    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion_expression((&parser_result)->program,table);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion((&parser_result)->program,table);
 
     CuAssertPtrNotNull(tc, check->error_buffer);
     CuAssertPtrNotNull(tc, check);
     CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
-    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION_EXPRESSION);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION);
 
     // Cleanup
     mcc_ast_delete(parser_result.program);
@@ -116,12 +116,12 @@ void type_conversion_expression2(CuTest *tc)
     parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
     CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
     struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
-    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion_expression((&parser_result)->program,table);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion((&parser_result)->program,table);
 
     CuAssertPtrNotNull(tc, check->error_buffer);
     CuAssertPtrNotNull(tc, check);
     CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
-    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION_EXPRESSION);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION);
 
     // Cleanup
     mcc_ast_delete(parser_result.program);
@@ -138,12 +138,12 @@ void type_conversion_expression3(CuTest *tc)
     parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
     CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
     struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
-    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion_expression((&parser_result)->program,table);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion((&parser_result)->program,table);
 
     CuAssertPtrNotNull(tc, check->error_buffer);
     CuAssertPtrNotNull(tc, check);
     CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
-    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION_EXPRESSION);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION);
 
     // Cleanup
     mcc_ast_delete(parser_result.program);
@@ -160,12 +160,12 @@ void type_conversion_expression4(CuTest *tc)
     parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
     CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
     struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
-    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion_expression((&parser_result)->program,table);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion((&parser_result)->program,table);
 
     CuAssertPtrNotNull(tc, check->error_buffer);
     CuAssertPtrNotNull(tc, check);
     CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
-    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION_EXPRESSION);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION);
 
     // Cleanup
     mcc_ast_delete(parser_result.program);
@@ -182,12 +182,12 @@ void type_conversion_expression5(CuTest *tc)
     parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
     CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
     struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
-    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion_expression((&parser_result)->program,table);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion((&parser_result)->program,table);
 
     CuAssertPtrNotNull(tc, check->error_buffer);
     CuAssertPtrNotNull(tc, check);
     CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
-    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION_EXPRESSION);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION);
 
     // Cleanup
     mcc_ast_delete(parser_result.program);
@@ -204,12 +204,12 @@ void type_conversion_expression6(CuTest *tc)
     parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
     CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
     struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
-    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion_expression((&parser_result)->program,table);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion((&parser_result)->program,table);
 
     CuAssertPtrNotNull(tc, check->error_buffer);
     CuAssertPtrNotNull(tc, check);
     CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
-    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION_EXPRESSION);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION);
 
     // Cleanup
     mcc_ast_delete(parser_result.program);
@@ -226,12 +226,12 @@ void type_conversion_expression7(CuTest *tc)
     parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
     CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
     struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
-    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion_expression((&parser_result)->program,table);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion((&parser_result)->program,table);
 
     CuAssertPtrNotNull(tc, check->error_buffer);
     CuAssertPtrNotNull(tc, check);
     CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
-    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION_EXPRESSION);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION);
 
     // Cleanup
     mcc_ast_delete(parser_result.program);
@@ -248,12 +248,12 @@ void type_conversion_expression8(CuTest *tc)
     parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
     CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
     struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
-    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion_expression((&parser_result)->program,table);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion((&parser_result)->program,table);
 
     CuAssertPtrNotNull(tc, check->error_buffer);
     CuAssertPtrNotNull(tc, check);
     CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
-    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION_EXPRESSION);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION);
 
     // Cleanup
     mcc_ast_delete(parser_result.program);
@@ -270,12 +270,12 @@ void type_conversion_expression9(CuTest *tc)
     parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
     CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
     struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
-    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion_expression((&parser_result)->program,table);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion((&parser_result)->program,table);
 
     CuAssertPtrNotNull(tc, check->error_buffer);
     CuAssertPtrNotNull(tc, check);
     CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
-    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION_EXPRESSION);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION);
 
     // Cleanup
     mcc_ast_delete(parser_result.program);
@@ -292,12 +292,12 @@ void type_conversion_if(CuTest *tc)
     parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
     CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
     struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
-    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion_expression((&parser_result)->program,table);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion((&parser_result)->program,table);
 
     CuAssertPtrNotNull(tc, check->error_buffer);
     CuAssertPtrNotNull(tc, check);
     CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
-    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION_EXPRESSION);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION);
 
     // Cleanup
     mcc_ast_delete(parser_result.program);
@@ -314,12 +314,12 @@ void type_conversion_if_else(CuTest *tc)
     parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
     CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
     struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
-    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion_expression((&parser_result)->program,table);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion((&parser_result)->program,table);
 
     CuAssertPtrNotNull(tc, check->error_buffer);
     CuAssertPtrNotNull(tc, check);
     CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
-    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION_EXPRESSION);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION);
 
     // Cleanup
     mcc_ast_delete(parser_result.program);
@@ -335,12 +335,12 @@ void type_conversion_while(CuTest *tc)
     parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
     CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
     struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
-    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion_expression((&parser_result)->program,table);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion((&parser_result)->program,table);
 
     CuAssertPtrNotNull(tc, check->error_buffer);
     CuAssertPtrNotNull(tc, check);
     CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
-    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION_EXPRESSION);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION);
 
     // Cleanup
     mcc_ast_delete(parser_result.program);
@@ -358,12 +358,12 @@ void type_conversion_assignment(CuTest *tc)
     parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
     CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
     struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
-    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion_assignment((&parser_result)->program,table);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion((&parser_result)->program,table);
 
     CuAssertPtrNotNull(tc, check->error_buffer);
     CuAssertPtrNotNull(tc, check);
     CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
-    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION_ASSIGNMENT);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION);
 
     // Cleanup
     mcc_ast_delete(parser_result.program);
@@ -380,12 +380,56 @@ void type_conversion_assignment2(CuTest *tc)
     parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
     CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
     struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
-    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion_assignment((&parser_result)->program,table);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion((&parser_result)->program,table);
 
     CuAssertPtrNotNull(tc, check->error_buffer);
     CuAssertPtrNotNull(tc, check);
     CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
-    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION_ASSIGNMENT);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION);
+
+    // Cleanup
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+    mcc_semantic_check_delete_single_check(check);
+}
+
+// Using return value as the wrong type
+void type_conversion_assignment3(CuTest *tc)
+{
+    // Define test input and create symbol table
+    const char input[] = "int main(){float a; int b; b = 1; a = b + 2;}";
+    struct mcc_parser_result parser_result;
+    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
+    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion((&parser_result)->program,table);
+
+    CuAssertPtrNotNull(tc, check->error_buffer);
+    CuAssertPtrNotNull(tc, check);
+    CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION);
+
+    // Cleanup
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+    mcc_semantic_check_delete_single_check(check);
+}
+
+// Using return value as the wrong type
+void type_conversion_assignment4(CuTest *tc)
+{
+    // Define test input and create symbol table
+    const char input[] = "int main(){float a; a = 0.5; int[10] b; b[3] = a + 2.5; return 3;}";
+    struct mcc_parser_result parser_result;
+    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
+    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion((&parser_result)->program,table);
+
+    CuAssertPtrNotNull(tc, check->error_buffer);
+    CuAssertPtrNotNull(tc, check);
+    CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION);
 
     // Cleanup
     mcc_ast_delete(parser_result.program);
@@ -942,6 +986,10 @@ void function_arguments2(CuTest *tc)
     TEST(type_conversion_if)              \
     TEST(type_conversion_if_else)         \
     TEST(type_conversion_while)           \
+    TEST(type_conversion_assignment)      \
+    TEST(type_conversion_assignment2)     \
+    TEST(type_conversion_assignment3)     \
+    TEST(type_conversion_assignment4)     \
     TEST(nonvoid_check)                   \
     TEST(nonvoid_check2)                  \
     TEST(nonvoid_check3)                  \
@@ -964,8 +1012,6 @@ void function_arguments2(CuTest *tc)
     TEST(use_undeclared_variable6)        \
     TEST(use_undeclared_variable7)        \
     TEST(define_built_in)
-    //TEST(type_conversion_assignment)    \
-    //TEST(type_conversion_assignment2)   \
     //TEST(funciton_arguments1)           \
     //TEST(function_arguments2)
 #include "main_stub.inc"
