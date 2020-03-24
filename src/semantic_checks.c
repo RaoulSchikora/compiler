@@ -300,7 +300,7 @@ static void generate_error_msg_type_conversion_non_boolean(struct mcc_ast_node n
     }
     int size = 71;
     char* error_msg = (char *)malloc( sizeof(char) * size);
-    snprintf(error_msg, size, "using non-boolean variable or expression with logical connective");
+    snprintf(error_msg, size, "using non-boolean variable or expression with logical connective.");
     write_error_message_to_check(check, node, error_msg);
     check->status = MCC_SEMANTIC_CHECK_FAIL;
     free(error_msg);
@@ -308,14 +308,14 @@ static void generate_error_msg_type_conversion_non_boolean(struct mcc_ast_node n
 
 // generate error msg for using binary operations on strings or whole arrays
 static void generate_error_msg_type_conversion_invalid_operands(struct mcc_ast_node node,
-                                                                 struct mcc_semantic_check *check)
+                                                                struct mcc_semantic_check *check)
 {
     if(check->error_buffer){
         return;
     }
     int size = 45;
     char* error_msg = (char *)malloc( sizeof(char) * size);
-    snprintf(error_msg, size, "invalid operands to binary operation");
+    snprintf(error_msg, size, "invalid operands to binary operation.");
     write_error_message_to_check(check, node, error_msg);
     check->status = MCC_SEMANTIC_CHECK_FAIL;
     free(error_msg);
@@ -330,7 +330,7 @@ static void generate_error_msg_type_conversion_invalid_operand(struct mcc_ast_no
     }
     int size = 45;
     char* error_msg = (char *)malloc( sizeof(char) * size);
-    snprintf(error_msg, size, "invalid operand to unary operation");
+    snprintf(error_msg, size, "invalid operand to unary operation.");
     write_error_message_to_check(check, node, error_msg);
     check->status = MCC_SEMANTIC_CHECK_FAIL;
     free(error_msg);
@@ -396,7 +396,7 @@ static enum mcc_semantic_check_expression_type get_type(struct mcc_ast_expressio
     }
 
     if((lhs == rhs) && (lhs != MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_UNKNOWN)
-                    && (rhs != MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_UNKNOWN)){
+                    && (rhs != MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_UNKNOWN)){ // only necessary for binary op
         return lhs;
     } else {
         return MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_UNKNOWN;
@@ -563,7 +563,72 @@ static void cb_type_conversion_expression_unary_op(struct mcc_ast_expression *ex
     }
 }
 
-// Setup an AST Visitor for checking types within expressions.
+static void generate_error_msg_type_conversion_statement_if(struct mcc_ast_node node, struct mcc_semantic_check *check)
+{
+    if(check->error_buffer){
+        return;
+    }
+    int size = 60;
+    char* error_msg = (char *)malloc( sizeof(char) * size);
+    snprintf(error_msg, size, "condition of if statement expected to be of type 'bool'.");
+    write_error_message_to_check(check, node, error_msg);
+    check->status = MCC_SEMANTIC_CHECK_FAIL;
+    free(error_msg);
+}
+
+static void generate_error_msg_type_conversion_statement_while(struct mcc_ast_node node, struct mcc_semantic_check *check)
+{
+    if(check->error_buffer){
+        return;
+    }
+    int size = 65;
+    char* error_msg = (char *)malloc( sizeof(char) * size);
+    snprintf(error_msg, size, "condition of while loop expected to be of type 'bool'.");
+    write_error_message_to_check(check, node, error_msg);
+    check->status = MCC_SEMANTIC_CHECK_FAIL;
+    free(error_msg);
+}
+
+// callback for checking if the condition in an if statement is of type bool
+static void cb_type_conversion_statement_if_stmt(struct mcc_ast_statement *statement, void *data)
+{
+    assert(statement);
+    assert(data);
+
+    struct mcc_semantic_check *check = data;
+
+    if(get_type(statement->if_condition) != MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_BOOL){
+        generate_error_msg_type_conversion_statement_if(statement->if_condition->node, check);
+    }
+}
+
+// callback for checking if the condition in an if_else statement is of type bool
+static void cb_type_conversion_statement_if_else_stmt(struct mcc_ast_statement *statement, void *data)
+{
+    assert(statement);
+    assert(data);
+
+    struct mcc_semantic_check *check = data;
+
+    if(get_type(statement->if_else_condition) != MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_BOOL){
+        generate_error_msg_type_conversion_statement_if(statement->if_else_condition->node, check);
+    }
+}
+
+// callback for checking if the condition in a while loop is of type bool
+static void cb_type_conversion_statement_while(struct mcc_ast_statement *statement, void *data)
+{
+    assert(statement);
+    assert(data);
+
+    struct mcc_semantic_check *check = data;
+
+    if(get_type(statement->while_condition) != MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_BOOL){
+        generate_error_msg_type_conversion_statement_while(statement->while_condition->node, check);
+    }
+}
+
+// Setup an AST Visitor for checking types within expressions and if conditions are of type bool
 static struct mcc_ast_visitor type_conversion_expression_visitor(struct mcc_semantic_check *check)
 {
 
@@ -575,9 +640,13 @@ static struct mcc_ast_visitor type_conversion_expression_visitor(struct mcc_sema
 
             .expression_binary_op = cb_type_conversion_expression_binary_op,
             .expression_unary_op = cb_type_conversion_expression_unary_op,
+            .statement_if_stmt = cb_type_conversion_statement_if_stmt,
+            .statement_if_else_stmt = cb_type_conversion_statement_if_else_stmt,
+            .statement_while = cb_type_conversion_statement_while,
     };
 }
 
+// check for type conversion in expressions and if expressions used as conditions are of type bool
 struct mcc_semantic_check* mcc_semantic_check_run_type_conversion_expression(struct mcc_ast_program* ast,
                                                                              struct mcc_symbol_table* symbol_table){
     UNUSED(symbol_table);
