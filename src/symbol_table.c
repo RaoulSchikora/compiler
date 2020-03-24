@@ -10,6 +10,24 @@
 static void create_rows_statement(struct mcc_ast_statement *statement, struct mcc_symbol_table_scope *scope);
 static void link_pointer_expression(struct mcc_ast_expression *expression, struct mcc_symbol_table_scope *scope);
 
+// ------------------------------------------------------- converting enum types
+
+static enum mcc_symbol_table_row_type convert_enum(enum mcc_ast_types type)
+{
+    switch(type){
+    case INT:
+        return MCC_SYMBOL_TABLE_ROW_TYPE_INT;
+    case FLOAT:
+        return MCC_SYMBOL_TABLE_ROW_TYPE_FLOAT;
+    case BOOL:
+        return MCC_SYMBOL_TABLE_ROW_TYPE_BOOL;
+    case STRING:
+        return MCC_SYMBOL_TABLE_ROW_TYPE_STRING;
+    }
+
+    return MCC_SYMBOL_TABLE_ROW_TYPE_PSEUDO;
+}
+
 // ------------------------------------------------------- Symbol Table row
 
 struct mcc_symbol_table_row *mcc_symbol_table_new_row_variable(char *name,
@@ -289,16 +307,16 @@ static void create_row_declaration(struct mcc_ast_declaration *declaration, stru
 
     switch (declaration->declaration_type){
     case MCC_AST_DECLARATION_TYPE_VARIABLE:
-        // TODO enum-test for equality
         row = mcc_symbol_table_new_row_variable(declaration->variable_identifier->identifier_name,
-                declaration->variable_type->type_value, &(declaration->node));
+                                                convert_enum(declaration->variable_type->type_value),
+                                                &(declaration->node));
         mcc_symbol_table_scope_append_row(scope, row);
         break;
     case MCC_AST_DECLARATION_TYPE_ARRAY:
         row = mcc_symbol_table_new_row_array(declaration->array_identifier->identifier_name,
-                declaration->array_size->i_value,
-                declaration->array_type->type_value,
-                &(declaration->node));
+                                             declaration->array_size->i_value,
+                                             convert_enum(declaration->array_type->type_value),
+                                             &(declaration->node));
         mcc_symbol_table_scope_append_row(scope, row);
         break;
     }
@@ -514,7 +532,8 @@ static void create_row_function_definition(struct mcc_ast_function_definition *f
     switch(function_definition->type){
         case MCC_AST_FUNCTION_TYPE_INT:
             row = mcc_symbol_table_new_row_function(function_definition->identifier->identifier_name,
-                    MCC_SYMBOL_TABLE_ROW_TYPE_INT, &(function_definition->node));
+                                                    MCC_SYMBOL_TABLE_ROW_TYPE_INT,
+                                                    &(function_definition->node));
             break;
         case MCC_AST_FUNCTION_TYPE_FLOAT:
             row = mcc_symbol_table_new_row_function(function_definition->identifier->identifier_name,
@@ -655,17 +674,17 @@ static void add_built_in_function_definitions(struct mcc_symbol_table *table)
 
     // print (string)
     struct mcc_symbol_table_row *row_print_params;
-    row_print_params = mcc_symbol_table_new_row_variable("a",STRING, NULL);
+    row_print_params = mcc_symbol_table_new_row_variable("a",MCC_SYMBOL_TABLE_ROW_TYPE_STRING, NULL);
     mcc_symbol_table_scope_append_row(child_scope_print, row_print_params);
 
     // print_int(int)
     struct mcc_symbol_table_row *row_print_int_params;
-    row_print_int_params = mcc_symbol_table_new_row_variable("a",INT, NULL);
+    row_print_int_params = mcc_symbol_table_new_row_variable("a",MCC_SYMBOL_TABLE_ROW_TYPE_INT, NULL);
     mcc_symbol_table_scope_append_row(child_scope_print_int, row_print_int_params);
 
     // print_float(float)
     struct mcc_symbol_table_row *row_print_float_params;
-    row_print_float_params = mcc_symbol_table_new_row_variable("a",FLOAT, NULL);
+    row_print_float_params = mcc_symbol_table_new_row_variable("a",MCC_SYMBOL_TABLE_ROW_TYPE_FLOAT, NULL);
     mcc_symbol_table_scope_append_row(child_scope_print_float, row_print_float_params);
 
 

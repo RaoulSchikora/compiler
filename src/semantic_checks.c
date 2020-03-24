@@ -16,6 +16,43 @@
 
 static bool recursively_check_nonvoid_property(struct mcc_ast_compound_statement *compound_statement);
 
+// ------------------------------------------------------------- Convert enum types
+
+static enum mcc_semantic_check_expression_type convert_enum_symbol_table(enum mcc_symbol_table_row_type type)
+{
+    switch(type){
+    case MCC_SYMBOL_TABLE_ROW_TYPE_INT:
+        return MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_INT;
+    case MCC_SYMBOL_TABLE_ROW_TYPE_FLOAT:
+        return MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_FLOAT;
+    case MCC_SYMBOL_TABLE_ROW_TYPE_BOOL:
+        return MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_BOOL;
+    case MCC_SYMBOL_TABLE_ROW_TYPE_STRING:
+        return MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_STRING;
+    case MCC_SYMBOL_TABLE_ROW_TYPE_VOID:
+        return MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_VOID;
+    case MCC_SYMBOL_TABLE_ROW_TYPE_PSEUDO:
+        return MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_UNKNOWN;
+    }
+    return MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_UNKNOWN;
+}
+
+static enum mcc_semantic_check_expression_type convert_enum_ast_literal(enum mcc_ast_literal_type type)
+{
+    switch(type){
+    case MCC_AST_LITERAL_TYPE_INT:
+        return MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_INT;
+    case MCC_AST_LITERAL_TYPE_FLOAT:
+        return MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_FLOAT;
+    case MCC_AST_LITERAL_TYPE_BOOL:
+        return MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_BOOL;
+    case MCC_AST_LITERAL_TYPE_STRING:
+        return MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_STRING;
+    }
+
+    return MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_UNKNOWN;
+}
+
 // ------------------------------------------------------------- Functions: Running all semantic checks
 
 // Write error message into existing mcc_semantic_check struct
@@ -284,7 +321,7 @@ static void generate_error_msg_type_conversion_invalid_operand(struct mcc_ast_no
 
 // look up the type of the expression in the symbol table, only possible if expression is of type variable, array
 // element or function call
-static int look_up_type_in_symbol_table(struct mcc_ast_expression *expression)
+static enum mcc_semantic_check_expression_type look_up_type_in_symbol_table(struct mcc_ast_expression *expression)
 {
     assert((expression->type == MCC_AST_EXPRESSION_TYPE_VARIABLE) ||
     (expression->type == MCC_AST_EXPRESSION_TYPE_ARRAY_ELEMENT) ||
@@ -302,28 +339,29 @@ static int look_up_type_in_symbol_table(struct mcc_ast_expression *expression)
         row = mcc_symbol_table_check_for_function_declaration(expression->function_identifier->identifier_name,
                                                               expression->function_row);
     } else {
-        return -1;
+        return MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_UNKNOWN;
     }
 
     if(row){
-        return row->row_type;
+        return convert_enum_symbol_table(row->row_type);
     } else {
-        return -1;
+        return MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_UNKNOWN;
     }
 
 }
 
-// recursively generate type of expression, returns -1 if not of valid type, i.e. subexpressions are not compatible
-static int get_type(struct mcc_ast_expression *expression)
+// recursively generate type of expression, returns _TYPE_UNKNOWN if not of valid type, i.e. subexpressions are not
+// compatible
+static enum mcc_semantic_check_expression_type get_type(struct mcc_ast_expression *expression)
 {
     assert(expression);
 
-    int lhs = -1; // only used for binary op
-    int rhs = -1; // only used for binary op
+    enum mcc_semantic_check_expression_type lhs = MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_UNKNOWN; // only used for binary op
+    enum mcc_semantic_check_expression_type rhs = MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_UNKNOWN; // only used for binary op
 
     switch(expression->type){
     case MCC_AST_EXPRESSION_TYPE_LITERAL:
-        return expression->literal->type;
+        return convert_enum_ast_literal(expression->literal->type);
     case MCC_AST_EXPRESSION_TYPE_BINARY_OP:
         lhs = get_type(expression->lhs);
         rhs = get_type(expression->rhs);
@@ -340,10 +378,11 @@ static int get_type(struct mcc_ast_expression *expression)
         return look_up_type_in_symbol_table(expression);
     }
 
-    if((lhs == rhs) && (lhs != -1) && (rhs != -1)){
+    if((lhs == rhs) && (lhs != MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_UNKNOWN)
+                    && (rhs != MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_UNKNOWN)){
         return lhs;
     } else {
-        return -1;
+        return MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_UNKNOWN;
     }
 }
 
@@ -352,9 +391,9 @@ static bool is_bool(struct mcc_ast_expression *expression)
 {
     assert(expression);
 
-    int type = get_type(expression);
+    enum mcc_semantic_check_expression_type type = get_type(expression);
 
-    return (type == MCC_AST_LITERAL_TYPE_BOOL);
+    return (type == MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_BOOL);
 }
 
 // check if given expression is variable of type string
@@ -362,7 +401,8 @@ static bool is_string(struct mcc_ast_expression *expression)
 {
     assert(expression);
 
-    if((expression->type == MCC_AST_EXPRESSION_TYPE_VARIABLE) && (get_type(expression) == MCC_AST_LITERAL_TYPE_STRING)){
+    if((expression->type == MCC_AST_EXPRESSION_TYPE_VARIABLE)
+            && (get_type(expression) == MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_STRING)){
         return true;
     } else {
         return false;
@@ -392,10 +432,11 @@ static bool is_of_same_type(struct mcc_ast_expression *expression1, struct mcc_a
     assert(expression1);
     assert(expression2);
 
-    int type_expr1 = get_type(expression1);
-    int type_expr2 = get_type(expression2);
+    enum mcc_semantic_check_expression_type type_expr1 = get_type(expression1);
+    enum mcc_semantic_check_expression_type type_expr2 = get_type(expression2);
 
-    if((type_expr1 == -1) || (type_expr2 == -1)){
+    if((type_expr1 == MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_UNKNOWN)
+            || (type_expr2 == MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_UNKNOWN)){
         return false;
     }
     return (type_expr1 == type_expr2);
@@ -523,7 +564,6 @@ static struct mcc_ast_visitor type_conversion_expression_visitor(struct mcc_sema
 struct mcc_semantic_check* mcc_semantic_check_run_type_conversion_expression(struct mcc_ast_program* ast,
                                                                              struct mcc_symbol_table* symbol_table){
     UNUSED(symbol_table);
-    UNUSED(ast);
 
     struct mcc_semantic_check *check = malloc(sizeof(*check));
     if (!check){

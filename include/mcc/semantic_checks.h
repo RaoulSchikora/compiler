@@ -17,6 +17,15 @@ enum mcc_semantic_check_status{
     MCC_SEMANTIC_CHECK_FAIL,
 };
 
+enum mcc_semantic_check_expression_type{
+    MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_INT,
+    MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_FLOAT,
+    MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_BOOL,
+    MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_STRING,
+    MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_VOID,
+    MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_UNKNOWN,
+};
+
 // ------------------------------------------------------------ Data structure: A suite of semantic checks
 
 struct mcc_semantic_check_all_checks{
