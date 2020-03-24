@@ -40,22 +40,6 @@ struct mcc_semantic_check_all_checks* mcc_semantic_check_run_all(struct mcc_ast_
     checks->status = MCC_SEMANTIC_CHECK_OK;
     checks->error_buffer = NULL;
 
-    // No type conversion
-    /*checks->type_conversion = mcc_semantic_check_run_type_conversion(ast, symbol_table);
-    if(checks->type_conversion == NULL){
-        checks->status = MCC_SEMANTIC_CHECK_FAIL;
-        if(checks->error_buffer == NULL){
-            write_error_message_to_all_checks(checks,"mcc_semantic_check_run_type_conversion returned NULL pointer.");
-        }
-    } else {
-        if(checks->type_conversion->status != MCC_SEMANTIC_CHECK_OK){
-            checks->status = MCC_SEMANTIC_CHECK_FAIL;
-            if(checks->error_buffer == NULL){
-                write_error_message_to_all_checks(checks,checks->type_conversion->error_buffer);
-            }
-        }
-    }*/
-
     // No invalid array operation
     /*checks->array_types = mcc_semantic_check_run_array_types(ast, symbol_table);
     if(checks->array_types == NULL){
@@ -204,6 +188,22 @@ struct mcc_semantic_check_all_checks* mcc_semantic_check_run_all(struct mcc_ast_
         }
     }
 
+    // No type conversion
+    checks->type_conversion_expression = mcc_semantic_check_run_type_conversion_expression(ast, symbol_table);
+    if(checks->type_conversion_expression == NULL){
+        checks->status = MCC_SEMANTIC_CHECK_FAIL;
+        if(checks->error_buffer == NULL){
+            write_error_message_to_all_checks(checks,"mcc_semantic_check_run_type_conversion returned NULL pointer.");
+        }
+    } else {
+        if(checks->type_conversion_expression->status != MCC_SEMANTIC_CHECK_OK){
+            checks->status = MCC_SEMANTIC_CHECK_FAIL;
+            if(checks->error_buffer == NULL){
+                write_error_message_to_all_checks(checks,checks->type_conversion_expression->error_buffer);
+            }
+        }
+    }
+
     return checks;
 }
 
@@ -224,6 +224,227 @@ static void write_error_message_to_check(struct mcc_semantic_check* check, struc
 
 // ------------------------------------------------------------- No Type conversions in expressions
 
+// generate error msg for type conversion in exoression
+static void generate_error_msg_type_conversion_expression(const char *name,
+                                                    struct mcc_ast_node node,
+                                                    struct mcc_semantic_check *check)
+{
+    if(check->error_buffer){
+        return;
+    }
+    int size = 30 + strlen(name);
+    char* error_msg = (char *)malloc( sizeof(char) * size);
+    // TODO meaningful error msg
+    snprintf(error_msg, size, "type conversion not '%s'.", name);
+    write_error_message_to_check(check, node, error_msg);
+    check->status = MCC_SEMANTIC_CHECK_FAIL;
+    free(error_msg);
+}
+
+// look up the type of the expression in the symbol table, only possible if expression is of type variable, array
+// element or function call
+static int look_up_type_in_symbol_table(struct mcc_ast_expression *expression)
+{
+    assert((expression->type == MCC_AST_EXPRESSION_TYPE_VARIABLE) ||
+    (expression->type == MCC_AST_EXPRESSION_TYPE_ARRAY_ELEMENT) ||
+    (expression->type == MCC_AST_EXPRESSION_TYPE_FUNCTION_CALL));
+
+    struct mcc_symbol_table_row *row;
+
+    if(expression->type == MCC_AST_EXPRESSION_TYPE_VARIABLE) {
+        row = mcc_symbol_table_check_upwards_for_declaration(expression->identifier->identifier_name,
+                expression->variable_row);
+    } else if(expression->type == MCC_AST_EXPRESSION_TYPE_ARRAY_ELEMENT){
+        row = mcc_symbol_table_check_upwards_for_declaration(expression->array_identifier->identifier_name,
+                                                             expression->array_row);
+    } else if(expression->type == MCC_AST_EXPRESSION_TYPE_FUNCTION_CALL){
+        row = mcc_symbol_table_check_for_function_declaration(expression->function_identifier->identifier_name,
+                                                              expression->function_row);
+    } else {
+        return -1;
+    }
+
+    if(row){
+        return row->row_type;
+    } else {
+        return -1;
+    }
+
+}
+
+// recursively generate type of expression, returns -1 if not of valid type, i.e. subexpressions are not compatible
+static int get_type(struct mcc_ast_expression *expression)
+{
+    assert(expression);
+
+    int lhs = -1; // only used for binary op
+    int rhs = -1; // only used for binary op
+
+    switch(expression->type){
+    case MCC_AST_EXPRESSION_TYPE_LITERAL:
+        return expression->literal->type;
+    case MCC_AST_EXPRESSION_TYPE_BINARY_OP:
+        lhs = get_type(expression->lhs);
+        rhs = get_type(expression->rhs);
+        break;
+    case MCC_AST_EXPRESSION_TYPE_PARENTH:
+        return get_type(expression->expression);
+    case MCC_AST_EXPRESSION_TYPE_UNARY_OP:
+        return get_type(expression->child);
+    case MCC_AST_EXPRESSION_TYPE_VARIABLE:
+        return look_up_type_in_symbol_table(expression);
+    case MCC_AST_EXPRESSION_TYPE_ARRAY_ELEMENT:
+        return look_up_type_in_symbol_table(expression);
+    case MCC_AST_EXPRESSION_TYPE_FUNCTION_CALL:
+        return look_up_type_in_symbol_table(expression);
+    }
+
+    if((lhs == rhs) && (lhs != -1) && (rhs != -1)){
+        return lhs;
+    } else {
+        return -1;
+    }
+}
+
+// check if given expression is of type bool
+static bool is_bool(struct mcc_ast_expression *expression)
+{
+    assert(expression);
+
+    int type = get_type(expression);
+
+    return (type == MCC_AST_LITERAL_TYPE_BOOL);
+}
+
+// check if given expressions are of same type
+static bool is_of_same_type(struct mcc_ast_expression *expression1, struct mcc_ast_expression *expression2)
+{
+    assert(expression1);
+    assert(expression2);
+
+    int type_expr1 = get_type(expression1);
+    int type_expr2 = get_type(expression2);
+
+    if((type_expr1 == -1) || (type_expr2 == -1)){
+        return false;
+    }
+    return (type_expr1 == type_expr2);
+}
+
+// callback for checking implicit type conversions in binary operation expressions, since we visit post order the
+// innermost expression is visited first
+static void cb_type_conversion_expression_binary_op(struct mcc_ast_expression *expression, void *data)
+{
+    assert(expression);
+    assert(data);
+
+    struct mcc_semantic_check *check = data;
+    struct mcc_ast_expression *lhs = expression->lhs;
+    struct mcc_ast_expression *rhs = expression->rhs;
+
+    // TODO no operations on strings are supported
+    // TODO no operations on whole arrays are supported
+
+    bool permitted_op = true;
+
+    switch(expression->op){
+    case MCC_AST_BINARY_OP_ADD:
+        permitted_op = is_of_same_type(lhs, rhs) && !is_bool(lhs) && !is_bool(rhs);
+        break;
+    case MCC_AST_BINARY_OP_SUB:
+        permitted_op = is_of_same_type(lhs, rhs) && !is_bool(lhs) && !is_bool(rhs);
+        break;
+    case MCC_AST_BINARY_OP_MUL:
+        permitted_op = is_of_same_type(lhs, rhs) && !is_bool(lhs) && !is_bool(rhs);
+        break;
+    case MCC_AST_BINARY_OP_DIV:
+        permitted_op = is_of_same_type(lhs, rhs) && !is_bool(lhs) && !is_bool(rhs);
+        break;
+    case MCC_AST_BINARY_OP_SMALLER:
+        permitted_op = is_of_same_type(lhs, rhs) && !is_bool(lhs) && !is_bool(rhs);
+        break;
+    case MCC_AST_BINARY_OP_GREATER:
+        permitted_op = is_of_same_type(lhs, rhs) && !is_bool(lhs) && !is_bool(rhs);
+        break;
+    case MCC_AST_BINARY_OP_SMALLEREQ:
+        permitted_op = is_of_same_type(lhs, rhs) && !is_bool(lhs) && !is_bool(rhs);
+        break;
+    case MCC_AST_BINARY_OP_GREATEREQ:
+        permitted_op = is_of_same_type(lhs, rhs) && !is_bool(lhs) && !is_bool(rhs);
+        break;
+    case MCC_AST_BINARY_OP_CONJ:
+        permitted_op = is_bool(lhs) && is_bool(rhs); // Conjunction can only be used with bool
+        break;
+    case MCC_AST_BINARY_OP_DISJ:
+        permitted_op = is_bool(lhs) && is_bool(rhs); // Disjunction can only be used with bool
+        break;
+    case MCC_AST_BINARY_OP_EQUAL:
+        permitted_op = is_of_same_type(lhs, rhs);
+        break;
+    case MCC_AST_BINARY_OP_NOTEQUAL:
+        permitted_op = is_of_same_type(lhs, rhs);
+        break;
+    }
+
+    // since we visit post order the innermost expression is visited first
+    if(!permitted_op){
+        // TODO change error msg to sth meaningful
+        generate_error_msg_type_conversion_expression("to be changed to sth meaningful", expression->node, check);
+    }
+}
+
+// callback for checking implicit type conversions in unary operation expressions, since we visit post order the
+// innermost expression is visited first
+static void cb_type_conversion_expression_unary_op(struct mcc_ast_expression *expression, void *data)
+{
+    assert(expression);
+    assert(data);
+
+    struct mcc_semantic_check *check = data;
+    struct mcc_ast_expression *child = expression->child;
+
+    // TODO no operations on strings are supported
+    // TODO no operations on whole arrays are supported
+
+    bool permitted_op = true;
+
+    switch(expression->u_op){
+    case MCC_AST_UNARY_OP_NEGATIV:
+        permitted_op = !is_bool(child);
+        break;
+    case MCC_AST_UNARY_OP_NOT:
+        permitted_op = is_bool(child);
+        break;
+    }
+
+    // since we visit post order the innermost expression is visited first
+    if(!permitted_op){
+        // TODO change error msg to sth meaningful
+        generate_error_msg_type_conversion_expression("to be changed to sth meaningful", expression->node, check);
+    }
+}
+
+// Setup an AST Visitor for checking types within expressions.
+static struct mcc_ast_visitor type_conversion_expression_visitor(struct mcc_semantic_check *check)
+{
+
+    return (struct mcc_ast_visitor){
+            .traversal = MCC_AST_VISIT_DEPTH_FIRST,
+            .order = MCC_AST_VISIT_POST_ORDER,
+
+            .userdata = check,
+
+            .expression_binary_op = cb_type_conversion_expression_binary_op,
+            .expression_unary_op = cb_type_conversion_expression_unary_op,
+            /*mcc_ast_visit_expression_cb expression;
+            mcc_ast_visit_expression_cb expression_literal;
+            mcc_ast_visit_expression_cb expression_parenth;
+            mcc_ast_visit_expression_cb expression_variable;
+            mcc_ast_visit_expression_cb expression_array_element;
+            mcc_ast_visit_expression_cb expression_function_call;*/
+    };
+}
+
 struct mcc_semantic_check* mcc_semantic_check_run_type_conversion_expression(struct mcc_ast_program* ast,
                                                                              struct mcc_symbol_table* symbol_table){
     UNUSED(symbol_table);
@@ -238,6 +459,8 @@ struct mcc_semantic_check* mcc_semantic_check_run_type_conversion_expression(str
     check->type = MCC_SEMANTIC_CHECK_TYPE_CONVERSION_EXPRESSION;
     check->error_buffer = NULL;
 
+    struct mcc_ast_visitor visitor = type_conversion_expression_visitor(check);
+    mcc_ast_visit(ast, &visitor);
     return check;
 }
 
@@ -359,9 +582,6 @@ static void run_nonvoid_check(struct mcc_ast_function_definition *function, stru
     }
 
     if(success == false){
-        //TODO write error msg:
-        // 1. no return statement in function returning non-void
-        // 2. control reaches end of non-void function
         generate_error_msg_failed_nonvoid_check(function->identifier->identifier_name, function->node, check);
     }
 }
@@ -458,7 +678,7 @@ static void generate_error_msg_unknown_function_call(const char* name,
     free(error_msg);
 }
 
-// callback for expression of variable type concerning the check of undeclared variables
+// callback for check of call to unknown function
 static void cb_unknown_function_call(struct mcc_ast_expression *expression, void *data)
 {
     assert(expression);
@@ -468,14 +688,14 @@ static void cb_unknown_function_call(struct mcc_ast_expression *expression, void
     struct mcc_symbol_table_row *row = expression->function_row;
     char* name = expression->function_identifier->identifier_name;
 
-    struct mcc_symbol_table_row *upward_declaration = mcc_symbol_table_check_upwards_for_declaration(name, row);
+    struct mcc_symbol_table_row *function_declaration = mcc_symbol_table_check_for_function_declaration(name, row);
 
-    if(!upward_declaration){
+    if(!function_declaration){
         generate_error_msg_unknown_function_call(name, expression->node, check);
     }
 }
 
-// Setup an AST Visitor for checking undeclared variables.
+// Setup an AST Visitor for checking calls to unknown functions.
 static struct mcc_ast_visitor unknown_function_call_visitor(struct mcc_semantic_check *check)
 {
 
@@ -877,10 +1097,6 @@ void mcc_semantic_check_delete_all_checks(struct mcc_semantic_check_all_checks *
     /*if (checks->error_buffer != NULL){
         free(checks->error_buffer);
     }*/
-    /*if (checks->type_check != NULL)
-    {
-        mcc_semantic_check_delete_single_check(checks->type_check);
-    }*/
     if (checks->nonvoid_check != NULL)
     {
         mcc_semantic_check_delete_single_check(checks->nonvoid_check);
@@ -911,6 +1127,10 @@ void mcc_semantic_check_delete_all_checks(struct mcc_semantic_check_all_checks *
     }
     if (checks->error_buffer != NULL){
         free(checks->error_buffer);
+    }
+    if (checks->type_conversion_expression != NULL)
+    {
+        mcc_semantic_check_delete_single_check(checks->type_conversion_expression);
     }
     free(checks);
     return;

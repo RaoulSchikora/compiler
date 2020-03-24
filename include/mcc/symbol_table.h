@@ -101,8 +101,10 @@ void mcc_symbol_table_delete_table(struct mcc_symbol_table *table);
 
 // --------------------------------------------------------------- Functions: traversing AST and create symbol table
 
-struct mcc_symbol_table_row *mcc_symbol_table_check_upwards_for_declaration(char *name,
+struct mcc_symbol_table_row *mcc_symbol_table_check_upwards_for_declaration(const char *name,
                                                                             struct mcc_symbol_table_row *row);
+struct mcc_symbol_table_row *mcc_symbol_table_check_for_function_declaration(const char *name,
+                                                                             struct mcc_symbol_table_row *row);
 struct mcc_symbol_table *mcc_symbol_table_create(struct mcc_ast_program *program);
 
 #endif //MCC_SYMBOL_TABLE_H

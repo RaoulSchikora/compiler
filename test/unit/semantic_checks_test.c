@@ -22,7 +22,8 @@ void positive(CuTest *tc)
                          int func4(){if(true){} return 3;} \
                          bool func5(){bool a; a = true; return !a;} \
                          float func6(){float a; a = 2.3; return -a;} \
-                         bool func7(){bool a; bool b; a = true; b = false; return a && b;}";
+                         bool func7(){bool a; bool b; a = true; b = false; return a && b;} \
+                         int func8(){int[42] a; int b; a[10] = 10; return a[10] + func3();}";
     struct mcc_parser_result parser_result;
     parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
     CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
@@ -41,7 +42,7 @@ void positive(CuTest *tc)
     CuAssertPtrEquals(tc,NULL, checks->error_buffer);
 
     CuAssertPtrNotNull(tc, checks);
-    //CuAssertPtrNotNull(tc,checks->type_conversion_expression);
+    CuAssertPtrNotNull(tc,checks->type_conversion_expression);
     //CuAssertPtrNotNull(tc,checks->type_conversion_assignment);
     //CuAssertPtrNotNull(tc,checks->array_types);
     //CuAssertPtrNotNull(tc,checks->function_arguments);
@@ -53,7 +54,7 @@ void positive(CuTest *tc)
     CuAssertPtrNotNull(tc,checks->use_undeclared_variable);
     CuAssertPtrNotNull(tc,checks->define_built_in);
 
-    //CuAssertIntEquals(tc,checks->type_conversion_expression->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION_EXPRESSION);
+    CuAssertIntEquals(tc,checks->type_conversion_expression->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION_EXPRESSION);
     //CuAssertIntEquals(tc,checks->type_conversion_assignment->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION_ASSIGNMENT);
     //CuAssertIntEquals(tc,checks->array_types->type,MCC_SEMANTIC_CHECK_TYPE_ARRAY_TYPES);
     //CuAssertIntEquals(tc,checks->function_arguments->type,MCC_SEMANTIC_CHECK_TYPE_FUNCTION_ARGUMENTS);
@@ -65,7 +66,7 @@ void positive(CuTest *tc)
     CuAssertIntEquals(tc,checks->use_undeclared_variable->type,MCC_SEMANTIC_CHECK_USE_UNDECLARED_VARIABLE);
     CuAssertIntEquals(tc,checks->define_built_in->type,MCC_SEMANTIC_CHECK_DEFINE_BUILT_IN);
 
-    //CuAssertIntEquals(tc,checks->type_conversion_expression->status,MCC_SEMANTIC_CHECK_OK);
+    CuAssertIntEquals(tc,checks->type_conversion_expression->status,MCC_SEMANTIC_CHECK_OK);
     //CuAssertIntEquals(tc,checks->type_conversion_assignment->status,MCC_SEMANTIC_CHECK_OK);
     //CuAssertIntEquals(tc,checks->array_types->status,MCC_SEMANTIC_CHECK_OK);
     //CuAssertIntEquals(tc,checks->function_arguments->status,MCC_SEMANTIC_CHECK_OK);
@@ -176,7 +177,7 @@ void type_conversion_expression4(CuTest *tc)
 void type_conversion_expression5(CuTest *tc)
 {
     // Define test input and create symbol table
-    const char input[] = "int main(){bool a; bool b; a = !b;}";
+    const char input[] = "int main(){int a; int b; a = !b;}";
     struct mcc_parser_result parser_result;
     parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
     CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
@@ -199,6 +200,50 @@ void type_conversion_expression6(CuTest *tc)
 {
     // Define test input and create symbol table
     const char input[] = "int main(){bool a; bool b; a = -b;}";
+    struct mcc_parser_result parser_result;
+    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
+    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion_expression((&parser_result)->program,table);
+
+    CuAssertPtrNotNull(tc, check->error_buffer);
+    CuAssertPtrNotNull(tc, check);
+    CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION_EXPRESSION);
+
+    // Cleanup
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+    mcc_semantic_check_delete_single_check(check);
+}
+
+// no operations on strings are supported
+void type_conversion_expression7(CuTest *tc)
+{
+    // Define test input and create symbol table
+    const char input[] = "void test(){string a; string b; b = a + b;}";
+    struct mcc_parser_result parser_result;
+    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
+    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion_expression((&parser_result)->program,table);
+
+    CuAssertPtrNotNull(tc, check->error_buffer);
+    CuAssertPtrNotNull(tc, check);
+    CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION_EXPRESSION);
+
+    // Cleanup
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+    mcc_semantic_check_delete_single_check(check);
+}
+
+// no operations on whole array are supported
+void type_conversion_expression8(CuTest *tc)
+{
+    // Define test input and create symbol table
+    const char input[] = "void test(){int[42] array1; int[42] array2; array1 = array1 + array2;}";
     struct mcc_parser_result parser_result;
     parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
     CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
@@ -797,6 +842,12 @@ void function_arguments2(CuTest *tc)
 
 #define TESTS \
     TEST(positive)                        \
+    TEST(type_conversion_expression)      \
+    TEST(type_conversion_expression2)     \
+    TEST(type_conversion_expression3)     \
+    TEST(type_conversion_expression4)     \
+    TEST(type_conversion_expression5)     \
+    TEST(type_conversion_expression6)     \
     TEST(nonvoid_check)                   \
     TEST(nonvoid_check2)                  \
     TEST(nonvoid_check3)                  \
@@ -819,17 +870,11 @@ void function_arguments2(CuTest *tc)
     TEST(use_undeclared_variable6)        \
     TEST(use_undeclared_variable7)        \
     TEST(define_built_in)
-    //TEST(type_conversion_expression)      \
-    TEST(type_conversion_expression2)     \
-    TEST(type_conversion_expression3)     \
-    TEST(type_conversion_expression4)     \
-    TEST(type_conversion_expression5)     \
-    TEST(type_conversion_expression6)     \
     //TEST(type_conversion_assignment)    \
     //TEST(type_conversion_assignment2)   \
     //TEST(funciton_arguments1)           \
     //TEST(function_arguments2)           \
-    //TEST(nonvoid_check)                 \
-    //TEST(use_undeclared_variable)
+    TEST(type_conversion_expression7)     \
+    TEST(type_conversion_expression8)     
 #include "main_stub.inc"
 #undef TESTS

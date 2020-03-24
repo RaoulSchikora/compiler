@@ -544,7 +544,9 @@ static void create_row_function_definition(struct mcc_ast_function_definition *f
     create_rows_function_body(function_definition, row);
 }
 
-struct mcc_symbol_table_row *mcc_symbol_table_check_upwards_for_declaration(char *wanted_name,
+// check if there is an declaration of the given name in the symbole table above (including) the given row. However,
+// checks on function level are not done.
+struct mcc_symbol_table_row *mcc_symbol_table_check_upwards_for_declaration(const char *wanted_name,
                                                                             struct mcc_symbol_table_row *start_row)
 {
     assert(wanted_name);
@@ -572,6 +574,36 @@ struct mcc_symbol_table_row *mcc_symbol_table_check_upwards_for_declaration(char
         row = scope->parent_row;
         scope = row->scope;
     }
+    return NULL;
+}
+
+struct mcc_symbol_table_row *mcc_symbol_table_check_for_function_declaration(const char *wanted_name,
+                                                                             struct mcc_symbol_table_row *start_row)
+{
+    assert(wanted_name);
+    assert(start_row);
+
+    struct mcc_symbol_table_row *row = start_row;
+    struct mcc_symbol_table_scope *scope = row->scope;
+
+    // go to top level
+    do{
+        row = scope->parent_row;
+        scope = row->scope;
+    } while(scope->parent_row);
+
+    // iterate through top level
+    row = scope->head;
+    if(!row){
+        return NULL;
+    }
+    do{
+        if(strcmp(wanted_name, row->name) == 0){
+            return row;
+        }
+        row = row->next_row;
+    } while(row->next_row);
+
     return NULL;
 }
 
