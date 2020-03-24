@@ -77,6 +77,39 @@ struct mcc_semantic_check_all_checks* mcc_semantic_check_run_all(struct mcc_ast_
     checks->status = MCC_SEMANTIC_CHECK_OK;
     checks->error_buffer = NULL;
 
+
+    // No type conversion
+    checks->type_conversion_expression = mcc_semantic_check_run_type_conversion_expression(ast, symbol_table);
+    if(checks->type_conversion_expression == NULL){
+        checks->status = MCC_SEMANTIC_CHECK_FAIL;
+        if(checks->error_buffer == NULL){
+            write_error_message_to_all_checks(checks,"mcc_semantic_check_run_type_conversion returned NULL pointer.");
+        }
+    } else {
+        if(checks->type_conversion_expression->status != MCC_SEMANTIC_CHECK_OK){
+            checks->status = MCC_SEMANTIC_CHECK_FAIL;
+            if(checks->error_buffer == NULL){
+                write_error_message_to_all_checks(checks,checks->type_conversion_expression->error_buffer);
+            }
+        }
+    }
+
+    // Type conversion of assignment
+    /*checks->type_conversion_assignment = mcc_semantic_check_run_type_conversion_assignment(ast, symbol_table);
+    if(checks->type_conversion_assignment == NULL){
+        checks->status = MCC_SEMANTIC_CHECK_FAIL;
+        if(checks->error_buffer == NULL){
+            write_error_message_to_all_checks(checks,"mcc_semantic_check_run_type_conversion_assignment returned NULL pointer.");
+        }
+    } else {
+        if(checks->type_conversion_assignment->status != MCC_SEMANTIC_CHECK_OK){
+            checks->status = MCC_SEMANTIC_CHECK_FAIL;
+            if(checks->error_buffer == NULL){
+                write_error_message_to_all_checks(checks,checks->type_conversion_assignment->error_buffer);
+            }
+        }
+    }*/
+
     // No invalid array operation
     /*checks->array_types = mcc_semantic_check_run_array_types(ast, symbol_table);
     if(checks->array_types == NULL){
@@ -225,21 +258,6 @@ struct mcc_semantic_check_all_checks* mcc_semantic_check_run_all(struct mcc_ast_
         }
     }
 
-    // No type conversion
-    checks->type_conversion_expression = mcc_semantic_check_run_type_conversion_expression(ast, symbol_table);
-    if(checks->type_conversion_expression == NULL){
-        checks->status = MCC_SEMANTIC_CHECK_FAIL;
-        if(checks->error_buffer == NULL){
-            write_error_message_to_all_checks(checks,"mcc_semantic_check_run_type_conversion returned NULL pointer.");
-        }
-    } else {
-        if(checks->type_conversion_expression->status != MCC_SEMANTIC_CHECK_OK){
-            checks->status = MCC_SEMANTIC_CHECK_FAIL;
-            if(checks->error_buffer == NULL){
-                write_error_message_to_all_checks(checks,checks->type_conversion_expression->error_buffer);
-            }
-        }
-    }
 
     return checks;
 }
@@ -257,7 +275,6 @@ static void write_error_message_to_check(struct mcc_semantic_check* check, struc
     snprintf(buffer,size,"%s:%d:%d: %s\n",node.sloc.filename,node.sloc.start_line,node.sloc.start_col,string);
     check->error_buffer = buffer;
 }
-
 
 // ------------------------------------------------------------- No Type conversions in expressions
 
