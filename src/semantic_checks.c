@@ -316,6 +316,35 @@ static bool is_bool(struct mcc_ast_expression *expression)
     return (type == MCC_AST_LITERAL_TYPE_BOOL);
 }
 
+// check if given expression is variable of type string
+static bool is_string(struct mcc_ast_expression *expression)
+{
+    assert(expression);
+
+    if((expression->type == MCC_AST_EXPRESSION_TYPE_VARIABLE) && (get_type(expression) == MCC_AST_LITERAL_TYPE_STRING)){
+        return true;
+    } else {
+        return false;
+    }
+}
+
+// check if given expression is whole array (not array element)
+static bool is_whole_array(struct mcc_ast_expression *expression)
+{
+    assert(expression);
+
+    if((expression->type == MCC_AST_EXPRESSION_TYPE_VARIABLE)){
+        char *name = expression->identifier->identifier_name;
+        struct mcc_symbol_table_row *row = expression->variable_row;
+        row = mcc_symbol_table_check_upwards_for_declaration(name, row);
+        if(row->row_structure == MCC_SYMBOL_TABLE_ROW_STRUCTURE_ARRAY){
+            return true;
+        }
+    }
+
+    return false;
+}
+
 // check if given expressions are of same type
 static bool is_of_same_type(struct mcc_ast_expression *expression1, struct mcc_ast_expression *expression2)
 {
@@ -342,8 +371,11 @@ static void cb_type_conversion_expression_binary_op(struct mcc_ast_expression *e
     struct mcc_ast_expression *lhs = expression->lhs;
     struct mcc_ast_expression *rhs = expression->rhs;
 
-    // TODO no operations on strings are supported
-    // TODO no operations on whole arrays are supported
+    if(is_string(lhs) || is_string(rhs) || is_whole_array(lhs) || is_whole_array(rhs)){
+        // TODO change error msg to sth meaningful
+        generate_error_msg_type_conversion_expression("to be changed to sth meaningful", expression->node, check);
+        return;
+    }
 
     bool permitted_op = true;
 
@@ -403,8 +435,11 @@ static void cb_type_conversion_expression_unary_op(struct mcc_ast_expression *ex
     struct mcc_semantic_check *check = data;
     struct mcc_ast_expression *child = expression->child;
 
-    // TODO no operations on strings are supported
-    // TODO no operations on whole arrays are supported
+    if(is_string(child) || is_whole_array(child)){
+        // TODO change error msg to sth meaningful
+        generate_error_msg_type_conversion_expression("to be changed to sth meaningful", expression->node, check);
+        return;
+    }
 
     bool permitted_op = true;
 

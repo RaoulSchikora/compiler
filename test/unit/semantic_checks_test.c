@@ -848,6 +848,8 @@ void function_arguments2(CuTest *tc)
     TEST(type_conversion_expression4)     \
     TEST(type_conversion_expression5)     \
     TEST(type_conversion_expression6)     \
+    TEST(type_conversion_expression7)     \
+    TEST(type_conversion_expression8)     \
     TEST(nonvoid_check)                   \
     TEST(nonvoid_check2)                  \
     TEST(nonvoid_check3)                  \
@@ -873,8 +875,6 @@ void function_arguments2(CuTest *tc)
     //TEST(type_conversion_assignment)    \
     //TEST(type_conversion_assignment2)   \
     //TEST(funciton_arguments1)           \
-    //TEST(function_arguments2)           \
-    TEST(type_conversion_expression7)     \
-    TEST(type_conversion_expression8)     
+    //TEST(function_arguments2)
 #include "main_stub.inc"
 #undef TESTS
