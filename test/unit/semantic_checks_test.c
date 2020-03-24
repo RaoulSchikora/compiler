@@ -19,7 +19,10 @@ void positive(CuTest *tc)
                          void func1(int a, bool[10] b){a = a + 2; int i; i = 0; b[i] = 0;} \
                          bool func2(){return true;} \
                          int func3(){if(true)if(true){while(false){return 2;}} return 3;} \
-                         int func4(){if(true){} return 3;}";
+                         int func4(){if(true){} return 3;} \
+                         bool func5(){bool a; a = true; return !a;} \
+                         float func6(){float a; a = 2.3; return -a;} \
+                         bool func7(){bool a; bool b; a = true; b = false; return a && b;}";
     struct mcc_parser_result parser_result;
     parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
     CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
@@ -38,7 +41,8 @@ void positive(CuTest *tc)
     CuAssertPtrEquals(tc,NULL, checks->error_buffer);
 
     CuAssertPtrNotNull(tc, checks);
-    //CuAssertPtrNotNull(tc,checks->type_conversion);
+    //CuAssertPtrNotNull(tc,checks->type_conversion_expression);
+    //CuAssertPtrNotNull(tc,checks->type_conversion_assignment);
     //CuAssertPtrNotNull(tc,checks->array_types);
     //CuAssertPtrNotNull(tc,checks->function_arguments);
     CuAssertPtrNotNull(tc,checks->nonvoid_check);
@@ -49,9 +53,10 @@ void positive(CuTest *tc)
     CuAssertPtrNotNull(tc,checks->use_undeclared_variable);
     CuAssertPtrNotNull(tc,checks->define_built_in);
 
-    //CuAssertIntEquals(tc,checks->type_check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION);
-    //CuAssertIntEquals(tc,checks->type_check->type,MCC_SEMANTIC_CHECK_TYPE_ARRAY_TYPES);
-    //CuAssertIntEquals(tc,checks->type_check->type,MCC_SEMANTIC_CHECK_TYPE_FUNCTION_ARGUMENTS);
+    //CuAssertIntEquals(tc,checks->type_conversion_expression->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION_EXPRESSION);
+    //CuAssertIntEquals(tc,checks->type_conversion_assignment->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION_ASSIGNMENT);
+    //CuAssertIntEquals(tc,checks->array_types->type,MCC_SEMANTIC_CHECK_TYPE_ARRAY_TYPES);
+    //CuAssertIntEquals(tc,checks->function_arguments->type,MCC_SEMANTIC_CHECK_TYPE_FUNCTION_ARGUMENTS);
     CuAssertIntEquals(tc,checks->nonvoid_check->type,MCC_SEMANTIC_CHECK_NONVOID_CHECK);
     CuAssertIntEquals(tc,checks->main_function->type,MCC_SEMANTIC_CHECK_MAIN_FUNCTION);
     CuAssertIntEquals(tc,checks->unknown_function_call->type,MCC_SEMANTIC_CHECK_UNKNOWN_FUNCTION_CALL);
@@ -60,7 +65,8 @@ void positive(CuTest *tc)
     CuAssertIntEquals(tc,checks->use_undeclared_variable->type,MCC_SEMANTIC_CHECK_USE_UNDECLARED_VARIABLE);
     CuAssertIntEquals(tc,checks->define_built_in->type,MCC_SEMANTIC_CHECK_DEFINE_BUILT_IN);
 
-    //CuAssertIntEquals(tc,checks->type_conversion->status,MCC_SEMANTIC_CHECK_OK);
+    //CuAssertIntEquals(tc,checks->type_conversion_expression->status,MCC_SEMANTIC_CHECK_OK);
+    //CuAssertIntEquals(tc,checks->type_conversion_assignment->status,MCC_SEMANTIC_CHECK_OK);
     //CuAssertIntEquals(tc,checks->array_types->status,MCC_SEMANTIC_CHECK_OK);
     //CuAssertIntEquals(tc,checks->function_arguments->status,MCC_SEMANTIC_CHECK_OK);
     CuAssertIntEquals(tc,checks->nonvoid_check->status,MCC_SEMANTIC_CHECK_OK);
@@ -79,7 +85,7 @@ void positive(CuTest *tc)
 }
 
 // Invalid add with float and int
-void type_conversion(CuTest *tc)
+void type_conversion_expression(CuTest *tc)
 {
     // Define test input and create symbol table
     const char input[] = "int main(){int a; int b; float c; a = b + c;}";
@@ -87,12 +93,166 @@ void type_conversion(CuTest *tc)
     parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
     CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
     struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
-    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion((&parser_result)->program,table);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion_expression((&parser_result)->program,table);
 
     CuAssertPtrNotNull(tc, check->error_buffer);
     CuAssertPtrNotNull(tc, check);
     CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
-    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION_EXPRESSION);
+
+    // Cleanup
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+    mcc_semantic_check_delete_single_check(check);
+}
+
+// Invalid add with function of type float and int
+void type_conversion_expression2(CuTest *tc)
+{
+    // Define test input and create symbol table
+    const char input[] = "int main(){int a; int b; a = b + func();} float func(){float a; return a;}";
+    struct mcc_parser_result parser_result;
+    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
+    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion_expression((&parser_result)->program,table);
+
+    CuAssertPtrNotNull(tc, check->error_buffer);
+    CuAssertPtrNotNull(tc, check);
+    CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION_EXPRESSION);
+
+    // Cleanup
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+    mcc_semantic_check_delete_single_check(check);
+}
+
+// Invalid binary operation on ints
+void type_conversion_expression3(CuTest *tc)
+{
+    // Define test input and create symbol table
+    const char input[] = "int main(){int a; int b; a = b && a;}";
+    struct mcc_parser_result parser_result;
+    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
+    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion_expression((&parser_result)->program,table);
+
+    CuAssertPtrNotNull(tc, check->error_buffer);
+    CuAssertPtrNotNull(tc, check);
+    CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION_EXPRESSION);
+
+    // Cleanup
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+    mcc_semantic_check_delete_single_check(check);
+}
+
+// Invalid binary operation on bools
+void type_conversion_expression4(CuTest *tc)
+{
+    // Define test input and create symbol table
+    const char input[] = "int main(){bool a; bool b; a = b + a;}";
+    struct mcc_parser_result parser_result;
+    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
+    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion_expression((&parser_result)->program,table);
+
+    CuAssertPtrNotNull(tc, check->error_buffer);
+    CuAssertPtrNotNull(tc, check);
+    CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION_EXPRESSION);
+
+    // Cleanup
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+    mcc_semantic_check_delete_single_check(check);
+}
+
+// Invalid unary operation on int
+void type_conversion_expression5(CuTest *tc)
+{
+    // Define test input and create symbol table
+    const char input[] = "int main(){bool a; bool b; a = !b;}";
+    struct mcc_parser_result parser_result;
+    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
+    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion_expression((&parser_result)->program,table);
+
+    CuAssertPtrNotNull(tc, check->error_buffer);
+    CuAssertPtrNotNull(tc, check);
+    CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION_EXPRESSION);
+
+    // Cleanup
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+    mcc_semantic_check_delete_single_check(check);
+}
+
+// Invalid unary operation on bools
+void type_conversion_expression6(CuTest *tc)
+{
+    // Define test input and create symbol table
+    const char input[] = "int main(){bool a; bool b; a = -b;}";
+    struct mcc_parser_result parser_result;
+    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
+    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion_expression((&parser_result)->program,table);
+
+    CuAssertPtrNotNull(tc, check->error_buffer);
+    CuAssertPtrNotNull(tc, check);
+    CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION_EXPRESSION);
+
+    // Cleanup
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+    mcc_semantic_check_delete_single_check(check);
+}
+
+// Using return value as the wrong type
+void type_conversion_assignment(CuTest *tc)
+{
+    // Define test input and create symbol table
+    const char input[] = "int main(){int a; a = read_float();}";
+    struct mcc_parser_result parser_result;
+    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
+    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion_assignment((&parser_result)->program,table);
+
+    CuAssertPtrNotNull(tc, check->error_buffer);
+    CuAssertPtrNotNull(tc, check);
+    CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION_ASSIGNMENT);
+
+    // Cleanup
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+    mcc_semantic_check_delete_single_check(check);
+}
+
+// Using return value as the wrong type
+void type_conversion_assignment2(CuTest *tc)
+{
+    // Define test input and create symbol table
+    const char input[] = "int main(){bool a; a = bool_to_int(a);} int bool_to_int(bool a){int a; a = 1; return a;}";
+    struct mcc_parser_result parser_result;
+    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
+    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion_assignment((&parser_result)->program,table);
+
+    CuAssertPtrNotNull(tc, check->error_buffer);
+    CuAssertPtrNotNull(tc, check);
+    CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION_ASSIGNMENT);
 
     // Cleanup
     mcc_ast_delete(parser_result.program);
@@ -590,50 +750,6 @@ void define_built_in(CuTest *tc){
     mcc_semantic_check_delete_single_check(check);
 }
 
-// Using return value as the wrong type
-void type_conversion1(CuTest *tc)
-{
-    // Define test input and create symbol table
-    const char input[] = "int main(){int a; a = read_float();}";
-    struct mcc_parser_result parser_result;
-    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
-    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
-    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
-    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion((&parser_result)->program,table);
-
-    CuAssertPtrNotNull(tc, check->error_buffer);
-    CuAssertPtrNotNull(tc, check);
-    CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
-    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION);
-
-    // Cleanup
-    mcc_ast_delete(parser_result.program);
-    mcc_symbol_table_delete_table(table);
-    mcc_semantic_check_delete_single_check(check);
-}
-
-// Using return value as the wrong type
-void type_conversion2(CuTest *tc)
-{
-    // Define test input and create symbol table
-    const char input[] = "int main(){bool a; a = bool_to_int(a);} int bool_to_int(bool a){int a; a = 1; return a;}";
-    struct mcc_parser_result parser_result;
-    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
-    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
-    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
-    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion((&parser_result)->program,table);
-
-    CuAssertPtrNotNull(tc, check->error_buffer);
-    CuAssertPtrNotNull(tc, check);
-    CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
-    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION);
-
-    // Cleanup
-    mcc_ast_delete(parser_result.program);
-    mcc_symbol_table_delete_table(table);
-    mcc_semantic_check_delete_single_check(check);
-}
-
 // Calling a function with the wrong type of parameters
 void function_arguments1(CuTest *tc)
 {
@@ -703,9 +819,14 @@ void function_arguments2(CuTest *tc)
     TEST(use_undeclared_variable6)        \
     TEST(use_undeclared_variable7)        \
     TEST(define_built_in)
-    //TEST(type_conversion)               \
-    //TEST(type_conversion1)              \
-    //TEST(type_conversion2)              \
+    //TEST(type_conversion_expression)      \
+    TEST(type_conversion_expression2)     \
+    TEST(type_conversion_expression3)     \
+    TEST(type_conversion_expression4)     \
+    TEST(type_conversion_expression5)     \
+    TEST(type_conversion_expression6)     \
+    //TEST(type_conversion_assignment)    \
+    //TEST(type_conversion_assignment2)   \
     //TEST(funciton_arguments1)           \
     //TEST(function_arguments2)           \
     //TEST(nonvoid_check)                 \

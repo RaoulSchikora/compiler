@@ -222,10 +222,29 @@ static void write_error_message_to_check(struct mcc_semantic_check* check, struc
 }
 
 
-// ------------------------------------------------------------- No Type conversions
+// ------------------------------------------------------------- No Type conversions in expressions
 
-struct mcc_semantic_check* mcc_semantic_check_run_type_conversion(struct mcc_ast_program* ast,
-                                                                  struct mcc_symbol_table* symbol_table){
+struct mcc_semantic_check* mcc_semantic_check_run_type_conversion_expression(struct mcc_ast_program* ast,
+                                                                             struct mcc_symbol_table* symbol_table){
+    UNUSED(symbol_table);
+    UNUSED(ast);
+
+    struct mcc_semantic_check *check = malloc(sizeof(*check));
+    if (!check){
+        return NULL;
+    }
+
+    check->status = MCC_SEMANTIC_CHECK_OK;
+    check->type = MCC_SEMANTIC_CHECK_TYPE_CONVERSION_EXPRESSION;
+    check->error_buffer = NULL;
+
+    return check;
+}
+
+// ------------------------------------------------------------- No Type conversions in assignments
+
+struct mcc_semantic_check* mcc_semantic_check_run_type_conversion_assignment(struct mcc_ast_program* ast,
+                                                                             struct mcc_symbol_table* symbol_table){
     UNUSED(ast);
     UNUSED(symbol_table);
     return NULL;
