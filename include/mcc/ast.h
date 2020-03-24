@@ -24,6 +24,7 @@ struct mcc_ast_source_location {
 	int start_col;
 	int end_line;
 	int end_col;
+	char* filename;
 };
 
 struct mcc_ast_node {

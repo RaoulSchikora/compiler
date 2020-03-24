@@ -212,12 +212,12 @@ struct mcc_semantic_check_all_checks* mcc_semantic_check_run_all(struct mcc_ast_
 // Write error message into existing mcc_semantic_check struct
 static void write_error_message_to_check(struct mcc_semantic_check* check, struct mcc_ast_node node, const char* string)
 {
-    int size = sizeof(char)*(strlen(string)+50);
+    int size = sizeof(char)*(strlen(string)+strlen(node.sloc.filename)+50);
     char* buffer = malloc(size);
     if(buffer == NULL){
         perror("write_error_message_to_check: malloc");
     }
-    snprintf(buffer,size,"%d:%d: %s\n",node.sloc.start_line,node.sloc.start_col,string);
+    snprintf(buffer,size,"%s:%d:%d: %s\n",node.sloc.filename,node.sloc.start_line,node.sloc.start_col,string);
     check->error_buffer = buffer;
 }
 

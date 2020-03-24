@@ -53,6 +53,7 @@ void mcc_parser_error();
 	(ast_node)->node.sloc.start_line = (ast_sloc).first_line;     \
 	(ast_node)->node.sloc.end_col = (ast_sloc_last).last_column;  \
 	(ast_node)->node.sloc.end_line = (ast_sloc_last).last_line;   \
+	(ast_node)->node.sloc.filename = filename;          \
 
 int start_token;
 
