@@ -606,10 +606,10 @@ struct mcc_symbol_table_row *mcc_symbol_table_check_for_function_declaration(con
     struct mcc_symbol_table_scope *scope = row->scope;
 
     // go to top level
-    do{
+    while(scope->parent_row){
         row = scope->parent_row;
         scope = row->scope;
-    } while(scope->parent_row);
+    }
 
     // iterate through top level
     row = scope->head;
@@ -621,7 +621,7 @@ struct mcc_symbol_table_row *mcc_symbol_table_check_for_function_declaration(con
             return row;
         }
         row = row->next_row;
-    } while(row->next_row);
+    } while(row);
 
     return NULL;
 }
