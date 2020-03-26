@@ -1012,7 +1012,7 @@ void function_arguments2(CuTest *tc)
     TEST(use_undeclared_variable6)        \
     TEST(use_undeclared_variable7)        \
     TEST(define_built_in)
-    //TEST(funciton_arguments1)           \
+    //TEST(function_arguments1)           \
     //TEST(function_arguments2)
 #include "main_stub.inc"
 #undef TESTS
