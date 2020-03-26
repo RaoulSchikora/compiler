@@ -801,10 +801,49 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
     assert(data);
     struct mcc_semantic_check *check = data;
 
+    if(check->status == MCC_SEMANTIC_CHECK_FAIL){
+        return;
+    }
+
     // Get the required arguments of the function from the symbol table
     struct mcc_symbol_table_row *row = expression->function_row;
-    // TODO: This line potentially causes trouble by the function call
-    row = mcc_symbol_table_check_upwards_for_declaration(expression->function_identifier->identifier_name, row);
+    row = mcc_symbol_table_check_for_function_declaration(expression->function_identifier->identifier_name, row);
+
+    // If row is NULL, then no function with that name was found
+    if(!row){
+        char* buffer = generate_error_msg_function_arguments("Unknown function",expression);
+        if(buffer){
+            write_error_message_to_check(check, expression->node, buffer);
+            free(buffer);
+            check->status = MCC_SEMANTIC_CHECK_FAIL;
+            return;
+        } else {
+            write_error_message_to_check(check, expression->node, "generate_error_msg_function_arguments failed.");
+            check->status = MCC_SEMANTIC_CHECK_FAIL;
+            return;
+        }
+    }
+
+    // Catch case that no function args needed : row->child_scope->head = NULL
+    if(!(row->child_scope->head)){
+        if(expression->arguments->expression){
+            char* buffer = generate_error_msg_function_arguments("Function doesn't take arguments",expression);
+            if(buffer){
+                write_error_message_to_check(check, expression->node, buffer);
+                free(buffer);
+                check->status = MCC_SEMANTIC_CHECK_FAIL;
+                return;
+            } else {
+                write_error_message_to_check(check, expression->node, "generate_error_msg_function_arguments failed.");
+                check->status = MCC_SEMANTIC_CHECK_FAIL;
+                return;
+            }
+        }
+        // No arguments needed and none given: return
+        return;
+    }
+
+
     struct mcc_symbol_table_row *st_args_head = row->child_scope->head;
 
     // Get the used arguments from the AST:
@@ -819,9 +858,11 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
                 write_error_message_to_check(check, expression->node, buffer);
                 free(buffer);
                 check->status = MCC_SEMANTIC_CHECK_FAIL;
+                return;
             } else {
                 write_error_message_to_check(check, expression->node, "generate_error_msg_function_arguments failed.");
                 check->status = MCC_SEMANTIC_CHECK_FAIL;
+                return;
             }
         }
 
@@ -836,10 +877,12 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
                 write_error_message_to_check(check, expression->node, buffer);
                 free(buffer);
                 check->status = MCC_SEMANTIC_CHECK_FAIL;
+                return;
             } else {
                 write_error_message_to_check(check, expression->node,
                         "generate_error_msg_function_arguments_conflicting_types failed.");
                 check->status = MCC_SEMANTIC_CHECK_FAIL;
+                return;
             }
         }
 
@@ -856,10 +899,11 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
             write_error_message_to_check(check, expression->node, buffer);
             free(buffer);
             check->status = MCC_SEMANTIC_CHECK_FAIL;
+            return;
         } else {
-            write_error_message_to_check(check, expression->node, "generate_error_msg_function_arguments:"
-                                                                  "asprintf failed.");
+            write_error_message_to_check(check, expression->node, "generate_error_msg_function_arguments failed.");
             check->status = MCC_SEMANTIC_CHECK_FAIL;
+            return;
         }
     }
 }
