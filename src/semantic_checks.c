@@ -723,10 +723,176 @@ struct mcc_semantic_check* mcc_semantic_check_run_array_types(struct mcc_ast_pro
 
 // ------------------------------------------------------------- No invalid function calls
 
+// Generate error message for invalid function call
+// Returned string is allocated on the heap
+char *generate_error_msg_function_arguments_conflicting_types(struct mcc_ast_expression *expression,
+        enum mcc_semantic_check_expression_type expected_type, enum mcc_semantic_check_expression_type actual_type){
+
+    char *str_expected;
+    char *str_actual;
+
+    switch(expected_type){
+        case MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_INT:
+            str_expected = "INT";
+            break;
+        case MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_FLOAT:
+            str_expected = "FLOAT";
+            break;
+        case MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_BOOL:
+            str_expected = "BOOL";
+            break;
+        case MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_STRING:
+            str_expected = "STRING";
+            break;
+        default:
+            return NULL;
+    }
+
+
+    switch(actual_type){
+        case MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_INT:
+            str_actual = "INT";
+            break;
+        case MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_FLOAT:
+            str_actual = "FLOAT";
+            break;
+        case MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_BOOL:
+            str_actual = "BOOL";
+            break;
+        case MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_STRING:
+            str_actual = "STRING";
+            break;
+        default:
+            return NULL;
+    }
+
+    int size = sizeof(char) * (strlen(expression->function_identifier->identifier_name)
+            + strlen(str_actual) + strlen(str_actual) + 60);
+    char* buffer = malloc(size);
+    if(!buffer){
+        return NULL;
+    }
+    if(0 > snprintf(buffer,size,"%s, Invalid function call, expected type %s but was %s\n",
+                    expression->function_identifier->identifier_name, str_expected,str_actual)){
+        return NULL;
+    }
+    return buffer;
+}
+
+// Generate error message for invalid function call
+// Returned string is allocated on the heap
+char *generate_error_msg_function_arguments(char* string, struct mcc_ast_expression *expression){
+    int size = sizeof(char) * (strlen(string) + strlen(expression->function_identifier->identifier_name) + 30);
+    char* buffer = malloc(size);
+    if(!buffer){
+        return NULL;
+    }
+    if(0 > snprintf(buffer,size,"%s, Invalid function call, %s\n",
+            expression->function_identifier->identifier_name, string)){
+        return NULL;
+    }
+    return buffer;
+}
+
+// callback for checking correctness of function calls
+static void cb_function_arguments_expression_function_call(struct mcc_ast_expression *expression, void *data)
+{
+    assert(expression);
+    assert(data);
+    struct mcc_semantic_check *check = data;
+
+    // Get the required arguments of the function from the symbol table
+    struct mcc_symbol_table_row *row = expression->function_row;
+    // TODO: This line potentially causes trouble by the function call
+    row = mcc_symbol_table_check_upwards_for_declaration(expression->function_identifier->identifier_name, row);
+    struct mcc_symbol_table_row *st_args_head = row->child_scope->head;
+
+    // Get the used arguments from the AST:
+    struct mcc_ast_arguments *ast_args_head = expression->arguments;
+
+    do {
+
+        // Too little arguments
+        if(!ast_args_head){
+            char* buffer = generate_error_msg_function_arguments("Not enough arguments",expression);
+            if(buffer){
+                write_error_message_to_check(check, expression->node, buffer);
+                free(buffer);
+                check->status = MCC_SEMANTIC_CHECK_FAIL;
+            } else {
+                write_error_message_to_check(check, expression->node, "generate_error_msg_function_arguments failed.");
+                check->status = MCC_SEMANTIC_CHECK_FAIL;
+            }
+        }
+
+        // Get types
+        enum mcc_semantic_check_expression_type st_type = convert_enum_symbol_table(st_args_head->row_type);
+        enum mcc_semantic_check_expression_type ast_type = get_type(ast_args_head->expression);
+
+        // Type Error
+        if(ast_type != st_type){
+            char* buffer = generate_error_msg_function_arguments_conflicting_types(expression, st_type, ast_type);
+            if(buffer){
+                write_error_message_to_check(check, expression->node, buffer);
+                free(buffer);
+                check->status = MCC_SEMANTIC_CHECK_FAIL;
+            } else {
+                write_error_message_to_check(check, expression->node,
+                        "generate_error_msg_function_arguments_conflicting_types failed.");
+                check->status = MCC_SEMANTIC_CHECK_FAIL;
+            }
+        }
+
+        st_args_head = st_args_head->next_row;
+        ast_args_head = ast_args_head->next_arguments;
+
+    } while(st_args_head);
+
+
+    if(ast_args_head){
+        //Too many arguments
+        char* buffer = generate_error_msg_function_arguments("Too many arguments",expression);
+        if(buffer){
+            write_error_message_to_check(check, expression->node, buffer);
+            free(buffer);
+            check->status = MCC_SEMANTIC_CHECK_FAIL;
+        } else {
+            write_error_message_to_check(check, expression->node, "generate_error_msg_function_arguments:"
+                                                                  "asprintf failed.");
+            check->status = MCC_SEMANTIC_CHECK_FAIL;
+        }
+    }
+}
+
+// Setup an AST Visitor for checking if function calls are correct
+static struct mcc_ast_visitor function_arguments_visitor(struct mcc_semantic_check *check)
+{
+    return (struct mcc_ast_visitor){
+            .traversal = MCC_AST_VISIT_DEPTH_FIRST,
+            .order = MCC_AST_VISIT_POST_ORDER,
+
+            .userdata = check,
+
+            .expression_function_call = cb_function_arguments_expression_function_call,
+    };
+}
+
 struct mcc_semantic_check* mcc_semantic_check_run_function_arguments(struct mcc_ast_program* ast,
                                                                      struct mcc_symbol_table* symbol_table){
-    UNUSED(ast);
     UNUSED(symbol_table);
+    struct mcc_semantic_check *check = malloc(sizeof(*check));
+    if (!check){
+        return NULL;
+    }
+
+    check->status = MCC_SEMANTIC_CHECK_OK;
+    check->type = MCC_SEMANTIC_CHECK_FUNCTION_ARGUMENTS;
+    check->error_buffer = NULL;
+
+    struct mcc_ast_visitor visitor = function_arguments_visitor(check);
+    mcc_ast_visit(ast, &visitor);
+    return check;
+
     return NULL;
 }
 
