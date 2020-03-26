@@ -725,8 +725,12 @@ struct mcc_semantic_check* mcc_semantic_check_run_array_types(struct mcc_ast_pro
 
 // Generate error message for invalid function call
 // Returned string is allocated on the heap
-char *generate_error_msg_function_arguments_conflicting_types(struct mcc_ast_expression *expression,
-        enum mcc_semantic_check_expression_type expected_type, enum mcc_semantic_check_expression_type actual_type){
+static void generate_error_msg_function_arguments_conflicting_types(
+        struct mcc_semantic_check *check,
+        struct mcc_ast_expression *expression,
+        enum mcc_semantic_check_expression_type expected_type,
+        enum mcc_semantic_check_expression_type actual_type)
+{
 
     char *str_expected;
     char *str_actual;
@@ -745,7 +749,7 @@ char *generate_error_msg_function_arguments_conflicting_types(struct mcc_ast_exp
             str_expected = "STRING";
             break;
         default:
-            return NULL;
+            return;
     }
 
 
@@ -763,35 +767,54 @@ char *generate_error_msg_function_arguments_conflicting_types(struct mcc_ast_exp
             str_actual = "STRING";
             break;
         default:
-            return NULL;
+            return;
     }
 
     int size = sizeof(char) * (strlen(expression->function_identifier->identifier_name)
             + strlen(str_actual) + strlen(str_actual) + 60);
     char* buffer = malloc(size);
+
     if(!buffer){
-        return NULL;
+        write_error_message_to_check(check, expression->node, "generate_error_msg_function_arguments: malloc failed.");
+        check->status = MCC_SEMANTIC_CHECK_FAIL;
+        return;
     }
     if(0 > snprintf(buffer,size,"%s, Invalid function call, expected type %s but was %s\n",
                     expression->function_identifier->identifier_name, str_expected,str_actual)){
-        return NULL;
+
+        write_error_message_to_check(check, expression->node, "generate_error_msg_function_arguments_conflicting_type: "
+                                                              "snprintf failed.");
+        check->status = MCC_SEMANTIC_CHECK_FAIL;
+        return;
+    } else {
+        write_error_message_to_check(check, expression->node, buffer);
+        free(buffer);
+        check->status = MCC_SEMANTIC_CHECK_FAIL;
+        return;
     }
-    return buffer;
 }
 
 // Generate error message for invalid function call
 // Returned string is allocated on the heap
-char *generate_error_msg_function_arguments(char* string, struct mcc_ast_expression *expression){
+static void generate_error_msg_function_arguments(struct mcc_semantic_check *check, char* string, struct mcc_ast_expression *expression){
     int size = sizeof(char) * (strlen(string) + strlen(expression->function_identifier->identifier_name) + 30);
     char* buffer = malloc(size);
     if(!buffer){
-        return NULL;
+        write_error_message_to_check(check, expression->node, "generate_error_msg_function_arguments: malloc failed.");
+        check->status = MCC_SEMANTIC_CHECK_FAIL;
+        return;
     }
-    if(0 > snprintf(buffer,size,"%s, Invalid function call, %s\n",
+    if( 0 > snprintf(buffer,size,"%s, Invalid function call, %s\n",
             expression->function_identifier->identifier_name, string)){
-        return NULL;
+        write_error_message_to_check(check, expression->node, "generate_error_msg_function_arguments: snprintf failed.");
+        check->status = MCC_SEMANTIC_CHECK_FAIL;
+        return;
+    } else {
+        write_error_message_to_check(check, expression->node, buffer);
+        free(buffer);
+        check->status = MCC_SEMANTIC_CHECK_FAIL;
+        return;
     }
-    return buffer;
 }
 
 // callback for checking correctness of function calls
@@ -801,6 +824,7 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
     assert(data);
     struct mcc_semantic_check *check = data;
 
+    // Early abort if check already failed
     if(check->status == MCC_SEMANTIC_CHECK_FAIL){
         return;
     }
@@ -811,33 +835,13 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
 
     // If row is NULL, then no function with that name was found
     if(!row){
-        char* buffer = generate_error_msg_function_arguments("Unknown function",expression);
-        if(buffer){
-            write_error_message_to_check(check, expression->node, buffer);
-            free(buffer);
-            check->status = MCC_SEMANTIC_CHECK_FAIL;
-            return;
-        } else {
-            write_error_message_to_check(check, expression->node, "generate_error_msg_function_arguments failed.");
-            check->status = MCC_SEMANTIC_CHECK_FAIL;
-            return;
-        }
+        generate_error_msg_function_arguments(check,"Unknown function",expression);
     }
 
     // Catch case that no function args needed : row->child_scope->head = NULL
     if(!(row->child_scope->head)){
         if(expression->arguments->expression){
-            char* buffer = generate_error_msg_function_arguments("Function doesn't take arguments",expression);
-            if(buffer){
-                write_error_message_to_check(check, expression->node, buffer);
-                free(buffer);
-                check->status = MCC_SEMANTIC_CHECK_FAIL;
-                return;
-            } else {
-                write_error_message_to_check(check, expression->node, "generate_error_msg_function_arguments failed.");
-                check->status = MCC_SEMANTIC_CHECK_FAIL;
-                return;
-            }
+            generate_error_msg_function_arguments(check,"Function doesn't take arguments",expression);
         }
         // No arguments needed and none given: return
         return;
@@ -853,17 +857,7 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
 
         // Too little arguments
         if(!ast_args_head){
-            char* buffer = generate_error_msg_function_arguments("Not enough arguments",expression);
-            if(buffer){
-                write_error_message_to_check(check, expression->node, buffer);
-                free(buffer);
-                check->status = MCC_SEMANTIC_CHECK_FAIL;
-                return;
-            } else {
-                write_error_message_to_check(check, expression->node, "generate_error_msg_function_arguments failed.");
-                check->status = MCC_SEMANTIC_CHECK_FAIL;
-                return;
-            }
+            generate_error_msg_function_arguments(check,"Not enough arguments",expression);
         }
 
         // Get types
@@ -872,18 +866,7 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
 
         // Type Error
         if(ast_type != st_type){
-            char* buffer = generate_error_msg_function_arguments_conflicting_types(expression, st_type, ast_type);
-            if(buffer){
-                write_error_message_to_check(check, expression->node, buffer);
-                free(buffer);
-                check->status = MCC_SEMANTIC_CHECK_FAIL;
-                return;
-            } else {
-                write_error_message_to_check(check, expression->node,
-                        "generate_error_msg_function_arguments_conflicting_types failed.");
-                check->status = MCC_SEMANTIC_CHECK_FAIL;
-                return;
-            }
+            generate_error_msg_function_arguments_conflicting_types(check, expression, st_type, ast_type);
         }
 
         st_args_head = st_args_head->next_row;
@@ -894,17 +877,7 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
 
     if(ast_args_head){
         //Too many arguments
-        char* buffer = generate_error_msg_function_arguments("Too many arguments",expression);
-        if(buffer){
-            write_error_message_to_check(check, expression->node, buffer);
-            free(buffer);
-            check->status = MCC_SEMANTIC_CHECK_FAIL;
-            return;
-        } else {
-            write_error_message_to_check(check, expression->node, "generate_error_msg_function_arguments failed.");
-            check->status = MCC_SEMANTIC_CHECK_FAIL;
-            return;
-        }
+        generate_error_msg_function_arguments(check,"Too many arguments",expression);
     }
 }
 
