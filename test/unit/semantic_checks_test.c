@@ -85,6 +85,35 @@ void positive(CuTest *tc)
 
 }
 
+// ensure variable shadowing
+void ensure_variable_shadowing(CuTest *tc)
+{
+    // Define test input and create symbol table
+    const char input[] = "int main(){int a; a = 10; if(true) { float a; a = func(); } a = func2(); return 0;} \
+                          float func(){return 1.23456;} int func2(){return 0;}";
+    struct mcc_parser_result parser_result;
+    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
+    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+    struct mcc_semantic_check_all_checks *checks = mcc_semantic_check_run_all((&parser_result)->program,table);
+
+    if(checks->status == MCC_SEMANTIC_CHECK_FAIL){
+        if (checks->error_buffer == NULL){
+            printf("Semantic check failed, error buffer is empty.");
+        } else {
+            printf("Semantic check failed:\n%s", checks->error_buffer);
+        }
+    }
+
+    CuAssertIntEquals(tc,checks->status,MCC_SEMANTIC_CHECK_OK);
+    CuAssertPtrEquals(tc,NULL, checks->error_buffer);
+
+    // Cleanup
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+    mcc_semantic_check_delete_all_checks(checks);
+}
+
 // Invalid add with float and int
 void type_conversion_expression(CuTest *tc)
 {
@@ -1040,6 +1069,7 @@ void function_arguments2(CuTest *tc)
 
 #define TESTS \
     TEST(positive)                        \
+    TEST(ensure_variable_shadowing)       \
     TEST(type_conversion_expression)      \
     TEST(type_conversion_expression2)     \
     TEST(type_conversion_expression3)     \
