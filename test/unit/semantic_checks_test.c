@@ -466,6 +466,28 @@ void type_conversion_assignment4(CuTest *tc)
     mcc_semantic_check_delete_single_check(check);
 }
 
+// Assign an int to float
+void type_conversion_assignment5(CuTest *tc)
+{
+    // Define test input and create symbol table
+    const char input[] = "int main(){float a; a = 5; return 0;}";
+    struct mcc_parser_result parser_result;
+    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
+    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion((&parser_result)->program,table);
+
+    CuAssertPtrNotNull(tc, check->error_buffer);
+    CuAssertPtrNotNull(tc, check);
+    CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION);
+
+    // Cleanup
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+    mcc_semantic_check_delete_single_check(check);
+}
+
 // int-function without return in if_else_on_ture
 void nonvoid_check(CuTest *tc){
 
@@ -1086,6 +1108,7 @@ void function_arguments2(CuTest *tc)
     TEST(type_conversion_assignment2)     \
     TEST(type_conversion_assignment3)     \
     TEST(type_conversion_assignment4)     \
+    TEST(type_conversion_assignment5)     \
     TEST(nonvoid_check)                   \
     TEST(nonvoid_check2)                  \
     TEST(nonvoid_check3)                  \
