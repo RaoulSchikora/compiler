@@ -18,7 +18,7 @@ void positive(CuTest *tc)
     const char input[] = "int main(){int a; a = 2; int b; int c; b = 2; c = a + b; return c;} \
                          void func1(int a, bool[10] b){a = a + 2; int i; i = 0; b[i] = true;} \
                          bool func2(){return true;} \
-                         int func3(){if(true)if(true){while(false){return 2;}} return 3;} \
+                         int func3(){int a; if(true)if(true){while(a==1){return 2;}} return 3;} \
                          int func4(){if(true){} return 3;} \
                          bool func5(){bool a; a = true; return !a;} \
                          float func6(){float a; a = 2.3; return -a;} \
