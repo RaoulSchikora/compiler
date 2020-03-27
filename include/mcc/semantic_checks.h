@@ -34,6 +34,7 @@ struct mcc_semantic_check_all_checks{
    struct mcc_semantic_check *type_conversion;
    struct mcc_semantic_check *array_types;
    struct mcc_semantic_check *function_arguments;
+   struct mcc_semantic_check *function_return_value;
    struct mcc_semantic_check *nonvoid_check;
    struct mcc_semantic_check *main_function;
    struct mcc_semantic_check *unknown_function_call;
@@ -49,6 +50,7 @@ enum mcc_semantic_check_type{
     MCC_SEMANTIC_CHECK_TYPE_CONVERSION,
     MCC_SEMANTIC_CHECK_ARRAY_TYPES,
     MCC_SEMANTIC_CHECK_FUNCTION_ARGUMENTS,
+    MCC_SEMANTIC_CHECK_FUNCTION_RETURN_VALUE,
     MCC_SEMANTIC_CHECK_NONVOID_CHECK,
     MCC_SEMANTIC_CHECK_MAIN_FUNCTION,
     MCC_SEMANTIC_CHECK_UNKNOWN_FUNCTION_CALL,
@@ -78,6 +80,10 @@ struct mcc_semantic_check* mcc_semantic_check_run_array_types(struct mcc_ast_pro
 // No invalid function calls
 struct mcc_semantic_check* mcc_semantic_check_run_function_arguments(struct mcc_ast_program* ast,
                                                              struct mcc_symbol_table* symbol_table);
+
+// Function doesn't return wrong type
+struct mcc_semantic_check* mcc_semantic_check_run_function_return_value(struct mcc_ast_program* ast,
+                                                                     struct mcc_symbol_table* symbol_table);
 
 // Each execution path of non-void function returns a value
 struct mcc_semantic_check* mcc_semantic_check_run_nonvoid_check(struct mcc_ast_program* ast,

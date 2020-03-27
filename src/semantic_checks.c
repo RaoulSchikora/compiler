@@ -6,9 +6,9 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <assert.h>
-
-
 // unused.h contains macro to suppress warnings of unused variables
+
+
 
 // ------------------------------------------------------------- Forward declaration
 
@@ -1018,6 +1018,25 @@ struct mcc_semantic_check* mcc_semantic_check_run_function_arguments(struct mcc_
     return check;
 
     return NULL;
+}
+
+// -------------------------------------------------------------- Function doesn't return wrong type
+
+struct mcc_semantic_check* mcc_semantic_check_run_function_return_value(struct mcc_ast_program* ast,
+                                                                        struct mcc_symbol_table* symbol_table){
+    UNUSED(ast);
+    UNUSED(symbol_table);
+    struct mcc_semantic_check *check = malloc(sizeof(*check));
+    if (!check){
+        return NULL;
+    }
+
+    check->status = MCC_SEMANTIC_CHECK_OK;
+    check->type = MCC_SEMANTIC_CHECK_FUNCTION_ARGUMENTS;
+    check->error_buffer = NULL;
+
+    return check;
+
 }
 
 // -------------------------------------------------------------- Each execution path of non-void function returns a
