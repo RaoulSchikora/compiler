@@ -586,11 +586,9 @@ struct mcc_symbol_table_row *mcc_symbol_table_check_upwards_for_declaration(cons
 {
     assert(wanted_name);
     assert(start_row);
-    printf("start_row->type: %d\n",start_row->row_type);
 
     struct mcc_symbol_table_row *row = start_row;
     struct mcc_symbol_table_scope *scope = row->scope;
-    printf("row->name: %s\n",row->name);
 
     if(strcmp(wanted_name, row->name) == 0){
         return row;
