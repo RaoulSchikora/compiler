@@ -1,8 +1,10 @@
 int calculateFactorial(int number){
-    int factorial = 1;
-    int i = 1;
+    int factorial;
+    factorial = 1;
+    int i;
+    i = 1;
     while (i <= number){
-        factorial *= i;
+        factorial = factorial * i;
         i = i + 1;
     }
     return factorial;

@@ -6,7 +6,7 @@ void guessNumber(int number, int max) {
     while(!success) {
         print("Enter a number between 0 and ");
         print_int(max);
-        print("\n");
+        print_nl();
         int guess;
         guess = read_int();
         success = guess == number;
@@ -14,9 +14,10 @@ void guessNumber(int number, int max) {
             print("you guessed correct");
         else {
             if(guess < number)
-                print("the number is bigger\n");
+                print("the number is bigger");
             else
-                print("the number is smaller\n");
+                print("the number is smaller");
+            print_nl();
         }
     }
     print_nl();

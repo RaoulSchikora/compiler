@@ -1,5 +1,6 @@
 int returnTwo() {
-	int value = 2;
+	int value;
+	value = 2;
 	return value;
 }
 
@@ -13,7 +14,8 @@ bool isOne(int in) {
 int main() {
 	int[42] array;
 	int[21] arrayTwo;
-	int i = 0;
+	int i;
+	i = 0;
 	while (i < 21) {
 		array[i] = i*i;
 		i = i + 1;
@@ -30,7 +32,7 @@ int main() {
 	if (array[0] == 0) {
 		print_int(array[0]);
 		print_nl();
-    }
+	}
 
 	if (array[1] == 2) {
 		print_int(0);

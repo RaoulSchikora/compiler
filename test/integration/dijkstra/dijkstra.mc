@@ -1,7 +1,6 @@
-
-void dijkstra(int[15] path_cost)
+void dijkstra(int[16] path_cost)
 {
-	int[15] calc_cost;
+	int[16] calc_cost;
 	int i;
 	int j;
 	i = 0;
@@ -96,7 +95,7 @@ void dijkstra(int[15] path_cost)
 
 int main()
 {
-	int[15] path_cost;
+	int[16] path_cost;
 	int input_counter;
 	int node_counter;
 	input_counter = 1;
@@ -106,7 +105,7 @@ int main()
 	print("Enter the path costs ('0' = no path)");
 	print_nl();
 
-	while (input_counter < 15)
+	while (input_counter < 16)
 	{
 		if (input_counter < 4)
 		{

@@ -97,12 +97,13 @@ int main(){
     print("give a sequence of 10 numbers to be sorted: ");
     print_nl();
 
-    int arr_size = 10;
+    int arr_size;
+    arr_size = 10;
     int i;
     i=0;
 
     if (is_int){
-        int i_arr[arr_size];
+        int[10] i_arr;
         int i_number;
         while(i < arr_size){
             print_int(i);
@@ -124,7 +125,7 @@ int main(){
         print("output array: ");
         print_i_array(i_arr, arr_size);
     }else{
-        float f_arr[arr_size];
+        float[10] f_arr;
         float f_number;
 
         while(i < arr_size){
@@ -147,5 +148,5 @@ int main(){
         print_f_array(f_arr, arr_size);
     }
 
-	return 0;
+    return 0;
 }

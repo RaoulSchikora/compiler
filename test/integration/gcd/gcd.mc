@@ -33,7 +33,8 @@ int main() {
     print_nl();
     b = read_int();
 
-    int res = gcd(a,b);
+    int res;
+    res = gcd(a,b);
 
     print("The greatest common divisor is: ");
     print_int(res);

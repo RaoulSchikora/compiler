@@ -25,4 +25,5 @@ int main()
 		print("You Can Drink!");
 	}
 	print_nl();
+	return 0;
 }

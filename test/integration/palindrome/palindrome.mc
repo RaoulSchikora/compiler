@@ -31,7 +31,8 @@ int main() {
 	input = read_int();
 	print_nl();
 
-	bool result = is_palindrome(input);
+	bool result;
+	result = is_palindrome(input);
 
 	print_int(input);
 	if (result) {

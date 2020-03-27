@@ -2,8 +2,9 @@
 
 bool is_square(int n)
 {
-	int i = 0;
-	while(i*i < n){
+	int i;
+	i = 0;
+	while(i*i <= n){
 		if(i*i == n){
 			return true;
 		}
@@ -26,4 +27,5 @@ int main()
 		print("No");
 	}
 	print_nl();
+	return 0;
 }

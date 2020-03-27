@@ -2,7 +2,7 @@ void print_2_signals(float[64] signal1, float[64] signal2)
 {
 	int i;
 	float j;
-	j = 1;
+	j = 1.0;
 	float dec;
 	dec = 1.0 / 16.0;
 	while (j > -0.001)
