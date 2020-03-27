@@ -905,6 +905,28 @@ void use_undeclared_variable7(CuTest *tc){
     mcc_semantic_check_delete_single_check(check);
 }
 
+// An undeclared variable is assigned
+void use_undeclared_variable8(CuTest *tc){
+
+    // Define test input and create symbol table
+    const char input[] = "int func(){ das = 0; return 0;}";
+    struct mcc_parser_result parser_result;
+    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
+    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_use_undeclared_variable((&parser_result)->program,table);
+
+    CuAssertPtrNotNull(tc, check);
+    CuAssertPtrNotNull(tc, check->error_buffer);
+    CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_USE_UNDECLARED_VARIABLE);
+
+    // Cleanup
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+    mcc_semantic_check_delete_single_check(check);
+}
+
 // A function is declared that has the same name as one of the built ins
 void define_built_in(CuTest *tc){
 
@@ -1011,6 +1033,7 @@ void function_arguments2(CuTest *tc)
     TEST(use_undeclared_variable5)        \
     TEST(use_undeclared_variable6)        \
     TEST(use_undeclared_variable7)        \
+    TEST(use_undeclared_variable8)        \
     TEST(define_built_in)                 \
     TEST(function_arguments1)             \
     TEST(function_arguments2)
