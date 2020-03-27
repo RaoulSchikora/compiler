@@ -435,6 +435,8 @@ static enum mcc_semantic_check_expression_type get_type_binary_op(struct mcc_ast
     default:
         return MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_UNKNOWN;
     }
+
+    return MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_UNKNOWN;
 }
 
 // recursively generate type of expression, returns _TYPE_UNKNOWN if not of valid type, i.e. subexpressions are not
@@ -760,17 +762,22 @@ static void cb_type_conversion_assignment(struct mcc_ast_statement *statement, v
     struct mcc_ast_assignment *assignment = statement->assignment;
     struct mcc_symbol_table_row *row = assignment->row;
 
-    bool is_permitted = false;
+    enum mcc_semantic_check_expression_type variable_type = MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_UNKNOWN;
 
     switch(assignment->assignment_type){
     case MCC_AST_ASSIGNMENT_TYPE_VARIABLE:
         row = mcc_symbol_table_check_upwards_for_declaration(assignment->variable_identifier->identifier_name, row);
-        is_permitted = (convert_enum_symbol_table(row->row_type) == get_type(assignment->variable_assigned_value));
+        variable_type = get_type(assignment->variable_assigned_value);
         break;
     case MCC_AST_ASSIGNMENT_TYPE_ARRAY:
         row = mcc_symbol_table_check_upwards_for_declaration(assignment->array_identifier->identifier_name, row);
-        is_permitted = (convert_enum_symbol_table(row->row_type) == get_type(assignment->array_assigned_value));
+        variable_type = get_type(assignment->array_assigned_value);
         break;
+    }
+    
+    bool is_permitted = false;
+    if(row && (variable_type != MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_UNKNOWN)){
+        is_permitted = (convert_enum_symbol_table(row->row_type) == variable_type);
     }
 
     if(!is_permitted){
