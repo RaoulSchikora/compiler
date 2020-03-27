@@ -5,6 +5,9 @@
 # Build directory 
 builddir/
 
+# debug directory
+debug/
+
 # .idea directory from IDE
 .idea/
 

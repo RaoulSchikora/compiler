@@ -409,6 +409,21 @@ static void link_pointer_assignment(struct mcc_ast_assignment *assignment, struc
     }
 }
 
+
+static void link_pointer_arguments(struct mcc_ast_arguments* arguments, struct mcc_symbol_table_scope *scope){
+   assert(arguments);
+   assert(scope);
+
+   if(!arguments->expression){
+       return;
+   }
+   do {
+       link_pointer_expression(arguments->expression, scope);
+       arguments = arguments->next_arguments;
+   } while (arguments);
+
+}
+
 static void link_pointer_expression(struct mcc_ast_expression *expression, struct mcc_symbol_table_scope *scope)
 {
     assert(expression);
@@ -443,6 +458,7 @@ static void link_pointer_expression(struct mcc_ast_expression *expression, struc
         break;
     case MCC_AST_EXPRESSION_TYPE_FUNCTION_CALL:
         expression->function_row = row;
+        link_pointer_arguments(expression->arguments, scope);
         break;
     }
 }
@@ -606,10 +622,10 @@ struct mcc_symbol_table_row *mcc_symbol_table_check_for_function_declaration(con
     struct mcc_symbol_table_scope *scope = row->scope;
 
     // go to top level
-    do{
+    while(scope->parent_row){
         row = scope->parent_row;
         scope = row->scope;
-    } while(scope->parent_row);
+    }
 
     // iterate through top level
     row = scope->head;
@@ -621,7 +637,7 @@ struct mcc_symbol_table_row *mcc_symbol_table_check_for_function_declaration(con
             return row;
         }
         row = row->next_row;
-    } while(row->next_row);
+    } while(row);
 
     return NULL;
 }
