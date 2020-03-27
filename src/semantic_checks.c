@@ -15,6 +15,7 @@
 // ------------------------------------------------------------- Forward declaration
 
 static bool recursively_check_nonvoid_property(struct mcc_ast_compound_statement *compound_statement);
+static enum mcc_semantic_check_expression_type get_type(struct mcc_ast_expression *expression);
 
 // ------------------------------------------------------------- Convert enum types
 
@@ -349,22 +350,62 @@ static enum mcc_semantic_check_expression_type look_up_type_in_symbol_table(stru
 
 }
 
+// get type for binary operations. If SMALLER, GREATER, SMALLEREQ, GREATEREQ, EQUAL, NOTEQUAL expression becomes bool
+static enum mcc_semantic_check_expression_type get_type_binary_op(struct mcc_ast_expression *expression)
+{
+    assert(expression);
+    assert(expression->lhs);
+    assert(expression->rhs);
+
+    struct mcc_ast_expression *lhs = expression->lhs;
+    struct mcc_ast_expression *rhs = expression->rhs;
+
+    enum mcc_semantic_check_expression_type type_lhs = get_type(lhs);
+    enum mcc_semantic_check_expression_type type_rhs = get_type(rhs);
+
+    if(type_lhs != type_rhs && type_lhs != MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_UNKNOWN){
+        return MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_UNKNOWN;
+    }
+
+    switch(expression->op){
+    case MCC_AST_BINARY_OP_ADD:
+        return type_lhs;
+    case MCC_AST_BINARY_OP_SUB:
+        return type_lhs;
+    case MCC_AST_BINARY_OP_MUL:
+        return type_lhs;
+    case MCC_AST_BINARY_OP_DIV:
+        return type_lhs;
+    case MCC_AST_BINARY_OP_SMALLER:
+        return MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_BOOL;
+    case MCC_AST_BINARY_OP_GREATER:
+        return MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_BOOL;
+    case MCC_AST_BINARY_OP_SMALLEREQ:
+        return MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_BOOL;
+    case MCC_AST_BINARY_OP_GREATEREQ:
+        return MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_BOOL;
+    case MCC_AST_BINARY_OP_CONJ:
+        return MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_BOOL;
+    case MCC_AST_BINARY_OP_DISJ:
+        return MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_BOOL;
+    case MCC_AST_BINARY_OP_EQUAL:
+        return MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_BOOL;
+    case MCC_AST_BINARY_OP_NOTEQUAL:
+        return MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_BOOL;
+    }
+}
+
 // recursively generate type of expression, returns _TYPE_UNKNOWN if not of valid type, i.e. subexpressions are not
 // compatible
 static enum mcc_semantic_check_expression_type get_type(struct mcc_ast_expression *expression)
 {
     assert(expression);
 
-    enum mcc_semantic_check_expression_type lhs = MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_UNKNOWN; // only used for binary op
-    enum mcc_semantic_check_expression_type rhs = MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_UNKNOWN; // only used for binary op
-
     switch(expression->type){
     case MCC_AST_EXPRESSION_TYPE_LITERAL:
         return convert_enum_ast_literal(expression->literal->type);
     case MCC_AST_EXPRESSION_TYPE_BINARY_OP:
-        lhs = get_type(expression->lhs);
-        rhs = get_type(expression->rhs);
-        break;
+        return get_type_binary_op(expression);
     case MCC_AST_EXPRESSION_TYPE_PARENTH:
         return get_type(expression->expression);
     case MCC_AST_EXPRESSION_TYPE_UNARY_OP:
@@ -377,12 +418,8 @@ static enum mcc_semantic_check_expression_type get_type(struct mcc_ast_expressio
         return look_up_type_in_symbol_table(expression);
     }
 
-    if((lhs == rhs) && (lhs != MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_UNKNOWN)
-                    && (rhs != MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_UNKNOWN)){ // only necessary for binary op
-        return lhs;
-    } else {
-        return MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_UNKNOWN;
-    }
+    return MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_UNKNOWN;
+
 }
 
 // check if given expression is of type bool
