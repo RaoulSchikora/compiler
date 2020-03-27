@@ -10,8 +10,6 @@
 
 // unused.h contains macro to suppress warnings of unused variables
 
-// TODO: Implementation
-
 // ------------------------------------------------------------- Forward declaration
 
 static bool recursively_check_nonvoid_property(struct mcc_ast_compound_statement *compound_statement);
