@@ -827,6 +827,23 @@ struct mcc_semantic_check* mcc_semantic_check_run_array_types(struct mcc_ast_pro
 
 // ------------------------------------------------------------- No invalid function calls
 
+static char* semantic_check_expression_type_to_string(enum mcc_semantic_check_expression_type type){
+
+    switch(type){
+        case MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_INT:
+            return "INT";
+        case MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_FLOAT:
+            return "FLOAT";
+        case MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_BOOL:
+            return "BOOL";
+        case MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_STRING:
+            return "STRING";
+        default:
+            return "UNKNOWN";
+    }
+
+}
+
 // Generate error message for invalid function call
 // Returned string is allocated on the heap
 static void generate_error_msg_function_arguments_conflicting_types(
@@ -839,43 +856,9 @@ static void generate_error_msg_function_arguments_conflicting_types(
     if(check->error_buffer){
         return;
     }
-    char *str_expected;
-    char *str_actual;
 
-    switch(expected_type){
-        case MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_INT:
-            str_expected = "INT";
-            break;
-        case MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_FLOAT:
-            str_expected = "FLOAT";
-            break;
-        case MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_BOOL:
-            str_expected = "BOOL";
-            break;
-        case MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_STRING:
-            str_expected = "STRING";
-            break;
-        default:
-            return;
-    }
-
-
-    switch(actual_type){
-        case MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_INT:
-            str_actual = "INT";
-            break;
-        case MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_FLOAT:
-            str_actual = "FLOAT";
-            break;
-        case MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_BOOL:
-            str_actual = "BOOL";
-            break;
-        case MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_STRING:
-            str_actual = "STRING";
-            break;
-        default:
-            return;
-    }
+    char *str_expected = semantic_check_expression_type_to_string(expected_type);
+    char *str_actual = semantic_check_expression_type_to_string(actual_type);
 
     int size = sizeof(char) * (strlen(expression->function_identifier->identifier_name)
             + strlen(str_actual) + strlen(str_actual) + 60);
