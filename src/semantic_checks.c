@@ -392,6 +392,8 @@ static enum mcc_semantic_check_expression_type get_type_binary_op(struct mcc_ast
         return MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_BOOL;
     case MCC_AST_BINARY_OP_NOTEQUAL:
         return MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_BOOL;
+    default:
+        return MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_UNKNOWN;
     }
 }
 
@@ -486,6 +488,11 @@ static void cb_type_conversion_expression_binary_op(struct mcc_ast_expression *e
     assert(data);
 
     struct mcc_semantic_check *check = data;
+
+    //Early abort if already failed
+    if(check->status == MCC_SEMANTIC_CHECK_FAIL){
+        return;
+    }
     struct mcc_ast_expression *lhs = expression->lhs;
     struct mcc_ast_expression *rhs = expression->rhs;
 
@@ -553,6 +560,10 @@ static void cb_type_conversion_expression_unary_op(struct mcc_ast_expression *ex
     assert(data);
 
     struct mcc_semantic_check *check = data;
+    //Early abort if already failed
+    if(check->status == MCC_SEMANTIC_CHECK_FAIL){
+        return;
+    }
     struct mcc_ast_expression *child = expression->child;
     bool child_is_bool = is_bool(child);
 
@@ -618,6 +629,10 @@ static void cb_type_conversion_statement_if_stmt(struct mcc_ast_statement *state
     assert(data);
 
     struct mcc_semantic_check *check = data;
+    //Early abort if already failed
+    if(check->status == MCC_SEMANTIC_CHECK_FAIL){
+        return;
+    }
 
     if(get_type(statement->if_condition) != MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_BOOL){
         generate_error_msg_type_conversion_statement_if(statement->if_condition->node, check);
@@ -631,6 +646,10 @@ static void cb_type_conversion_statement_if_else_stmt(struct mcc_ast_statement *
     assert(data);
 
     struct mcc_semantic_check *check = data;
+    //Early abort if already failed
+    if(check->status == MCC_SEMANTIC_CHECK_FAIL){
+        return;
+    }
 
     if(get_type(statement->if_else_condition) != MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_BOOL){
         generate_error_msg_type_conversion_statement_if(statement->if_else_condition->node, check);
@@ -644,6 +663,10 @@ static void cb_type_conversion_statement_while(struct mcc_ast_statement *stateme
     assert(data);
 
     struct mcc_semantic_check *check = data;
+    //Early abort if already failed
+    if(check->status == MCC_SEMANTIC_CHECK_FAIL){
+        return;
+    }
 
     if(get_type(statement->while_condition) != MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_BOOL){
         generate_error_msg_type_conversion_statement_while(statement->while_condition->node, check);
@@ -690,6 +713,10 @@ static void cb_type_conversion_assignment(struct mcc_ast_statement *statement, v
     assert(data);
 
     struct mcc_semantic_check *check = data;
+    //Early abort if already failed
+    if(check->status == MCC_SEMANTIC_CHECK_FAIL){
+        return;
+    }
     struct mcc_ast_assignment *assignment = statement->assignment;
     struct mcc_symbol_table_row *row = assignment->row;
 
@@ -769,6 +796,9 @@ static void generate_error_msg_function_arguments_conflicting_types(
         enum mcc_semantic_check_expression_type actual_type)
 {
 
+    if(check->error_buffer){
+        return;
+    }
     char *str_expected;
     char *str_actual;
 
@@ -1031,6 +1061,10 @@ static void run_nonvoid_check(struct mcc_ast_function_definition *function, stru
 {
     assert(function);
     assert(check);
+    //Early abort if already failed
+    if(check->status == MCC_SEMANTIC_CHECK_FAIL){
+        return;
+    }
 
     bool is_successful = false;
 
@@ -1144,6 +1178,10 @@ static void cb_unknown_function_call(struct mcc_ast_expression *expression, void
     assert(data);
 
     struct mcc_semantic_check *check = data;
+    //Early abort if already failed
+    if(check->status == MCC_SEMANTIC_CHECK_FAIL){
+        return;
+    }
     struct mcc_symbol_table_row *row = expression->function_row;
     char* name = expression->function_identifier->identifier_name;
 
@@ -1286,6 +1324,11 @@ static void check_scope_for_multiple_variable_declaration(struct mcc_symbol_tabl
     assert(scope);
     assert(check);
 
+    //Early abort if already failed
+    if(check->status == MCC_SEMANTIC_CHECK_FAIL){
+        return;
+    }
+
     if(!scope->head){
         return;
     }
@@ -1378,6 +1421,10 @@ static void cb_use_undeclared_variable(struct mcc_ast_expression *expression, vo
     assert(data);
 
     struct mcc_semantic_check *check = data;
+    //Early abort if already failed
+    if(check->status == MCC_SEMANTIC_CHECK_FAIL){
+        return;
+    }
     struct mcc_symbol_table_row *row = expression->variable_row;
     char* name = expression->identifier->identifier_name;
 
@@ -1395,6 +1442,10 @@ static void cb_use_undeclared_array(struct mcc_ast_expression *expression, void 
     assert(data);
 
     struct mcc_semantic_check *check = data;
+    //Early abort if already failed
+    if(check->status == MCC_SEMANTIC_CHECK_FAIL){
+        return;
+    }
     struct mcc_symbol_table_row *row = expression->array_row;
     char* name = expression->array_identifier->identifier_name;
 
@@ -1412,6 +1463,10 @@ static void cb_use_undeclared_variable_assignment(struct mcc_ast_assignment *ass
     assert(data);
 
     struct mcc_semantic_check *check = data;
+    //Early abort if already failed
+    if(check->status == MCC_SEMANTIC_CHECK_FAIL){
+        return;
+    }
     struct mcc_symbol_table_row *row = assignment->row;
     char* name = assignment->variable_identifier->identifier_name;
 
@@ -1429,6 +1484,10 @@ static void cb_use_undeclared_array_assignment(struct mcc_ast_assignment *assign
     assert(data);
 
     struct mcc_semantic_check *check = data;
+    //Early abort if already failed
+    if(check->status == MCC_SEMANTIC_CHECK_FAIL){
+        return;
+    }
     struct mcc_symbol_table_row *row = assignment->row;
     char* name = assignment->array_identifier->identifier_name;
 
