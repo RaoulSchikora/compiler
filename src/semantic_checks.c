@@ -774,7 +774,7 @@ static void cb_type_conversion_assignment(struct mcc_ast_statement *statement, v
         variable_type = get_type(assignment->array_assigned_value);
         break;
     }
-    
+
     bool is_permitted = false;
     if(row && (variable_type != MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_UNKNOWN)){
         is_permitted = (convert_enum_symbol_table(row->row_type) == variable_type);

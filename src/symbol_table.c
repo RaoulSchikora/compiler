@@ -579,7 +579,7 @@ static void create_row_function_definition(struct mcc_ast_function_definition *f
     create_rows_function_body(function_definition, row);
 }
 
-// check if there is an declaration of the given name in the symbole table above (including) the given row. However,
+// check if there is a declaration of the given name in the symbol table above (including) the given row. However,
 // checks on function level are not done.
 struct mcc_symbol_table_row *mcc_symbol_table_check_upwards_for_declaration(const char *wanted_name,
                                                                             struct mcc_symbol_table_row *start_row)
