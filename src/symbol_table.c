@@ -409,6 +409,21 @@ static void link_pointer_assignment(struct mcc_ast_assignment *assignment, struc
     }
 }
 
+
+static void link_pointer_arguments(struct mcc_ast_arguments* arguments, struct mcc_symbol_table_scope *scope){
+   assert(arguments);
+   assert(scope);
+
+   if(!arguments->expression){
+       return;
+   }
+   do {
+       link_pointer_expression(arguments->expression, scope);
+       arguments = arguments->next_arguments;
+   } while (arguments);
+
+}
+
 static void link_pointer_expression(struct mcc_ast_expression *expression, struct mcc_symbol_table_scope *scope)
 {
     assert(expression);
@@ -443,6 +458,7 @@ static void link_pointer_expression(struct mcc_ast_expression *expression, struc
         break;
     case MCC_AST_EXPRESSION_TYPE_FUNCTION_CALL:
         expression->function_row = row;
+        link_pointer_arguments(expression->arguments, scope);
         break;
     }
 }
@@ -570,9 +586,11 @@ struct mcc_symbol_table_row *mcc_symbol_table_check_upwards_for_declaration(cons
 {
     assert(wanted_name);
     assert(start_row);
+    printf("start_row->type: %d\n",start_row->row_type);
 
     struct mcc_symbol_table_row *row = start_row;
     struct mcc_symbol_table_scope *scope = row->scope;
+    printf("row->name: %s\n",row->name);
 
     if(strcmp(wanted_name, row->name) == 0){
         return row;

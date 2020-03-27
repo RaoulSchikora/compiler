@@ -854,7 +854,7 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
     struct mcc_ast_arguments *ast_args_head = expression->arguments;
 
     do {
-
+        assert(ast_args_head->expression);
         // Too little arguments
         if(!ast_args_head){
             generate_error_msg_function_arguments(check,"Not enough arguments",expression);
