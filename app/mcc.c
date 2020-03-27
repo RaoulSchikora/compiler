@@ -110,6 +110,7 @@ int main(int argc, char *argv[])
     if (command_line->options->write_to_file == true) {
         FILE *out = fopen(command_line->options->output_file, "a");
         if (out == NULL) {
+            mcc_ast_delete_result(&result);
             mc_cl_parser_delete_command_line_parser(command_line);
             return EXIT_FAILURE;
         }
@@ -132,8 +133,18 @@ int main(int argc, char *argv[])
     if (checks->status != MCC_SEMANTIC_CHECK_OK){
     	if (checks->error_buffer == NULL){
 			printf("Semantic check failed, error buffer is empty.");
+            mc_cl_parser_delete_command_line_parser(command_line);
+            mcc_ast_delete_result(&result);
+            mcc_symbol_table_delete_table(table);
+            mcc_semantic_check_delete_all_checks(checks);
+            return EXIT_FAILURE;
     	} else {
 			printf("Semantic check failed:\n%s", checks->error_buffer);
+            mc_cl_parser_delete_command_line_parser(command_line);
+            mcc_ast_delete_result(&result);
+            mcc_symbol_table_delete_table(table);
+            mcc_semantic_check_delete_all_checks(checks);
+			return EXIT_FAILURE;
 		}
     }
 
