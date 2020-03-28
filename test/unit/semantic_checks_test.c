@@ -1105,7 +1105,7 @@ void invalid_array_operation(CuTest *tc)
     CuAssertPtrNotNull(tc, check->error_buffer);
     CuAssertPtrNotNull(tc, check);
     CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
-    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_FUNCTION_ARGUMENTS);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION);
 
     // Cleanup
     mcc_ast_delete(parser_result.program);
@@ -1127,7 +1127,7 @@ void invalid_array_operation2(CuTest *tc)
     CuAssertPtrNotNull(tc, check->error_buffer);
     CuAssertPtrNotNull(tc, check);
     CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
-    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_FUNCTION_ARGUMENTS);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION);
 
     // Cleanup
     mcc_ast_delete(parser_result.program);
@@ -1149,7 +1149,7 @@ void invalid_array_operation3(CuTest *tc)
     CuAssertPtrNotNull(tc, check->error_buffer);
     CuAssertPtrNotNull(tc, check);
     CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
-    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_FUNCTION_ARGUMENTS);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION);
 
     // Cleanup
     mcc_ast_delete(parser_result.program);
@@ -1171,7 +1171,7 @@ void invalid_array_operation4(CuTest *tc)
     CuAssertPtrNotNull(tc, check->error_buffer);
     CuAssertPtrNotNull(tc, check);
     CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
-    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_FUNCTION_ARGUMENTS);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION);
 
     // Cleanup
     mcc_ast_delete(parser_result.program);
@@ -1193,7 +1193,7 @@ void invalid_array_operation5(CuTest *tc)
     CuAssertPtrNotNull(tc, check->error_buffer);
     CuAssertPtrNotNull(tc, check);
     CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
-    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_FUNCTION_ARGUMENTS);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_TYPE_CONVERSION);
 
     // Cleanup
     mcc_ast_delete(parser_result.program);
@@ -1247,8 +1247,8 @@ void invalid_array_operation5(CuTest *tc)
     TEST(function_arguments1)             \
     TEST(function_arguments2)             \
     TEST(function_return_value1)          \
-    TEST(function_return_value2)
-    //TEST(invalid_array_operation)         \
+    TEST(function_return_value2)          \
+    TEST(invalid_array_operation)         \
     TEST(invalid_array_operation2)        \
     TEST(invalid_array_operation3)        \
     TEST(invalid_array_operation4)        \
