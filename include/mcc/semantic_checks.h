@@ -46,6 +46,7 @@ struct mcc_semantic_check_all_checks{
 // ------------------------------------------------------------ Data structure: A single semantic check
 
 enum mcc_semantic_check_type{
+    MCC_SEMANTIC_CHECK_ALL,
     MCC_SEMANTIC_CHECK_TYPE_CONVERSION,
     MCC_SEMANTIC_CHECK_ARRAY_TYPES,
     MCC_SEMANTIC_CHECK_FUNCTION_ARGUMENTS,
@@ -65,6 +66,18 @@ struct mcc_semantic_check {
     // error_buffer is set to NULL if status is OK
     char* error_buffer;
 };
+
+
+// ------------------------------------------------------------- High level semantic check: Runs all and returns error
+
+// Returns error_message on fail and NULL otherwise
+char* mcc_check_semantics(struct mcc_ast_program* ast,struct mcc_symbol_table *st);
+
+// ------------------------------------------------------------- Functions: Running all semantic checks
+
+// Run all semantic checks
+struct mcc_semantic_check_all_checks* mcc_semantic_check_run_all(struct mcc_ast_program* ast,
+                                                                 struct mcc_symbol_table* symbol_table);
 
 // ------------------------------------------------------------- Functions: Running single semantic checks
 
@@ -107,12 +120,6 @@ struct mcc_semantic_check* mcc_semantic_check_run_use_undeclared_variable(struct
 // No use of the names of the built_in functions in function definitions
 struct mcc_semantic_check* mcc_semantic_check_run_define_built_in(struct mcc_ast_program* ast,
                                                                           struct mcc_symbol_table* symbol_table);
-
-// ------------------------------------------------------------- Functions: Running all semantic checks
-
-// Run all semantic checks
-struct mcc_semantic_check_all_checks* mcc_semantic_check_run_all(struct mcc_ast_program* ast,
-                                                                 struct mcc_symbol_table* symbol_table);
 
 
 // ------------------------------------------------------------- Functions: Cleanup

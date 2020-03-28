@@ -129,23 +129,14 @@ int main(int argc, char *argv[])
 
 	// ---------------------------------------------------------------------- Run semantic checks
 
-	struct mcc_semantic_check_all_checks *checks = mcc_semantic_check_run_all((&result)->program,table);
-    if (checks->status != MCC_SEMANTIC_CHECK_OK){
-    	if (checks->error_buffer == NULL){
-			printf("Semantic check failed, error buffer is empty.");
-            mc_cl_parser_delete_command_line_parser(command_line);
-            mcc_ast_delete_result(&result);
-            mcc_symbol_table_delete_table(table);
-            mcc_semantic_check_delete_all_checks(checks);
-            return EXIT_FAILURE;
-    	} else {
-			printf("Semantic check failed:\n%s", checks->error_buffer);
-            mc_cl_parser_delete_command_line_parser(command_line);
-            mcc_ast_delete_result(&result);
-            mcc_symbol_table_delete_table(table);
-            mcc_semantic_check_delete_all_checks(checks);
-			return EXIT_FAILURE;
-		}
+	char* semantic_check = mcc_check_semantics((&result)->program,table);
+    if (semantic_check){
+        printf("Semantic check failed:\n%s", semantic_check);
+        mc_cl_parser_delete_command_line_parser(command_line);
+        mcc_ast_delete_result(&result);
+        mcc_symbol_table_delete_table(table);
+        free(semantic_check);
+        return EXIT_FAILURE;
     }
 
 	// ---------------------------------------------------------------------- Clean up
@@ -153,7 +144,6 @@ int main(int argc, char *argv[])
 	mc_cl_parser_delete_command_line_parser(command_line);
 	mcc_ast_delete_result(&result);
     mcc_symbol_table_delete_table(table);
-    mcc_semantic_check_delete_all_checks(checks);
 
 	// TODO:
 	// - run semantic checks

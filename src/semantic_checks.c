@@ -15,6 +15,30 @@ static bool recursively_check_nonvoid_property(struct mcc_ast_compound_statement
 static enum mcc_semantic_check_expression_type get_type(struct mcc_ast_expression *expression);
 static char* semantic_check_expression_type_to_string(enum mcc_semantic_check_expression_type type);
 
+// ------------------------------------------------------------- High level semantic check: Runs all and returns error
+
+// Returns error_message on fail (allocated on the heap) and NULL otherwise
+char* mcc_check_semantics(struct mcc_ast_program* ast,struct mcc_symbol_table *st){
+    struct mcc_semantic_check_all_checks *check = mcc_semantic_check_run_all(ast,st);
+    if(check->status == MCC_SEMANTIC_CHECK_OK){
+        mcc_semantic_check_delete_all_checks(check);
+        return NULL;
+    }
+    int size = sizeof(char)*(strlen(check->error_buffer)+1);
+    char* string = malloc(size);
+    if(!string){
+        mcc_semantic_check_delete_all_checks(check);
+        return "malloc failed.";
+    }
+    if( 0 > snprintf(string, size, "%s", check->error_buffer)){
+        mcc_semantic_check_delete_all_checks(check);
+        return "snprintf failed.";
+    }
+    mcc_semantic_check_delete_all_checks(check);
+    return string;
+}
+
+
 // ------------------------------------------------------------- Convert enum types
 
 static enum mcc_semantic_check_expression_type convert_enum_symbol_table(enum mcc_symbol_table_row_type type)
@@ -297,6 +321,7 @@ struct mcc_semantic_check_all_checks* mcc_semantic_check_run_all(struct mcc_ast_
 
     return checks;
 }
+
 
 // ------------------------------------------------------------- Functions: Running single semantic checks
 
