@@ -793,8 +793,8 @@ static void generate_error_msg_array_index_non_int(struct mcc_ast_expression *ex
         return;
     }
     char *str = semantic_check_expression_type_to_string(type);
-    int size = 56;
-    char* error_msg = (char *)malloc( sizeof(char) * size + strlen(str));
+    int size = 56 + strlen(str);
+    char* error_msg = (char *)malloc( sizeof(char) * size );
     snprintf(error_msg, size, "array index of type '%s', expected to be 'INT'.", str);
     write_error_message_to_check(check, expression->node, error_msg);
     check->status = MCC_SEMANTIC_CHECK_FAIL;
@@ -802,9 +802,9 @@ static void generate_error_msg_array_index_non_int(struct mcc_ast_expression *ex
 }
 
 // check the index of an array element during assignment to be of type INT
-static void check_assignment_array_index(struct mcc_ast_assignment *assignemnt, struct mcc_semantic_check *check)
+static void check_assignment_array_index(struct mcc_ast_assignment *assignment, struct mcc_semantic_check *check)
 {
-    assert(assignemnt);
+    assert(assignment);
     assert(check);
 
     //Early abort if already failed
@@ -812,11 +812,48 @@ static void check_assignment_array_index(struct mcc_ast_assignment *assignemnt, 
         return;
     }
 
-    struct mcc_ast_expression *index = assignemnt->array_index;
+    struct mcc_ast_expression *index = assignment->array_index;
     enum mcc_semantic_check_expression_type type = get_type(index);
 
     if(type != MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_INT){
         generate_error_msg_array_index_non_int(index, type, check);
+    }
+}
+
+// generate error msg if a variable of array type is assigned
+static void generate_error_msg_variable_assignment_of_array(struct mcc_ast_assignment *assignment,
+                                                            struct mcc_semantic_check *check)
+{
+    if(check->error_buffer){
+        return;
+    }
+    char *name = assignment->variable_identifier->identifier_name;
+    int size = 60 + strlen(name);
+    char* error_msg = (char *)malloc( sizeof(char) * size );
+    snprintf(error_msg, size, "assignment to variable '%s' of array type not possible.", name);
+    write_error_message_to_check(check, assignment->node, error_msg);
+    check->status = MCC_SEMANTIC_CHECK_FAIL;
+    free(error_msg);
+}
+
+// check that the assignment of a variable is not of array type
+static void check_assignment_var_not_equal_array(struct mcc_ast_assignment *assignment, struct mcc_semantic_check *check)
+{
+    assert(assignment);
+    assert(check);
+    assert(assignment->assignment_type == MCC_AST_ASSIGNMENT_TYPE_VARIABLE);
+
+    //Early abort if already failed
+    if(check->status == MCC_SEMANTIC_CHECK_FAIL){
+        return;
+    }
+
+    struct mcc_symbol_table_row *row = assignment->row;
+    char *name = assignment->variable_identifier->identifier_name;
+    row = mcc_symbol_table_check_upwards_for_declaration(name, row);
+
+    if(row && (row->row_structure == MCC_SYMBOL_TABLE_ROW_STRUCTURE_ARRAY)){
+        generate_error_msg_variable_assignment_of_array(assignment, check);
     }
 }
 
@@ -833,8 +870,13 @@ static void cb_type_conversion_assignment(struct mcc_ast_statement *statement, v
     }
     struct mcc_ast_assignment *assignment = statement->assignment;
 
-    if(assignment->assignment_type == MCC_AST_ASSIGNMENT_TYPE_ARRAY){
+    switch(assignment->assignment_type){
+    case MCC_AST_ASSIGNMENT_TYPE_VARIABLE:
+        check_assignment_var_not_equal_array(assignment, check);
+        break;
+    case MCC_AST_ASSIGNMENT_TYPE_ARRAY:
         check_assignment_array_index(assignment, check);
+        break;
     }
     check_type_conversion_assignment(assignment, check);
 }
