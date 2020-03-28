@@ -1100,7 +1100,7 @@ void invalid_array_operation(CuTest *tc)
     parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
     CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
     struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
-    struct mcc_semantic_check *check = mcc_semantic_check_run_function_arguments((&parser_result)->program,table);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion((&parser_result)->program,table);
 
     CuAssertPtrNotNull(tc, check->error_buffer);
     CuAssertPtrNotNull(tc, check);
@@ -1122,7 +1122,7 @@ void invalid_array_operation2(CuTest *tc)
     parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
     CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
     struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
-    struct mcc_semantic_check *check = mcc_semantic_check_run_function_arguments((&parser_result)->program,table);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion((&parser_result)->program,table);
 
     CuAssertPtrNotNull(tc, check->error_buffer);
     CuAssertPtrNotNull(tc, check);
@@ -1144,7 +1144,7 @@ void invalid_array_operation3(CuTest *tc)
     parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
     CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
     struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
-    struct mcc_semantic_check *check = mcc_semantic_check_run_function_arguments((&parser_result)->program,table);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion((&parser_result)->program,table);
 
     CuAssertPtrNotNull(tc, check->error_buffer);
     CuAssertPtrNotNull(tc, check);
@@ -1161,12 +1161,12 @@ void invalid_array_operation3(CuTest *tc)
 void invalid_array_operation4(CuTest *tc)
 {
     // Define test input and create symbol table
-    const char input[] = "int main(){int[10] a; a[1 == 0] = 3; return 0;}";
+    const char input[] = "int main(){int[10] a; int b; b = a[1 == 0]; return 0;}";
     struct mcc_parser_result parser_result;
     parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
     CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
     struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
-    struct mcc_semantic_check *check = mcc_semantic_check_run_function_arguments((&parser_result)->program,table);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion((&parser_result)->program,table);
 
     CuAssertPtrNotNull(tc, check->error_buffer);
     CuAssertPtrNotNull(tc, check);
@@ -1188,7 +1188,7 @@ void invalid_array_operation5(CuTest *tc)
     parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
     CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
     struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
-    struct mcc_semantic_check *check = mcc_semantic_check_run_function_arguments((&parser_result)->program,table);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_type_conversion((&parser_result)->program,table);
 
     CuAssertPtrNotNull(tc, check->error_buffer);
     CuAssertPtrNotNull(tc, check);

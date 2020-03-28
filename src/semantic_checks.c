@@ -14,6 +14,7 @@
 
 static bool recursively_check_nonvoid_property(struct mcc_ast_compound_statement *compound_statement);
 static enum mcc_semantic_check_expression_type get_type(struct mcc_ast_expression *expression);
+static char* semantic_check_expression_type_to_string(enum mcc_semantic_check_expression_type type);
 
 // ------------------------------------------------------------- Convert enum types
 
@@ -537,7 +538,7 @@ static void cb_type_conversion_expression_binary_op(struct mcc_ast_expression *e
     }
     struct mcc_ast_expression *lhs = expression->lhs;
     struct mcc_ast_expression *rhs = expression->rhs;
-
+    // operations on strings and whole arrays are not supported
     if(is_string(lhs) || is_string(rhs) || is_whole_array(lhs) || is_whole_array(rhs)){
         generate_error_msg_type_conversion_invalid_operands(expression->node, check);
         return;
@@ -748,7 +749,7 @@ static void generate_error_msg_type_conversion_assignment(struct mcc_ast_assignm
     free(error_msg);
 }
 
-// callback for checking type conversion in an assignment
+// callback for checking type conversion in an assignment and ensure, that index is of type INT
 static void cb_type_conversion_assignment(struct mcc_ast_statement *statement, void *data)
 {
     assert(statement);
@@ -785,6 +786,44 @@ static void cb_type_conversion_assignment(struct mcc_ast_statement *statement, v
     }
 }
 
+// generate error msg if index of array in expression is non int
+static void generate_error_msg_array_index_non_int(struct mcc_ast_expression *expression,
+                                                   enum mcc_semantic_check_expression_type type,
+                                                   struct mcc_semantic_check *check)
+{
+    if(check->error_buffer){
+        return;
+    }
+    char *str = semantic_check_expression_type_to_string(type);
+    int size = 56;
+    char* error_msg = (char *)malloc( sizeof(char) * size + strlen(str));
+    snprintf(error_msg, size, "array index of type '%s', expected to be 'INT'.", str);
+    write_error_message_to_check(check, expression->node, error_msg);
+    check->status = MCC_SEMANTIC_CHECK_FAIL;
+    free(error_msg);
+}
+
+
+// callback for an array element as an expression of type int
+static void cb_type_conversion_expression_array_element(struct mcc_ast_expression *expression, void *data)
+{
+    assert(expression);
+    assert(data);
+
+    struct mcc_semantic_check *check = data;
+    // Early abort if already failed
+    if(check->status == MCC_SEMANTIC_CHECK_FAIL){
+        return;
+    }
+
+    struct mcc_ast_expression *index = expression->index;
+    enum mcc_semantic_check_expression_type type = get_type(index);
+
+    if(type != MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_INT){
+        generate_error_msg_array_index_non_int(expression, type, check);
+    }
+}
+
 // Setup an AST Visitor for checking types within expressions and if conditions are of type bool
 static struct mcc_ast_visitor type_conversion_visitor(struct mcc_semantic_check *check)
 {
@@ -797,6 +836,7 @@ static struct mcc_ast_visitor type_conversion_visitor(struct mcc_semantic_check 
 
             .expression_binary_op = cb_type_conversion_expression_binary_op,
             .expression_unary_op = cb_type_conversion_expression_unary_op,
+            .expression_array_element = cb_type_conversion_expression_array_element,
             .statement_if_stmt = cb_type_conversion_statement_if_stmt,
             .statement_if_else_stmt = cb_type_conversion_statement_if_else_stmt,
             .statement_while = cb_type_conversion_statement_while,
