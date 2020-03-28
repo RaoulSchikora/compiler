@@ -1245,14 +1245,14 @@ void invalid_array_operation5(CuTest *tc)
     TEST(use_undeclared_variable8)        \
     TEST(define_built_in)                 \
     TEST(function_arguments1)             \
-    TEST(function_arguments2)             
+    TEST(function_arguments2)             \
+    TEST(function_return_value1)          \
+    TEST(function_return_value2)
     //TEST(invalid_array_operation)         \
     TEST(invalid_array_operation2)        \
     TEST(invalid_array_operation3)        \
     TEST(invalid_array_operation4)        \
     TEST(invalid_array_operation5)
-    //TEST(function_return_value1)          \
-    //TEST(function_return_value2)          \
 
 #include "main_stub.inc"
 #undef TESTS

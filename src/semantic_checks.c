@@ -1006,15 +1006,111 @@ struct mcc_semantic_check* mcc_semantic_check_run_function_arguments(struct mcc_
     struct mcc_ast_visitor visitor = function_arguments_visitor(check);
     mcc_ast_visit(ast, &visitor);
     return check;
-
-    return NULL;
 }
 
 // -------------------------------------------------------------- Function doesn't return wrong type
 
+struct function_return_value_userdata{
+    struct mcc_semantic_check *check;
+    enum mcc_semantic_check_expression_type declared_function_type;
+};
+
+static void generate_error_msg_function_return_value(struct mcc_ast_statement *statement,
+                                                        struct mcc_semantic_check *check,
+                                                        enum mcc_semantic_check_expression_type actual_return_type,
+                                                        enum mcc_semantic_check_expression_type declared_function_type)
+{
+
+    char* str_act_type = semantic_check_expression_type_to_string(actual_return_type);
+    char* str_exp_type = semantic_check_expression_type_to_string(declared_function_type);
+
+    if(check->error_buffer){
+        return;
+    }
+
+    int size = sizeof(char) * (strlen(str_act_type) + strlen(str_exp_type) + 60);
+    char* buffer = malloc(size);
+
+    if(!buffer){
+        write_error_message_to_check(check, statement->node,
+                "generate_error_msg_function_return_value: malloc failed.");
+        check->status = MCC_SEMANTIC_CHECK_FAIL;
+        return;
+    }
+    if(0 > snprintf(buffer,size,"Invalid return_type, expected type %s but was %s\n", str_exp_type,str_act_type)){
+        write_error_message_to_check(check, statement->node,
+                                    "generate_error_msg_function_return_value_conflicting_type: "
+                                    "snprintf failed.");
+        check->status = MCC_SEMANTIC_CHECK_FAIL;
+        return;
+    } else {
+        write_error_message_to_check(check, statement->node, buffer);
+        free(buffer);
+        check->status = MCC_SEMANTIC_CHECK_FAIL;
+        return;
+    }
+}
+
+// Callback for visitor
+static void cb_function_return_value_statement_return(struct mcc_ast_statement *statement, void *data){
+    struct function_return_value_userdata* userdata = data;
+    enum mcc_semantic_check_expression_type act_type = get_type(statement->return_value);
+    if (act_type != userdata->declared_function_type){
+        generate_error_msg_function_return_value(statement,userdata->check,act_type,userdata->declared_function_type);
+    }
+}
+
+
+static struct mcc_ast_visitor function_return_value_visitor(struct function_return_value_userdata* data){
+    return (struct mcc_ast_visitor){
+            .traversal = MCC_AST_VISIT_DEPTH_FIRST,
+            .order = MCC_AST_VISIT_POST_ORDER,
+
+            .userdata = data,
+
+            .statement_return = cb_function_return_value_statement_return,
+    };
+}
+
+// Check a single function for correct return types
+static void check_function_return_value_ok(struct mcc_ast_program* ast, struct mcc_semantic_check* check){
+
+    struct mcc_ast_function_definition *function = ast->function;
+    // Set up custom userdata struct
+    struct function_return_value_userdata *userdata = malloc(sizeof(*userdata));
+    if(!userdata){
+        write_error_message_to_check(check,ast->node,"malloc failed");
+    }
+    userdata->check = check;
+    switch (function->type){
+        case MCC_AST_FUNCTION_TYPE_INT:
+            userdata->declared_function_type = MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_INT;
+            break;
+        case MCC_AST_FUNCTION_TYPE_FLOAT:
+            userdata->declared_function_type = MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_FLOAT;
+            break;
+        case MCC_AST_FUNCTION_TYPE_STRING:
+            userdata->declared_function_type = MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_BOOL;
+            break;
+        case MCC_AST_FUNCTION_TYPE_BOOL:
+            userdata->declared_function_type = MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_STRING ;
+            break;
+        case MCC_AST_FUNCTION_TYPE_VOID:
+            userdata->declared_function_type = MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_VOID;
+            break;
+        default:
+            userdata->declared_function_type = MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_UNKNOWN;
+            break;
+    }
+
+    struct mcc_ast_visitor visitor = function_return_value_visitor(userdata);
+
+    // Manually start the visitor only at the function level
+    mcc_ast_visit(function,&visitor);
+}
+
 struct mcc_semantic_check* mcc_semantic_check_run_function_return_value(struct mcc_ast_program* ast,
                                                                         struct mcc_symbol_table* symbol_table){
-    UNUSED(ast);
     UNUSED(symbol_table);
     struct mcc_semantic_check *check = malloc(sizeof(*check));
     if (!check){
@@ -1022,8 +1118,17 @@ struct mcc_semantic_check* mcc_semantic_check_run_function_return_value(struct m
     }
 
     check->status = MCC_SEMANTIC_CHECK_OK;
-    check->type = MCC_SEMANTIC_CHECK_FUNCTION_ARGUMENTS;
+    check->type = MCC_SEMANTIC_CHECK_FUNCTION_RETURN_VALUE;
     check->error_buffer = NULL;
+
+    do{
+        check_function_return_value_ok(ast,check);
+        if(check->status == MCC_SEMANTIC_CHECK_FAIL){
+           return check;
+        }
+        ast = ast->next_function;
+    } while (ast);
+
 
     return check;
 
