@@ -88,69 +88,6 @@ struct mcc_semantic_check_all_checks* mcc_semantic_check_run_all(struct mcc_ast_
     checks->use_undeclared_variable = NULL;
     checks->define_built_in = NULL;
 
-    // No invalid array operation
-    /*
-    // Early abort if alredy failed
-    if(checks->status == MCC_SEMANTIC_CHECK_FAIL){
-        return checks;
-    }
-    checks->array_types = mcc_semantic_check_run_array_types(ast, symbol_table);
-    if(checks->array_types == NULL){
-        checks->status = MCC_SEMANTIC_CHECK_FAIL;
-        if(checks->error_buffer == NULL){
-            write_error_message_to_all_checks(checks,"mcc_semantic_check_run_array_types returned NULL pointer.");
-        }
-    } else {
-        if(checks->array_types->status != MCC_SEMANTIC_CHECK_OK){
-            checks->status = MCC_SEMANTIC_CHECK_FAIL;
-            if(checks->error_buffer == NULL){
-                write_error_message_to_all_checks(checks,checks->array_types->error_buffer);
-            }
-        }
-    }*/
-
-
-    // No invalid function calls
-    // Early abort if already failed
-    if(checks->status == MCC_SEMANTIC_CHECK_FAIL){
-        return checks;
-    }
-    checks->function_arguments = mcc_semantic_check_run_function_arguments(ast, symbol_table);
-    if(checks->function_arguments == NULL){
-        checks->status = MCC_SEMANTIC_CHECK_FAIL;
-        if(checks->error_buffer == NULL){
-            write_error_message_to_all_checks(checks,"mcc_semantic_check_run_function_arguments returned NULL pointer.");
-        }
-    } else {
-        if(checks->function_arguments->status != MCC_SEMANTIC_CHECK_OK){
-            checks->status = MCC_SEMANTIC_CHECK_FAIL;
-            if(checks->error_buffer == NULL){
-                write_error_message_to_all_checks(checks,checks->function_arguments->error_buffer);
-            }
-        }
-    }
-     
-
-    // No functions with invalid returns
-    // Early abort if already failed
-    if(checks->status == MCC_SEMANTIC_CHECK_FAIL){
-        return checks;
-    }
-    checks->function_return_value = mcc_semantic_check_run_function_return_value(ast, symbol_table);
-    if(checks->function_return_value == NULL){
-        checks->status = MCC_SEMANTIC_CHECK_FAIL;
-        if(checks->error_buffer == NULL){
-            write_error_message_to_all_checks(checks,"mcc_semantic_check_run_function_return_value "
-                                                     "returned NULL pointer.");
-        }
-    } else {
-        if(checks->function_return_value->status != MCC_SEMANTIC_CHECK_OK){
-            checks->status = MCC_SEMANTIC_CHECK_FAIL;
-            if(checks->error_buffer == NULL){
-                write_error_message_to_all_checks(checks,checks->function_return_value->error_buffer);
-            }
-        }
-    }
 
     // Each execution path of non-void function returns a value
     // Early abort if already failed
@@ -312,6 +249,48 @@ struct mcc_semantic_check_all_checks* mcc_semantic_check_run_all(struct mcc_ast_
             checks->status = MCC_SEMANTIC_CHECK_FAIL;
             if(checks->error_buffer == NULL){
                 write_error_message_to_all_checks(checks,checks->type_conversion->error_buffer);
+            }
+        }
+    }
+
+    // No invalid function calls
+    // Early abort if already failed
+    if(checks->status == MCC_SEMANTIC_CHECK_FAIL){
+        return checks;
+    }
+    checks->function_arguments = mcc_semantic_check_run_function_arguments(ast, symbol_table);
+    if(checks->function_arguments == NULL){
+        checks->status = MCC_SEMANTIC_CHECK_FAIL;
+        if(checks->error_buffer == NULL){
+            write_error_message_to_all_checks(checks,"mcc_semantic_check_run_function_arguments returned NULL pointer.");
+        }
+    } else {
+        if(checks->function_arguments->status != MCC_SEMANTIC_CHECK_OK){
+            checks->status = MCC_SEMANTIC_CHECK_FAIL;
+            if(checks->error_buffer == NULL){
+                write_error_message_to_all_checks(checks,checks->function_arguments->error_buffer);
+            }
+        }
+    }
+
+
+    // No functions with invalid returns
+    // Early abort if already failed
+    if(checks->status == MCC_SEMANTIC_CHECK_FAIL){
+        return checks;
+    }
+    checks->function_return_value = mcc_semantic_check_run_function_return_value(ast, symbol_table);
+    if(checks->function_return_value == NULL){
+        checks->status = MCC_SEMANTIC_CHECK_FAIL;
+        if(checks->error_buffer == NULL){
+            write_error_message_to_all_checks(checks,"mcc_semantic_check_run_function_return_value "
+                                                     "returned NULL pointer.");
+        }
+    } else {
+        if(checks->function_return_value->status != MCC_SEMANTIC_CHECK_OK){
+            checks->status = MCC_SEMANTIC_CHECK_FAIL;
+            if(checks->error_buffer == NULL){
+                write_error_message_to_all_checks(checks,checks->function_return_value->error_buffer);
             }
         }
     }
