@@ -23,7 +23,9 @@ void positive(CuTest *tc)
                          bool func5(){bool a; a = true; return !a;} \
                          float func6(){float a; a = 2.3; return -a;} \
                          bool func7(){bool a; bool b; a = true; b = false; return a && b;} \
-                         int func8(){int[42] a; int b; a[10] = 10; return a[10] + func3();}";
+                         int func8(){int[42] a; int b; a[10] = 10; return a[10] + func3();} \
+                         void func9(){int[10] a; int[10] c; int[10] b; int i; i = 0; \
+                                    while (i < 10) { c[i] = a[i] + b[i]; i = i + 1; }}";
     struct mcc_parser_result parser_result;
     parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
     CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
@@ -1089,6 +1091,116 @@ void function_arguments2(CuTest *tc)
     mcc_semantic_check_delete_single_check(check);
 }
 
+// invalid array operation, assignment of whole array
+void invalid_array_operation(CuTest *tc)
+{
+    // Define test input and create symbol table
+    const char input[] = "int main(){int[10] array; array = 1; return 0;}";
+    struct mcc_parser_result parser_result;
+    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
+    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_function_arguments((&parser_result)->program,table);
+
+    CuAssertPtrNotNull(tc, check->error_buffer);
+    CuAssertPtrNotNull(tc, check);
+    CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_FUNCTION_ARGUMENTS);
+
+    // Cleanup
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+    mcc_semantic_check_delete_single_check(check);
+}
+
+// invalid array operation, array element access with variable of wrong type
+void invalid_array_operation2(CuTest *tc)
+{
+    // Define test input and create symbol table
+    const char input[] = "int main(){float i; i=0.5; int[10] a; a[i] = 10; return 0;}";
+    struct mcc_parser_result parser_result;
+    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
+    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_function_arguments((&parser_result)->program,table);
+
+    CuAssertPtrNotNull(tc, check->error_buffer);
+    CuAssertPtrNotNull(tc, check);
+    CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_FUNCTION_ARGUMENTS);
+
+    // Cleanup
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+    mcc_semantic_check_delete_single_check(check);
+}
+
+// invalid array operation, array assignment with wrong type
+void invalid_array_operation3(CuTest *tc)
+{
+    // Define test input and create symbol table
+    const char input[] = "int main(){float f; int[10] a; a[1] = f; return 0;}";
+    struct mcc_parser_result parser_result;
+    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
+    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_function_arguments((&parser_result)->program,table);
+
+    CuAssertPtrNotNull(tc, check->error_buffer);
+    CuAssertPtrNotNull(tc, check);
+    CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_FUNCTION_ARGUMENTS);
+
+    // Cleanup
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+    mcc_semantic_check_delete_single_check(check);
+}
+
+// invalid array operation, array element access with expression of wrong type
+void invalid_array_operation4(CuTest *tc)
+{
+    // Define test input and create symbol table
+    const char input[] = "int main(){int[10] a; a[1 == 0] = 3; return 0;}";
+    struct mcc_parser_result parser_result;
+    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
+    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_function_arguments((&parser_result)->program,table);
+
+    CuAssertPtrNotNull(tc, check->error_buffer);
+    CuAssertPtrNotNull(tc, check);
+    CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_FUNCTION_ARGUMENTS);
+
+    // Cleanup
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+    mcc_semantic_check_delete_single_check(check);
+}
+
+// invalid array operation, assignment to a variable of array type
+void invalid_array_operation5(CuTest *tc)
+{
+    // Define test input and create symbol table
+    const char input[] = "int main(){int[10] a; int[10] c; a = c; return 0;}";
+    struct mcc_parser_result parser_result;
+    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
+    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_function_arguments((&parser_result)->program,table);
+
+    CuAssertPtrNotNull(tc, check->error_buffer);
+    CuAssertPtrNotNull(tc, check);
+    CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_FUNCTION_ARGUMENTS);
+
+    // Cleanup
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+    mcc_semantic_check_delete_single_check(check);
+}
+
 #define TESTS \
     TEST(positive)                        \
     TEST(ensure_variable_shadowing)       \
@@ -1133,7 +1245,12 @@ void function_arguments2(CuTest *tc)
     TEST(use_undeclared_variable8)        \
     TEST(define_built_in)                 \
     TEST(function_arguments1)             \
-    TEST(function_arguments2)
+    TEST(function_arguments2)             
+    //TEST(invalid_array_operation)         \
+    TEST(invalid_array_operation2)        \
+    TEST(invalid_array_operation3)        \
+    TEST(invalid_array_operation4)        \
+    TEST(invalid_array_operation5)
     //TEST(function_return_value1)          \
     //TEST(function_return_value2)          \
 
