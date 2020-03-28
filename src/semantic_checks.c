@@ -77,6 +77,18 @@ struct mcc_semantic_check_all_checks* mcc_semantic_check_run_all(struct mcc_ast_
     checks->status = MCC_SEMANTIC_CHECK_OK;
     checks->error_buffer = NULL;
 
+    // Initialize all tests to NULL. Some will stay NULL if a previous test has failed and the function returns early
+    checks->type_conversion = NULL;
+    checks->function_arguments = NULL;
+    checks->function_return_value = NULL;
+    checks->nonvoid_check = NULL;
+    checks->main_function = NULL;
+    checks->unknown_function_call = NULL;
+    checks->multiple_function_definitions = NULL;
+    checks->multiple_variable_declarations = NULL;
+    checks->use_undeclared_variable = NULL;
+    checks->define_built_in = NULL;
+
     // No invalid array operation
     /*
     // Early abort if alredy failed
@@ -98,8 +110,8 @@ struct mcc_semantic_check_all_checks* mcc_semantic_check_run_all(struct mcc_ast_
         }
     }*/
 
-    // No invalid function calls
     /*
+    // No invalid function calls
     // Early abort if already failed
     if(checks->status == MCC_SEMANTIC_CHECK_FAIL){
         return checks;
@@ -117,7 +129,29 @@ struct mcc_semantic_check_all_checks* mcc_semantic_check_run_all(struct mcc_ast_
                 write_error_message_to_all_checks(checks,checks->function_arguments->error_buffer);
             }
         }
-    }*/
+    }
+     */
+
+    // No functions with invalid returns
+    // Early abort if already failed
+    if(checks->status == MCC_SEMANTIC_CHECK_FAIL){
+        return checks;
+    }
+    checks->function_return_value = mcc_semantic_check_run_function_return_value(ast, symbol_table);
+    if(checks->function_return_value == NULL){
+        checks->status = MCC_SEMANTIC_CHECK_FAIL;
+        if(checks->error_buffer == NULL){
+            write_error_message_to_all_checks(checks,"mcc_semantic_check_run_function_return_value "
+                                                     "returned NULL pointer.");
+        }
+    } else {
+        if(checks->function_return_value->status != MCC_SEMANTIC_CHECK_OK){
+            checks->status = MCC_SEMANTIC_CHECK_FAIL;
+            if(checks->error_buffer == NULL){
+                write_error_message_to_all_checks(checks,checks->function_return_value->error_buffer);
+            }
+        }
+    }
 
     // Each execution path of non-void function returns a value
     // Early abort if already failed
@@ -941,15 +975,6 @@ struct mcc_semantic_check* mcc_semantic_check_run_type_conversion(struct mcc_ast
     return check;
 }
 
-// ------------------------------------------------------------- No invalid array operations
-
-struct mcc_semantic_check* mcc_semantic_check_run_array_types(struct mcc_ast_program* ast,
-                                                              struct mcc_symbol_table* symbol_table){
-    UNUSED(ast);
-    UNUSED(symbol_table);
-    return NULL;
-}
-
 // ------------------------------------------------------------- No invalid function calls
 
 static char* semantic_check_expression_type_to_string(enum mcc_semantic_check_expression_type type){
@@ -1051,8 +1076,10 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
     // If row is NULL, then no function with that name was found
     if(!row){
         generate_error_msg_function_arguments(check,"Unknown function",expression);
+        return;
     }
 
+    //TODO
     // Catch case that no function args needed : row->child_scope->head = NULL
     if(!(row->child_scope->head)){
         if(expression->arguments->expression){
@@ -1069,10 +1096,10 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
     struct mcc_ast_arguments *ast_args_head = expression->arguments;
 
     do {
-        assert(ast_args_head->expression);
-        // Too little arguments
-        if(!ast_args_head){
+        // Too little arguments (if no arguments are given, args exists, but args->expr is set to NULL)
+        if(!ast_args_head->expression){
             generate_error_msg_function_arguments(check,"Not enough arguments",expression);
+            return;
         }
 
         // Get types
@@ -1082,6 +1109,7 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
         // Type Error
         if(ast_type != st_type){
             generate_error_msg_function_arguments_conflicting_types(check, expression, st_type, ast_type);
+            return;
         }
 
         st_args_head = st_args_head->next_row;
@@ -1093,6 +1121,7 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
     if(ast_args_head){
         //Too many arguments
         generate_error_msg_function_arguments(check,"Too many arguments",expression);
+        return;
     }
 }
 
@@ -1124,15 +1153,113 @@ struct mcc_semantic_check* mcc_semantic_check_run_function_arguments(struct mcc_
     struct mcc_ast_visitor visitor = function_arguments_visitor(check);
     mcc_ast_visit(ast, &visitor);
     return check;
-
-    return NULL;
 }
 
 // -------------------------------------------------------------- Function doesn't return wrong type
 
+struct function_return_value_userdata{
+    struct mcc_semantic_check *check;
+    enum mcc_semantic_check_expression_type declared_function_type;
+};
+
+static void generate_error_msg_function_return_value(struct mcc_ast_statement *statement,
+                                                        struct mcc_semantic_check *check,
+                                                        enum mcc_semantic_check_expression_type actual_return_type,
+                                                        enum mcc_semantic_check_expression_type declared_function_type)
+{
+
+    char* str_act_type = semantic_check_expression_type_to_string(actual_return_type);
+    char* str_exp_type = semantic_check_expression_type_to_string(declared_function_type);
+
+    if(check->error_buffer){
+        return;
+    }
+
+    int size = sizeof(char) * (strlen(str_act_type) + strlen(str_exp_type) + 60);
+    char* buffer = malloc(size);
+
+    if(!buffer){
+        write_error_message_to_check(check, statement->node,
+                "generate_error_msg_function_return_value: malloc failed.");
+        check->status = MCC_SEMANTIC_CHECK_FAIL;
+        return;
+    }
+    if(0 > snprintf(buffer,size,"Invalid return_type, expected type %s but was %s\n", str_exp_type,str_act_type)){
+        write_error_message_to_check(check, statement->node,
+                                    "generate_error_msg_function_return_value_conflicting_type: "
+                                    "snprintf failed.");
+        check->status = MCC_SEMANTIC_CHECK_FAIL;
+        return;
+    } else {
+        write_error_message_to_check(check, statement->node, buffer);
+        free(buffer);
+        check->status = MCC_SEMANTIC_CHECK_FAIL;
+        return;
+    }
+}
+
+// Callback for visitor
+static void cb_function_return_value_statement_return(struct mcc_ast_statement *statement, void *data){
+    struct function_return_value_userdata* userdata = data;
+    enum mcc_semantic_check_expression_type act_type = get_type(statement->return_value);
+    if (act_type != userdata->declared_function_type){
+        generate_error_msg_function_return_value(statement,userdata->check,act_type,userdata->declared_function_type);
+    }
+}
+
+
+static struct mcc_ast_visitor function_return_value_visitor(struct function_return_value_userdata* data){
+    return (struct mcc_ast_visitor){
+            .traversal = MCC_AST_VISIT_DEPTH_FIRST,
+            .order = MCC_AST_VISIT_POST_ORDER,
+
+            .userdata = data,
+
+            .statement_return = cb_function_return_value_statement_return,
+    };
+}
+
+// Check a single function for correct return types
+static void check_function_return_value_ok(struct mcc_ast_program* ast, struct mcc_semantic_check* check){
+
+    struct mcc_ast_function_definition *function = ast->function;
+    // Set up custom userdata struct
+    struct function_return_value_userdata *userdata = malloc(sizeof(*userdata));
+    if(!userdata){
+        write_error_message_to_check(check,ast->node,"malloc failed");
+        check->status = MCC_SEMANTIC_CHECK_FAIL;
+        return;
+    }
+    userdata->check = check;
+    switch (function->type){
+        case MCC_AST_FUNCTION_TYPE_INT:
+            userdata->declared_function_type = MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_INT;
+            break;
+        case MCC_AST_FUNCTION_TYPE_FLOAT:
+            userdata->declared_function_type = MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_FLOAT;
+            break;
+        case MCC_AST_FUNCTION_TYPE_STRING:
+            userdata->declared_function_type = MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_STRING;
+            break;
+        case MCC_AST_FUNCTION_TYPE_BOOL:
+            userdata->declared_function_type = MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_BOOL;
+            break;
+        case MCC_AST_FUNCTION_TYPE_VOID:
+            userdata->declared_function_type = MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_VOID;
+            break;
+        default:
+            userdata->declared_function_type = MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_UNKNOWN;
+            break;
+    }
+
+    struct mcc_ast_visitor visitor = function_return_value_visitor(userdata);
+
+    // Manually start the visitor only at the function level
+    mcc_ast_visit(function,&visitor);
+}
+
 struct mcc_semantic_check* mcc_semantic_check_run_function_return_value(struct mcc_ast_program* ast,
                                                                         struct mcc_symbol_table* symbol_table){
-    UNUSED(ast);
     UNUSED(symbol_table);
     struct mcc_semantic_check *check = malloc(sizeof(*check));
     if (!check){
@@ -1140,8 +1267,17 @@ struct mcc_semantic_check* mcc_semantic_check_run_function_return_value(struct m
     }
 
     check->status = MCC_SEMANTIC_CHECK_OK;
-    check->type = MCC_SEMANTIC_CHECK_FUNCTION_ARGUMENTS;
+    check->type = MCC_SEMANTIC_CHECK_FUNCTION_RETURN_VALUE;
     check->error_buffer = NULL;
+
+    do{
+        check_function_return_value_ok(ast,check);
+        if(check->status == MCC_SEMANTIC_CHECK_FAIL){
+           return check;
+        }
+        ast = ast->next_function;
+    } while (ast);
+
 
     return check;
 

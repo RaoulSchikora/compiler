@@ -32,7 +32,6 @@ struct mcc_semantic_check_all_checks{
    enum mcc_semantic_check_status status;
    char* error_buffer;
    struct mcc_semantic_check *type_conversion;
-   struct mcc_semantic_check *array_types;
    struct mcc_semantic_check *function_arguments;
    struct mcc_semantic_check *function_return_value;
    struct mcc_semantic_check *nonvoid_check;
@@ -72,10 +71,6 @@ struct mcc_semantic_check {
 // No Type conversions in expressions
 struct mcc_semantic_check* mcc_semantic_check_run_type_conversion(struct mcc_ast_program* ast,
                                                                   struct mcc_symbol_table* symbol_table);
-
-// No invalid array operations
-struct mcc_semantic_check* mcc_semantic_check_run_array_types(struct mcc_ast_program* ast,
-                                                             struct mcc_symbol_table* symbol_table);
 
 // No invalid function calls
 struct mcc_semantic_check* mcc_semantic_check_run_function_arguments(struct mcc_ast_program* ast,
