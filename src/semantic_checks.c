@@ -1413,10 +1413,43 @@ static void generate_error_msg_function_return_value(struct mcc_ast_statement *s
     }
 }
 
+// generate error msg if return value is a variable of array typ
+static void generate_error_msg_return_value_array(struct mcc_ast_expression *expression,
+                                                  const char *name,
+                                                  struct mcc_semantic_check *check)
+{
+    if(check->error_buffer){
+        return;
+    }
+    int size = 65 + strlen(name);
+    char* error_msg = (char *)malloc( sizeof(char) * size );
+    snprintf(error_msg, size, "unexpected array-type of variable '%s' in return statement.", name);
+    write_error_message_to_check(check, expression->node, error_msg);
+    check->status = MCC_SEMANTIC_CHECK_FAIL;
+    free(error_msg);
+}
+
 // Callback for visitor
-static void cb_function_return_value_statement_return(struct mcc_ast_statement *statement, void *data){
+static void cb_function_return_value_statement_return(struct mcc_ast_statement *statement, void *data)
+{
     struct function_return_value_userdata* userdata = data;
+
+    // check if return value is a variable
+    if(statement->return_value->type == MCC_AST_EXPRESSION_TYPE_VARIABLE){
+
+        struct mcc_symbol_table_row *row = statement->return_value->variable_row;
+        char *name = statement->return_value->identifier->identifier_name;
+        row = mcc_symbol_table_check_upwards_for_declaration(name, row);
+
+        // error if row indicates array type.
+        if(row && (row->row_structure == MCC_SYMBOL_TABLE_ROW_STRUCTURE_ARRAY)){
+            generate_error_msg_return_value_array(statement->return_value, name, userdata->check);
+            return;
+        }
+    }
+
     enum mcc_semantic_check_expression_type act_type = get_type(statement->return_value);
+
     if (act_type != userdata->declared_function_type){
         generate_error_msg_function_return_value(statement,userdata->check,act_type,userdata->declared_function_type);
     }

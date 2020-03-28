@@ -1043,6 +1043,28 @@ void function_return_value2(CuTest *tc){
 
 }
 
+// Function that returns array but with correct type
+void function_return_value3(CuTest *tc){
+    // Define test input and create symbol table
+    const char input[] = "int main(){int[42] a; return a;}";
+    struct mcc_parser_result parser_result;
+    parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+    CuAssertIntEquals(tc,parser_result.status,MCC_PARSER_STATUS_OK);
+    struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+    struct mcc_semantic_check *check = mcc_semantic_check_run_function_return_value((&parser_result)->program,table);
+
+    CuAssertPtrNotNull(tc, check->error_buffer);
+    CuAssertPtrNotNull(tc, check);
+    CuAssertIntEquals(tc,check->status,MCC_SEMANTIC_CHECK_FAIL);
+    CuAssertIntEquals(tc,check->type,MCC_SEMANTIC_CHECK_FUNCTION_RETURN_VALUE);
+
+    // Cleanup
+    mcc_ast_delete(parser_result.program);
+    mcc_symbol_table_delete_table(table);
+    mcc_semantic_check_delete_single_check(check);
+
+}
+
 // Calling a function with the wrong type of parameters
 void function_arguments1(CuTest *tc)
 {
@@ -1243,6 +1265,7 @@ void invalid_array_operation5(CuTest *tc)
     TEST(define_built_in)                 \
     TEST(function_return_value1)          \
     TEST(function_return_value2)          \
+    TEST(function_return_value3)          \
     TEST(function_arguments1)             \
     TEST(function_arguments2)             \
     TEST(invalid_array_operation)         \
