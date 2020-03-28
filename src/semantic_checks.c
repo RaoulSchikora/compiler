@@ -749,36 +749,34 @@ static void generate_error_msg_type_conversion_assignment(struct mcc_ast_assignm
     free(error_msg);
 }
 
-// callback for checking type conversion in an assignment and ensure, that index is of type INT
-static void cb_type_conversion_assignment(struct mcc_ast_statement *statement, void *data)
+// check an assignment for type conversion
+static void check_type_conversion_assignment(struct mcc_ast_assignment *assignment, struct mcc_semantic_check *check)
 {
-    assert(statement);
-    assert(data);
+    assert(assignment);
+    assert(check);
 
-    struct mcc_semantic_check *check = data;
     //Early abort if already failed
     if(check->status == MCC_SEMANTIC_CHECK_FAIL){
         return;
     }
-    struct mcc_ast_assignment *assignment = statement->assignment;
-    struct mcc_symbol_table_row *row = assignment->row;
 
-    enum mcc_semantic_check_expression_type variable_type = MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_UNKNOWN;
+    struct mcc_symbol_table_row *row = assignment->row;
+    enum mcc_semantic_check_expression_type value_type = MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_UNKNOWN;
 
     switch(assignment->assignment_type){
     case MCC_AST_ASSIGNMENT_TYPE_VARIABLE:
         row = mcc_symbol_table_check_upwards_for_declaration(assignment->variable_identifier->identifier_name, row);
-        variable_type = get_type(assignment->variable_assigned_value);
+        value_type = get_type(assignment->variable_assigned_value);
         break;
     case MCC_AST_ASSIGNMENT_TYPE_ARRAY:
         row = mcc_symbol_table_check_upwards_for_declaration(assignment->array_identifier->identifier_name, row);
-        variable_type = get_type(assignment->array_assigned_value);
+        value_type = get_type(assignment->array_assigned_value);
         break;
     }
 
     bool is_permitted = false;
-    if(row && (variable_type != MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_UNKNOWN)){
-        is_permitted = (convert_enum_symbol_table(row->row_type) == variable_type);
+    if(row && (value_type != MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_UNKNOWN)){
+        is_permitted = (convert_enum_symbol_table(row->row_type) == value_type);
     }
 
     if(!is_permitted){
@@ -801,6 +799,44 @@ static void generate_error_msg_array_index_non_int(struct mcc_ast_expression *ex
     write_error_message_to_check(check, expression->node, error_msg);
     check->status = MCC_SEMANTIC_CHECK_FAIL;
     free(error_msg);
+}
+
+// check the index of an array element during assignment to be of type INT
+static void check_assignment_array_index(struct mcc_ast_assignment *assignemnt, struct mcc_semantic_check *check)
+{
+    assert(assignemnt);
+    assert(check);
+
+    //Early abort if already failed
+    if(check->status == MCC_SEMANTIC_CHECK_FAIL){
+        return;
+    }
+
+    struct mcc_ast_expression *index = assignemnt->array_index;
+    enum mcc_semantic_check_expression_type type = get_type(index);
+
+    if(type != MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_INT){
+        generate_error_msg_array_index_non_int(index, type, check);
+    }
+}
+
+// callback for checking type conversion in an assignment and ensure, that index is of type INT
+static void cb_type_conversion_assignment(struct mcc_ast_statement *statement, void *data)
+{
+    assert(statement);
+    assert(data);
+
+    struct mcc_semantic_check *check = data;
+    //Early abort if already failed
+    if(check->status == MCC_SEMANTIC_CHECK_FAIL){
+        return;
+    }
+    struct mcc_ast_assignment *assignment = statement->assignment;
+
+    if(assignment->assignment_type == MCC_AST_ASSIGNMENT_TYPE_ARRAY){
+        check_assignment_array_index(assignment, check);
+    }
+    check_type_conversion_assignment(assignment, check);
 }
 
 
