@@ -1346,6 +1346,7 @@ struct mcc_semantic_check* mcc_semantic_check_run_function_arguments(struct mcc_
 
     struct mcc_ast_visitor visitor = function_arguments_visitor(userdata);
     mcc_ast_visit(ast, &visitor);
+    free(userdata);
     return check;
 }
 
@@ -1483,6 +1484,7 @@ static void check_function_return_value_ok(struct mcc_ast_program* ast, struct m
 
     // Manually start the visitor only at the function level
     mcc_ast_visit(function,&visitor);
+    free(userdata);
 }
 
 struct mcc_semantic_check* mcc_semantic_check_run_function_return_value(struct mcc_ast_program* ast,
@@ -2144,6 +2146,9 @@ void mcc_semantic_check_delete_all_checks(struct mcc_semantic_check_all_checks *
     if(!checks){
         return;
     }
+    mcc_semantic_check_delete_single_check(checks->type_conversion);
+    mcc_semantic_check_delete_single_check(checks->function_arguments);
+    mcc_semantic_check_delete_single_check(checks->function_return_value);
     mcc_semantic_check_delete_single_check(checks->nonvoid_check);
     mcc_semantic_check_delete_single_check(checks->main_function);
     mcc_semantic_check_delete_single_check(checks->unknown_function_call);
@@ -2151,7 +2156,6 @@ void mcc_semantic_check_delete_all_checks(struct mcc_semantic_check_all_checks *
     mcc_semantic_check_delete_single_check(checks->multiple_variable_declarations);
     mcc_semantic_check_delete_single_check(checks->use_undeclared_variable);
     mcc_semantic_check_delete_single_check(checks->define_built_in);
-    mcc_semantic_check_delete_single_check(checks->type_conversion);
 
     if (checks->error_buffer != NULL){
         free(checks->error_buffer);
