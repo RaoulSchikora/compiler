@@ -7,7 +7,7 @@
 #include <assert.h>
 
 //forward declaration
-static void print_dot_symbol_table_scope(struct mcc_symbol_table_scope *scope, FILE *out);
+static void print_dot_symbol_table_scope(struct mcc_symbol_table_scope *scope, const char *leading_spaces, FILE *out);
 
 
 static void print_dot_symbol_table_begin(FILE *out)
@@ -18,7 +18,7 @@ static void print_dot_symbol_table_begin(FILE *out)
                  "tbl [\n\n"
                  "shape=plaintext\n"
                  "label=<\n\n"
-                 "<table border='0' cellborder='1' cellspacing='0'>\n"
+                 "<table border='0' cellborder='0' cellspacing='0'>\n"
                  "<tr><td>Symbol Table</td></tr>\n");
 }
 
@@ -35,7 +35,7 @@ static void print_dot_symbol_table_open_new_scope(FILE *out)
 {
     assert(out);
 
-    fprintf(out, "<tr><td cellpadding='4'>\n\n"
+    fprintf(out, "<tr><td cellpadding='2'>\n\n"
                  "<table cellspacing='0'>\n");
 }
 
@@ -67,49 +67,74 @@ static const char *print_dot_row_type(enum mcc_symbol_table_row_type type)
     return "unknown type";
 }
 
-static void print_dot_symbol_table_row(struct mcc_symbol_table_row *row, FILE *out)
+static void print_dot_row(struct mcc_symbol_table_row *row, const char *leading_spaces, FILE *out)
 {
     assert(row);
+    assert(leading_spaces);
     assert(out);
 
     switch (row->row_structure) {
     case MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE:
-        fprintf(out, "<tr><td>%s (%s)</td></tr>\n", row->name, print_dot_row_type(row->row_type));
+        fprintf(out, "<tr><td align='left'>%s%s (%s)</td></tr>\n",
+                leading_spaces, row->name, print_dot_row_type(row->row_type));
         break;
     case MCC_SYMBOL_TABLE_ROW_STRUCTURE_FUNCTION:
-        fprintf(out, "<tr><td>%s (%s function)</td></tr>\n", row->name, print_dot_row_type(row->row_type));
+        fprintf(out, "<tr><td align='left'>%s%s (%s function)</td></tr>\n",
+                leading_spaces, row->name, print_dot_row_type(row->row_type));
         break;
     case MCC_SYMBOL_TABLE_ROW_STRUCTURE_ARRAY:
-        fprintf(out, "<tr><td>%s (%s[%d])</td></tr>\n", row->name, print_dot_row_type(row->row_type), row->array_size);
+        fprintf(out, "<tr><td align='left'>%s%s (%s[%d])</td></tr>\n",
+                leading_spaces, row->name, print_dot_row_type(row->row_type), row->array_size);
         break;
+    }
+}
+
+static void print_dot_symbol_table_row(struct mcc_symbol_table_row *row, const char *leading_spaces, FILE *out)
+{
+    assert(row);
+    assert(leading_spaces);
+    assert(out);
+
+    if(row->row_type != MCC_SYMBOL_TABLE_ROW_TYPE_PSEUDO){
+        print_dot_row(row, leading_spaces, out);
     }
 
     if(row->child_scope){
         struct mcc_symbol_table_scope *child_scope = row->child_scope;
 
-        while(child_scope){
-            print_dot_symbol_table_open_new_scope(out);
-            print_dot_symbol_table_scope(child_scope, out);
-            print_dot_symbol_table_close_new_scope(out);
+        int size = strlen(leading_spaces) + 8;
+        char *new_leading_spaces = (char *)malloc( sizeof(char) * size );
+        snprintf(new_leading_spaces, size, "        %s", leading_spaces);
 
+        while(child_scope && child_scope->head){
+            if(row->row_structure == MCC_SYMBOL_TABLE_ROW_STRUCTURE_FUNCTION){
+                print_dot_symbol_table_open_new_scope(out);
+            }
+            print_dot_symbol_table_scope(child_scope, new_leading_spaces, out);
+            if(row->row_structure == MCC_SYMBOL_TABLE_ROW_STRUCTURE_FUNCTION) {
+                print_dot_symbol_table_close_new_scope(out);
+            }
             child_scope = child_scope->next_scope;
         }
+
+        free(new_leading_spaces);
     }
 }
 
-static void print_dot_symbol_table_scope(struct mcc_symbol_table_scope *scope, FILE *out)
+static void print_dot_symbol_table_scope(struct mcc_symbol_table_scope *scope, const char *leading_spaces, FILE *out)
 {
     assert(scope);
+    assert(leading_spaces);
     assert(out);
 
     if(!scope->head) {
-        fprintf(out, "<tr><td> ---- </td></tr>\n");
+        fprintf(out, "\n");
     } else {
 
         struct mcc_symbol_table_row *row = scope->head;
 
         while(row) {
-            print_dot_symbol_table_row(row, out);
+            print_dot_symbol_table_row(row, leading_spaces, out);
             row = row->next_row;
         }
     }
@@ -133,7 +158,7 @@ void mcc_symbol_table_print_dot(struct mcc_symbol_table *table, void *data)
         while(scope){
 
             print_dot_symbol_table_open_new_scope(out);
-            print_dot_symbol_table_scope(scope, out);
+            print_dot_symbol_table_scope(scope, "", out);
             print_dot_symbol_table_close_new_scope(out);
 
             scope = scope->next_scope;
