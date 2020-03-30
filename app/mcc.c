@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
 
 	char* semantic_check = mcc_check_semantics((&result)->program,table);
     if (semantic_check){
-        printf("Semantic check failed:\n%s", semantic_check);
+        fprintf(stderr,"Semantic check failed:\n%s", semantic_check);
         mc_cl_parser_delete_command_line_parser(command_line);
         mcc_ast_delete_result(&result);
         mcc_symbol_table_delete_table(table);
