@@ -40,6 +40,6 @@ For integration testing we try to compile mC programs and compare their output f
 ### Grammar
 
 The grammar contains 12 shift/reduce conflicts.
-Also, since the unit test matches any grammar rule, there are multiple reduce/reduce-conflicts. These will however not arise, when the testing mode isn't specified, because the parser can only match the unit-test grammar rule when a dedicated global variable is set (which can't happen due to user input)
+Also, since the unit test matches any grammar rule, there are 5 reduce/reduce-conflicts. These will however not arise, when the testing mode isn't specified, because the parser can only match the unit-test grammar rule when a dedicated global variable is set (which can't happen due to user input)
 
 
