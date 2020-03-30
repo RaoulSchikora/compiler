@@ -1259,7 +1259,8 @@ static enum function_call_error par_and_arg_equal_type(struct mcc_ast_parameters
 
 
 struct mcc_ast_parameters *get_pars_print(){
-    struct mcc_ast_declaration *dec = mcc_ast_new_variable_declaration(STRING,"a");
+    char* name = strdup("a");
+    struct mcc_ast_declaration *dec = mcc_ast_new_variable_declaration(STRING,name);
     return mcc_ast_new_parameters(false,dec,NULL);
 }
 
@@ -1268,12 +1269,14 @@ struct mcc_ast_parameters *get_pars_print_nl(){
 }
 
 struct mcc_ast_parameters *get_pars_print_int(){
-    struct mcc_ast_declaration *dec = mcc_ast_new_variable_declaration(INT,"a");
+    char* name = strdup("a");
+    struct mcc_ast_declaration *dec = mcc_ast_new_variable_declaration(INT,name);
     return mcc_ast_new_parameters(false,dec,NULL);
 }
 
 struct mcc_ast_parameters *get_pars_print_float(){
-    struct mcc_ast_declaration *dec = mcc_ast_new_variable_declaration(FLOAT,"a");
+    char* name = strdup("a");
+    struct mcc_ast_declaration *dec = mcc_ast_new_variable_declaration(FLOAT,name);
     return mcc_ast_new_parameters(false,dec,NULL);
 }
 
@@ -1323,6 +1326,7 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
 
     // Get the parameters of the function from the AST
     struct mcc_ast_parameters *pars = NULL;
+    struct mcc_ast_parameters *pars_head = NULL;
 
     // Get the used arguments from the AST:
     struct mcc_ast_arguments *args = expression->arguments;
@@ -1339,6 +1343,7 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
     // No parameters found. Must be built in or unkown function
             // Get the required parameters for the built in that was called
             pars = get_built_in_pars(expression);
+            pars_head = pars;
             pars_from_heap = true;
 
             // No paramters found for the given call
@@ -1354,11 +1359,11 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
         if(expression->arguments->expression){
             status = TOO_MANY_ARGUMENTS;
             generate_error_msg_function_arguments(check, pars, args, expression, status);
-            if(pars_from_heap){mcc_ast_delete(pars);}
+            if(pars_from_heap){mcc_ast_delete(pars_head);}
             return;
         }
         // No arguments needed and none given: return
-        if(pars_from_heap){mcc_ast_delete(pars);}
+        if(pars_from_heap){mcc_ast_delete(pars_head);}
         return;
     }
 
@@ -1367,7 +1372,7 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
         if(!args->expression){
             status = TOO_FEW_ARGUMENTS;
             generate_error_msg_function_arguments(check, pars, args, expression, status);
-            if(pars_from_heap){mcc_ast_delete(pars);}
+            if(pars_from_heap){mcc_ast_delete(pars_head);}
             return;
         }
 
@@ -1375,7 +1380,7 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
         status = par_and_arg_equal_type(pars,args);
         if(status != NO_ERROR){
             generate_error_msg_function_arguments(check, pars, args, expression, status);
-            if(pars_from_heap){mcc_ast_delete(pars);}
+            if(pars_from_heap){mcc_ast_delete(pars_head);}
             return;
         }
 
@@ -1389,9 +1394,10 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
         //Too many arguments
         status = TOO_MANY_ARGUMENTS;
         generate_error_msg_function_arguments(check, pars, args, expression, status);
-        if(pars_from_heap){mcc_ast_delete(pars);}
+        if(pars_from_heap){mcc_ast_delete(pars_head);}
         return;
     }
+    if(pars_from_heap){mcc_ast_delete(pars_head);}
 }
 
 // Setup an AST Visitor for checking if function calls are correct
