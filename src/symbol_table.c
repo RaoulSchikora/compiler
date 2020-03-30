@@ -1,9 +1,12 @@
 #include "mcc/symbol_table.h"
-#include "mcc/ast_visit.h"
 
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+
+#include "mcc/ast_visit.h"
+
 
 // ------------------------------------------------------- Forward declaration
 

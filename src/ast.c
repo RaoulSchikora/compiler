@@ -3,10 +3,6 @@
 #include <assert.h>
 #include <stdlib.h>
 
-// included for debugging:
-
-#include <stdio.h>
-
 // ---------------------------------------------------------------- Expressions
 
 struct mcc_ast_expression *mcc_ast_new_expression_literal(struct mcc_ast_literal *literal)

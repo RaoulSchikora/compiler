@@ -1,8 +1,11 @@
-#include "mc_cl_parser.h"
+#include <stdlib.h>
+
 #include "mcc/ast.h"
 #include "mcc/ast_print.h"
 #include "mcc/ast_visit.h"
 #include "mcc/parser.h"
+#include "mc_cl_parser.h"
+
 
 #define BUF_SIZE 1024
 

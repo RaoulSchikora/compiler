@@ -1,10 +1,11 @@
 #include <CuTest.h>
 
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "mcc/ast.h"
 #include "mcc/parser.h"
 
-#include <stdio.h>
-#include <stdlib.h>
 
 // Threshold for floating point comparisions.
 static const double EPS = 1e-3;

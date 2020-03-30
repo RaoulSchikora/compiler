@@ -4,6 +4,7 @@
 
 #include "mcc/symbol_table_print.h"
 
+#include <stdlib.h>
 #include <assert.h>
 
 // forward declaration

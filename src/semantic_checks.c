@@ -1,12 +1,14 @@
 #include "mcc/semantic_checks.h"
-#include "mcc/ast.h"
-#include "mcc/ast_visit.h"
-#include "utils/unused.h"
+
 #include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "mcc/ast.h"
+#include "mcc/ast_visit.h"
+#include "utils/unused.h"
 // unused.h contains macro to suppress warnings of unused variables
 
 // ------------------------------------------------------------- Forward declaration

@@ -6,13 +6,13 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "mc_cl_parser.h"
+#include "mcc/symbol_table.h"
 #include "mcc/ast.h"
 #include "mcc/ast_print.h"
 #include "mcc/ast_visit.h"
 #include "mcc/parser.h"
-#include "mcc/symbol_table.h"
 #include "mcc/symbol_table_print.h"
+#include "mc_cl_parser.h"
 
 #define BUF_SIZE 1024
 

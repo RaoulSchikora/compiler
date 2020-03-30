@@ -13,10 +13,12 @@
 #ifndef MCC_AST_H
 #define MCC_AST_H
 
-#include "mcc/parser.h"
-
 #include <stdbool.h>
 #include <string.h>
+
+#include "mcc/parser.h"
+
+
 // ------------------------------------------------------------------- AST Node
 
 struct mcc_ast_source_location {

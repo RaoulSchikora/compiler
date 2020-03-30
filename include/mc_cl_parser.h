@@ -1,16 +1,7 @@
 #ifndef PROJECT_MC_CL_PARSER_H
 #define PROJECT_MC_CL_PARSER_H
 
-
-
-#include <assert.h>
-#include <getopt.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <stdbool.h>
-#include <string.h>
-#include <errno.h>
-#include <unistd.h>
 
 // ----------------------------------------------------------------------- Data structues
 

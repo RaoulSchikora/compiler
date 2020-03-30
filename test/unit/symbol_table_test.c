@@ -1,13 +1,14 @@
 #include <CuTest.h>
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "mcc/ast.h"
 #include "mcc/parser.h"
 #include "mcc/symbol_table.h"
 #include "mcc/symbol_table_print.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 void empty_table(CuTest *tc)
 {

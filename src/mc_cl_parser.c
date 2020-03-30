@@ -1,5 +1,14 @@
 #include "mc_cl_parser.h"
 
+#include <assert.h>
+#include <getopt.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+#include <errno.h>
+#include <unistd.h>
+
 #define BUF_SIZE 1024
 
 // ------------------------------------------------------------- Forward declarations
