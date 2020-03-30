@@ -1,6 +1,3 @@
-//
-// Created by raoul on 24.05.19.
-//
 // Symbol Table
 //
 // Here the data structure for the symbol table is defined. The symbol table is
