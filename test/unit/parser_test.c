@@ -514,7 +514,7 @@ void MissingClosingParenthesis_1(CuTest *tc)
 	CuAssertTrue(tc, MCC_PARSER_STATUS_OK != result.status);
 	CuAssertTrue(tc, NULL == result.expression);
 
-    free(result.error_buffer);
+	free(result.error_buffer);
 }
 
 void SourceLocation_SingleLineColumn(CuTest *tc)
@@ -527,28 +527,28 @@ void SourceLocation_SingleLineColumn(CuTest *tc)
 	struct mcc_ast_expression *expr = result.expression;
 
 	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_PARENTH, expr->type);
-    CuAssertIntEquals(tc, 1,  expr->node.sloc.start_line);
-    CuAssertIntEquals(tc, 1,  expr->node.sloc.start_col);
-    CuAssertIntEquals(tc, 1,  expr->node.sloc.end_line);
-    CuAssertIntEquals(tc, 11, expr->node.sloc.end_col);
+	CuAssertIntEquals(tc, 1, expr->node.sloc.start_line);
+	CuAssertIntEquals(tc, 1, expr->node.sloc.start_col);
+	CuAssertIntEquals(tc, 1, expr->node.sloc.end_line);
+	CuAssertIntEquals(tc, 11, expr->node.sloc.end_col);
 
 	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_BINARY_OP, expr->expression->type);
-    CuAssertIntEquals(tc, 1,  expr->expression->node.sloc.start_line);
-    CuAssertIntEquals(tc, 2,  expr->expression->node.sloc.start_col);
-    CuAssertIntEquals(tc, 1,  expr->expression->node.sloc.end_line);
-    CuAssertIntEquals(tc, 10, expr->expression->node.sloc.end_col);
+	CuAssertIntEquals(tc, 1, expr->expression->node.sloc.start_line);
+	CuAssertIntEquals(tc, 2, expr->expression->node.sloc.start_col);
+	CuAssertIntEquals(tc, 1, expr->expression->node.sloc.end_line);
+	CuAssertIntEquals(tc, 10, expr->expression->node.sloc.end_col);
 
 	CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_INT, expr->expression->lhs->literal->type);
-    CuAssertIntEquals(tc, 1,  expr->expression->lhs->literal->node.sloc.start_line);
-    CuAssertIntEquals(tc, 2,  expr->expression->lhs->literal->node.sloc.start_col);
-    CuAssertIntEquals(tc, 1,  expr->expression->lhs->literal->node.sloc.end_line);
-    CuAssertIntEquals(tc, 4,  expr->expression->lhs->literal->node.sloc.end_col);
+	CuAssertIntEquals(tc, 1, expr->expression->lhs->literal->node.sloc.start_line);
+	CuAssertIntEquals(tc, 2, expr->expression->lhs->literal->node.sloc.start_col);
+	CuAssertIntEquals(tc, 1, expr->expression->lhs->literal->node.sloc.end_line);
+	CuAssertIntEquals(tc, 4, expr->expression->lhs->literal->node.sloc.end_col);
 
 	CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_INT, expr->expression->rhs->literal->type);
-    CuAssertIntEquals(tc, 1,  expr->expression->rhs->literal->node.sloc.start_line);
-    CuAssertIntEquals(tc, 7,  expr->expression->rhs->literal->node.sloc.start_col);
-    CuAssertIntEquals(tc, 1,  expr->expression->rhs->literal->node.sloc.end_line);
-    CuAssertIntEquals(tc, 10, expr->expression->rhs->literal->node.sloc.end_col);
+	CuAssertIntEquals(tc, 1, expr->expression->rhs->literal->node.sloc.start_line);
+	CuAssertIntEquals(tc, 7, expr->expression->rhs->literal->node.sloc.start_col);
+	CuAssertIntEquals(tc, 1, expr->expression->rhs->literal->node.sloc.end_line);
+	CuAssertIntEquals(tc, 10, expr->expression->rhs->literal->node.sloc.end_col);
 
 	mcc_ast_delete(expr);
 }
@@ -564,10 +564,10 @@ void multiline_comment(CuTest *tc)
 
 	// root
 	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_BINARY_OP, expr->type);
-    CuAssertIntEquals(tc, 3, expr->node.sloc.start_line);
-    CuAssertIntEquals(tc, 1, expr->node.sloc.start_col);
-    CuAssertIntEquals(tc, 3, expr->node.sloc.end_line);
-    CuAssertIntEquals(tc, 4, expr->node.sloc.end_col);
+	CuAssertIntEquals(tc, 3, expr->node.sloc.start_line);
+	CuAssertIntEquals(tc, 1, expr->node.sloc.start_col);
+	CuAssertIntEquals(tc, 3, expr->node.sloc.end_line);
+	CuAssertIntEquals(tc, 4, expr->node.sloc.end_col);
 
 	// root -> lhs
 	CuAssertIntEquals(tc, MCC_AST_EXPRESSION_TYPE_LITERAL, expr->lhs->type);
@@ -582,10 +582,10 @@ void multiline_comment(CuTest *tc)
 	// root -> rhs -> literal
 	CuAssertIntEquals(tc, MCC_AST_LITERAL_TYPE_INT, expr->rhs->literal->type);
 	CuAssertIntEquals(tc, 3, expr->rhs->literal->i_value);
-    CuAssertIntEquals(tc, 3, expr->rhs->literal->node.sloc.start_line);
-    CuAssertIntEquals(tc, 3, expr->rhs->literal->node.sloc.start_col);
-    CuAssertIntEquals(tc, 3, expr->rhs->literal->node.sloc.end_line);
-    CuAssertIntEquals(tc, 4, expr->rhs->literal->node.sloc.end_col);
+	CuAssertIntEquals(tc, 3, expr->rhs->literal->node.sloc.start_line);
+	CuAssertIntEquals(tc, 3, expr->rhs->literal->node.sloc.start_col);
+	CuAssertIntEquals(tc, 3, expr->rhs->literal->node.sloc.end_line);
+	CuAssertIntEquals(tc, 4, expr->rhs->literal->node.sloc.end_col);
 
 	mcc_ast_delete(expr);
 }
@@ -614,47 +614,47 @@ void UnaryOp_1(CuTest *tc)
 
 void multiline_comment_and_program(CuTest *tc)
 {
-    const char input[] = "/* this is a multiline\n comment */\nint func(){\n    while(true)\n       return 3;\n}";
-    struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	const char input[] = "/* this is a multiline\n comment */\nint func(){\n    while(true)\n       return 3;\n}";
+	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
 
-    CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
+	CuAssertIntEquals(tc, MCC_PARSER_STATUS_OK, result.status);
 
-    struct mcc_ast_program *program = result.program;
+	struct mcc_ast_program *program = result.program;
 
-    CuAssertIntEquals(tc, 3, program->node.sloc.start_line);
-    CuAssertIntEquals(tc, 1, program->node.sloc.start_col);
-    CuAssertIntEquals(tc, 6, program->node.sloc.end_line);
-    CuAssertIntEquals(tc, 2, program->node.sloc.end_col);
+	CuAssertIntEquals(tc, 3, program->node.sloc.start_line);
+	CuAssertIntEquals(tc, 1, program->node.sloc.start_col);
+	CuAssertIntEquals(tc, 6, program->node.sloc.end_line);
+	CuAssertIntEquals(tc, 2, program->node.sloc.end_col);
 
-    struct mcc_ast_function_definition *function = program->function;
+	struct mcc_ast_function_definition *function = program->function;
 
-    CuAssertIntEquals(tc, 3, function->node.sloc.start_line);
-    CuAssertIntEquals(tc, 1, function->node.sloc.start_col);
-    CuAssertIntEquals(tc, 6, function->node.sloc.end_line);
-    CuAssertIntEquals(tc, 2, function->node.sloc.end_col);
+	CuAssertIntEquals(tc, 3, function->node.sloc.start_line);
+	CuAssertIntEquals(tc, 1, function->node.sloc.start_col);
+	CuAssertIntEquals(tc, 6, function->node.sloc.end_line);
+	CuAssertIntEquals(tc, 2, function->node.sloc.end_col);
 
-    struct mcc_ast_statement *statement = function->compound_stmt->statement;
+	struct mcc_ast_statement *statement = function->compound_stmt->statement;
 
-    CuAssertIntEquals(tc, 4,  statement->node.sloc.start_line);
-    CuAssertIntEquals(tc, 5,  statement->node.sloc.start_col);
-    CuAssertIntEquals(tc, 5,  statement->node.sloc.end_line);
-    CuAssertIntEquals(tc, 17, statement->node.sloc.end_col);
+	CuAssertIntEquals(tc, 4, statement->node.sloc.start_line);
+	CuAssertIntEquals(tc, 5, statement->node.sloc.start_col);
+	CuAssertIntEquals(tc, 5, statement->node.sloc.end_line);
+	CuAssertIntEquals(tc, 17, statement->node.sloc.end_col);
 
-    struct mcc_ast_expression *condition = statement->while_condition;
+	struct mcc_ast_expression *condition = statement->while_condition;
 
-    CuAssertIntEquals(tc, 4,  condition->node.sloc.start_line);
-    CuAssertIntEquals(tc, 11, condition->node.sloc.start_col);
-    CuAssertIntEquals(tc, 4,  condition->node.sloc.end_line);
-    CuAssertIntEquals(tc, 15, condition->node.sloc.end_col);
+	CuAssertIntEquals(tc, 4, condition->node.sloc.start_line);
+	CuAssertIntEquals(tc, 11, condition->node.sloc.start_col);
+	CuAssertIntEquals(tc, 4, condition->node.sloc.end_line);
+	CuAssertIntEquals(tc, 15, condition->node.sloc.end_col);
 
-    struct mcc_ast_statement *on_true = statement->while_on_true;
+	struct mcc_ast_statement *on_true = statement->while_on_true;
 
-    CuAssertIntEquals(tc, 5,  on_true->node.sloc.start_line);
-    CuAssertIntEquals(tc, 8,  on_true->node.sloc.start_col);
-    CuAssertIntEquals(tc, 5,  on_true->node.sloc.end_line);
-    CuAssertIntEquals(tc, 17, on_true->node.sloc.end_col);
+	CuAssertIntEquals(tc, 5, on_true->node.sloc.start_line);
+	CuAssertIntEquals(tc, 8, on_true->node.sloc.start_col);
+	CuAssertIntEquals(tc, 5, on_true->node.sloc.end_line);
+	CuAssertIntEquals(tc, 17, on_true->node.sloc.end_col);
 
-    mcc_ast_delete(program);
+	mcc_ast_delete(program);
 }
 
 void UnaryOp_2(CuTest *tc)
@@ -969,7 +969,7 @@ void EmptyParameters(CuTest *tc)
 	mcc_ast_delete(function_definition);
 }
 
-void DanglingElse (CuTest *tc)
+void DanglingElse(CuTest *tc)
 {
 	const char input[] = "{if (a ==1) a = 1; if (a == 2) a = 2; else b = 3;}";
 	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_EXPRESSION);
@@ -983,7 +983,9 @@ void DanglingElse (CuTest *tc)
 
 	// root -> next_stmt -> stmt -> on_false -> expression
 	CuAssertIntEquals(tc, MCC_AST_STATEMENT_TYPE_IF_ELSE_STMT, stmt->next_compound_statement->statement->type);
-	CuAssertStrEquals(tc, "b", stmt->next_compound_statement->statement->if_else_on_false->assignment->variable_identifier->identifier_name);
+	CuAssertStrEquals(tc, "b",
+	                  stmt->next_compound_statement->statement->if_else_on_false->assignment->variable_identifier
+	                      ->identifier_name);
 
 	mcc_ast_delete(stmt);
 }
