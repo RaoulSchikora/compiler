@@ -1,7 +1,3 @@
-//
-// Created by raoul on 07.03.20.
-//
-
 #include "mcc/symbol_table_print.h"
 
 #include <stdlib.h>

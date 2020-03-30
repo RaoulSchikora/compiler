@@ -1,7 +1,3 @@
-//
-// Created by oliver on 20.03.20.
-//
-
 #include <CuTest.h>
 
 #include <stdbool.h>

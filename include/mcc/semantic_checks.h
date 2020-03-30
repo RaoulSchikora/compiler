@@ -1,7 +1,3 @@
-//
-// Created by oliver on 20.03.20.
-//
-
 #ifndef PROJECT_SEMANTIC_CHECKS_H
 #define PROJECT_SEMANTIC_CHECKS_H
 
