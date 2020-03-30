@@ -1258,6 +1258,52 @@ static enum function_call_error par_and_arg_equal_type(struct mcc_ast_parameters
 }
 
 
+struct mcc_ast_parameters *get_pars_print(){
+    struct mcc_ast_declaration *dec = mcc_ast_new_variable_declaration(STRING,"a");
+    return mcc_ast_new_parameters(false,dec,NULL);
+}
+
+struct mcc_ast_parameters *get_pars_print_nl(){
+    return mcc_ast_new_parameters(true,NULL,NULL);
+}
+
+struct mcc_ast_parameters *get_pars_print_int(){
+    struct mcc_ast_declaration *dec = mcc_ast_new_variable_declaration(INT,"a");
+    return mcc_ast_new_parameters(false,dec,NULL);
+}
+
+struct mcc_ast_parameters *get_pars_print_float(){
+    struct mcc_ast_declaration *dec = mcc_ast_new_variable_declaration(FLOAT,"a");
+    return mcc_ast_new_parameters(false,dec,NULL);
+}
+
+struct mcc_ast_parameters *get_pars_read_int(){
+    return mcc_ast_new_parameters(true,NULL,NULL);
+}
+
+struct mcc_ast_parameters *get_pars_read_float(){
+    return mcc_ast_new_parameters(true,NULL,NULL);
+}
+
+struct mcc_ast_parameters* get_built_in_pars(struct mcc_ast_expression *expr){
+    char* func_name = expr->function_identifier->identifier_name;
+    if (strcmp(func_name,"print")==0) {
+        return get_pars_print();
+    } else if (strcmp(func_name,"print_nl")==0) {
+        return get_pars_print_nl();
+    } else if (strcmp(func_name,"print_int")==0) {
+        return get_pars_print_int();
+    } else if (strcmp(func_name,"print_float")==0) {
+        return get_pars_print_float();
+    } else if (strcmp(func_name,"read_int")==0) {
+        return get_pars_read_int();
+    } else if (strcmp(func_name,"read_float")==0) {
+        return get_pars_read_float();
+    } else {
+       return NULL;
+    }
+}
+
 // callback for checking correctness of function calls
 static void cb_function_arguments_expression_function_call(struct mcc_ast_expression *expression, void *userdata)
 {
@@ -1268,6 +1314,7 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
     struct mcc_semantic_check *check = data->check;
 
     enum function_call_error status = NO_ERROR;
+    bool pars_from_heap = false;
 
     // Early abort if check already failed
     if(check->status == MCC_SEMANTIC_CHECK_FAIL){
@@ -1289,9 +1336,17 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
     } while (ast);
 
     if(!pars){
-        status = UNKNOWN_FUNCTION;
-        generate_error_msg_function_arguments(check, pars, args, expression, status);
-        return;
+    // No parameters found. Must be built in or unkown function
+            // Get the required parameters for the built in that was called
+            pars = get_built_in_pars(args->expression);
+            pars_from_heap = true;
+
+            // No paramters found for the given call
+            if(!pars){
+                status = UNKNOWN_FUNCTION;
+                generate_error_msg_function_arguments(check,pars,args,expression,status);
+                return;
+            }
     }
 
     if(pars->is_empty){
@@ -1299,9 +1354,11 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
         if(expression->arguments->expression){
             status = TOO_MANY_ARGUMENTS;
             generate_error_msg_function_arguments(check, pars, args, expression, status);
+            if(pars_from_heap){mcc_ast_delete(pars);}
             return;
         }
         // No arguments needed and none given: return
+        if(pars_from_heap){mcc_ast_delete(pars);}
         return;
     }
 
@@ -1310,6 +1367,7 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
         if(!args->expression){
             status = TOO_FEW_ARGUMENTS;
             generate_error_msg_function_arguments(check, pars, args, expression, status);
+            if(pars_from_heap){mcc_ast_delete(pars);}
             return;
         }
 
@@ -1317,6 +1375,7 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
         status = par_and_arg_equal_type(pars,args);
         if(status != NO_ERROR){
             generate_error_msg_function_arguments(check, pars, args, expression, status);
+            if(pars_from_heap){mcc_ast_delete(pars);}
             return;
         }
 
@@ -1330,6 +1389,7 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
         //Too many arguments
         status = TOO_MANY_ARGUMENTS;
         generate_error_msg_function_arguments(check, pars, args, expression, status);
+        if(pars_from_heap){mcc_ast_delete(pars);}
         return;
     }
 }
