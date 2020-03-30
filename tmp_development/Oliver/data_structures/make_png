@@ -1,2 +1,0 @@
-#!/bin/bash
-dot -Tpng -o graph.png graph.dot
