@@ -1338,7 +1338,7 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
     if(!pars){
     // No parameters found. Must be built in or unkown function
             // Get the required parameters for the built in that was called
-            pars = get_built_in_pars(args->expression);
+            pars = get_built_in_pars(expression);
             pars_from_heap = true;
 
             // No paramters found for the given call
