@@ -20,3 +20,5 @@ tmp_development/cmake-build-debug
 # Output of integration tests
 scripts/integration_tests/*
 
+# VS Code config
+.vscode
