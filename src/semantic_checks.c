@@ -1023,6 +1023,8 @@ static char *semantic_check_expression_type_to_string(enum mcc_semantic_check_ex
 		return "BOOL";
 	case MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_STRING:
 		return "STRING";
+    case MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_VOID:
+        return "VOID";
 	default:
 		return "UNKNOWN";
 	}
@@ -1550,10 +1552,13 @@ static void generate_error_msg_return_value_array(struct mcc_ast_expression *exp
 // Callback for visitor
 static void cb_function_return_value_statement_return(struct mcc_ast_statement *statement, void *data)
 {
+    assert(statement);
+    assert(data);
+
 	struct function_return_value_userdata *userdata = data;
 
 	// check if return value is a variable
-	if (statement->return_value->type == MCC_AST_EXPRESSION_TYPE_VARIABLE) {
+	if (statement->return_value && (statement->return_value->type == MCC_AST_EXPRESSION_TYPE_VARIABLE)) {
 
 		struct mcc_symbol_table_row *row = statement->return_value->variable_row;
 		char *name = statement->return_value->identifier->identifier_name;
@@ -1566,7 +1571,12 @@ static void cb_function_return_value_statement_return(struct mcc_ast_statement *
 		}
 	}
 
-	enum mcc_semantic_check_expression_type act_type = get_type(statement->return_value);
+    enum mcc_semantic_check_expression_type act_type = MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_UNKNOWN;
+	if(statement->return_value){
+        act_type = get_type(statement->return_value);
+    } else {
+        act_type = MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_VOID;
+	}
 
 	if (act_type != userdata->declared_function_type) {
 		generate_error_msg_function_return_value(statement, userdata->check, act_type,
