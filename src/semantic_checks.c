@@ -108,6 +108,16 @@ static void handle_returned_null_pointer(struct mcc_semantic_check_all_checks *c
     }
 }
 
+static void handle_failed_check(struct mcc_semantic_check_all_checks *checks, const char* error_msg)
+{
+    assert(checks);
+    
+    checks->status = MCC_SEMANTIC_CHECK_FAIL;
+    if (checks->error_buffer == NULL) {
+        write_error_message_to_all_checks(checks, error_msg);
+    }
+}
+
 // Run all semantic checks. First encountered error is written into error buffer
 struct mcc_semantic_check_all_checks *mcc_semantic_check_run_all(struct mcc_ast_program *ast,
                                                                  struct mcc_symbol_table *symbol_table)
@@ -140,13 +150,8 @@ struct mcc_semantic_check_all_checks *mcc_semantic_check_run_all(struct mcc_ast_
 	checks->nonvoid_check = mcc_semantic_check_run_nonvoid_check(ast, symbol_table);
 	if (checks->nonvoid_check == NULL) {
 		handle_returned_null_pointer(checks, "nonvoid_check");
-	} else {
-		if (checks->nonvoid_check->status != MCC_SEMANTIC_CHECK_OK) {
-			checks->status = MCC_SEMANTIC_CHECK_FAIL;
-			if (checks->error_buffer == NULL) {
-				write_error_message_to_all_checks(checks, checks->nonvoid_check->error_buffer);
-			}
-		}
+	} else if (checks->nonvoid_check->status != MCC_SEMANTIC_CHECK_OK) {
+	    handle_failed_check(checks, checks->nonvoid_check->error_buffer);
 	}
 
 	// Main function exists and has correct signature
@@ -157,13 +162,8 @@ struct mcc_semantic_check_all_checks *mcc_semantic_check_run_all(struct mcc_ast_
 	checks->main_function = mcc_semantic_check_run_main_function(ast, symbol_table);
 	if (checks->main_function == NULL) {
         handle_returned_null_pointer(checks, "main_function");
-	} else {
-		if (checks->main_function->status != MCC_SEMANTIC_CHECK_OK) {
-			checks->status = MCC_SEMANTIC_CHECK_FAIL;
-			if (checks->error_buffer == NULL) {
-				write_error_message_to_all_checks(checks, checks->main_function->error_buffer);
-			}
-		}
+	} else if (checks->main_function->status != MCC_SEMANTIC_CHECK_OK) {
+	    handle_failed_check(checks, checks->main_function->error_buffer);
 	}
 
 	// No Calls to unknown functions
@@ -174,13 +174,8 @@ struct mcc_semantic_check_all_checks *mcc_semantic_check_run_all(struct mcc_ast_
 	checks->unknown_function_call = mcc_semantic_check_run_unknown_function_call(ast, symbol_table);
 	if (checks->unknown_function_call == NULL) {
         handle_returned_null_pointer(checks, "unknown_function");
-	} else {
-		if (checks->unknown_function_call->status != MCC_SEMANTIC_CHECK_OK) {
-			checks->status = MCC_SEMANTIC_CHECK_FAIL;
-			if (checks->error_buffer == NULL) {
-				write_error_message_to_all_checks(checks, checks->unknown_function_call->error_buffer);
-			}
-		}
+	} else if (checks->unknown_function_call->status != MCC_SEMANTIC_CHECK_OK) {
+	    handle_failed_check(checks, checks->unknown_function_call->error_buffer);
 	}
 
 	// No multiple definitions of the same function
@@ -191,14 +186,8 @@ struct mcc_semantic_check_all_checks *mcc_semantic_check_run_all(struct mcc_ast_
 	checks->multiple_function_definitions = mcc_semantic_check_run_multiple_function_definitions(ast, symbol_table);
 	if (checks->multiple_function_definitions == NULL) {
         handle_returned_null_pointer(checks, "multiple_function_definitions");
-	} else {
-		if (checks->multiple_function_definitions->status != MCC_SEMANTIC_CHECK_OK) {
-			checks->status = MCC_SEMANTIC_CHECK_FAIL;
-			if (checks->error_buffer == NULL) {
-				write_error_message_to_all_checks(checks,
-				                                  checks->multiple_function_definitions->error_buffer);
-			}
-		}
+	} else if (checks->multiple_function_definitions->status != MCC_SEMANTIC_CHECK_OK) {
+	    handle_failed_check(checks, checks->multiple_function_definitions->error_buffer);
 	}
 
 	// No multiple declarations of a variable in the same scope
@@ -210,14 +199,8 @@ struct mcc_semantic_check_all_checks *mcc_semantic_check_run_all(struct mcc_ast_
 	    mcc_semantic_check_run_multiple_variable_declarations(ast, symbol_table);
 	if (checks->multiple_variable_declarations == NULL) {
         handle_returned_null_pointer(checks, "multiple_variable_declaration");
-	} else {
-		if (checks->multiple_variable_declarations->status != MCC_SEMANTIC_CHECK_OK) {
-			checks->status = MCC_SEMANTIC_CHECK_FAIL;
-			if (checks->error_buffer == NULL) {
-				write_error_message_to_all_checks(checks,
-				                                  checks->multiple_variable_declarations->error_buffer);
-			}
-		}
+	} else if (checks->multiple_variable_declarations->status != MCC_SEMANTIC_CHECK_OK) {
+	    handle_failed_check(checks, checks->multiple_variable_declarations->error_buffer);
 	}
 
 	// No use of undeclared variables
@@ -228,14 +211,8 @@ struct mcc_semantic_check_all_checks *mcc_semantic_check_run_all(struct mcc_ast_
 	checks->use_undeclared_variable = mcc_semantic_check_run_use_undeclared_variable(ast, symbol_table);
 	if (checks->use_undeclared_variable == NULL) {
         handle_returned_null_pointer(checks, "use_undeclared_variable");
-	} else {
-		if (checks->use_undeclared_variable->status != MCC_SEMANTIC_CHECK_OK) {
-			checks->status = MCC_SEMANTIC_CHECK_FAIL;
-			if (checks->error_buffer == NULL) {
-				write_error_message_to_all_checks(checks,
-				                                  checks->use_undeclared_variable->error_buffer);
-			}
-		}
+	} else if (checks->use_undeclared_variable->status != MCC_SEMANTIC_CHECK_OK) {
+	    handle_failed_check(checks, checks->use_undeclared_variable->error_buffer);
 	}
 
 	// No use of the names of the built_in functions in function definitions
@@ -246,13 +223,8 @@ struct mcc_semantic_check_all_checks *mcc_semantic_check_run_all(struct mcc_ast_
 	checks->define_built_in = mcc_semantic_check_run_define_built_in(ast, symbol_table);
 	if (checks->define_built_in == NULL) {
         handle_returned_null_pointer(checks, "define_built_in");
-	} else {
-		if (checks->define_built_in->status != MCC_SEMANTIC_CHECK_OK) {
-			checks->status = MCC_SEMANTIC_CHECK_FAIL;
-			if (checks->error_buffer == NULL) {
-				write_error_message_to_all_checks(checks, checks->define_built_in->error_buffer);
-			}
-		}
+	} else if (checks->define_built_in->status != MCC_SEMANTIC_CHECK_OK) {
+	    handle_failed_check(checks, checks->define_built_in->error_buffer);
 	}
 
 	// No type conversion
@@ -263,13 +235,8 @@ struct mcc_semantic_check_all_checks *mcc_semantic_check_run_all(struct mcc_ast_
 	checks->type_conversion = mcc_semantic_check_run_type_conversion(ast, symbol_table);
 	if (checks->type_conversion == NULL) {
         handle_returned_null_pointer(checks, "type_conversion");
-	} else {
-		if (checks->type_conversion->status != MCC_SEMANTIC_CHECK_OK) {
-			checks->status = MCC_SEMANTIC_CHECK_FAIL;
-			if (checks->error_buffer == NULL) {
-				write_error_message_to_all_checks(checks, checks->type_conversion->error_buffer);
-			}
-		}
+	} else if (checks->type_conversion->status != MCC_SEMANTIC_CHECK_OK) {
+	    handle_failed_check(checks, checks->type_conversion->error_buffer);
 	}
 
 	// No invalid function calls
@@ -280,13 +247,8 @@ struct mcc_semantic_check_all_checks *mcc_semantic_check_run_all(struct mcc_ast_
 	checks->function_arguments = mcc_semantic_check_run_function_arguments(ast, symbol_table);
 	if (checks->function_arguments == NULL) {
         handle_returned_null_pointer(checks, "function_arguments");
-	} else {
-		if (checks->function_arguments->status != MCC_SEMANTIC_CHECK_OK) {
-			checks->status = MCC_SEMANTIC_CHECK_FAIL;
-			if (checks->error_buffer == NULL) {
-				write_error_message_to_all_checks(checks, checks->function_arguments->error_buffer);
-			}
-		}
+	} else if (checks->function_arguments->status != MCC_SEMANTIC_CHECK_OK) {
+	    handle_failed_check(checks, checks->function_arguments->error_buffer);
 	}
 
 	// No functions with invalid returns
@@ -297,13 +259,8 @@ struct mcc_semantic_check_all_checks *mcc_semantic_check_run_all(struct mcc_ast_
 	checks->function_return_value = mcc_semantic_check_run_function_return_value(ast, symbol_table);
 	if (checks->function_return_value == NULL) {
         handle_returned_null_pointer(checks, "function_return_value");
-	} else {
-		if (checks->function_return_value->status != MCC_SEMANTIC_CHECK_OK) {
-			checks->status = MCC_SEMANTIC_CHECK_FAIL;
-			if (checks->error_buffer == NULL) {
-				write_error_message_to_all_checks(checks, checks->function_return_value->error_buffer);
-			}
-		}
+	} else if (checks->function_return_value->status != MCC_SEMANTIC_CHECK_OK) {
+	    handle_failed_check(checks, checks->function_return_value->error_buffer);
 	}
 
 	return checks;
