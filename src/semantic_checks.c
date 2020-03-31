@@ -102,8 +102,7 @@ static void handle_returned_null_pointer(struct mcc_semantic_check_all_checks *c
         int size = sizeof(char) * (strlen(check_name) + 60);
         char *msg = malloc(size);
         snprintf(msg, size, "mcc_semantic_check_run_%s returned NULL pointer", check_name);
-        write_error_message_to_all_checks(
-                checks, msg);
+        write_error_message_to_all_checks(checks, msg);
         free(msg);
     }
 }
@@ -111,7 +110,7 @@ static void handle_returned_null_pointer(struct mcc_semantic_check_all_checks *c
 static void handle_failed_check(struct mcc_semantic_check_all_checks *checks, const char* error_msg)
 {
     assert(checks);
-    
+
     checks->status = MCC_SEMANTIC_CHECK_FAIL;
     if (checks->error_buffer == NULL) {
         write_error_message_to_all_checks(checks, error_msg);
@@ -143,119 +142,88 @@ struct mcc_semantic_check_all_checks *mcc_semantic_check_run_all(struct mcc_ast_
 	checks->define_built_in = NULL;
 
 	// Each execution path of non-void function returns a value
-	// Early abort if already failed
-	if (checks->status == MCC_SEMANTIC_CHECK_FAIL) {
-		return checks;
-	}
 	checks->nonvoid_check = mcc_semantic_check_run_nonvoid_check(ast, symbol_table);
 	if (checks->nonvoid_check == NULL) {
 		handle_returned_null_pointer(checks, "nonvoid_check");
 	} else if (checks->nonvoid_check->status != MCC_SEMANTIC_CHECK_OK) {
 	    handle_failed_check(checks, checks->nonvoid_check->error_buffer);
+	    return checks;
 	}
 
 	// Main function exists and has correct signature
-	// Early abort if already failed
-	if (checks->status == MCC_SEMANTIC_CHECK_FAIL) {
-		return checks;
-	}
 	checks->main_function = mcc_semantic_check_run_main_function(ast, symbol_table);
 	if (checks->main_function == NULL) {
         handle_returned_null_pointer(checks, "main_function");
 	} else if (checks->main_function->status != MCC_SEMANTIC_CHECK_OK) {
 	    handle_failed_check(checks, checks->main_function->error_buffer);
+	    return checks;
 	}
 
 	// No Calls to unknown functions
-	// Early abort if already failed
-	if (checks->status == MCC_SEMANTIC_CHECK_FAIL) {
-		return checks;
-	}
 	checks->unknown_function_call = mcc_semantic_check_run_unknown_function_call(ast, symbol_table);
 	if (checks->unknown_function_call == NULL) {
         handle_returned_null_pointer(checks, "unknown_function");
 	} else if (checks->unknown_function_call->status != MCC_SEMANTIC_CHECK_OK) {
 	    handle_failed_check(checks, checks->unknown_function_call->error_buffer);
+        return checks;
 	}
 
 	// No multiple definitions of the same function
-	// Early abort if already failed
-	if (checks->status == MCC_SEMANTIC_CHECK_FAIL) {
-		return checks;
-	}
 	checks->multiple_function_definitions = mcc_semantic_check_run_multiple_function_definitions(ast, symbol_table);
 	if (checks->multiple_function_definitions == NULL) {
         handle_returned_null_pointer(checks, "multiple_function_definitions");
 	} else if (checks->multiple_function_definitions->status != MCC_SEMANTIC_CHECK_OK) {
 	    handle_failed_check(checks, checks->multiple_function_definitions->error_buffer);
+	    return checks;
 	}
 
 	// No multiple declarations of a variable in the same scope
-	// Early abort if already failed
-	if (checks->status == MCC_SEMANTIC_CHECK_FAIL) {
-		return checks;
-	}
 	checks->multiple_variable_declarations =
 	    mcc_semantic_check_run_multiple_variable_declarations(ast, symbol_table);
 	if (checks->multiple_variable_declarations == NULL) {
         handle_returned_null_pointer(checks, "multiple_variable_declaration");
 	} else if (checks->multiple_variable_declarations->status != MCC_SEMANTIC_CHECK_OK) {
 	    handle_failed_check(checks, checks->multiple_variable_declarations->error_buffer);
+        return checks;
 	}
 
 	// No use of undeclared variables
-	// Early abort if already failed
-	if (checks->status == MCC_SEMANTIC_CHECK_FAIL) {
-		return checks;
-	}
 	checks->use_undeclared_variable = mcc_semantic_check_run_use_undeclared_variable(ast, symbol_table);
 	if (checks->use_undeclared_variable == NULL) {
         handle_returned_null_pointer(checks, "use_undeclared_variable");
 	} else if (checks->use_undeclared_variable->status != MCC_SEMANTIC_CHECK_OK) {
 	    handle_failed_check(checks, checks->use_undeclared_variable->error_buffer);
+	    return checks;
 	}
 
 	// No use of the names of the built_in functions in function definitions
-	// Early abort if already failed
-	if (checks->status == MCC_SEMANTIC_CHECK_FAIL) {
-		return checks;
-	}
 	checks->define_built_in = mcc_semantic_check_run_define_built_in(ast, symbol_table);
 	if (checks->define_built_in == NULL) {
         handle_returned_null_pointer(checks, "define_built_in");
 	} else if (checks->define_built_in->status != MCC_SEMANTIC_CHECK_OK) {
 	    handle_failed_check(checks, checks->define_built_in->error_buffer);
+	    return checks;
 	}
 
 	// No type conversion
-	// Early abort if already failed
-	if (checks->status == MCC_SEMANTIC_CHECK_FAIL) {
-		return checks;
-	}
 	checks->type_conversion = mcc_semantic_check_run_type_conversion(ast, symbol_table);
 	if (checks->type_conversion == NULL) {
         handle_returned_null_pointer(checks, "type_conversion");
 	} else if (checks->type_conversion->status != MCC_SEMANTIC_CHECK_OK) {
 	    handle_failed_check(checks, checks->type_conversion->error_buffer);
+	    return checks;
 	}
 
 	// No invalid function calls
-	// Early abort if already failed
-	if (checks->status == MCC_SEMANTIC_CHECK_FAIL) {
-		return checks;
-	}
 	checks->function_arguments = mcc_semantic_check_run_function_arguments(ast, symbol_table);
 	if (checks->function_arguments == NULL) {
         handle_returned_null_pointer(checks, "function_arguments");
 	} else if (checks->function_arguments->status != MCC_SEMANTIC_CHECK_OK) {
 	    handle_failed_check(checks, checks->function_arguments->error_buffer);
+	    return checks;
 	}
 
 	// No functions with invalid returns
-	// Early abort if already failed
-	if (checks->status == MCC_SEMANTIC_CHECK_FAIL) {
-		return checks;
-	}
 	checks->function_return_value = mcc_semantic_check_run_function_return_value(ast, symbol_table);
 	if (checks->function_return_value == NULL) {
         handle_returned_null_pointer(checks, "function_return_value");
