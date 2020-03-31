@@ -95,6 +95,11 @@ static void print_dot_symbol_table_row(struct mcc_symbol_table_row *row, const c
 		print_dot_row(row, leading_spaces, out);
 	}
 
+	// dont print scopes of built-ins
+	if((strcmp(row->name,"print")==0) || (strcmp(row->name,"print_int")==0) || (strcmp(row->name,"print_float")==0)){
+	    return;
+	}
+
 	if (row->child_scope) {
 		struct mcc_symbol_table_scope *child_scope = row->child_scope;
 

@@ -36,6 +36,7 @@ pattern="*"
 
 # Options:
 option_csv=false
+option_valgrind=false
 
 # ------------------------------------------------------------------- Functions
 
@@ -47,13 +48,19 @@ run_compiler()
 	local stats="$OUTPUT_DIR/$test.mcc.stats.txt"
 	local mcc_output="$OUTPUT_DIR/$test.mcc.output.txt"
 
+	local valgrind=''
+	if $option_valgrind; then
+		valgrind='valgrind --error-exitcode=1 --leak-check=full'
+	fi
+
 	command time \
 		--format "%e %M %x" \
 		--output "$stats" \
-		"$MCC" \
+		$valgrind "$MCC" \
 			-o "$output" \
 			"$input" \
-			&> "$mcc_output"
+			&> "$mcc_output" \
+	|| return 1
 
 	tail -n1 "$stats"
 }
@@ -74,7 +81,8 @@ run_integration_test()
 		--output "$stats" \
 		"$OUTPUT_DIR/$test" \
 			< "$stdin" \
-			> "$ac_stdout"
+			> "$ac_stdout" \
+	|| return 1
 
 	if ! diff -u "$ex_stdout" "$ac_stdout" > "$diff_stdout"; then
 		return 1
@@ -145,6 +153,7 @@ print_usage()
 	echo "OPTIONS:"
 	echo "  -h, --help       displays this help message"
 	echo "  -c, --csv        output as CSV"
+	echo "  -v, --valgrind   run compiler using valgrind"
 	echo
 	echo "Environment Variables:"
 	echo "  MCC                  override the MCC executable path (defaults to ./mcc)"
@@ -170,7 +179,7 @@ check_prerequisites()
 
 parse_args()
 {
-	ARGS=$(getopt -o hc -l help,csv -- "$@")
+	ARGS=$(getopt -o hcv -l help,csv,valgrind -- "$@")
 	eval set -- "$ARGS"
 
 	while true; do
@@ -182,6 +191,11 @@ parse_args()
 
 			-c|--csv)
 				option_csv=true
+				shift
+				;;
+
+			-v|--valgrind)
+				option_valgrind=true
 				shift
 				;;
 
