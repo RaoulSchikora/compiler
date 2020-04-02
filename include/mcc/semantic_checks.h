@@ -14,7 +14,7 @@ enum mcc_semantic_check_status{
     MCC_SEMANTIC_CHECK_FAIL,
 };
 
-enum mcc_semantic_check_check_type{
+enum mcc_semantic_check_type{
     MCC_SEMANTIC_CHECK_TYPE_CHECK,
     MCC_SEMANTIC_CHECK_NONVOID_CHECK,
     MCC_SEMANTIC_CHECK_MAIN_FUNCTION,
@@ -25,14 +25,14 @@ enum mcc_semantic_check_check_type{
 
 struct mcc_semantic_check {
     enum mcc_semantic_check_status status;
-    enum mcc_semantic_check_check_type type;
+    enum mcc_semantic_check_type type;
     // error_buffer is set to NULL if status is OK
     char* error_buffer;
 };
 
 // ------------------------------------------------------------ Data structure: Type for type checking
 
-enum mcc_semantic_check_types {
+enum mcc_semantic_check_data_types {
     MCC_SEMANTIC_CHECK_INT,
     MCC_SEMANTIC_CHECK_FLOAT,
     MCC_SEMANTIC_CHECK_BOOL,
@@ -41,8 +41,8 @@ enum mcc_semantic_check_types {
     MCC_SEMANTIC_CHECK_UNKNOWN,
 };
 
-struct mcc_semantic_check_type {
-    enum mcc_semantic_check_types type;
+struct mcc_semantic_check_data_type {
+    enum mcc_semantic_check_data_types type;
     // -1 if not array
     int array_size;
     bool is_array;
