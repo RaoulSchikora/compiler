@@ -15,6 +15,9 @@
 // Write a string into a handed check
 enum mcc_semantic_check_error_code write_error_message_to_check(struct mcc_semantic_check *check, const char *string)
 {
+	assert(check);
+	assert(string);
+
 	int size = sizeof(char) * (strlen(string) + 1);
 	char *buffer = malloc(size);
 	if (!buffer) {
@@ -27,14 +30,23 @@ enum mcc_semantic_check_error_code write_error_message_to_check(struct mcc_seman
 	return MCC_SEMANTIC_CHECK_ERROR_OK;
 }
 
-
+enum mcc_semantic_check_error_code raise_error_type_error (struct mcc_semantic_check *check, 
+														   const char* format, 
+														   struct mcc_semantic_check_data_type expected_type,
+														   struct mcc_semantic_check_data_type provided_type){
+	UNUSED(check);
+	UNUSED(format);
+	UNUSED(expected_type);
+	UNUSED(provided_type);
+	return MCC_SEMANTIC_CHECK_ERROR_OK;
+}
 
 // ------------------------------------------------------------- Functions: Set up and run all checks
 
 // Generate struct for semantic check
 struct mcc_semantic_check *mcc_semantic_check_initialize_check(){
 	struct mcc_semantic_check *check = malloc(sizeof(check));
-	if(!check){
+	if(check){
 		check->status = MCC_SEMANTIC_CHECK_OK;
 		check->error_buffer = NULL;
 	}
@@ -42,9 +54,11 @@ struct mcc_semantic_check *mcc_semantic_check_initialize_check(){
 }
 
 
-// Run all semantic checks
+// Run all semantic checks, returns NULL if library functions fail
 struct mcc_semantic_check* mcc_semantic_check_run_all(struct mcc_ast_program* ast,
 													  struct mcc_symbol_table* symbol_table){
+	assert(ast);
+	assert(symbol_table);
 
 	enum mcc_semantic_check_error_code error = MCC_SEMANTIC_CHECK_ERROR_OK;
 
@@ -72,28 +86,40 @@ struct mcc_semantic_check* mcc_semantic_check_run_all(struct mcc_ast_program* as
 
 // ------------------------------------------------------------- Functions: Running single semantic checks
 
+// ------------------------------------------------------------- Functions: Running single semantic checks with early abort
+
+// Define function pointer to a single sematic check
+enum mcc_semantic_check_error_code (*fctptr)(struct mcc_ast_program *ast, struct mcc_symbol_table *table, 
+											 struct mcc_semantic_check *check);
+
 // Wrapper for running one of the checks  
 // If the error code of the previous check is not OK the error code is handed back immediately
 // If the status code of the previous check is not OK, we abort with error code OK
 enum mcc_semantic_check_error_code mcc_semantic_check_early_abort_wrapper(
-    enum mcc_semantic_check_error_code (*fctptr)(struct mcc_ast_program *ast, struct mcc_symbol_table *table, struct mcc_semantic_check *check),
+    enum mcc_semantic_check_error_code (*fctptr)(struct mcc_ast_program *ast, struct mcc_symbol_table *table, 
+	struct mcc_semantic_check *check),
 	struct mcc_ast_program *ast, 
 	struct mcc_symbol_table *table,
 	struct mcc_semantic_check* check,
-	enum mcc_semantic_check_error_code previous_ok)
-	{
-		// Early abort. Return error code of the previous check
-		if(previous_ok != MCC_SEMANTIC_CHECK_ERROR_OK){
-		        return previous_ok;
-		}
+	enum mcc_semantic_check_error_code previous_return) {
 
-		// Early abort. Just return without doing anything.
-		if(check->status != MCC_SEMANTIC_CHECK_OK){
-		        return MCC_SEMANTIC_CHECK_ERROR_OK;
-		}
+	assert(ast);
+	assert(table);
+	assert(check);
+	assert(fctptr);
 
-		// Run the semantic check and return its return value
-		return (*fctptr)(ast, table, check);
+	// Early abort. Return error code of the previous check
+	if(previous_return != MCC_SEMANTIC_CHECK_ERROR_OK){
+		return previous_return;
+	}
+
+	// Early abort. Just return without doing anything.
+	if(check->status != MCC_SEMANTIC_CHECK_OK){
+			return MCC_SEMANTIC_CHECK_ERROR_OK;
+	}
+
+	// Run the semantic check and return its return value
+	return (*fctptr)(ast, table, check);
 	}
 
 // ------------------------------------------------------------- Type conversion

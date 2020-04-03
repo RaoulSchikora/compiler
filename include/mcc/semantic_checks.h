@@ -44,6 +44,18 @@ struct mcc_semantic_check_data_type {
     bool is_array;
 };
 
+// ------------------------------------------------------------ Function: Error handling
+
+// Write string into existing check
+enum mcc_semantic_check_error_code write_error_message_to_check(struct mcc_semantic_check *check,
+                                                                       const char *string);
+
+// Write the handed string that somehow includes two types into a handed check
+enum mcc_semantic_check_error_code raise_error_two_types(struct mcc_semantic_check *check,
+                                                         const char *format,
+                                                         struct mcc_semantic_check_data_type expected_type,
+                                                         struct mcc_semantic_check_data_type provided_type);
+
 // ------------------------------------------------------------ Function: Run all semantic checks
 
 // Generate struct for semantic check
