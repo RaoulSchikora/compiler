@@ -17,7 +17,11 @@ enum mcc_semantic_check_error_code write_error_message_to_check(struct mcc_seman
 																const char *string)
 {
 	assert(check);
+	assert(check->error_buffer == NULL);
+	assert(check->status == MCC_SEMANTIC_CHECK_OK);
 	assert(string);
+
+	check->status = MCC_SEMANTIC_CHECK_FAIL;
 
 	int size = sizeof(char) * (strlen(string) + 1);
 	char *buffer = malloc(size);
@@ -28,17 +32,6 @@ enum mcc_semantic_check_error_code write_error_message_to_check(struct mcc_seman
 		return MCC_SEMANTIC_CHECK_ERROR_SNPRINTF_FAILED;
 	}
 	check->error_buffer = buffer;
-	return MCC_SEMANTIC_CHECK_ERROR_OK;
-}
-
-enum mcc_semantic_check_error_code raise_error_type_error (struct mcc_semantic_check *check, 
-														   const char* format, 
-														   struct mcc_semantic_check_data_type expected_type,
-														   struct mcc_semantic_check_data_type provided_type){
-	UNUSED(check);
-	UNUSED(format);
-	UNUSED(expected_type);
-	UNUSED(provided_type);
 	return MCC_SEMANTIC_CHECK_ERROR_OK;
 }
 
@@ -534,11 +527,6 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_nonvoid_check(struct m
 enum mcc_semantic_check_error_code mcc_semantic_check_run_main_function(struct mcc_ast_program* ast,
                                                                         struct mcc_symbol_table *symbol_table,
                                                                         struct mcc_semantic_check *check){
-	// UNUSED(ast);
-	// UNUSED(symbol_table);
-	// check->status = MCC_SEMANTIC_CHECK_OK;
-	// check->error_buffer = NULL;
-	// return MCC_SEMANTIC_CHECK_ERROR_OK;
 	UNUSED(symbol_table);
 	assert(ast);
 	assert(symbol_table);
