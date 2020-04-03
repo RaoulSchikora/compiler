@@ -11,6 +11,8 @@
 #include "mcc/symbol_table.h"
 #include "utils/unused.h"
 
+#define not_zero(x) x!=0 ? x : 1
+
 // ------------------------------------------------------------- Functions: Error handling
 
 // Write a string into a handed check and set the corresponding check to false
@@ -40,7 +42,8 @@ enum mcc_semantic_check_error_code write_error_message_to_check(struct mcc_seman
 // Compute string length of source code location
 static int get_sloc_string_size(struct mcc_ast_node node){
 	// Hard coded 6 due to rounding and colons
-	return floor(log10(node.sloc.start_col) + log10(node.sloc.start_line)) + strlen(node.sloc.filename) + 6;
+	return floor(log10(not_zero(node.sloc.start_col)) + log10(not_zero(node.sloc.start_line))) 
+	       + strlen(node.sloc.filename) + 6;
 }
 
 static enum mcc_semantic_check_error_code write_error_message_to_check_with_sloc(struct mcc_semantic_check *check,
