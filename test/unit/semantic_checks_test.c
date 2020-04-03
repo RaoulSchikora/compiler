@@ -11,7 +11,7 @@
 void positive(CuTest *tc)
 {
 	// Define test input and create symbol table
-	const char input[] = "int main(){int a; a = 2; int b; int c; b = 2; c = a + b; return c;} \
+	const char input[] = "int main(){int a; a = 2; int b; int c; b = 2; c = a + (b/c); return c;} \
                          void func1(int a, bool[10] b){a = a + 2; int i; i = 0; b[i] = true;} \
                          bool func2(){return true;} \
                          int func3(){int a; if(true)if(true){while(a==1){return 2;}} return 3;} \
@@ -32,7 +32,7 @@ void positive(CuTest *tc)
 		if (checks->error_buffer == NULL) {
 			printf("Semantic check failed, error buffer is empty.");
 		} else {
-			printf("Semantic check failed:\n%s", checks->error_buffer);
+			printf("Semantic check failed:\n%s", "checks->error_buffer");
 		}
 	}
 
@@ -40,7 +40,6 @@ void positive(CuTest *tc)
 	CuAssertPtrEquals(tc, NULL, checks->error_buffer);
 
 	CuAssertPtrNotNull(tc, checks);
-
 
 	// Cleanup
 	mcc_ast_delete(parser_result.program);
