@@ -41,7 +41,7 @@ static struct mcc_semantic_check_data_type *get_new_data_type()
 	return type;
 }
 
-static struct mcc_semantic_check_data_type *get_type_ast_literal(struct mcc_ast_literal *literal)
+struct mcc_semantic_check_data_type *check_and_get_type_literal(struct mcc_ast_literal *literal)
 {
 	assert(literal);
 
@@ -70,26 +70,26 @@ static struct mcc_semantic_check_data_type *get_type_ast_literal(struct mcc_ast_
 }
 
 // check and get data type of expression
-struct mcc_semantic_check_data_type *check_and_get_type_expression(struct mcc_ast_expression *expression, void* data)
+struct mcc_semantic_check_data_type *check_and_get_type_expression(struct mcc_ast_expression *expression, 
+    struct mcc_semantic_check *check)
 {
 	assert(expression);
-	assert(data);
+	assert(check);
 
-	struct mcc_semantic_check *check = data;
 	struct mcc_semantic_check_data_type *type = get_new_data_type();
 
 	switch (expression->type)
 	{
 	case MCC_AST_EXPRESSION_TYPE_LITERAL:
-		return get_type_ast_literal(expression->literal);
+		return check_and_get_type_literal(expression->literal);
 	case MCC_AST_EXPRESSION_TYPE_BINARY_OP:
 		break;
 	case MCC_AST_EXPRESSION_TYPE_PARENTH:
-		break;
+		return check_and_get_type(expression->expression, check);
 	case MCC_AST_EXPRESSION_TYPE_UNARY_OP:
 		break;
 	case MCC_AST_EXPRESSION_TYPE_VARIABLE:
-		return check_and_get_type(expression->identifier, expression->variable_row);
+		return check_and_get_type(expression->identifier, check, expression->variable_row);
 	case MCC_AST_EXPRESSION_TYPE_ARRAY_ELEMENT:
 		break;
 	case MCC_AST_EXPRESSION_TYPE_FUNCTION_CALL:
@@ -102,12 +102,13 @@ struct mcc_semantic_check_data_type *check_and_get_type_expression(struct mcc_as
 }
 
 // check and get data type of identifier
-struct mcc_semantic_check_data_type *check_and_get_type_identifier(struct mcc_ast_identifier *identifier, void *data)
+struct mcc_semantic_check_data_type *check_and_get_type_identifier(struct mcc_ast_identifier *identifier, 
+    struct mcc_semantic_check *check, struct mcc_symbol_table_row *row)
 {
 	assert(identifier);
-	assert(data);
+	assert(check);
+	assert(row);
 
-	struct mcc_symbol_table_row *row = data;
 	struct mcc_semantic_check_data_type *type = get_new_data_type();
 
 	char *name = identifier->identifier_name;
@@ -156,7 +157,7 @@ static void cb_type_conversion_assignment(struct mcc_ast_statement *statement, v
 	if(assignment->assignment_type == MCC_AST_ASSIGNMENT_TYPE_ARRAY){
 		return;
 	}
-	struct mcc_semantic_check_data_type *lhs_type = check_and_get_type(assignment->variable_identifier, assignment->row);
+	struct mcc_semantic_check_data_type *lhs_type = check_and_get_type(assignment->variable_identifier, check, assignment->row);
 	struct mcc_semantic_check_data_type *rhs_type = check_and_get_type(assignment->variable_assigned_value, check);
 
 	//TODO use compare_type

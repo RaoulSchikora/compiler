@@ -54,8 +54,11 @@ struct mcc_semantic_check* mcc_semantic_check_run_all(struct mcc_ast_program* as
 
 // ------------------------------------------------------------- check and get type functions
 
-struct mcc_semantic_check_data_type *check_and_get_type_expression(struct mcc_ast_expression *expression, void* data);
-struct mcc_semantic_check_data_type *check_and_get_type_identifier(struct mcc_ast_identifier *identifier, void* data);
+struct mcc_semantic_check_data_type *check_and_get_type_expression(struct mcc_ast_expression *expression, 
+    struct mcc_semantic_check *check);
+struct mcc_semantic_check_data_type *check_and_get_type_identifier(struct mcc_ast_identifier *identifier, 
+    struct mcc_semantic_check *check, struct mcc_symbol_table_row *row);
+struct mcc_semantic_check_data_type *check_and_get_type_literal(struct mcc_ast_literal *literal);
 
 // ------------------------------------------------------------- Functions: Running single semantic checks
 
@@ -93,10 +96,11 @@ void mcc_semantic_check_delete_single_check(struct mcc_semantic_check *check);
 
 // clang-format off
 
-#define check_and_get_type(x, data) _Generic((x), \
+#define check_and_get_type(x, ...) _Generic((x), \
 		struct mcc_ast_expression *:          check_and_get_type_expression, \
-		struct mcc_ast_identifier *:          check_and_get_type_identifier \
-	)(x, data)
+		struct mcc_ast_identifier *:          check_and_get_type_identifier, \
+        struct mcc_ast_literal *:             check_and_get_type_literal \
+	)(x, __VA_ARGS__)
 
 // clang-format on
 
