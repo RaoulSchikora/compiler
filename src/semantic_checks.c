@@ -10,6 +10,27 @@
 #include "mcc/symbol_table.h"
 #include "utils/unused.h"
 
+// ------------------------------------------------------------- Functions: Error handling
+
+// Write a string into a handed check
+enum mcc_semantic_check_error_code write_error_message_to_check(struct mcc_semantic_check *check, const char *string)
+{
+	int size = sizeof(char) * (strlen(string) + 1);
+	char *buffer = malloc(size);
+	if (!buffer) {
+		return MCC_SEMANTIC_CHECK_ERROR_MALLOC_FAILED;
+	}
+	if (0 > snprintf(buffer, size, "%s", string)){
+		return MCC_SEMANTIC_CHECK_ERROR_SNPRINTF_FAILED;
+	}
+	check->error_buffer = buffer;
+	return MCC_SEMANTIC_CHECK_ERROR_OK;
+}
+
+
+
+// ------------------------------------------------------------- Functions: Set up and run all checks
+
 // Generate struct for semantic check
 struct mcc_semantic_check *mcc_semantic_check_initialize_check(){
 	struct mcc_semantic_check *check = malloc(sizeof(check));
@@ -19,6 +40,7 @@ struct mcc_semantic_check *mcc_semantic_check_initialize_check(){
 	}
 	return check;
 }
+
 
 // Run all semantic checks
 struct mcc_semantic_check* mcc_semantic_check_run_all(struct mcc_ast_program* ast,
