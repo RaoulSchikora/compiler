@@ -141,30 +141,21 @@ static struct mcc_semantic_check_data_type *get_new_data_type()
 static bool is_int(struct mcc_semantic_check_data_type *type)
 {
 	assert(type);
-	if((type->type == MCC_SEMANTIC_CHECK_INT) && !type->is_array){
-		return true;
-	}
-	return false;
+	return ((type->type == MCC_SEMANTIC_CHECK_INT) && !type->is_array);
 }
 
 // returns true if type is BOOL
 static bool is_bool(struct mcc_semantic_check_data_type *type)
 {
 	assert(type);
-	if((type->type == MCC_SEMANTIC_CHECK_BOOL) && !type->is_array){
-		return true;
-	}
-	return false;
+	return ((type->type == MCC_SEMANTIC_CHECK_BOOL) && !type->is_array);
 }
 
 // returns true is type is string
 static bool is_string(struct mcc_semantic_check_data_type *type)
 {
 	assert(type);
-	if((type->type == MCC_SEMANTIC_CHECK_STRING) && !type->is_array){
-		return true;
-	}
-	return false;
+	return ((type->type == MCC_SEMANTIC_CHECK_STRING) && !type->is_array);
 }
 
 static bool types_equal(struct mcc_semantic_check_data_type *first, struct mcc_semantic_check_data_type *second)
@@ -172,10 +163,7 @@ static bool types_equal(struct mcc_semantic_check_data_type *first, struct mcc_s
 	assert(first);
 	assert(second);
 
-	if((first->type == second->type) && (first->array_size == second->array_size)){
-		return true;
-	}
-	return false;
+	return ((first->type == second->type) && (first->array_size == second->array_size));
 }
 
 // check and get type of binary expression. Returns MCC_SEMANTIC_CHECK_UNKNOWN if error occurs
