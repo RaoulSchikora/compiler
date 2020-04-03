@@ -578,6 +578,13 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_multiple_variable_decl
 
 // Delete single checks
 void mcc_semantic_check_delete_single_check(struct mcc_semantic_check *check){
-	UNUSED(check);
-	return;
+	if (check == NULL) {
+		return;
+	}
+
+	if (check->error_buffer != NULL) {
+		free(check->error_buffer);
+	}
+
+	free(check);
 }
