@@ -122,7 +122,7 @@ enum mcc_semantic_check_error_code mcc_semantic_check_early_abort_wrapper(
 	return (*fctptr)(ast, table, check);
 	}
 
-// ------------------------------------------------------------- Type conversion
+// ------------------------------------------------------------- check_and_get_type functionalities
 
 // getter for data type
 static struct mcc_semantic_check_data_type *get_new_data_type()
@@ -438,6 +438,8 @@ struct mcc_semantic_check_data_type *check_and_get_type_identifier(struct mcc_as
 
 	return type;
 }
+
+// ------------------------------------------------------------- type checker
 
 // callback for checking type conversion in an assignment
 static void cb_type_conversion_assignment(struct mcc_ast_statement *statement, void *data)
