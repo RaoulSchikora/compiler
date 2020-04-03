@@ -131,6 +131,15 @@ static bool is_array(struct mcc_ast_identifier *identifier, struct mcc_semantic_
 	return false;
 }
 
+// catches the case where a variable is a whole array and then writes to error
+static void catch_array_as_variable(struct mcc_ast_expression *expression, struct mcc_semantic_check *check)
+{
+	assert(expression->type == MCC_AST_EXPRESSION_TYPE_VARIABLE);
+	assert(check);
+
+	return;
+}
+
 // check and get type of binary expression. Returns MCC_SEMANTIC_CHECK_UNKNOWN if error occurs
 static struct mcc_semantic_check_data_type *check_and_get_type_binary_expression(struct mcc_ast_expression *expression, 
 	struct mcc_semantic_check *check)
@@ -256,7 +265,7 @@ struct mcc_semantic_check_data_type *check_and_get_type_expression(struct mcc_as
 	case MCC_AST_EXPRESSION_TYPE_UNARY_OP:
 		break;
 	case MCC_AST_EXPRESSION_TYPE_VARIABLE:
-		catch_array_as_varaible(expression, check);
+		catch_array_as_variable(expression, check);
 		return check_and_get_type(expression->identifier, check, expression->variable_row);
 	case MCC_AST_EXPRESSION_TYPE_ARRAY_ELEMENT:
 		break;
