@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <math.h>
 
 #include "mcc/ast.h"
 #include "mcc/ast_visit.h"
@@ -12,7 +13,8 @@
 
 // ------------------------------------------------------------- Functions: Error handling
 
-// Write a string into a handed check
+// Write a string into a handed check and set the corresponding check to false
+// Should only be called with checks that haven't failed yet
 enum mcc_semantic_check_error_code write_error_message_to_check(struct mcc_semantic_check *check, 
 																const char *string)
 {
@@ -34,6 +36,37 @@ enum mcc_semantic_check_error_code write_error_message_to_check(struct mcc_seman
 	check->error_buffer = buffer;
 	return MCC_SEMANTIC_CHECK_ERROR_OK;
 }
+
+// Compute string length of source code location
+static int get_sloc_string_size(struct mcc_ast_node node){
+	// Hard coded 6 due to rounding and colons
+	return floor(log10(node.sloc.start_col) + log10(node.sloc.start_line)) + strlen(node.sloc.filename) + 6;
+}
+
+static enum mcc_semantic_check_error_code write_error_message_to_check_with_sloc(struct mcc_semantic_check *check,
+																				 struct mcc_ast_node node,
+																				 const char *string)
+{
+	assert(check);
+	assert(check->error_buffer == NULL);
+	assert(check->status == MCC_SEMANTIC_CHECK_OK);
+	assert(string);
+
+	// +1 for terminating character
+	int size = sizeof(char) * (strlen(string) + get_sloc_string_size(node) + 1);
+	char *buffer = malloc(size);
+	if (!buffer) {
+		return MCC_SEMANTIC_CHECK_ERROR_MALLOC_FAILED;
+	}
+	if( 0 > snprintf(buffer, size, "%s:%d:%d:%s\n", node.sloc.filename, 
+					 node.sloc.start_line, node.sloc.start_col, string))
+	{
+		return MCC_SEMANTIC_CHECK_ERROR_SNPRINTF_FAILED;
+	}
+	check->error_buffer = buffer;
+	return MCC_SEMANTIC_CHECK_ERROR_OK;
+}
+
 
 // ------------------------------------------------------------- Functions: Set up and run all checks
 
@@ -78,23 +111,19 @@ struct mcc_semantic_check* mcc_semantic_check_run_all(struct mcc_ast_program* as
 	return check;
 }
 
-// ------------------------------------------------------------- Functions: Running single semantic checks
-
 // ------------------------------------------------------------- Functions: Running single semantic checks with early abort
 
 // Define function pointer to a single sematic check
 enum mcc_semantic_check_error_code (*fctptr)(struct mcc_ast_program *ast, struct mcc_symbol_table *table, 
 											 struct mcc_semantic_check *check);
 
-// Wrapper for running one of the checks  
-// If the error code of the previous check is not OK the error code is handed back immediately
-// If the status code of the previous check is not OK, we abort with error code OK
+// Wrapper for running one of the checks with 2 early aborts:
+// Error code of the previous check is not OK: Error code is handed back immediately
+// Status code of the previous check is not OK: Abort with error code OK, but don't change check
 enum mcc_semantic_check_error_code mcc_semantic_check_early_abort_wrapper(
     enum mcc_semantic_check_error_code (*fctptr)(struct mcc_ast_program *ast, struct mcc_symbol_table *table, 
-	struct mcc_semantic_check *check),
-	struct mcc_ast_program *ast, 
-	struct mcc_symbol_table *table,
-	struct mcc_semantic_check* check,
+	struct mcc_semantic_check *check), struct mcc_ast_program *ast, 
+	struct mcc_symbol_table *table, struct mcc_semantic_check* check,
 	enum mcc_semantic_check_error_code previous_return) {
 
 	assert(ast);
@@ -107,7 +136,7 @@ enum mcc_semantic_check_error_code mcc_semantic_check_early_abort_wrapper(
 		return previous_return;
 	}
 
-	// Early abort. Just return without doing anything.
+	// Early abort. Return without doing anything.
 	if(check->status != MCC_SEMANTIC_CHECK_OK){
 			return MCC_SEMANTIC_CHECK_ERROR_OK;
 	}
