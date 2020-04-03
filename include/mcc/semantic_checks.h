@@ -58,7 +58,7 @@ struct mcc_semantic_check_data_type *check_and_get_type_expression(struct mcc_as
     struct mcc_semantic_check *check);
 struct mcc_semantic_check_data_type *check_and_get_type_identifier(struct mcc_ast_identifier *identifier, 
     struct mcc_semantic_check *check, struct mcc_symbol_table_row *row);
-struct mcc_semantic_check_data_type *check_and_get_type_literal(struct mcc_ast_literal *literal);
+struct mcc_semantic_check_data_type *check_and_get_type_literal(struct mcc_ast_literal *literal, void *placeholder);
 
 // ------------------------------------------------------------- Functions: Running single semantic checks
 

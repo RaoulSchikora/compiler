@@ -41,9 +41,128 @@ static struct mcc_semantic_check_data_type *get_new_data_type()
 	return type;
 }
 
-struct mcc_semantic_check_data_type *check_and_get_type_literal(struct mcc_ast_literal *literal)
+static bool is_int(struct mcc_semantic_check_data_type *type)
+{
+	assert(type);
+	if((type->type == MCC_SEMANTIC_CHECK_INT) && !type->is_array){
+		return true;
+	}
+	return false;
+}
+
+// returns true if type is BOOL
+static bool is_bool(struct mcc_semantic_check_data_type *type)
+{
+	assert(type);
+	if((type->type == MCC_SEMANTIC_CHECK_BOOL) && !type->is_array){
+		return true;
+	}
+	return false;
+}
+
+static bool types_equal(struct mcc_semantic_check_data_type *first, struct mcc_semantic_check_data_type *second)
+{
+	assert(first);
+	assert(second);
+
+	if((first->type == second->type) && (first->array_size == second->array_size)){
+		return true;
+	}
+	return false;
+}
+
+static bool is_array(struct mcc_ast_identifier *identifier, struct mcc_semantic_check *check, struct mcc_symbol_table_row *row)
+{
+	assert(identifier);
+	assert(check);
+	assert(row);
+
+	row = mcc_symbol_table_check_upwards_for_declaration(identifier->identifier_name, row);
+	if(row && (row->row_structure == MCC_SYMBOL_TABLE_ROW_STRUCTURE_ARRAY)){
+		return true;
+	}
+	return false;
+}
+
+// check and get type of binary expression. Returns MCC_SEMANTIC_CHECK_UNKNOWN if error occurs
+static struct mcc_semantic_check_data_type *check_and_get_type_binary_expression(struct mcc_ast_expression *expression, 
+	struct mcc_semantic_check *check)
+{
+	assert(expression->lhs);
+	assert(expression->rhs);
+	assert(check);
+
+	bool success = false;
+	struct mcc_semantic_check_data_type *lhs = check_and_get_type(expression->lhs, check);
+	struct mcc_semantic_check_data_type *rhs = check_and_get_type(expression->rhs, check);
+
+	//TODO catch case of binary expression with whole arrays or strings
+
+	switch (expression->op)
+	{
+	case MCC_AST_BINARY_OP_ADD:
+		success = types_equal(lhs, rhs) && !is_bool(lhs);
+		break;
+	case MCC_AST_BINARY_OP_SUB:
+		success = types_equal(lhs, rhs) && !is_bool(lhs);
+		break;
+	case MCC_AST_BINARY_OP_MUL:
+		success = types_equal(lhs, rhs) && !is_bool(lhs);
+		break;
+	case MCC_AST_BINARY_OP_DIV:
+		success = types_equal(lhs, rhs) && !is_bool(lhs);
+		break;
+	case MCC_AST_BINARY_OP_SMALLER:
+		success = types_equal(lhs, rhs) && !is_bool(lhs);
+		break;
+	case MCC_AST_BINARY_OP_GREATER:
+		success = types_equal(lhs, rhs) && !is_bool(lhs);
+		break;
+	case MCC_AST_BINARY_OP_SMALLEREQ:
+		success = types_equal(lhs, rhs) && !is_bool(lhs);
+		break;
+	case MCC_AST_BINARY_OP_GREATEREQ:
+		success = types_equal(lhs, rhs) && !is_bool(lhs);
+		break;
+	case MCC_AST_BINARY_OP_CONJ:
+		success = is_bool(lhs) && is_bool(rhs);
+		break;
+	case MCC_AST_BINARY_OP_DISJ:
+		success = is_bool(lhs) && is_bool(rhs);
+		break;
+	case MCC_AST_BINARY_OP_EQUAL:
+		success = types_equal(lhs, rhs);
+		break;
+	case MCC_AST_BINARY_OP_NOTEQUAL:
+		success = types_equal(lhs, rhs);
+		break;	
+	default:
+		break;
+	}
+
+	if(!success){
+		//TODO error handling: differentiate between logical connectives and implict type conversion: Implicite type conversion from 'lhs' to 'rhs'
+		check->status = MCC_SEMANTIC_CHECK_FAIL;
+		char *buffer = malloc(50);
+		snprintf(buffer, 50, "error");
+		check->error_buffer = buffer;
+	}
+	if(success && (lhs->type == MCC_SEMANTIC_CHECK_UNKNOWN)){
+		//TODO error handling
+		check->status = MCC_SEMANTIC_CHECK_FAIL;
+		char *buffer = malloc(50);
+		snprintf(buffer, 50, "error");
+		check->error_buffer = buffer;
+	}
+
+	return lhs;
+}
+
+// get the type of a literal, placeholder unused but needed due to macro
+struct mcc_semantic_check_data_type *check_and_get_type_literal(struct mcc_ast_literal *literal, void *placeholder)
 {
 	assert(literal);
+	UNUSED(placeholder);
 
 	struct mcc_semantic_check_data_type *type = get_new_data_type();
 
@@ -69,26 +188,28 @@ struct mcc_semantic_check_data_type *check_and_get_type_literal(struct mcc_ast_l
 	return type;
 }
 
-// check and get data type of expression
+// check and get data type of expression. Returns MCC_SEMANTIC_CHECK_UNKNOWN if error occurs
 struct mcc_semantic_check_data_type *check_and_get_type_expression(struct mcc_ast_expression *expression, 
     struct mcc_semantic_check *check)
 {
 	assert(expression);
 	assert(check);
 
+	//TODO remove when all cases are handelded
 	struct mcc_semantic_check_data_type *type = get_new_data_type();
 
 	switch (expression->type)
 	{
 	case MCC_AST_EXPRESSION_TYPE_LITERAL:
-		return check_and_get_type_literal(expression->literal);
+		return check_and_get_type(expression->literal, NULL);
 	case MCC_AST_EXPRESSION_TYPE_BINARY_OP:
-		break;
+		return check_and_get_type_binary_expression(expression, check);
 	case MCC_AST_EXPRESSION_TYPE_PARENTH:
 		return check_and_get_type(expression->expression, check);
 	case MCC_AST_EXPRESSION_TYPE_UNARY_OP:
 		break;
 	case MCC_AST_EXPRESSION_TYPE_VARIABLE:
+		catch_array_as_varaible(expression, check);
 		return check_and_get_type(expression->identifier, check, expression->variable_row);
 	case MCC_AST_EXPRESSION_TYPE_ARRAY_ELEMENT:
 		break;
@@ -97,11 +218,12 @@ struct mcc_semantic_check_data_type *check_and_get_type_expression(struct mcc_as
 	default:
 		break;
 	}
-
+	//TODO remove when all cases are handled
 	return type;
 }
 
-// check and get data type of identifier
+// check and get data type of identifier Returns MCC_SEMANTIC_CHECK_UNKNOWN if identifier 
+// has not been found in the symbol table
 struct mcc_semantic_check_data_type *check_and_get_type_identifier(struct mcc_ast_identifier *identifier, 
     struct mcc_semantic_check *check, struct mcc_symbol_table_row *row)
 {
@@ -115,7 +237,11 @@ struct mcc_semantic_check_data_type *check_and_get_type_identifier(struct mcc_as
 	row = mcc_symbol_table_check_upwards_for_declaration(name, row);
 	if(!row){
 		type->type = MCC_SEMANTIC_CHECK_UNKNOWN;
-		//TODO error for use of unknown varibale
+		//TODO error: 'name' undeclared (first use in this function)."
+		check->status = MCC_SEMANTIC_CHECK_FAIL;
+		char *buffer = malloc(50);
+		snprintf(buffer, 50, "error");
+		check->error_buffer = buffer;
 		return type;
 	}
 
@@ -153,17 +279,37 @@ static void cb_type_conversion_assignment(struct mcc_ast_statement *statement, v
 	struct mcc_semantic_check *check = data;
 	struct mcc_ast_assignment *assignment = statement->assignment;
 
+	struct mcc_semantic_check_data_type *lhs_type = NULL;
+	struct mcc_semantic_check_data_type *rhs_type = NULL;
+
 	//TODO think about special cases with arrays
 	if(assignment->assignment_type == MCC_AST_ASSIGNMENT_TYPE_ARRAY){
+		if(!is_int(check_and_get_type(assignment->array_index, check))){
+			//TODO use elaborate error msg: Index of array expected to be of type 'INT' but was '...'.
+			check->status = MCC_SEMANTIC_CHECK_FAIL;
+			char *buffer = malloc(50);
+			snprintf(buffer, 50, "error");
+			check->error_buffer = buffer;
+		}
+		lhs_type = check_and_get_type(assignment->variable_identifier, check, assignment->row);
+		rhs_type = check_and_get_type(assignment->variable_assigned_value, check);
 		return;
 	}
-	struct mcc_semantic_check_data_type *lhs_type = check_and_get_type(assignment->variable_identifier, check, assignment->row);
-	struct mcc_semantic_check_data_type *rhs_type = check_and_get_type(assignment->variable_assigned_value, check);
+	if(assignment->assignment_type == MCC_AST_ASSIGNMENT_TYPE_VARIABLE){
+		if(is_array(assignment->variable_identifier, check, assignment->row)){
+			//TODO use elaborate error msg: Variable 'name' is of array type. Assignment to a variable of array type not possible.
+			check->status = MCC_SEMANTIC_CHECK_FAIL;
+			char *buffer = malloc(50);
+			snprintf(buffer, 50, "error");
+			check->error_buffer = buffer;
+		}
+		lhs_type = check_and_get_type(assignment->variable_identifier, check, assignment->row);
+		rhs_type = check_and_get_type(assignment->variable_assigned_value, check);
+	}
 
-	//TODO use compare_type
-	if(lhs_type->type != rhs_type->type){
+	if(!types_equal(lhs_type, rhs_type)){
+		//TODO use elaborate error msg: implicit type conversion. Expected 'lhs_type' but was 'rhs_type'.
 		check->status = MCC_SEMANTIC_CHECK_FAIL;
-		//TODO use elaborate error msg 
 		char *buffer = malloc(50);
 		snprintf(buffer, 50, "error");
 		check->error_buffer = buffer;
