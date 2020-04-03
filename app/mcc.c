@@ -8,7 +8,8 @@
 #include "mcc/ast_visit.h"
 #include "mcc/parser.h"
 #include "mcc/semantic_checks.h"
-#include "mc_cl_parser.h"
+
+#include "mc_cl_parser.inc"
 
 #define BUF_SIZE 1024
 
