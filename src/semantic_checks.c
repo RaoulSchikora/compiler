@@ -13,7 +13,8 @@
 // ------------------------------------------------------------- Functions: Error handling
 
 // Write a string into a handed check
-enum mcc_semantic_check_error_code write_error_message_to_check(struct mcc_semantic_check *check, const char *string)
+enum mcc_semantic_check_error_code write_error_message_to_check(struct mcc_semantic_check *check, 
+																const char *string)
 {
 	assert(check);
 	assert(string);
@@ -545,10 +546,54 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_nonvoid_check(struct m
 enum mcc_semantic_check_error_code mcc_semantic_check_run_main_function(struct mcc_ast_program* ast,
                                                                         struct mcc_symbol_table *symbol_table,
                                                                         struct mcc_semantic_check *check){
-	UNUSED(ast);
+	// UNUSED(ast);
+	// UNUSED(symbol_table);
+	// check->status = MCC_SEMANTIC_CHECK_OK;
+	// check->error_buffer = NULL;
+	// return MCC_SEMANTIC_CHECK_ERROR_OK;
 	UNUSED(symbol_table);
+	assert(ast);
+	assert(symbol_table);
+	assert(check);
+	assert(check->status == MCC_SEMANTIC_CHECK_OK);
+
 	check->status = MCC_SEMANTIC_CHECK_OK;
 	check->error_buffer = NULL;
+
+	enum mcc_semantic_check_error_code error_code = MCC_SEMANTIC_CHECK_OK;
+
+	int number_of_mains = 0;
+
+	if (strcmp(ast->function->identifier->identifier_name, "main") == 0) {
+		number_of_mains += 1;
+		if (!(ast->function->parameters->is_empty)) {
+			error_code = write_error_message_to_check(check, "Main has wrong signature. Must be `int main()`");
+			check->status = MCC_SEMANTIC_CHECK_FAIL;
+			return error_code;
+		}
+	}
+	while (ast->has_next_function) {
+		ast = ast->next_function;
+		if (strcmp(ast->function->identifier->identifier_name, "main") == 0) {
+			number_of_mains += 1;
+			if (number_of_mains > 1) {
+				write_error_message_to_check(check, "Too many main functions defined.");
+				check->status = MCC_SEMANTIC_CHECK_FAIL;
+			}
+			if (!(ast->function->parameters->is_empty)) {
+				error_code = write_error_message_to_check(check, 
+					"Main has wrong signature. Must be `int main()`");
+				check->status = MCC_SEMANTIC_CHECK_FAIL;
+				return error_code;
+			}
+		}
+	}
+	if (number_of_mains == 0) {
+		error_code = write_error_message_to_check(check, "No main function defined.");
+		check->status = MCC_SEMANTIC_CHECK_FAIL;
+		return error_code;
+	}
+
 	return MCC_SEMANTIC_CHECK_ERROR_OK;
 }
 
