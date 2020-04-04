@@ -844,8 +844,8 @@ void mcc_ast_add_built_ins(struct mcc_ast_program *program)
 						  void print_nl(){} 		  \
 						  void print_int(int a){} 	  \
 						  void print_float(float b){} \
-						  int read_int(){} 			  \
-						  float read_float(){}";
+						  int read_int(){return 0;} 			  \
+						  float read_float(){return 0;}";
 	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_EXPRESSION);
 	
 	if(!program->function){
