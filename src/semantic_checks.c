@@ -153,7 +153,7 @@ enum mcc_semantic_check_error_code mcc_semantic_check_early_abort_wrapper(
 // getter for default data type
 static struct mcc_semantic_check_data_type *get_new_data_type()
 {
-	struct mcc_semantic_check_data_type *type = malloc(sizeof(type));
+	struct mcc_semantic_check_data_type *type = malloc(sizeof(*type));
 	if(!type){
 		return NULL;
 	}
