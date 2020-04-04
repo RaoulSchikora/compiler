@@ -224,7 +224,6 @@ static bool types_equal(struct mcc_semantic_check_data_type *first, struct mcc_s
 {
 	assert(first);
 	assert(second);
-
 	return ((first->type == second->type) && (first->array_size == second->array_size));
 }
 
@@ -305,8 +304,8 @@ static struct mcc_semantic_check_data_type *check_and_get_type_binary_expression
 	if (!(op == MCC_AST_BINARY_OP_ADD || op == MCC_AST_BINARY_OP_SUB || op == MCC_AST_BINARY_OP_MUL || op == MCC_AST_BINARY_OP_DIV)){
 		lhs->type = MCC_SEMANTIC_CHECK_BOOL;
 	}
+	free(rhs);
 	return lhs;
-
 }
 
 // check and get type of a unary expression
@@ -363,6 +362,7 @@ static struct mcc_semantic_check_data_type *check_and_get_type_array_element(str
 	}
 	identifier->is_array = false;
 	identifier->array_size = -1;
+	free(index);
 	return identifier;
 }
 
@@ -534,6 +534,9 @@ static void cb_type_conversion_assignment(struct mcc_ast_statement *statement, v
 	}
 	free(lhs_type);
 	free(rhs_type);
+	if(index){
+		free(index);
+	}
 }
 
 // callback ensuring the condition of an if-statement to be of type BOOL
@@ -611,7 +614,8 @@ void cb_type_check_expression_stmt(struct mcc_ast_statement *statement, void *da
 	struct mcc_semantic_check *check = data;
 	struct mcc_ast_expression *expression = statement->stmt_expression;
 	// check the expression. No Error handling needed
-	check_and_get_type(expression, check);
+	struct mcc_semantic_check_data_type *type = check_and_get_type(expression, check);
+	free(type);
 }
 
 // Setup an AST Visitor for type checking
