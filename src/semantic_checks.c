@@ -778,8 +778,7 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_multiple_function_defi
 
 		// if name of program_to_check and name of program_to_compare equals
 		if (strcmp(name_of_check, name_of_compare) == 0) {
-			error = raise_error(1, check, program_to_check->node,
-			                    "%s: Previous function declaration was here", name_of_compare);
+			error = raise_error(1, check, program_to_check->node, "%s: Previous function declaration was here", name_of_compare);
 			return error;
 		}
 		// compare all next_functions
@@ -788,8 +787,8 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_multiple_function_defi
 			char *name_of_compare = program_to_compare->function->identifier->identifier_name;
 			// if name of program_to_check and name of program_to_compare equals
 			if (strcmp(name_of_check, name_of_compare) == 0) {
-				// generate_error_msg_multiple_function_defintion(name_of_compare, program_to_compare,check);
-				return MCC_SEMANTIC_CHECK_ERROR_OK;
+				error = raise_error(1, check, program_to_check->node, "%s: Previous function declaration was here", name_of_compare);
+				return error;
 			}
 		}
 
