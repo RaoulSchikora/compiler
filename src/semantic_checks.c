@@ -163,6 +163,42 @@ static struct mcc_semantic_check_data_type *get_new_data_type()
 	return type;
 }
 
+// get data type of given symbol tabel row
+static struct mcc_semantic_check_data_type *get_data_type_from_row(struct mcc_symbol_table_row *row)
+{
+	assert(row);
+
+	struct mcc_semantic_check_data_type *type = get_new_data_type();
+
+	switch (row->row_type)
+	{
+	case MCC_SYMBOL_TABLE_ROW_TYPE_INT:
+		type->type = MCC_SEMANTIC_CHECK_INT;
+		break;
+	case MCC_SYMBOL_TABLE_ROW_TYPE_FLOAT:
+		type->type = MCC_SEMANTIC_CHECK_FLOAT;
+		break;
+	case MCC_SYMBOL_TABLE_ROW_TYPE_BOOL:
+		type->type = MCC_SEMANTIC_CHECK_BOOL;
+		break;
+	case MCC_SYMBOL_TABLE_ROW_TYPE_STRING:
+		type->type = MCC_SEMANTIC_CHECK_STRING;
+		break;
+	case MCC_SYMBOL_TABLE_ROW_TYPE_VOID:
+		type->type = MCC_SEMANTIC_CHECK_VOID;
+		break;
+	default:
+		type->type = MCC_SEMANTIC_CHECK_UNKNOWN;
+		break;
+	}
+
+	if(row->array_size != -1){
+		type->is_array = true;
+	}
+	type->array_size = row->array_size;
+	return type;
+}
+
 static bool is_int(struct mcc_semantic_check_data_type *type)
 {
 	assert(type);
@@ -328,17 +364,29 @@ static struct mcc_semantic_check_data_type *check_and_get_type_array_element(str
 	return identifier;
 }
 
-// get and check the type of an function call expression including the arguments.
-static struct mcc_semantic_check_data_type *check_and_get_type_function_call(struct mcc_ast_expression *function_call, 
+// gets the type of an function call expression. Arguments are check seperatly.
+static struct mcc_semantic_check_data_type *get_type_function_call(struct mcc_ast_expression *function_call, 
 	struct mcc_semantic_check *check)
 {
-	// TODO implement
 	assert(function_call->type == MCC_AST_EXPRESSION_TYPE_FUNCTION_CALL);
 	assert(check);
 
-	
+	char *name = function_call->function_identifier->identifier_name;
+	struct mcc_symbol_table_row *row = function_call->function_row;
+	row = mcc_symbol_table_check_for_function_declaration(name, row);
 
-	return get_new_data_type();
+	if(!row){
+		// TODO error Handling 
+		check->status = MCC_SEMANTIC_CHECK_FAIL;
+		char *buffer = malloc(48);
+		snprintf(buffer, 48, "'name' undeclared (first use in this function).");
+		if(check->error_buffer == NULL){
+			check->error_buffer = buffer;
+		}
+		return get_new_data_type();
+	} else {
+		return get_data_type_from_row(row);
+	}
 }
 
 // get the type of a literal, placeholder unused but needed due to macro
@@ -392,8 +440,7 @@ struct mcc_semantic_check_data_type *check_and_get_type_expression(struct mcc_as
 	case MCC_AST_EXPRESSION_TYPE_ARRAY_ELEMENT:
 		return check_and_get_type_array_element(expression, check);
 	case MCC_AST_EXPRESSION_TYPE_FUNCTION_CALL:
-		//TODO
-		return check_and_get_type_function_call(expression, check);
+		return get_type_function_call(expression, check);
 	default:
 		return NULL;
 	}
@@ -408,12 +455,9 @@ struct mcc_semantic_check_data_type *check_and_get_type_identifier(struct mcc_as
 	assert(check);
 	assert(row);
 
-	struct mcc_semantic_check_data_type *type = get_new_data_type();
-
 	char *name = identifier->identifier_name;
 	row = mcc_symbol_table_check_upwards_for_declaration(name, row);
 	if(!row){
-		type->type = MCC_SEMANTIC_CHECK_UNKNOWN;
 		//TODO error: 'name' undeclared (first use in this function)."
 		check->status = MCC_SEMANTIC_CHECK_FAIL;
 		char *buffer = malloc(50);
@@ -421,37 +465,10 @@ struct mcc_semantic_check_data_type *check_and_get_type_identifier(struct mcc_as
 		if(check->error_buffer == NULL){
 			check->error_buffer = buffer;
 		}
-		return type;
+		return get_new_data_type();
 	}
 
-	switch (row->row_type)
-	{
-	case MCC_SYMBOL_TABLE_ROW_TYPE_INT:
-		type->type = MCC_SEMANTIC_CHECK_INT;
-		break;
-	case MCC_SYMBOL_TABLE_ROW_TYPE_FLOAT:
-		type->type = MCC_SEMANTIC_CHECK_FLOAT;
-		break;
-	case MCC_SYMBOL_TABLE_ROW_TYPE_BOOL:
-		type->type = MCC_SEMANTIC_CHECK_BOOL;
-		break;
-	case MCC_SYMBOL_TABLE_ROW_TYPE_STRING:
-		type->type = MCC_SEMANTIC_CHECK_STRING;
-		break;
-	case MCC_SYMBOL_TABLE_ROW_TYPE_VOID:
-		type->type = MCC_SEMANTIC_CHECK_VOID;
-		break;
-	default:
-		type->type = MCC_SEMANTIC_CHECK_UNKNOWN;
-		break;
-	}
-
-	type->array_size = row->array_size;
-	if(row->array_size != -1){
-		type->is_array = true;
-	}
-
-	return type;
+	return get_data_type_from_row(row);
 }
 
 // ------------------------------------------------------------- type checker
@@ -527,6 +544,7 @@ static struct mcc_ast_visitor type_checking_visitor(struct mcc_semantic_check *c
 
 	    .userdata = check,
 
+		// TODO .expression_function_call
 	    .statement_assignment = cb_type_conversion_assignment,
 	};
 }
