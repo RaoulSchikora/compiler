@@ -701,7 +701,8 @@ static bool check_nonvoid_property(struct mcc_ast_statement *statement);
 // check a single statement on non-void property
 static bool check_nonvoid_property(struct mcc_ast_statement *statement)
 {
-	assert(statement);
+	if(!statement)
+		return false;
 
 	switch (statement->type) {
 	case MCC_AST_STATEMENT_TYPE_IF_STMT:
@@ -729,21 +730,11 @@ static bool check_nonvoid_property(struct mcc_ast_statement *statement)
 // recursively check non-void property, i.e. all execution paths end in a return
 static bool recursively_check_nonvoid_property(struct mcc_ast_compound_statement *compound_statement)
 {
-	assert(compound_statement);
+	if(!compound_statement)
+		return false;
 
-	bool is_successful = false;
-
-	// check recursively statements, start with last compound_statement
-	if (compound_statement->next_compound_statement) {
-		is_successful = recursively_check_nonvoid_property(compound_statement->next_compound_statement);
-	}
-	// if not successfully found any return on all execution paths
-	if (is_successful == false && compound_statement->statement) {
-		struct mcc_ast_statement *statement = compound_statement->statement;
-		is_successful = check_nonvoid_property(statement);
-	}
-
-	return is_successful;
+	return (check_nonvoid_property(compound_statement->statement) ||
+	        recursively_check_nonvoid_property(compound_statement->next_compound_statement));
 }
 
 static enum mcc_semantic_check_error_code run_nonvoid_check(struct mcc_ast_function_definition *function, struct mcc_semantic_check *check)
