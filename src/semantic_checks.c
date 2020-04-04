@@ -4,19 +4,28 @@
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <math.h>
 
 #include "mcc/ast.h"
 #include "mcc/ast_visit.h"
 #include "mcc/symbol_table.h"
 #include "utils/unused.h"
 
+#define not_zero(x) x!=0 ? x : 1
+
 // ------------------------------------------------------------- Functions: Error handling
 
-// Write a string into a handed check
-enum mcc_semantic_check_error_code write_error_message_to_check(struct mcc_semantic_check *check, const char *string)
+// Write a string into a handed check and set the corresponding check to false
+// Should only be called with checks that haven't failed yet
+enum mcc_semantic_check_error_code write_error_message_to_check(struct mcc_semantic_check *check, 
+																const char *string)
 {
 	assert(check);
+	assert(check->error_buffer == NULL);
+	assert(check->status == MCC_SEMANTIC_CHECK_OK);
 	assert(string);
+
+	check->status = MCC_SEMANTIC_CHECK_FAIL;
 
 	int size = sizeof(char) * (strlen(string) + 1);
 	char *buffer = malloc(size);
@@ -30,16 +39,37 @@ enum mcc_semantic_check_error_code write_error_message_to_check(struct mcc_seman
 	return MCC_SEMANTIC_CHECK_ERROR_OK;
 }
 
-enum mcc_semantic_check_error_code raise_error_type_error (struct mcc_semantic_check *check, 
-														   const char* format, 
-														   struct mcc_semantic_check_data_type expected_type,
-														   struct mcc_semantic_check_data_type provided_type){
-	UNUSED(check);
-	UNUSED(format);
-	UNUSED(expected_type);
-	UNUSED(provided_type);
+// Compute string length of source code location
+static int get_sloc_string_size(struct mcc_ast_node node){
+	// Hard coded 6 due to rounding and colons
+	return floor(log10(not_zero(node.sloc.start_col)) + log10(not_zero(node.sloc.start_line))) 
+	       + strlen(node.sloc.filename) + 6;
+}
+
+static enum mcc_semantic_check_error_code write_error_message_to_check_with_sloc(struct mcc_semantic_check *check,
+																				 struct mcc_ast_node node,
+																				 const char *string)
+{
+	assert(check);
+	assert(check->error_buffer == NULL);
+	assert(check->status == MCC_SEMANTIC_CHECK_OK);
+	assert(string);
+
+	// +1 for terminating character
+	int size = sizeof(char) * (strlen(string) + get_sloc_string_size(node) + 1);
+	char *buffer = malloc(size);
+	if (!buffer) {
+		return MCC_SEMANTIC_CHECK_ERROR_MALLOC_FAILED;
+	}
+	if( 0 > snprintf(buffer, size, "%s:%d:%d:%s\n", node.sloc.filename, 
+					 node.sloc.start_line, node.sloc.start_col, string))
+	{
+		return MCC_SEMANTIC_CHECK_ERROR_SNPRINTF_FAILED;
+	}
+	check->error_buffer = buffer;
 	return MCC_SEMANTIC_CHECK_ERROR_OK;
 }
+
 
 // ------------------------------------------------------------- Functions: Set up and run all checks
 
@@ -84,23 +114,19 @@ struct mcc_semantic_check* mcc_semantic_check_run_all(struct mcc_ast_program* as
 	return check;
 }
 
-// ------------------------------------------------------------- Functions: Running single semantic checks
-
 // ------------------------------------------------------------- Functions: Running single semantic checks with early abort
 
 // Define function pointer to a single sematic check
 enum mcc_semantic_check_error_code (*fctptr)(struct mcc_ast_program *ast, struct mcc_symbol_table *table, 
 											 struct mcc_semantic_check *check);
 
-// Wrapper for running one of the checks  
-// If the error code of the previous check is not OK the error code is handed back immediately
-// If the status code of the previous check is not OK, we abort with error code OK
+// Wrapper for running one of the checks with 2 early aborts:
+// Error code of the previous check is not OK: Error code is handed back immediately
+// Status code of the previous check is not OK: Abort with error code OK, but don't change check
 enum mcc_semantic_check_error_code mcc_semantic_check_early_abort_wrapper(
     enum mcc_semantic_check_error_code (*fctptr)(struct mcc_ast_program *ast, struct mcc_symbol_table *table, 
-	struct mcc_semantic_check *check),
-	struct mcc_ast_program *ast, 
-	struct mcc_symbol_table *table,
-	struct mcc_semantic_check* check,
+	struct mcc_semantic_check *check), struct mcc_ast_program *ast, 
+	struct mcc_symbol_table *table, struct mcc_semantic_check* check,
 	enum mcc_semantic_check_error_code previous_return) {
 
 	assert(ast);
@@ -113,7 +139,7 @@ enum mcc_semantic_check_error_code mcc_semantic_check_early_abort_wrapper(
 		return previous_return;
 	}
 
-	// Early abort. Just return without doing anything.
+	// Early abort. Return without doing anything.
 	if(check->status != MCC_SEMANTIC_CHECK_OK){
 			return MCC_SEMANTIC_CHECK_ERROR_OK;
 	}
@@ -140,30 +166,21 @@ static struct mcc_semantic_check_data_type *get_new_data_type()
 static bool is_int(struct mcc_semantic_check_data_type *type)
 {
 	assert(type);
-	if((type->type == MCC_SEMANTIC_CHECK_INT) && !type->is_array){
-		return true;
-	}
-	return false;
+	return ((type->type == MCC_SEMANTIC_CHECK_INT) && !type->is_array);
 }
 
 // returns true if type is BOOL
 static bool is_bool(struct mcc_semantic_check_data_type *type)
 {
 	assert(type);
-	if((type->type == MCC_SEMANTIC_CHECK_BOOL) && !type->is_array){
-		return true;
-	}
-	return false;
+	return ((type->type == MCC_SEMANTIC_CHECK_BOOL) && !type->is_array);
 }
 
 // returns true is type is string
 static bool is_string(struct mcc_semantic_check_data_type *type)
 {
 	assert(type);
-	if((type->type == MCC_SEMANTIC_CHECK_STRING) && !type->is_array){
-		return true;
-	}
-	return false;
+	return ((type->type == MCC_SEMANTIC_CHECK_STRING) && !type->is_array);
 }
 
 static bool types_equal(struct mcc_semantic_check_data_type *first, struct mcc_semantic_check_data_type *second)
@@ -171,10 +188,7 @@ static bool types_equal(struct mcc_semantic_check_data_type *first, struct mcc_s
 	assert(first);
 	assert(second);
 
-	if((first->type == second->type) && (first->array_size == second->array_size)){
-		return true;
-	}
-	return false;
+	return ((first->type == second->type) && (first->array_size == second->array_size));
 }
 
 // check and get type of binary expression. Returns MCC_SEMANTIC_CHECK_UNKNOWN if error occurs
@@ -545,10 +559,49 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_nonvoid_check(struct m
 enum mcc_semantic_check_error_code mcc_semantic_check_run_main_function(struct mcc_ast_program* ast,
                                                                         struct mcc_symbol_table *symbol_table,
                                                                         struct mcc_semantic_check *check){
-	UNUSED(ast);
 	UNUSED(symbol_table);
+	assert(ast);
+	assert(symbol_table);
+	assert(check);
+	assert(check->status == MCC_SEMANTIC_CHECK_OK);
+
 	check->status = MCC_SEMANTIC_CHECK_OK;
 	check->error_buffer = NULL;
+
+	enum mcc_semantic_check_error_code error_code = MCC_SEMANTIC_CHECK_OK;
+
+	int number_of_mains = 0;
+
+	if (strcmp(ast->function->identifier->identifier_name, "main") == 0) {
+		number_of_mains += 1;
+		if (!(ast->function->parameters->is_empty)) {
+			error_code = write_error_message_to_check(check, "Main has wrong signature. Must be `int main()`");
+			check->status = MCC_SEMANTIC_CHECK_FAIL;
+			return error_code;
+		}
+	}
+	while (ast->has_next_function) {
+		ast = ast->next_function;
+		if (strcmp(ast->function->identifier->identifier_name, "main") == 0) {
+			number_of_mains += 1;
+			if (number_of_mains > 1) {
+				write_error_message_to_check(check, "Too many main functions defined.");
+				check->status = MCC_SEMANTIC_CHECK_FAIL;
+			}
+			if (!(ast->function->parameters->is_empty)) {
+				error_code = write_error_message_to_check(check, 
+					"Main has wrong signature. Must be `int main()`");
+				check->status = MCC_SEMANTIC_CHECK_FAIL;
+				return error_code;
+			}
+		}
+	}
+	if (number_of_mains == 0) {
+		error_code = write_error_message_to_check(check, "No main function defined.");
+		check->status = MCC_SEMANTIC_CHECK_FAIL;
+		return error_code;
+	}
+
 	return MCC_SEMANTIC_CHECK_ERROR_OK;
 }
 
@@ -578,6 +631,13 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_multiple_variable_decl
 
 // Delete single checks
 void mcc_semantic_check_delete_single_check(struct mcc_semantic_check *check){
-	UNUSED(check);
-	return;
+	if (check == NULL) {
+		return;
+	}
+
+	if (check->error_buffer != NULL) {
+		free(check->error_buffer);
+	}
+
+	free(check);
 }
