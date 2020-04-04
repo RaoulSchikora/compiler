@@ -534,6 +534,72 @@ static void cb_type_conversion_assignment(struct mcc_ast_statement *statement, v
 	free(rhs_type);
 }
 
+// callback ensuring the condition of an if-statement to be of type BOOL
+static void cb_type_check_if_stmt(struct mcc_ast_statement *statement, void *data)
+{
+	assert(statement->if_condition);
+	assert(data);
+
+	struct mcc_semantic_check *check = data;
+	struct mcc_ast_expression *if_condition = statement->if_condition;
+	struct mcc_semantic_check_data_type *type = check_and_get_type(if_condition, check);
+
+	if(!is_bool(type)){
+		//TODO use elaborate error msg: Condition of if-statement of type 'type'. Expected 'BOOL'.
+		check->status = MCC_SEMANTIC_CHECK_FAIL;
+		char *buffer = malloc(59);
+		snprintf(buffer, 59, "Condition of if-statement of type 'type'. Expected 'BOOL'.");
+		if(check->error_buffer == NULL){
+			check->error_buffer = buffer;
+		}
+	}
+	free(type);
+}
+
+// callback ensuring the condition of an if_else-statement to be of type BOOL
+static void cb_type_check_if_else_stmt(struct mcc_ast_statement *statement, void *data)
+{
+	assert(statement->if_else_condition);
+	assert(data);
+
+	struct mcc_semantic_check *check = data;
+	struct mcc_ast_expression *if_condition = statement->if_else_condition;
+	struct mcc_semantic_check_data_type *type = check_and_get_type(if_condition, check);
+
+	if(!is_bool(type)){
+		//TODO use elaborate error msg: Condition of if-statement of type 'type'. Expected 'BOOL'.
+		check->status = MCC_SEMANTIC_CHECK_FAIL;
+		char *buffer = malloc(59);
+		snprintf(buffer, 59, "Condition of if-statement of type 'type'. Expected 'BOOL'.");
+		if(check->error_buffer == NULL){
+			check->error_buffer = buffer;
+		}
+	}
+	free(type);
+}
+
+// callback ensuring the condition of a while-statement to be of type BOOL
+static void cb_type_check_while_stmt(struct mcc_ast_statement *statement, void *data)
+{
+	assert(statement->while_condition);
+	assert(data);
+
+	struct mcc_semantic_check *check = data;
+	struct mcc_ast_expression *while_condition = statement->while_condition;
+	struct mcc_semantic_check_data_type *type = check_and_get_type(while_condition, check);
+
+	if(!is_bool(type)){
+		//TODO use elaborate error msg: Condition of while-loop of type 'type'. Expected 'BOOL'.
+		check->status = MCC_SEMANTIC_CHECK_FAIL;
+		char *buffer = malloc(59);
+		snprintf(buffer, 59, "Condition of while-loop of type 'type'. Expected 'BOOL'.");
+		if(check->error_buffer == NULL){
+			check->error_buffer = buffer;
+		}
+	}
+	free(type);
+}
+
 // Setup an AST Visitor for type checking
 static struct mcc_ast_visitor type_checking_visitor(struct mcc_semantic_check *check)
 {
@@ -546,6 +612,9 @@ static struct mcc_ast_visitor type_checking_visitor(struct mcc_semantic_check *c
 
 		// TODO .expression_function_call
 	    .statement_assignment = cb_type_conversion_assignment,
+		.statement_if_stmt = cb_type_check_if_stmt,
+		.statement_if_else_stmt = cb_type_check_if_else_stmt,
+		.statement_while = cb_type_check_while_stmt,
 	};
 }
 
