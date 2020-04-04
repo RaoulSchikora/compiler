@@ -12,7 +12,7 @@
 #include "mcc/symbol_table.h"
 #include "utils/unused.h"
 
-#define not_zero(x) x!=0 ? x : 1
+#define not_zero(x) (x!=0 ? x : 1)
 
 // ------------------------------------------------------------- Functions: Error handling
 
