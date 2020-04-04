@@ -544,6 +544,8 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_type_check(struct mcc_
 	return MCC_SEMANTIC_CHECK_ERROR_OK;
 }
 
+// ------------------------------------------------------------- check execution paths of non-void functions
+
 // Each execution path of non-void function returns a value
 enum mcc_semantic_check_error_code mcc_semantic_check_run_nonvoid_check(struct mcc_ast_program* ast,
                                                                         struct mcc_symbol_table *symbol_table,
@@ -554,6 +556,8 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_nonvoid_check(struct m
 	check->error_buffer = NULL;
 	return MCC_SEMANTIC_CHECK_ERROR_OK;
 }
+
+// ------------------------------------------------------------- checking for main function
 
 // Main function exists and has correct signature
 enum mcc_semantic_check_error_code mcc_semantic_check_run_main_function(struct mcc_ast_program* ast,
@@ -576,7 +580,6 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_main_function(struct m
 		number_of_mains += 1;
 		if (!(ast->function->parameters->is_empty)) {
 			error_code = write_error_message_to_check(check, "Main has wrong signature. Must be `int main()`");
-			check->status = MCC_SEMANTIC_CHECK_FAIL;
 			return error_code;
 		}
 	}
@@ -586,24 +589,23 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_main_function(struct m
 			number_of_mains += 1;
 			if (number_of_mains > 1) {
 				write_error_message_to_check(check, "Too many main functions defined.");
-				check->status = MCC_SEMANTIC_CHECK_FAIL;
 			}
 			if (!(ast->function->parameters->is_empty)) {
 				error_code = write_error_message_to_check(check, 
 					"Main has wrong signature. Must be `int main()`");
-				check->status = MCC_SEMANTIC_CHECK_FAIL;
 				return error_code;
 			}
 		}
 	}
 	if (number_of_mains == 0) {
 		error_code = write_error_message_to_check(check, "No main function defined.");
-		check->status = MCC_SEMANTIC_CHECK_FAIL;
 		return error_code;
 	}
 
 	return MCC_SEMANTIC_CHECK_ERROR_OK;
 }
+
+// ------------------------------------------------------------- check for multiple function definitions
 
 // No multiple definitions of the same function
 enum mcc_semantic_check_error_code mcc_semantic_check_run_multiple_function_definitions(struct mcc_ast_program* ast,
@@ -615,6 +617,8 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_multiple_function_defi
 	check->error_buffer = NULL;
 	return MCC_SEMANTIC_CHECK_ERROR_OK;
 }
+
+// ------------------------------------------------------------- check for multiple variable declarations
 
 // No multiple declarations of a variable in the same scope
 enum mcc_semantic_check_error_code mcc_semantic_check_run_multiple_variable_declarations(struct mcc_ast_program* ast,
