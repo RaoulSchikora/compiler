@@ -150,7 +150,7 @@ enum mcc_semantic_check_error_code mcc_semantic_check_early_abort_wrapper(
 
 // ------------------------------------------------------------- check_and_get_type functionalities
 
-// getter for data type
+// getter for default data type
 static struct mcc_semantic_check_data_type *get_new_data_type()
 {
 	struct mcc_semantic_check_data_type *type = malloc(sizeof(type));
@@ -198,6 +198,7 @@ static struct mcc_semantic_check_data_type *get_data_type_from_row(struct mcc_sy
 	return type;
 }
 
+// returns true if type is INT
 static bool is_int(struct mcc_semantic_check_data_type *type)
 {
 	assert(type);
@@ -211,13 +212,14 @@ static bool is_bool(struct mcc_semantic_check_data_type *type)
 	return ((type->type == MCC_SEMANTIC_CHECK_BOOL) && !type->is_array);
 }
 
-// returns true is type is string
+// returns true if type is string
 static bool is_string(struct mcc_semantic_check_data_type *type)
 {
 	assert(type);
 	return ((type->type == MCC_SEMANTIC_CHECK_STRING) && !type->is_array);
 }
 
+// returns true if given types equal
 static bool types_equal(struct mcc_semantic_check_data_type *first, struct mcc_semantic_check_data_type *second)
 {
 	assert(first);
@@ -307,6 +309,7 @@ static struct mcc_semantic_check_data_type *check_and_get_type_binary_expression
 
 }
 
+// check and get type of a unary expression
 struct mcc_semantic_check_data_type *check_and_get_type_unary_expression(struct mcc_ast_expression *expression, struct mcc_semantic_check *check)
 {
 	assert(expression->type == MCC_AST_EXPRESSION_TYPE_UNARY_OP);
@@ -329,7 +332,7 @@ struct mcc_semantic_check_data_type *check_and_get_type_unary_expression(struct 
 	return child;
 }
 
-// get and check the type of an array element, including the index to be of type 'INT'
+// get and check the type of an array element. Includes ensuring index to be of type 'INT'
 static struct mcc_semantic_check_data_type *check_and_get_type_array_element(struct mcc_ast_expression *array_element, 
 	struct mcc_semantic_check *check)
 {
@@ -363,7 +366,7 @@ static struct mcc_semantic_check_data_type *check_and_get_type_array_element(str
 	return identifier;
 }
 
-// gets the type of an function call expression. Arguments are check seperatly.
+// gets the type of an function call expression. Arguments are checked seperatly.
 static struct mcc_semantic_check_data_type *check_and_get_type_function_call(struct mcc_ast_expression *function_call, 
 	struct mcc_semantic_check *check)
 {
@@ -617,7 +620,7 @@ static struct mcc_ast_visitor type_checking_visitor(struct mcc_semantic_check *c
 
 	return (struct mcc_ast_visitor){
 	    .traversal = MCC_AST_VISIT_DEPTH_FIRST,
-	    .order = MCC_AST_VISIT_POST_ORDER,
+	    .order = MCC_AST_VISIT_PRE_ORDER,
 
 	    .userdata = check,
 
