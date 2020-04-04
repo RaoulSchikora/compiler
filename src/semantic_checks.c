@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <assert.h>
 #include <math.h>
 
@@ -55,6 +56,8 @@ static enum mcc_semantic_check_error_code write_error_message_to_check_with_sloc
 	assert(check->status == MCC_SEMANTIC_CHECK_OK);
 	assert(string);
 
+	check->status = MCC_SEMANTIC_CHECK_FAIL;
+
 	// +1 for terminating character
 	int size = sizeof(char) * (strlen(string) + get_sloc_string_size(node) + 1);
 	char *buffer = malloc(size);
@@ -62,14 +65,50 @@ static enum mcc_semantic_check_error_code write_error_message_to_check_with_sloc
 		return MCC_SEMANTIC_CHECK_ERROR_MALLOC_FAILED;
 	}
 	if( 0 > snprintf(buffer, size, "%s:%d:%d:%s\n", node.sloc.filename, 
-					 node.sloc.start_line, node.sloc.start_col, string))
-	{
+					 node.sloc.start_line, node.sloc.start_col, string)){
 		return MCC_SEMANTIC_CHECK_ERROR_SNPRINTF_FAILED;
 	}
 	check->error_buffer = buffer;
 	return MCC_SEMANTIC_CHECK_ERROR_OK;
 }
 
+static enum mcc_semantic_check_error_code raise_error(int num, 	  struct mcc_semantic_check *check,
+																  struct mcc_ast_node node,
+																  const char *format_string, ...)
+{
+	assert(format_string);
+
+	// Get all the args & determine string length
+	size_t args_size = 0;
+	va_list args;
+	va_start(args, format_string);
+	for (int i = 0; i < num; i++){
+		args_size += strlen(va_arg(args, const char *));
+	}
+	va_end(args);
+
+	// Malloc buffer string
+	int size = sizeof(char) * (strlen(format_string) + args_size + 1);
+	char *buffer = malloc(size);
+	if (!buffer) {
+		return MCC_SEMANTIC_CHECK_ERROR_MALLOC_FAILED;
+	}
+
+	// Get args again and print string into buffer
+	va_start(args, format_string);
+	if( 0 > vsnprintf(buffer,size,format_string, args)){
+		va_end(args);
+		free(buffer);
+		return MCC_SEMANTIC_CHECK_ERROR_SNPRINTF_FAILED;
+	}
+	va_end(args);
+	enum mcc_semantic_check_error_code error = MCC_SEMANTIC_CHECK_ERROR_OK;
+
+	// Write buffer string into check
+	error = write_error_message_to_check_with_sloc(check,node,buffer);
+	free(buffer);
+	return error;
+}
 
 // ------------------------------------------------------------- Functions: Set up and run all checks
 
@@ -109,6 +148,7 @@ struct mcc_semantic_check* mcc_semantic_check_run_all(struct mcc_ast_program* as
 	    mcc_semantic_check_early_abort_wrapper(mcc_semantic_check_run_multiple_variable_declarations, ast, symbol_table, check, error);
 
 	if (error != MCC_SEMANTIC_CHECK_ERROR_OK){
+		mcc_semantic_check_delete_single_check(check);
 		return NULL;
 	}
 	return check;
@@ -718,10 +758,44 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_main_function(struct m
 enum mcc_semantic_check_error_code mcc_semantic_check_run_multiple_function_definitions(struct mcc_ast_program* ast,
                                                                                         struct mcc_symbol_table *symbol_table,
                                                                                         struct mcc_semantic_check *check){
-	UNUSED(ast);
 	UNUSED(symbol_table);
-	check->status = MCC_SEMANTIC_CHECK_OK;
-	check->error_buffer = NULL;
+	assert(check);
+	assert(!check->error_buffer);
+	assert(ast);
+
+	struct mcc_ast_program *program_to_check = ast;
+	enum mcc_semantic_check_error_code error = MCC_SEMANTIC_CHECK_ERROR_OK;
+
+	// Program has only one function
+	if (!program_to_check->next_function) {
+		return MCC_SEMANTIC_CHECK_ERROR_OK;
+	}
+
+	while (program_to_check->next_function) {
+		struct mcc_ast_program *program_to_compare = program_to_check->next_function;
+		char *name_of_check = program_to_check->function->identifier->identifier_name;
+		char *name_of_compare = program_to_compare->function->identifier->identifier_name;
+
+		// if name of program_to_check and name of program_to_compare equals
+		if (strcmp(name_of_check, name_of_compare) == 0) {
+			error = raise_error(1, check, program_to_check->node,
+			                    "%s: Previous function declaration was here", name_of_compare);
+			return error;
+		}
+		// compare all next_functions
+		while (program_to_compare->next_function) {
+			program_to_compare = program_to_compare->next_function;
+			char *name_of_compare = program_to_compare->function->identifier->identifier_name;
+			// if name of program_to_check and name of program_to_compare equals
+			if (strcmp(name_of_check, name_of_compare) == 0) {
+				// generate_error_msg_multiple_function_defintion(name_of_compare, program_to_compare,check);
+				return MCC_SEMANTIC_CHECK_ERROR_OK;
+			}
+		}
+
+		program_to_check = program_to_check->next_function;
+	}
+
 	return MCC_SEMANTIC_CHECK_ERROR_OK;
 }
 

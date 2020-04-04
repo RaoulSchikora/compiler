@@ -38,6 +38,7 @@ mcc_src = [ 'src/ast.c',
 
 mcc_lib = library('mcc', mcc_src,
                   c_args: '-D_POSIX_C_SOURCE=200809L',
+		  link_args: '-lm',
                   include_directories: [mcc_inc, include_directories('src')])
 
 # ---------------------------------------------------------------- Applications
