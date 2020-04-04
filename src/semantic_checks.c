@@ -16,30 +16,6 @@
 
 // ------------------------------------------------------------- Functions: Error handling
 
-// Write a string into a handed check and set the corresponding check to false
-// Should only be called with checks that haven't failed yet
-enum mcc_semantic_check_error_code write_error_message_to_check(struct mcc_semantic_check *check, 
-																const char *string)
-{
-	assert(check);
-	assert(check->error_buffer == NULL);
-	assert(check->status == MCC_SEMANTIC_CHECK_OK);
-	assert(string);
-
-	check->status = MCC_SEMANTIC_CHECK_FAIL;
-
-	int size = sizeof(char) * (strlen(string) + 1);
-	char *buffer = malloc(size);
-	if (!buffer) {
-		return MCC_SEMANTIC_CHECK_ERROR_MALLOC_FAILED;
-	}
-	if (0 > snprintf(buffer, size, "%s", string)){
-		return MCC_SEMANTIC_CHECK_ERROR_SNPRINTF_FAILED;
-	}
-	check->error_buffer = buffer;
-	return MCC_SEMANTIC_CHECK_ERROR_OK;
-}
-
 // Compute string length of source code location
 static int get_sloc_string_size(struct mcc_ast_node node){
 	// Hard coded 6 due to rounding and colons
@@ -72,7 +48,7 @@ static enum mcc_semantic_check_error_code write_error_message_to_check_with_sloc
 	return MCC_SEMANTIC_CHECK_ERROR_OK;
 }
 
-static enum mcc_semantic_check_error_code raise_error(int num, 	  struct mcc_semantic_check *check,
+enum mcc_semantic_check_error_code raise_error(int num, 	  struct mcc_semantic_check *check,
 																  struct mcc_ast_node node,
 																  const char *format_string, ...)
 {
