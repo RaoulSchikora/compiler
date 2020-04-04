@@ -12,7 +12,7 @@
 #include "mcc/symbol_table.h"
 #include "utils/unused.h"
 
-#define not_zero(x) (x!=0 ? x : 1)
+#define not_zero(x) (x>=0 ? x : 1)
 
 // ------------------------------------------------------------- Functions: Error handling
 
@@ -265,6 +265,38 @@ static bool types_equal(struct mcc_semantic_check_data_type *first, struct mcc_s
 	assert(first);
 	assert(second);
 	return ((first->type == second->type) && (first->array_size == second->array_size));
+}
+
+// converts a data type into a string
+static char* to_string(struct mcc_semantic_check_data_type *type)
+{
+	assert(type);
+
+	char buffer[10 + (int) floor(log10(not_zero(type->array_size)))];
+	switch (type->type)
+	{
+	case MCC_SEMANTIC_CHECK_INT:
+		(type->is_array) ? sprintf(buffer, "INT[%d]", type->array_size) : sprintf(buffer, "INT");
+		break;
+	case MCC_SEMANTIC_CHECK_FLOAT:
+		(type->is_array) ? sprintf(buffer, "FLOAT[%d]", type->array_size) : sprintf(buffer, "FLOAT");
+		break;
+	case MCC_SEMANTIC_CHECK_BOOL:
+		(type->is_array) ? sprintf(buffer, "BOOL[%d]", type->array_size) : sprintf(buffer, "BOOL");
+		break;
+	case MCC_SEMANTIC_CHECK_STRING:
+		(type->is_array) ? sprintf(buffer, "STRING[%d]", type->array_size) : sprintf(buffer, "STRING");
+		break;
+	case MCC_SEMANTIC_CHECK_VOID:
+		sprintf(buffer, "VOID");
+		break;	
+	default:
+		sprintf(buffer, "UNKNOWN");
+		break;
+	}
+	char *string = malloc(sizeof(char) * strlen(buffer) + 1);
+	snprintf(string, strlen(buffer) + 1, "%s", buffer);
+	return string;
 }
 
 // check and get type of binary expression. Returns MCC_SEMANTIC_CHECK_UNKNOWN if error occurs
