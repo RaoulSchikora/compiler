@@ -328,6 +328,19 @@ static struct mcc_semantic_check_data_type *check_and_get_type_array_element(str
 	return identifier;
 }
 
+// get and check the type of an function call expression including the arguments.
+static struct mcc_semantic_check_data_type *check_and_get_type_function_call(struct mcc_ast_expression *function_call, 
+	struct mcc_semantic_check *check)
+{
+	// TODO implement
+	assert(function_call->type == MCC_AST_EXPRESSION_TYPE_FUNCTION_CALL);
+	assert(check);
+
+	
+
+	return get_new_data_type();
+}
+
 // get the type of a literal, placeholder unused but needed due to macro
 struct mcc_semantic_check_data_type *check_and_get_type_literal(struct mcc_ast_literal *literal, void *placeholder)
 {
@@ -354,19 +367,7 @@ struct mcc_semantic_check_data_type *check_and_get_type_literal(struct mcc_ast_l
 		type->type = MCC_SEMANTIC_CHECK_UNKNOWN;
 		break;
 	}
-
 	return type;
-}
-
-// get and check the type of an array element, including the index to be of type 'INT'
-static struct mcc_semantic_check_data_type *check_and_get_type_function_call(struct mcc_ast_expression *function_call, 
-	struct mcc_semantic_check *check)
-{
-	// TODO implement
-	assert(function_call->type == MCC_AST_EXPRESSION_TYPE_FUNCTION_CALL);
-	assert(check);
-
-	return get_new_data_type();
 }
 
 // check and get data type of expression. Returns MCC_SEMANTIC_CHECK_UNKNOWN if error occurs
