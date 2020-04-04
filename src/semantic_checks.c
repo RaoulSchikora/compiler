@@ -683,8 +683,6 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_type_check(struct mcc_
                                                                      struct mcc_semantic_check *check)
 {
 	UNUSED(symbol_table);
-	check->status = MCC_SEMANTIC_CHECK_OK;
-	check->error_buffer = NULL;
 
 	struct mcc_ast_visitor visitor = type_checking_visitor(check);
 	mcc_ast_visit(ast, &visitor);
@@ -742,13 +740,12 @@ static enum mcc_semantic_check_error_code run_nonvoid_check(struct mcc_ast_funct
 	assert(function);
 	assert(check);
 	// Early abort if already failed
-	if (check->status == MCC_SEMANTIC_CHECK_FAIL) {
+	if (check->status == MCC_SEMANTIC_CHECK_FAIL)
 		return MCC_SEMANTIC_CHECK_ERROR_OK;
-	}
 
-	if (function->type == MCC_AST_FUNCTION_TYPE_VOID) {
+	if (function->type == MCC_AST_FUNCTION_TYPE_VOID)
 		return MCC_SEMANTIC_CHECK_ERROR_OK;
-	}
+
 	if(recursively_check_nonvoid_property(function->compound_stmt) == false){
 		return raise_error(1, check, function->node,
 		            "%s:Function is non-void, but doesn't return value on every execution path.",
@@ -875,8 +872,6 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_multiple_variable_decl
                                                                                         struct mcc_semantic_check *check){
 	UNUSED(ast);
 	UNUSED(symbol_table);
-	check->status = MCC_SEMANTIC_CHECK_OK;
-	check->error_buffer = NULL;
 	return MCC_SEMANTIC_CHECK_ERROR_OK;
 }
 
@@ -884,13 +879,11 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_multiple_variable_decl
 
 // Delete single checks
 void mcc_semantic_check_delete_single_check(struct mcc_semantic_check *check){
-	if (check == NULL) {
+	if (check == NULL)
 		return;
-	}
 
-	if (check->error_buffer != NULL) {
+	if (check->error_buffer != NULL)
 		free(check->error_buffer);
-	}
 
 	free(check);
 }
