@@ -75,7 +75,7 @@ static enum mcc_semantic_check_error_code write_error_message_to_check_with_sloc
 
 // Generate struct for semantic check
 struct mcc_semantic_check *mcc_semantic_check_initialize_check(){
-	struct mcc_semantic_check *check = malloc(sizeof(check));
+	struct mcc_semantic_check *check = malloc(sizeof(*check));
 	if(check){
 		check->status = MCC_SEMANTIC_CHECK_OK;
 		check->error_buffer = NULL;
