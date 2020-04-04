@@ -169,7 +169,6 @@ static struct mcc_semantic_check_data_type *get_data_type_from_row(struct mcc_sy
 	assert(row);
 
 	struct mcc_semantic_check_data_type *type = get_new_data_type();
-
 	switch (row->row_type)
 	{
 	case MCC_SYMBOL_TABLE_ROW_TYPE_INT:
@@ -365,7 +364,7 @@ static struct mcc_semantic_check_data_type *check_and_get_type_array_element(str
 }
 
 // gets the type of an function call expression. Arguments are check seperatly.
-static struct mcc_semantic_check_data_type *get_type_function_call(struct mcc_ast_expression *function_call, 
+static struct mcc_semantic_check_data_type *check_and_get_type_function_call(struct mcc_ast_expression *function_call, 
 	struct mcc_semantic_check *check)
 {
 	assert(function_call->type == MCC_AST_EXPRESSION_TYPE_FUNCTION_CALL);
@@ -440,7 +439,7 @@ struct mcc_semantic_check_data_type *check_and_get_type_expression(struct mcc_as
 	case MCC_AST_EXPRESSION_TYPE_ARRAY_ELEMENT:
 		return check_and_get_type_array_element(expression, check);
 	case MCC_AST_EXPRESSION_TYPE_FUNCTION_CALL:
-		return get_type_function_call(expression, check);
+		return check_and_get_type_function_call(expression, check);
 	default:
 		return NULL;
 	}
@@ -600,6 +599,18 @@ static void cb_type_check_while_stmt(struct mcc_ast_statement *statement, void *
 	free(type);
 }
 
+// callback type checking statements consisting of a single expression
+void cb_type_check_expression_stmt(struct mcc_ast_statement *statement, void *data)
+{
+	assert(statement->stmt_expression);
+	assert(data);
+
+	struct mcc_semantic_check *check = data;
+	struct mcc_ast_expression *expression = statement->stmt_expression;
+	// check the expression. No Error handling needed
+	check_and_get_type(expression, check);
+}
+
 // Setup an AST Visitor for type checking
 static struct mcc_ast_visitor type_checking_visitor(struct mcc_semantic_check *check)
 {
@@ -615,6 +626,7 @@ static struct mcc_ast_visitor type_checking_visitor(struct mcc_semantic_check *c
 		.statement_if_stmt = cb_type_check_if_stmt,
 		.statement_if_else_stmt = cb_type_check_if_else_stmt,
 		.statement_while = cb_type_check_while_stmt,
+		.statement_expression_stmt = cb_type_check_expression_stmt,
 	};
 }
 
