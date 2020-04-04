@@ -753,7 +753,7 @@ void built_ins(CuTest *tc)
 	CuAssertIntEquals(tc, table->head->head->next_row->child_scope->head->row_structure,
 	                  MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE);
 	CuAssertIntEquals(tc, table->head->head->next_row->child_scope->head->array_size, -1);
-	CuAssertStrEquals(tc, table->head->head->next_row->child_scope->head->name, "a");
+	CuAssertStrEquals(tc, table->head->head->next_row->child_scope->head->name, "str");
 	CuAssertPtrEquals(tc, NULL, table->head->head->next_row->child_scope->head->prev_row);
 	CuAssertPtrEquals(tc, NULL, table->head->head->next_row->child_scope->head->next_row);
 	CuAssertPtrEquals(tc, NULL, table->head->head->next_row->child_scope->head->child_scope);
@@ -829,7 +829,7 @@ void built_ins(CuTest *tc)
 	                  MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE);
 	CuAssertIntEquals(tc, table->head->head->next_row->next_row->next_row->next_row->child_scope->head->array_size,
 	                  -1);
-	CuAssertStrEquals(tc, table->head->head->next_row->next_row->next_row->next_row->child_scope->head->name, "a");
+	CuAssertStrEquals(tc, table->head->head->next_row->next_row->next_row->next_row->child_scope->head->name, "b");
 	CuAssertPtrEquals(tc, NULL,
 	                  table->head->head->next_row->next_row->next_row->next_row->child_scope->head->prev_row);
 	CuAssertPtrEquals(tc, NULL,
