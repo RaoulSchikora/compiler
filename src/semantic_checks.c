@@ -624,7 +624,7 @@ static struct mcc_ast_visitor type_checking_visitor(struct mcc_semantic_check *c
 
 	    .userdata = check,
 
-		// TODO .expression_function_call
+		// TODO checking correct call to a function.
 	    .statement_assignment = cb_type_conversion_assignment,
 		.statement_if_stmt = cb_type_check_if_stmt,
 		.statement_if_else_stmt = cb_type_check_if_else_stmt,
