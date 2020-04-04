@@ -693,15 +693,98 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_type_check(struct mcc_
 
 // ------------------------------------------------------------- check execution paths of non-void functions
 
-// Each execution path of non-void function returns a value
+// Forward declarations:
+
+static bool recursively_check_nonvoid_property(struct mcc_ast_compound_statement *compound_statement);
+static bool check_nonvoid_property(struct mcc_ast_statement *statement);
+
+// check a single statement on non-void property
+static bool check_nonvoid_property(struct mcc_ast_statement *statement)
+{
+	assert(statement);
+
+	switch (statement->type) {
+	case MCC_AST_STATEMENT_TYPE_IF_STMT:
+		break;
+	case MCC_AST_STATEMENT_TYPE_IF_ELSE_STMT:
+		return (check_nonvoid_property(statement->if_else_on_true) && 
+				check_nonvoid_property(statement->if_else_on_false));
+	case MCC_AST_STATEMENT_TYPE_EXPRESSION:
+		break;
+	case MCC_AST_STATEMENT_TYPE_WHILE:
+		break;
+	case MCC_AST_STATEMENT_TYPE_DECLARATION:
+		break;
+	case MCC_AST_STATEMENT_TYPE_ASSIGNMENT:
+		break;
+	case MCC_AST_STATEMENT_TYPE_RETURN:
+		return true;
+	case MCC_AST_STATEMENT_TYPE_COMPOUND_STMT:
+		return recursively_check_nonvoid_property(statement->compound_statement);
+	}
+
+	return false;
+}
+
+// recursively check non-void property, i.e. all execution paths end in a return
+static bool recursively_check_nonvoid_property(struct mcc_ast_compound_statement *compound_statement)
+{
+	assert(compound_statement);
+
+	bool is_successful = false;
+
+	// check recursively statements, start with last compound_statement
+	if (compound_statement->next_compound_statement) {
+		is_successful = recursively_check_nonvoid_property(compound_statement->next_compound_statement);
+	}
+	// if not successfully found any return on all execution paths
+	if (is_successful == false && compound_statement->statement) {
+		struct mcc_ast_statement *statement = compound_statement->statement;
+		is_successful = check_nonvoid_property(statement);
+	}
+
+	return is_successful;
+}
+
+static enum mcc_semantic_check_error_code run_nonvoid_check(struct mcc_ast_function_definition *function, struct mcc_semantic_check *check)
+{
+	assert(function);
+	assert(check);
+	// Early abort if already failed
+	if (check->status == MCC_SEMANTIC_CHECK_FAIL) {
+		return MCC_SEMANTIC_CHECK_ERROR_OK;
+	}
+
+	if (function->type == MCC_AST_FUNCTION_TYPE_VOID) {
+		return MCC_SEMANTIC_CHECK_ERROR_OK;
+	}
+	if(recursively_check_nonvoid_property(function->compound_stmt) == false){
+		return raise_error(1, check, function->node,
+		            "%s:Function is non-void, but doesn't return value on every execution path.",
+		            function->identifier->identifier_name);
+	}
+	return MCC_SEMANTIC_CHECK_ERROR_OK;
+}
+
+// run non-void check
 enum mcc_semantic_check_error_code mcc_semantic_check_run_nonvoid_check(struct mcc_ast_program* ast,
                                                                         struct mcc_symbol_table *symbol_table,
-                                                                        struct mcc_semantic_check *check){
-	UNUSED(ast);
+                                                                        struct mcc_semantic_check *check)
+{
 	UNUSED(symbol_table);
-	check->status = MCC_SEMANTIC_CHECK_OK;
-	check->error_buffer = NULL;
-	return MCC_SEMANTIC_CHECK_ERROR_OK;
+	assert(ast);
+	assert(check);
+	assert(!check->error_buffer);
+	assert(check->status == MCC_SEMANTIC_CHECK_OK);
+
+	enum mcc_semantic_check_error_code error = MCC_SEMANTIC_CHECK_ERROR_OK;
+
+	do {
+		error = run_nonvoid_check(ast->function, check);
+		ast = ast->next_function;
+	} while (ast);
+
+	return error;
 }
 
 // ------------------------------------------------------------- checking for main function
