@@ -715,37 +715,32 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_main_function(struct m
 	assert(symbol_table);
 	assert(check);
 	assert(check->status == MCC_SEMANTIC_CHECK_OK);
+	assert(!check->error_buffer);
 
-	check->status = MCC_SEMANTIC_CHECK_OK;
-	check->error_buffer = NULL;
-
+	// Memorize AST entry point to get the correct filename later
+	struct mcc_ast_program *original_ast = ast;
 	enum mcc_semantic_check_error_code error_code = MCC_SEMANTIC_CHECK_OK;
 
 	int number_of_mains = 0;
 
-	if (strcmp(ast->function->identifier->identifier_name, "main") == 0) {
-		number_of_mains += 1;
-		if (!(ast->function->parameters->is_empty)) {
-			error_code = write_error_message_to_check(check, "Main has wrong signature. Must be `int main()`");
-			return error_code;
-		}
-	}
-	while (ast->has_next_function) {
-		ast = ast->next_function;
+	do {
 		if (strcmp(ast->function->identifier->identifier_name, "main") == 0) {
 			number_of_mains += 1;
 			if (number_of_mains > 1) {
-				write_error_message_to_check(check, "Too many main functions defined.");
+				error_code = raise_error(0, check, original_ast->node, "Too many main functions defined.");
+				return error_code;
 			}
 			if (!(ast->function->parameters->is_empty)) {
-				error_code = write_error_message_to_check(check, 
-					"Main has wrong signature. Must be `int main()`");
+				error_code = raise_error(0, check, original_ast->node, "Main has wrong signature. "
+																		"Must be `int main()`.");
 				return error_code;
 			}
 		}
-	}
+		ast = ast->next_function;
+	} while (ast) ;
+
 	if (number_of_mains == 0) {
-		error_code = write_error_message_to_check(check, "No main function defined.");
+		error_code = raise_error(0, check, original_ast->node, "No main function defined.");
 		return error_code;
 	}
 
