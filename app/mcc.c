@@ -135,7 +135,7 @@ int main(int argc, char *argv[])
 		printf("Library error: mcc_semantic_check_run_all returned with NULL");
 	}
 	if (semantic_check->error_buffer) {
-		fprintf(stderr, "Semantic check failed:\n%s", semantic_check->error_buffer);
+		fprintf(stderr, "Semantic check failed:\n%s\n", semantic_check->error_buffer);
 		mc_cl_parser_delete_command_line_parser(command_line);
 		mcc_ast_delete_result(&result);
 		mcc_symbol_table_delete_table(table);
