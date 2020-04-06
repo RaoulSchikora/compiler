@@ -1160,7 +1160,7 @@ void function_arguments1(CuTest *tc)
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 	struct mcc_semantic_check *check = mcc_semantic_check_initialize_check();
 	CuAssertPtrNotNull(tc,check);
-	enum mcc_semantic_check_error_code error = mcc_semantic_check_run_type_check((&parser_result)->program, table, check);
+	enum mcc_semantic_check_error_code error = mcc_semantic_check_run_function_arguments((&parser_result)->program, table, check);
 	CuAssertIntEquals(tc,MCC_SEMANTIC_CHECK_ERROR_OK,error);
 
 	CuAssertPtrNotNull(tc, check->error_buffer);
@@ -1185,7 +1185,7 @@ void function_arguments2(CuTest *tc)
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 	struct mcc_semantic_check *check = mcc_semantic_check_initialize_check();
 	CuAssertPtrNotNull(tc,check);
-	enum mcc_semantic_check_error_code error = mcc_semantic_check_run_type_check((&parser_result)->program, table, check);
+	enum mcc_semantic_check_error_code error = mcc_semantic_check_run_function_arguments((&parser_result)->program, table, check);
 	CuAssertIntEquals(tc,MCC_SEMANTIC_CHECK_ERROR_OK,error);
 
 	CuAssertPtrNotNull(tc, check->error_buffer);
