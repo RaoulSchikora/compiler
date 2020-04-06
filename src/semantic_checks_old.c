@@ -1437,19 +1437,19 @@ static void check_function_return_value_ok(struct mcc_ast_program *ast, struct m
 	}
 	userdata->check = check;
 	switch (function->type) {
-	case MCC_AST_FUNCTION_TYPE_INT:
+	case INT:
 		userdata->declared_function_type = MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_INT;
 		break;
-	case MCC_AST_FUNCTION_TYPE_FLOAT:
+	case FLOAT:
 		userdata->declared_function_type = MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_FLOAT;
 		break;
-	case MCC_AST_FUNCTION_TYPE_STRING:
+	case STRING:
 		userdata->declared_function_type = MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_STRING;
 		break;
-	case MCC_AST_FUNCTION_TYPE_BOOL:
+	case BOOL:
 		userdata->declared_function_type = MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_BOOL;
 		break;
-	case MCC_AST_FUNCTION_TYPE_VOID:
+	case VOID:
 		userdata->declared_function_type = MCC_SEMANTIC_CHECK_EXPRESSION_TYPE_VOID;
 		break;
 	default:
@@ -1575,7 +1575,7 @@ static void run_nonvoid_check(struct mcc_ast_function_definition *function, stru
 
 	bool is_successful = false;
 
-	if (function->type != MCC_AST_FUNCTION_TYPE_VOID) {
+	if (function->type != VOID) {
 		is_successful = recursively_check_nonvoid_property(function->compound_stmt);
 	} else {
 		is_successful = true;

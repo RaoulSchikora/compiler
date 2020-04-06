@@ -220,8 +220,9 @@ static struct mcc_semantic_check_data_type *get_data_type_from_row(struct mcc_sy
 }
 
 // Convert Type from AST into Type from semantic checks
-static enum mcc_semantic_check_data_types ast_to_semantic_check_type(struct mcc_ast_type *type){
-	switch(type->type_value){
+static enum mcc_semantic_check_data_types ast_to_semantic_check_type(enum mcc_ast_types type)
+{
+	switch(type){
 		case INT:
 			return MCC_SEMANTIC_CHECK_INT;
 		case FLOAT:
@@ -230,6 +231,8 @@ static enum mcc_semantic_check_data_types ast_to_semantic_check_type(struct mcc_
 			return MCC_SEMANTIC_CHECK_BOOL;
 		case STRING:
 			return MCC_SEMANTIC_CHECK_STRING;
+		case VOID:
+			return MCC_SEMANTIC_CHECK_VOID;
 		default:
 			return MCC_SEMANTIC_CHECK_UNKNOWN;
 	}
@@ -245,11 +248,11 @@ static struct mcc_semantic_check_data_type *get_data_type_declaration(struct mcc
 		return NULL;
 	if(decl->declaration_type == MCC_AST_DECLARATION_TYPE_VARIABLE){
 		type->is_array = false;
-		type->type = ast_to_semantic_check_type(decl->variable_type);
+		type->type = ast_to_semantic_check_type(decl->variable_type->type_value);
 	} else {
 		type->is_array = true;
 		type->array_size = decl->array_size->i_value;
-		type->type = ast_to_semantic_check_type(decl->array_type);
+		type->type = ast_to_semantic_check_type(decl->array_type->type_value);
 	}
 	return type;
 }
@@ -528,6 +531,64 @@ struct type_checking_userdata{
 	enum mcc_semantic_check_error_code error;
 };
 
+// struct for user data concerning the type checker
+struct return_value_userdata{
+	struct mcc_semantic_check *check;
+	struct mcc_semantic_check_data_type *function_type;
+	enum mcc_semantic_check_error_code error;
+};
+
+static void cb_return_value(struct mcc_ast_statement *statement, void *data)
+{
+	assert(statement);
+	assert(data);
+
+	struct return_value_userdata *userdata = data;
+	struct mcc_semantic_check *check = userdata->check;
+	struct mcc_semantic_check_data_type *function_type = userdata->function_type;
+	struct mcc_semantic_check_data_type *return_type = check_and_get_type(statement->return_value, check);
+	if(!types_equal(function_type, return_type)){
+		userdata->error = raise_error(2, check, statement->return_value->node, "return value of type '%s', expected '%s'.", to_string(return_type), to_string(function_type));
+	}
+	free(return_type);
+}
+
+// Setup an AST Visitor for checking that return values have the correct type
+static struct mcc_ast_visitor return_value_visitor(struct return_value_userdata *userdata)
+{
+	return (struct mcc_ast_visitor){
+	    .traversal = MCC_AST_VISIT_DEPTH_FIRST,
+	    .order = MCC_AST_VISIT_PRE_ORDER,
+
+	    .userdata = userdata,
+
+		.statement_return = cb_return_value,
+	};
+}
+
+static void cb_type_check_return_value(struct mcc_ast_function_definition *function, void *data)
+{
+	assert(function);
+	assert(data);
+
+	struct type_checking_userdata *t_c_userdata = data;
+	struct return_value_userdata *r_v_userdata = malloc(sizeof r_v_userdata);
+	if(!r_v_userdata){
+		t_c_userdata->error = MCC_SEMANTIC_CHECK_ERROR_MALLOC_FAILED;
+		return;
+	}
+	r_v_userdata->check = t_c_userdata->check;
+	r_v_userdata->error = t_c_userdata->error;
+	r_v_userdata->function_type = get_new_data_type();
+	r_v_userdata->function_type->type = ast_to_semantic_check_type(function->type);
+
+	struct mcc_ast_visitor visitor = return_value_visitor(r_v_userdata);
+	mcc_ast_visit(function, &visitor);
+	t_c_userdata->error = r_v_userdata->error;
+	free(r_v_userdata->function_type);
+	free(r_v_userdata);
+}
+
 // callback for checking type conversion in an assignment
 static void cb_type_conversion_assignment(struct mcc_ast_statement *statement, void *data)
 {
@@ -537,10 +598,7 @@ static void cb_type_conversion_assignment(struct mcc_ast_statement *statement, v
 	struct type_checking_userdata *userdata = data;
 	struct mcc_semantic_check *check = userdata->check;
 	struct mcc_ast_assignment *assignment = statement->assignment;
-
-	struct mcc_semantic_check_data_type *lhs_type = NULL;
-	struct mcc_semantic_check_data_type *rhs_type = NULL;
-	struct mcc_semantic_check_data_type *index = NULL;
+	struct mcc_semantic_check_data_type *lhs_type, *rhs_type, *index = NULL;
 
 	switch (assignment->assignment_type)
 	{
@@ -673,20 +731,19 @@ static void cb_type_conversion_return_stmt(struct mcc_ast_statement *statement, 
 // Setup an AST Visitor for type checking
 static struct mcc_ast_visitor type_checking_visitor(struct type_checking_userdata *userdata)
 {
-
 	return (struct mcc_ast_visitor){
 	    .traversal = MCC_AST_VISIT_DEPTH_FIRST,
 	    .order = MCC_AST_VISIT_PRE_ORDER,
 
 	    .userdata = userdata,
 
-		// TODO checking correct call to a function.
 	    .statement_assignment = cb_type_conversion_assignment,
 		.statement_if_stmt = cb_type_check_if_stmt,
 		.statement_if_else_stmt = cb_type_check_if_else_stmt,
 		.statement_while = cb_type_check_while_stmt,
 		.statement_expression_stmt = cb_type_check_expression_stmt,
 		.statement_return = cb_type_conversion_return_stmt,
+		.function_definition = cb_type_check_return_value,
 	};
 }
 
@@ -698,6 +755,9 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_type_check(struct mcc_
 	UNUSED(symbol_table);
 
 	struct type_checking_userdata *userdata = malloc(sizeof userdata);
+	if(!userdata){
+		return MCC_SEMANTIC_CHECK_ERROR_MALLOC_FAILED;
+	}
 	userdata->check = check;
 	userdata->error = MCC_SEMANTIC_CHECK_ERROR_OK;
 	enum mcc_semantic_check_error_code error;
@@ -763,12 +823,12 @@ static enum mcc_semantic_check_error_code run_nonvoid_check(struct mcc_ast_funct
 	if (check->status == MCC_SEMANTIC_CHECK_FAIL)
 		return MCC_SEMANTIC_CHECK_ERROR_OK;
 
-	if (function->type == MCC_AST_FUNCTION_TYPE_VOID)
+	if (function->type == VOID)
 		return MCC_SEMANTIC_CHECK_ERROR_OK;
 
 	if(recursively_check_nonvoid_property(function->compound_stmt) == false){
 		return raise_error(1, check, function->node,
-		            "%s:Function is non-void, but doesn't return value on every execution path.",
+		            "control reaches end of non-void function '%s'.",
 		            function->identifier->identifier_name);
 	}
 	return MCC_SEMANTIC_CHECK_ERROR_OK;
@@ -811,7 +871,6 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_main_function(struct m
 	// Memorize AST entry point to get the correct filename later
 	struct mcc_ast_program *original_ast = ast;
 	enum mcc_semantic_check_error_code error_code = MCC_SEMANTIC_CHECK_OK;
-
 	int number_of_mains = 0;
 
 	do {
@@ -864,7 +923,7 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_multiple_function_defi
 
 		// if name of program_to_check and name of program_to_compare equals
 		if (strcmp(name_of_check, name_of_compare) == 0) {
-			error = raise_error(1, check, program_to_check->node, "%s: Previous function declaration was here", name_of_compare);
+			error = raise_error(1, check, program_to_check->node, "redefinition of '%s'.", name_of_compare);
 			return error;
 		}
 		// compare all next_functions
@@ -873,7 +932,7 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_multiple_function_defi
 			char *name_of_compare = program_to_compare->function->identifier->identifier_name;
 			// if name of program_to_check and name of program_to_compare equals
 			if (strcmp(name_of_check, name_of_compare) == 0) {
-				error = raise_error(1, check, program_to_check->node, "%s: Previous function declaration was here", name_of_compare);
+				error = raise_error(1, check, program_to_check->node, "redefinition of '%s'.", name_of_compare);
 				return error;
 			}
 		}
@@ -989,7 +1048,6 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
 		return;
 	}
 
-
 	// Get the used arguments from the AST:
 	struct mcc_ast_arguments *args = expression->arguments;
 
@@ -1023,8 +1081,7 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
 		return;
 	}
 
-	struct mcc_semantic_check_data_type *type_expr = NULL;
-	struct mcc_semantic_check_data_type *type_decl = NULL;
+	struct mcc_semantic_check_data_type *type_expr, *type_decl = NULL;
 	do {
 		// Too little arguments (if no arguments are given, args exists, but args->expr is set to NULL)
 		if (!args->expression) {

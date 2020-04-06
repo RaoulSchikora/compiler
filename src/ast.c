@@ -654,7 +654,7 @@ struct mcc_ast_function_definition *mcc_ast_new_void_function_def(struct mcc_ast
 		return NULL;
 	}
 
-	function_definition->type = MCC_AST_FUNCTION_TYPE_VOID;
+	function_definition->type = VOID;
 	function_definition->identifier = identifier;
 	function_definition->parameters = parameters;
 	function_definition->compound_stmt = compound_statement;
@@ -673,21 +673,8 @@ struct mcc_ast_function_definition *mcc_ast_new_type_function_def(enum mcc_ast_t
 	if (!function_definition) {
 		return NULL;
 	}
-
-	switch (type) {
-	case INT:
-		function_definition->type = MCC_AST_FUNCTION_TYPE_INT;
-		break;
-	case FLOAT:
-		function_definition->type = MCC_AST_FUNCTION_TYPE_FLOAT;
-		break;
-	case STRING:
-		function_definition->type = MCC_AST_FUNCTION_TYPE_STRING;
-		break;
-	case BOOL:
-		function_definition->type = MCC_AST_FUNCTION_TYPE_BOOL;
-		break;
-	}
+	
+	function_definition->type = type;
 	function_definition->identifier = identifier;
 	function_definition->parameters = parameters;
 	function_definition->compound_stmt = compound_statement;
@@ -840,8 +827,8 @@ void mcc_ast_add_built_ins(struct mcc_ast_program *program)
 						  void print_nl(){} 		  \
 						  void print_int(int a){} 	  \
 						  void print_float(float b){} \
-						  int read_int(){return 0;} 			  \
-						  float read_float(){return 0;}";
+						  int read_int(){return 0;}   \
+						  float read_float(){return 0.0;}";
 	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_EXPRESSION);
 	
 	if(!program->function){

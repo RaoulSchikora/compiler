@@ -32,7 +32,7 @@ void positive(CuTest *tc)
 		if (checks->error_buffer == NULL) {
 			printf("Semantic check failed, error buffer is empty.");
 		} else {
-			printf("Semantic check failed:\n%s", checks->error_buffer);
+			printf("Semantic check failed:\n%s\n", checks->error_buffer);
 		}
 	}
 
@@ -63,7 +63,7 @@ void ensure_variable_shadowing(CuTest *tc)
 		if (checks->error_buffer == NULL) {
 			printf("Semantic check failed, error buffer is empty.");
 		} else {
-			printf("Semantic check failed:\n%s", checks->error_buffer);
+			printf("Semantic check failed:\n%s\n", checks->error_buffer);
 		}
 	}
 

@@ -852,7 +852,7 @@ void FunctionDefParameters(CuTest *tc)
 
 	// root
 
-	CuAssertIntEquals(tc, function_definition->type, MCC_AST_FUNCTION_TYPE_INT);
+	CuAssertIntEquals(tc, function_definition->type, INT);
 
 	// root -> identifier
 

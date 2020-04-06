@@ -364,6 +364,9 @@ static void print_dot_type(struct mcc_ast_type *type, void *data)
 	case STRING:
 		print_dot_node(out, type, "string");
 		break;
+	case VOID:
+		print_dot_node(out, type, "void");
+		break;
 	}
 }
 
@@ -499,19 +502,19 @@ static void print_dot_function_definition(struct mcc_ast_function_definition *fu
 	print_dot_edge(out, function_definition, function_definition->compound_stmt, "comp_stmt");
 	print_dot_edge(out, function_definition, &function_definition->type, "type");
 	switch (function_definition->type) {
-	case MCC_AST_FUNCTION_TYPE_INT:
+	case INT:
 		print_dot_node(out, &function_definition->type, "Int");
 		break;
-	case MCC_AST_FUNCTION_TYPE_FLOAT:
+	case FLOAT:
 		print_dot_node(out, &function_definition->type, "Float");
 		break;
-	case MCC_AST_FUNCTION_TYPE_STRING:
+	case STRING:
 		print_dot_node(out, &function_definition->type, "String");
 		break;
-	case MCC_AST_FUNCTION_TYPE_BOOL:
+	case BOOL:
 		print_dot_node(out, &function_definition->type, "Bool");
 		break;
-	case MCC_AST_FUNCTION_TYPE_VOID:
+	case VOID:
 		print_dot_node(out, &function_definition->type, "Void");
 		break;
 	}

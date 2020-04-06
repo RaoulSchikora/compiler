@@ -26,9 +26,11 @@ static enum mcc_symbol_table_row_type convert_enum(enum mcc_ast_types type)
 		return MCC_SYMBOL_TABLE_ROW_TYPE_BOOL;
 	case STRING:
 		return MCC_SYMBOL_TABLE_ROW_TYPE_STRING;
+	case VOID:
+		return MCC_SYMBOL_TABLE_ROW_TYPE_VOID;
+	default:
+		return MCC_SYMBOL_TABLE_ROW_TYPE_PSEUDO;
 	}
-
-	return MCC_SYMBOL_TABLE_ROW_TYPE_PSEUDO;
 }
 
 // ------------------------------------------------------- Symbol Table row
@@ -546,23 +548,23 @@ static void create_row_function_definition(struct mcc_ast_function_definition *f
 	struct mcc_symbol_table_row *row = NULL;
 
 	switch (function_definition->type) {
-	case MCC_AST_FUNCTION_TYPE_INT:
+	case INT:
 		row = mcc_symbol_table_new_row_function(function_definition->identifier->identifier_name,
 		                                        MCC_SYMBOL_TABLE_ROW_TYPE_INT, &(function_definition->node));
 		break;
-	case MCC_AST_FUNCTION_TYPE_FLOAT:
+	case FLOAT:
 		row = mcc_symbol_table_new_row_function(function_definition->identifier->identifier_name,
 		                                        MCC_SYMBOL_TABLE_ROW_TYPE_FLOAT, &(function_definition->node));
 		break;
-	case MCC_AST_FUNCTION_TYPE_STRING:
+	case STRING:
 		row = mcc_symbol_table_new_row_function(function_definition->identifier->identifier_name,
 		                                        MCC_SYMBOL_TABLE_ROW_TYPE_STRING, &(function_definition->node));
 		break;
-	case MCC_AST_FUNCTION_TYPE_BOOL:
+	case BOOL:
 		row = mcc_symbol_table_new_row_function(function_definition->identifier->identifier_name,
 		                                        MCC_SYMBOL_TABLE_ROW_TYPE_BOOL, &(function_definition->node));
 		break;
-	case MCC_AST_FUNCTION_TYPE_VOID:
+	case VOID:
 		row = mcc_symbol_table_new_row_function(function_definition->identifier->identifier_name,
 		                                        MCC_SYMBOL_TABLE_ROW_TYPE_VOID, &(function_definition->node));
 		break;

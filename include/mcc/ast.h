@@ -145,6 +145,7 @@ enum mcc_ast_types {
 	FLOAT,
 	BOOL,
 	STRING,
+	VOID,
 };
 
 struct mcc_ast_type {
@@ -371,18 +372,10 @@ void mcc_ast_delete_literal(struct mcc_ast_literal *literal);
 
 // ------------------------------------------------------------------- Function Definition
 
-enum mcc_ast_function_type {
-	MCC_AST_FUNCTION_TYPE_INT,
-	MCC_AST_FUNCTION_TYPE_FLOAT,
-	MCC_AST_FUNCTION_TYPE_STRING,
-	MCC_AST_FUNCTION_TYPE_BOOL,
-	MCC_AST_FUNCTION_TYPE_VOID,
-};
-
 struct mcc_ast_function_definition {
 	struct mcc_ast_node node;
 
-	enum mcc_ast_function_type type;
+	enum mcc_ast_types type;
 	struct mcc_ast_identifier *identifier;
 	struct mcc_ast_parameters *parameters;
 	struct mcc_ast_compound_statement *compound_stmt;
