@@ -134,6 +134,7 @@ int start_token;
 %type <struct mcc_ast_parameters *> parameters
 %type <struct mcc_ast_arguments *> arguments
 %type <struct mcc_ast_program *> function_defs
+%type <struct mcc_ast_identifier *> identifier
 
 %destructor { mcc_ast_delete($$); } expression
 %destructor { mcc_ast_delete($$); } statement
@@ -147,6 +148,7 @@ int start_token;
 %destructor { mcc_ast_delete($$); } function_defs
 %destructor { mcc_ast_delete($$); } program
 %destructor { mcc_ast_delete($$); } arguments
+%destructor { mcc_ast_delete($$); } identifier
 %destructor { free($$); } STRING_LITERAL
 %destructor { free($$); } IDENTIFIER
 
@@ -213,11 +215,11 @@ expression          : literal { $$ = mcc_ast_new_expression_literal($1); 			    
                     	{ $$ = mcc_ast_new_expression_unary_op(MCC_AST_UNARY_OP_NEGATIV, $2);	    loc($$, @1, @2);}
                     | EXKLA expression
                     	{ $$ = mcc_ast_new_expression_unary_op(MCC_AST_UNARY_OP_NOT, $2);           loc($$, @1, @2);}
-                    | IDENTIFIER { $$ = mcc_ast_new_expression_variable($1); 			    loc($$, @1, @1);}
-                    | IDENTIFIER SQUARE_OPEN expression SQUARE_CLOSE
+                    | identifier { $$ = mcc_ast_new_expression_variable($1); 			    loc($$, @1, @1);}
+                    | identifier SQUARE_OPEN expression SQUARE_CLOSE
                     	{ $$ = mcc_ast_new_expression_array_element($1,$3);                         loc($$, @1, @4);}
-                    | IDENTIFIER LPARENTH arguments RPARENTH
-                    	{ $$ = mcc_ast_new_expression_function_call(mcc_ast_new_identifier($1), $3);loc($$, @1, @4);}
+                    | identifier LPARENTH arguments RPARENTH
+                    	{ $$ = mcc_ast_new_expression_function_call($1, $3);loc($$, @1, @4);}
                     ;
 
 arguments           : expression { $$ = mcc_ast_new_arguments(false, $1, NULL); 		    loc($$, @1, @1);}
@@ -226,16 +228,18 @@ arguments           : expression { $$ = mcc_ast_new_arguments(false, $1, NULL); 
                     ;
 
 
-assignment 	    : IDENTIFIER EQ expression { $$ = mcc_ast_new_variable_assignment ($1, $3);     loc($$, @1, @3);}
-                    | IDENTIFIER SQUARE_OPEN expression SQUARE_CLOSE EQ expression
+assignment 	    : identifier EQ expression { $$ = mcc_ast_new_variable_assignment ($1, $3);     loc($$, @1, @3);}
+                    | identifier SQUARE_OPEN expression SQUARE_CLOSE EQ expression
                     	{ $$ = mcc_ast_new_array_assignment ($1, $3, $6); 			    loc($$, @1, @6);}
                     ;
 
-declaration         : TYPE IDENTIFIER { $$ = mcc_ast_new_variable_declaration($1,$2); 		    loc($$, @1, @2);}
-                    | TYPE SQUARE_OPEN INT_LITERAL SQUARE_CLOSE IDENTIFIER
+declaration         : TYPE identifier { $$ = mcc_ast_new_variable_declaration($1,$2); 		    loc($$, @1, @2);}
+                    | TYPE SQUARE_OPEN INT_LITERAL SQUARE_CLOSE identifier
                     	{ $$ = mcc_ast_new_array_declaration($1, mcc_ast_new_literal_int($3), $5);  loc($$, @1, @5);}
                     ;
 
+identifier 			: IDENTIFIER {$$ = mcc_ast_new_identifier($1); loc($$,@1,@1);}
+					;
 
 statement           : IF LPARENTH expression RPARENTH statement %prec NOT_ELSE
 			{ $$ = mcc_ast_new_statement_if_stmt( $3, $5); 	    			    loc($$, @1, @5);}
@@ -271,10 +275,10 @@ parameters          : declaration    { $$ = mcc_ast_new_parameters(false, $1, NU
                     | %empty { $$ = mcc_ast_new_parameters(true, NULL, NULL); }
                     ;
 
-function_def        : VOID IDENTIFIER LPARENTH parameters RPARENTH compound_statement
-			{ $$ = mcc_ast_new_void_function_def(mcc_ast_new_identifier($2), $4, $6);   loc($$, @1, @6);}
-                    | TYPE IDENTIFIER LPARENTH parameters RPARENTH compound_statement
-                    	{ $$ = mcc_ast_new_type_function_def($1, mcc_ast_new_identifier($2),$4,$6); loc($$, @1, @6);}
+function_def        : VOID identifier LPARENTH parameters RPARENTH compound_statement
+			{ $$ = mcc_ast_new_void_function_def($2, $4, $6);   loc($$, @1, @6);}
+                    | TYPE identifier LPARENTH parameters RPARENTH compound_statement
+                    	{ $$ = mcc_ast_new_type_function_def($1, $2,$4,$6); loc($$, @1, @6);}
                     ;
 
 function_defs       :   function_def function_defs  { $$ = mcc_ast_new_program($1, $2); 	    loc($$, @1, @2);}

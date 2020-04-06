@@ -124,11 +124,12 @@ struct mcc_ast_expression *mcc_ast_new_expression_parenth(struct mcc_ast_express
 struct mcc_ast_expression *mcc_ast_new_expression_unary_op(enum mcc_ast_unary_op u_op,
                                                            struct mcc_ast_expression *expression);
 
-struct mcc_ast_expression *mcc_ast_new_expression_variable(char *identifier);
+struct mcc_ast_expression *mcc_ast_new_expression_variable(struct mcc_ast_identifier *identifier);
 
 struct mcc_ast_identifier *mcc_ast_new_identifier(char *identifier);
 
-struct mcc_ast_expression *mcc_ast_new_expression_array_element(char *identifier, struct mcc_ast_expression *index);
+struct mcc_ast_expression *mcc_ast_new_expression_array_element(struct mcc_ast_identifier *identifier,
+                                                                struct mcc_ast_expression *index);
 
 struct mcc_ast_expression *mcc_ast_new_expression_function_call(struct mcc_ast_identifier *identifier,
                                                                 struct mcc_ast_arguments *arguments);
@@ -178,12 +179,13 @@ struct mcc_ast_declaration {
 	};
 };
 
-struct mcc_ast_declaration *mcc_ast_new_variable_declaration(enum mcc_ast_types, char *identifier);
+struct mcc_ast_declaration *mcc_ast_new_variable_declaration(enum mcc_ast_types, struct mcc_ast_identifier *identifier);
 
 void mcc_ast_delete_variable_declaration(struct mcc_ast_declaration *decl);
 
-struct mcc_ast_declaration *
-mcc_ast_new_array_declaration(enum mcc_ast_types type, struct mcc_ast_literal *size, char *identifier);
+struct mcc_ast_declaration *mcc_ast_new_array_declaration(enum mcc_ast_types type,
+                                                          struct mcc_ast_literal *size,
+                                                          struct mcc_ast_identifier *identifier);
 
 void mcc_ast_delete_array_declaration(struct mcc_ast_declaration *array_decl);
 
@@ -216,9 +218,10 @@ struct mcc_ast_assignment {
 	struct mcc_symbol_table_row *row;
 };
 
-struct mcc_ast_assignment *mcc_ast_new_variable_assignment(char *identifier, struct mcc_ast_expression *assigned_value);
+struct mcc_ast_assignment *mcc_ast_new_variable_assignment(struct mcc_ast_identifier *identifier,
+                                                           struct mcc_ast_expression *assigned_value);
 
-struct mcc_ast_assignment *mcc_ast_new_array_assignment(char *identifier,
+struct mcc_ast_assignment *mcc_ast_new_array_assignment(struct mcc_ast_identifier *identifier,
                                                         struct mcc_ast_expression *index,
                                                         struct mcc_ast_expression *assigned_value);
 
@@ -459,7 +462,8 @@ void mcc_ast_add_built_ins(struct mcc_ast_program *program);
 		struct mcc_ast_program *: mcc_ast_delete_program, \
 		struct mcc_ast_function_definition *: mcc_ast_delete_function_definition, \
 		struct mcc_ast_parameters *: mcc_ast_delete_parameters, \
-		struct mcc_ast_arguments *: mcc_ast_delete_arguments \
+		struct mcc_ast_arguments *: mcc_ast_delete_arguments, \
+		struct mcc_ast_identifier *: mcc_ast_delete_identifier  \
 	)(x)
 
 // clang-format on
