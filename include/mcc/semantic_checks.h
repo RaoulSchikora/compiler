@@ -102,6 +102,11 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_multiple_variable_decl
                                                                                         struct mcc_symbol_table *symbol_table,
                                                                                         struct mcc_semantic_check *check);
 
+// No incorrect function calls
+enum mcc_semantic_check_error_code mcc_semantic_check_run_function_arguments(struct mcc_ast_program* ast,
+                                                                             struct mcc_symbol_table *symbol_table,
+                                                                             struct mcc_semantic_check *check);
+
 // ------------------------------------------------------------- Functions: Cleanup
 
 // Delete single checks
@@ -114,6 +119,7 @@ void mcc_semantic_check_delete_single_check(struct mcc_semantic_check *check);
 #define check_and_get_type(x, ...) _Generic((x), \
 		struct mcc_ast_expression *:          check_and_get_type_expression, \
 		struct mcc_ast_identifier *:          check_and_get_type_identifier, \
+        struct mcc_ast_declaration *:         get_data_type_declaration, \
         struct mcc_ast_literal *:             check_and_get_type_literal \
 	)(x, __VA_ARGS__)
 

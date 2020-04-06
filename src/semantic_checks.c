@@ -122,6 +122,8 @@ struct mcc_semantic_check* mcc_semantic_check_run_all(struct mcc_ast_program* as
 	    mcc_semantic_check_early_abort_wrapper(mcc_semantic_check_run_multiple_function_definitions, ast, symbol_table, check, error);
 	error =
 	    mcc_semantic_check_early_abort_wrapper(mcc_semantic_check_run_multiple_variable_declarations, ast, symbol_table, check, error);
+	error =
+	    mcc_semantic_check_early_abort_wrapper(mcc_semantic_check_run_function_arguments, ast, symbol_table, check, error);
 
 	if (error != MCC_SEMANTIC_CHECK_ERROR_OK){
 		mcc_semantic_check_delete_single_check(check);
@@ -211,6 +213,41 @@ static struct mcc_semantic_check_data_type *get_data_type_from_row(struct mcc_sy
 		type->is_array = true;
 	}
 	type->array_size = row->array_size;
+	return type;
+}
+
+// Convert Type from AST into Type from semantic checks
+static enum mcc_semantic_check_data_types ast_to_semantic_check_type(struct mcc_ast_type *type){
+	switch(type->type_value){
+		case INT:
+			return MCC_SEMANTIC_CHECK_INT;
+		case FLOAT:
+			return MCC_SEMANTIC_CHECK_FLOAT;
+		case BOOL:
+			return MCC_SEMANTIC_CHECK_BOOL;
+		case STRING:
+			return MCC_SEMANTIC_CHECK_STRING;
+		default:
+			return MCC_SEMANTIC_CHECK_UNKNOWN;
+	}
+}
+
+// get data type of declaration
+static struct mcc_semantic_check_data_type *get_data_type_declaration(struct mcc_ast_declaration* decl,
+																	  struct mcc_semantic_check *check){
+	assert(decl);
+	UNUSED(check);
+	struct mcc_semantic_check_data_type *type = get_new_data_type();
+	if(!type)
+		return NULL;
+	if(decl->declaration_type == MCC_AST_DECLARATION_TYPE_VARIABLE){
+		type->is_array = false;
+		type->type = ast_to_semantic_check_type(decl->variable_type);
+	} else {
+		type->is_array = true;
+		type->array_size = decl->array_size->i_value;
+		type->type = ast_to_semantic_check_type(decl->array_type);
+	}
 	return type;
 }
 
@@ -878,10 +915,137 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_multiple_function_defi
 enum mcc_semantic_check_error_code mcc_semantic_check_run_multiple_variable_declarations(struct mcc_ast_program* ast,
                                                                                         struct mcc_symbol_table *symbol_table,
                                                                                         struct mcc_semantic_check *check){
+	UNUSED(check);
 	UNUSED(ast);
 	UNUSED(symbol_table);
 	return MCC_SEMANTIC_CHECK_ERROR_OK;
 }
+
+// ------------------------------------------------------------- No invalid function calls
+
+struct function_arguments_userdata {
+	struct mcc_semantic_check *check;
+	struct mcc_ast_program *program;
+};
+
+
+// callback for checking correctness of function calls
+static void cb_function_arguments_expression_function_call(struct mcc_ast_expression *expression, void *userdata)
+{
+	assert(expression);
+	assert(userdata);
+
+	struct function_arguments_userdata *data = userdata;
+	struct mcc_ast_program *ast = data->program;
+	struct mcc_semantic_check *check = data->check;
+
+	// Early abort if check already failed
+	if (check->status == MCC_SEMANTIC_CHECK_FAIL) {
+		return;
+	}
+
+
+	// Get the used arguments from the AST:
+	struct mcc_ast_arguments *args = expression->arguments;
+
+	// Get the required parameters from the function declaration
+	struct mcc_ast_parameters *pars = NULL;
+	do {
+		if (strcmp(ast->function->identifier->identifier_name,
+		           expression->function_identifier->identifier_name) == 0) {
+			pars = ast->function->parameters;
+		}
+		ast = ast->next_function;
+	} while (ast);
+
+	// No parameters found -> unkown function
+	if (!pars) {
+		if (!pars) {
+			raise_error(1, check, expression->node, "Undefined reference to `%s`",
+			            expression->function_identifier->identifier_name);
+			return;
+		}
+	}
+
+	if (pars->is_empty) {
+		// Expression is set to NULL during parsing, if no args are given
+		if (expression->arguments->expression) {
+			raise_error(1, check, expression->node, "Too many arguments to function `%s`",
+			            expression->function_identifier->identifier_name);
+			return;
+		}
+		// No arguments needed and none given: return
+		return;
+	}
+
+	do {
+		// Too little arguments (if no arguments are given, args exists, but args->expr is set to NULL)
+		if (!args->expression) {
+			raise_error(1, check, expression->node, "Too few arguments to function `%s`",
+			            expression->function_identifier->identifier_name);
+			return;
+		}
+
+		// Check for type error
+		struct mcc_semantic_check_data_type* type_expr = check_and_get_type(args->expression,check);
+		struct mcc_semantic_check_data_type* type_decl = check_and_get_type(pars->declaration,check);
+		if (!types_equal(type_expr,type_decl)) {
+			raise_error(2, check, expression->node, "Expected %s but argument is of type %s",
+			            to_string(type_decl),to_string(type_expr));
+			return;
+		}
+
+		pars = pars->next_parameters;
+		args = args->next_arguments;
+
+	} while (pars);
+
+	if (args) {
+		// Too many arguments
+		raise_error(1, check, expression->node, "Too many arguments to function `%s`",
+					expression->function_identifier->identifier_name);
+		return;
+	}
+}
+
+// Setup an AST Visitor for checking if function calls are correct
+static struct mcc_ast_visitor function_arguments_visitor(struct function_arguments_userdata *data)
+{
+	return (struct mcc_ast_visitor){
+	    .traversal = MCC_AST_VISIT_DEPTH_FIRST,
+	    .order = MCC_AST_VISIT_POST_ORDER,
+
+	    .userdata = data,
+
+	    .expression_function_call = cb_function_arguments_expression_function_call,
+	};
+}
+
+enum mcc_semantic_check_error_code mcc_semantic_check_run_function_arguments(struct mcc_ast_program* ast,
+                                                                             struct mcc_symbol_table *symbol_table,
+                                                                             struct mcc_semantic_check *check)
+{
+	UNUSED(symbol_table);
+	assert(ast);
+	assert(check);
+	assert(!check->error_buffer);
+	assert(check->status == MCC_SEMANTIC_CHECK_OK);
+
+	// Set up userdata
+	struct function_arguments_userdata *userdata = malloc(sizeof(*userdata));
+	if (!userdata) {
+		return MCC_SEMANTIC_CHECK_ERROR_MALLOC_FAILED;
+	}
+	userdata->check = check;
+	userdata->program = ast;
+
+	struct mcc_ast_visitor visitor = function_arguments_visitor(userdata);
+	mcc_ast_visit(ast, &visitor);
+	free(userdata);
+	return MCC_SEMANTIC_CHECK_ERROR_OK;
+}
+
+
 
 // ------------------------------------------------------------- Functions: Cleanup
 
