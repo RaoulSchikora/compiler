@@ -978,6 +978,8 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
 		return;
 	}
 
+	struct mcc_semantic_check_data_type *type_expr = NULL;
+	struct mcc_semantic_check_data_type *type_decl = NULL;
 	do {
 		// Too little arguments (if no arguments are given, args exists, but args->expr is set to NULL)
 		if (!args->expression) {
@@ -987,25 +989,34 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
 		}
 
 		// Check for type error
-		struct mcc_semantic_check_data_type* type_expr = check_and_get_type(args->expression,check);
-		struct mcc_semantic_check_data_type* type_decl = check_and_get_type(pars->declaration,check);
+		type_expr = check_and_get_type(args->expression,check);
+		type_decl = check_and_get_type(pars->declaration,check);
 		if (!types_equal(type_expr,type_decl)) {
-			raise_error(2, check, expression->node, "Expected %s but argument is of type %s",
-			            to_string(type_decl),to_string(type_expr));
+			char *decl_string = to_string(type_decl);
+			char *expr_string = to_string(type_expr);
+			raise_error(2, check, expression->node, "Expected %s but argument is of type %s", decl_string,
+			            expr_string);
+			free(expr_string);
+			free(decl_string);
+			free(type_expr);
+			free(type_decl);
 			return;
 		}
+		free(type_expr);
+		free(type_decl);
 
 		pars = pars->next_parameters;
 		args = args->next_arguments;
-
 	} while (pars);
 
 	if (args) {
 		// Too many arguments
 		raise_error(1, check, expression->node, "Too many arguments to function `%s`",
 					expression->function_identifier->identifier_name);
-		return;
 	}
+	free(type_expr);
+	free(type_decl);
+	return;
 }
 
 // Setup an AST Visitor for checking if function calls are correct
