@@ -12,7 +12,7 @@
 #include "mcc/symbol_table.h"
 #include "utils/unused.h"
 
-#define not_zero(x) (x>=0 ? x : 1)
+#define not_zero(x) (x>0 ? x : 1)
 
 // ------------------------------------------------------------- Functions: Error handling
 
@@ -634,7 +634,7 @@ static void cb_type_check_while_stmt(struct mcc_ast_statement *statement, void *
 	free(type);
 }
 
-// callback type checking statements consisting of a single expression
+// callback for type checking statements consisting of a single expression
 static void cb_type_check_expression_stmt(struct mcc_ast_statement *statement, void *data)
 {
 	assert(statement->stmt_expression);
@@ -643,6 +643,24 @@ static void cb_type_check_expression_stmt(struct mcc_ast_statement *statement, v
 	struct type_checking_userdata *userdata = data;
 	struct mcc_semantic_check *check = userdata->check;
 	struct mcc_ast_expression *expression = statement->stmt_expression;
+	// check the expression. No Error handling needed
+	struct mcc_semantic_check_data_type *type = check_and_get_type(expression, check);
+
+	if(!type){
+		userdata->error = MCC_SEMANTIC_CHECK_ERROR_MALLOC_FAILED;
+	}
+	free(type);
+}
+
+// callback for type checking return statements
+static void cb_type_conversion_return_stmt(struct mcc_ast_statement *statement, void *data)
+{
+	assert(statement->return_value);
+	assert(data);
+
+	struct type_checking_userdata *userdata = data;
+	struct mcc_semantic_check *check = userdata->check;
+	struct mcc_ast_expression *expression = statement->return_value;
 	// check the expression. No Error handling needed
 	struct mcc_semantic_check_data_type *type = check_and_get_type(expression, check);
 
@@ -668,6 +686,7 @@ static struct mcc_ast_visitor type_checking_visitor(struct type_checking_userdat
 		.statement_if_else_stmt = cb_type_check_if_else_stmt,
 		.statement_while = cb_type_check_while_stmt,
 		.statement_expression_stmt = cb_type_check_expression_stmt,
+		.statement_return = cb_type_conversion_return_stmt,
 	};
 }
 
