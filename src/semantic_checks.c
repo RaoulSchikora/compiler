@@ -867,15 +867,85 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_multiple_function_defi
 
 // ------------------------------------------------------------- check for multiple variable declarations
 
+// check scopes individually
+static enum mcc_semantic_check_error_code check_scope_for_multiple_variable_declaration(struct mcc_symbol_table_scope *scope,
+                                                          struct mcc_semantic_check *check, struct mcc_ast_node node)
+{
+	assert(scope);
+	assert(check);
+
+	if (!scope->head) {
+		return MCC_SEMANTIC_CHECK_ERROR_OK;
+	}
+
+	enum mcc_semantic_check_error_code error = MCC_SEMANTIC_CHECK_ERROR_OK;
+
+	if(check->status == MCC_SEMANTIC_CHECK_FAIL){
+		return error;
+	}
+
+
+	struct mcc_symbol_table_row *row_to_check = scope->head;
+
+	// Recursively check child scope of current row
+	if (row_to_check->child_scope) {
+		error = check_scope_for_multiple_variable_declaration(row_to_check->child_scope, check,node);
+		if(error != MCC_SEMANTIC_CHECK_ERROR_OK){
+			return error;
+		}
+	}
+
+	struct mcc_symbol_table_row *row_to_compare = NULL;
+	while (row_to_check->next_row) {
+
+		row_to_compare = row_to_check->next_row;
+
+		if (strcmp(row_to_check->name, row_to_compare->name) == 0) {
+			return raise_error(1, check, node, "Previous declaraion of `%s` was here", row_to_check->name);
+		}
+
+		while (row_to_compare->next_row) {
+			row_to_compare = row_to_compare->next_row;
+			if (strcmp(row_to_check->name, row_to_compare->name) == 0) {
+				return raise_error(1, check, node, "Previous declaraion of `%s` was here", row_to_check->name);
+			}
+		}
+
+		row_to_check = row_to_check->next_row;
+	}
+
+	if (row_to_check->child_scope) {
+		check_scope_for_multiple_variable_declaration(row_to_check->child_scope, check,node);
+	}
+	return MCC_SEMANTIC_CHECK_ERROR_OK;
+}
+
 // No multiple declarations of a variable in the same scope
 enum mcc_semantic_check_error_code mcc_semantic_check_run_multiple_variable_declarations(struct mcc_ast_program* ast,
                                                                                         struct mcc_symbol_table *symbol_table,
-                                                                                        struct mcc_semantic_check *check){
-	UNUSED(check);
+                                                                                        struct mcc_semantic_check *check)
+{
 	UNUSED(ast);
-	UNUSED(symbol_table);
-	UNUSED(check);
-	return MCC_SEMANTIC_CHECK_ERROR_OK;
+	assert(ast);
+	assert(check);
+	assert(!check->error_buffer);
+	assert(check->status == MCC_SEMANTIC_CHECK_OK);
+
+	struct mcc_symbol_table_scope *scope = symbol_table->head;
+	struct mcc_symbol_table_row *function_row = scope->head;
+	enum mcc_semantic_check_error_code error = MCC_SEMANTIC_CHECK_ERROR_OK;
+
+	do {
+		if (function_row->child_scope) {
+			error = check_scope_for_multiple_variable_declaration(function_row->child_scope, check,ast->node);
+		}
+		if (check->status != MCC_SEMANTIC_CHECK_OK){
+			return error;
+		}
+		function_row = function_row->next_row;
+	} while (function_row);
+
+	return error;
 }
 
 // ------------------------------------------------------------- No invalid function calls
