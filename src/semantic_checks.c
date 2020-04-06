@@ -513,7 +513,7 @@ struct mcc_semantic_check_data_type *check_and_get_type_identifier(struct mcc_as
 	char *name = identifier->identifier_name;
 	row = mcc_symbol_table_check_upwards_for_declaration(name, row);
 	if(!row){
-		//raise_error(1, check, identifier->node, "'%s' undeclared (first use in this function).", name);
+		raise_error(1, check, identifier->node, "'%s' undeclared (first use in this function).", name);
 		return get_new_data_type();
 	}
 

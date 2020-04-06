@@ -67,7 +67,7 @@ struct mcc_ast_expression *mcc_ast_new_expression_unary_op(enum mcc_ast_unary_op
 	return expr;
 }
 
-struct mcc_ast_expression *mcc_ast_new_expression_variable(char *identifier)
+struct mcc_ast_expression *mcc_ast_new_expression_variable(struct mcc_ast_identifier *identifier)
 {
 
 	assert(identifier);
@@ -77,15 +77,14 @@ struct mcc_ast_expression *mcc_ast_new_expression_variable(char *identifier)
 		return NULL;
 	}
 
-	struct mcc_ast_identifier *id = mcc_ast_new_identifier(identifier);
-
 	expr->type = MCC_AST_EXPRESSION_TYPE_VARIABLE;
-	expr->identifier = id;
+	expr->identifier = identifier;
 
 	return expr;
 }
 
-struct mcc_ast_expression *mcc_ast_new_expression_array_element(char *identifier, struct mcc_ast_expression *index)
+struct mcc_ast_expression *mcc_ast_new_expression_array_element(struct mcc_ast_identifier *identifier,
+																struct mcc_ast_expression *index)
 {
 
 	assert(identifier);
@@ -96,10 +95,8 @@ struct mcc_ast_expression *mcc_ast_new_expression_array_element(char *identifier
 		return NULL;
 	}
 
-	struct mcc_ast_identifier *id = mcc_ast_new_identifier(identifier);
-
 	expr->type = MCC_AST_EXPRESSION_TYPE_ARRAY_ELEMENT;
-	expr->array_identifier = id;
+	expr->array_identifier = identifier;
 	expr->index = index;
 
 	return expr;
@@ -183,7 +180,8 @@ struct mcc_ast_type *mcc_ast_new_type(enum mcc_ast_types type)
 // ------------------------------------------------------------------
 // Declarations
 
-struct mcc_ast_declaration *mcc_ast_new_variable_declaration(enum mcc_ast_types type, char *identifier)
+struct mcc_ast_declaration *mcc_ast_new_variable_declaration(enum mcc_ast_types type, 
+															 struct mcc_ast_identifier* identifier)
 {
 
 	assert(identifier);
@@ -193,12 +191,10 @@ struct mcc_ast_declaration *mcc_ast_new_variable_declaration(enum mcc_ast_types 
 		return NULL;
 	}
 
-	struct mcc_ast_identifier *id = mcc_ast_new_identifier(identifier);
-
 	struct mcc_ast_type *newtype = mcc_ast_new_type(type);
 
 	decl->variable_type = newtype;
-	decl->variable_identifier = id;
+	decl->variable_identifier = identifier;
 	decl->declaration_type = MCC_AST_DECLARATION_TYPE_VARIABLE;
 
 	return decl;
@@ -213,7 +209,8 @@ void mcc_ast_delete_variable_declaration(struct mcc_ast_declaration *decl)
 }
 
 struct mcc_ast_declaration *
-mcc_ast_new_array_declaration(enum mcc_ast_types type, struct mcc_ast_literal *size, char *identifier)
+mcc_ast_new_array_declaration(enum mcc_ast_types type, struct mcc_ast_literal *size, 
+													   struct mcc_ast_identifier *identifier)
 {
 
 	assert(identifier);
@@ -224,12 +221,10 @@ mcc_ast_new_array_declaration(enum mcc_ast_types type, struct mcc_ast_literal *s
 		return NULL;
 	}
 
-	struct mcc_ast_identifier *id = mcc_ast_new_identifier(identifier);
-
 	struct mcc_ast_type *newtype = mcc_ast_new_type(type);
 
 	array_decl->array_type = newtype;
-	array_decl->array_identifier = id;
+	array_decl->array_identifier = identifier;
 	array_decl->array_size = size;
 	array_decl->declaration_type = MCC_AST_DECLARATION_TYPE_ARRAY;
 
@@ -261,7 +256,8 @@ void mcc_ast_delete_declaration(struct mcc_ast_declaration *decl)
 // ------------------------------------------------------------------
 // Assignments
 
-struct mcc_ast_assignment *mcc_ast_new_variable_assignment(char *identifier, struct mcc_ast_expression *assigned_value)
+struct mcc_ast_assignment *mcc_ast_new_variable_assignment(struct mcc_ast_identifier *identifier, 
+														   struct mcc_ast_expression *assigned_value)
 {
 	assert(identifier);
 	assert(assigned_value);
@@ -269,13 +265,13 @@ struct mcc_ast_assignment *mcc_ast_new_variable_assignment(char *identifier, str
 	if (assignment == NULL) {
 		return NULL;
 	}
-	assignment->variable_identifier = mcc_ast_new_identifier(identifier);
+	assignment->variable_identifier = identifier;
 	assignment->variable_assigned_value = assigned_value;
 	assignment->assignment_type = MCC_AST_ASSIGNMENT_TYPE_VARIABLE;
 	return assignment;
 }
 
-struct mcc_ast_assignment *mcc_ast_new_array_assignment(char *identifier,
+struct mcc_ast_assignment *mcc_ast_new_array_assignment(struct mcc_ast_identifier *identifier,
                                                         struct mcc_ast_expression *index,
                                                         struct mcc_ast_expression *assigned_value)
 {
@@ -287,7 +283,7 @@ struct mcc_ast_assignment *mcc_ast_new_array_assignment(char *identifier,
 	if (assignment == NULL) {
 		return NULL;
 	}
-	assignment->array_identifier = mcc_ast_new_identifier(identifier);
+	assignment->array_identifier = identifier;
 	assignment->array_assigned_value = assigned_value;
 	assignment->array_index = index;
 	assignment->assignment_type = MCC_AST_ASSIGNMENT_TYPE_ARRAY;
