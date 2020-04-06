@@ -18,7 +18,6 @@
 
 // Compute string length of source code location
 static int get_sloc_string_size(struct mcc_ast_node node){
-	printf("hallo: %s", node.sloc.filename);
 	// Hard coded 6 due to rounding and colons
 	return floor(log10(not_zero(node.sloc.start_col)) + log10(not_zero(node.sloc.start_line))) 
 	       + strlen(node.sloc.filename) + 6;
