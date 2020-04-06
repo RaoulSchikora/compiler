@@ -888,7 +888,7 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_multiple_function_defi
 
 // check scopes individually
 static enum mcc_semantic_check_error_code check_scope_for_multiple_variable_declaration(struct mcc_symbol_table_scope *scope,
-                                                          struct mcc_semantic_check *check, struct mcc_ast_node node)
+                                                          struct mcc_semantic_check *check)
 {
 	assert(scope);
 	assert(check);
@@ -903,12 +903,11 @@ static enum mcc_semantic_check_error_code check_scope_for_multiple_variable_decl
 		return error;
 	}
 
-
 	struct mcc_symbol_table_row *row_to_check = scope->head;
 
 	// Recursively check child scope of current row
 	if (row_to_check->child_scope) {
-		error = check_scope_for_multiple_variable_declaration(row_to_check->child_scope, check,node);
+		error = check_scope_for_multiple_variable_declaration(row_to_check->child_scope, check);
 		if(error != MCC_SEMANTIC_CHECK_ERROR_OK){
 			return error;
 		}
@@ -920,13 +919,13 @@ static enum mcc_semantic_check_error_code check_scope_for_multiple_variable_decl
 		row_to_compare = row_to_check->next_row;
 
 		if (strcmp(row_to_check->name, row_to_compare->name) == 0) {
-			return raise_error(1, check, node, "Previous declaraion of `%s` was here", row_to_check->name);
+			return raise_error(1, check, *(row_to_compare->node), "redefinition of '%s'.", row_to_check->name);
 		}
 
 		while (row_to_compare->next_row) {
 			row_to_compare = row_to_compare->next_row;
 			if (strcmp(row_to_check->name, row_to_compare->name) == 0) {
-				return raise_error(1, check, node, "Previous declaraion of `%s` was here", row_to_check->name);
+				return raise_error(1, check, *(row_to_compare->node), "redefinition of '%s'.", row_to_check->name);
 			}
 		}
 
@@ -934,7 +933,7 @@ static enum mcc_semantic_check_error_code check_scope_for_multiple_variable_decl
 	}
 
 	if (row_to_check->child_scope) {
-		check_scope_for_multiple_variable_declaration(row_to_check->child_scope, check,node);
+		check_scope_for_multiple_variable_declaration(row_to_check->child_scope, check);
 	}
 	return MCC_SEMANTIC_CHECK_ERROR_OK;
 }
@@ -956,7 +955,7 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_multiple_variable_decl
 
 	do {
 		if (function_row->child_scope) {
-			error = check_scope_for_multiple_variable_declaration(function_row->child_scope, check,ast->node);
+			error = check_scope_for_multiple_variable_declaration(function_row->child_scope, check);
 		}
 		if (check->status != MCC_SEMANTIC_CHECK_OK){
 			return error;
