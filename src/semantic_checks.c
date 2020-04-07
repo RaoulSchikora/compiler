@@ -1054,6 +1054,50 @@ struct function_arguments_userdata {
 	struct mcc_ast_program *program;
 };
 
+static int get_number_of_params(struct mcc_ast_parameters *parameters)
+{
+	assert(parameters);
+
+	if(parameters->is_empty){
+		return 0;
+	}
+	int num = 1;
+	while(parameters->next_parameters){
+		num += 1;
+		parameters = parameters->next_parameters;
+	}
+	return num;
+}
+
+static int get_number_of_args(struct mcc_ast_arguments *arguments)
+{
+	assert(arguments);
+
+	if(arguments->is_empty){
+		return 0;
+	}
+	int num = 1;
+	while(arguments->next_arguments){
+		num += 1;
+		arguments = arguments->next_arguments;
+	}
+	return num;
+}
+
+static struct mcc_ast_parameters *get_params_from_ast(struct mcc_ast_program *ast, const char *name)
+{
+	assert(ast);
+	assert(name);
+	struct mcc_ast_parameters *params = NULL;
+	do {
+		if (strcmp(ast->function->identifier->identifier_name, name) == 0) {
+			params = ast->function->parameters;
+		}
+		ast = ast->next_function;
+	} while (ast);
+	
+	return params;
+}
 
 // callback for checking correctness of function calls
 static void cb_function_arguments_expression_function_call(struct mcc_ast_expression *expression, void *userdata)
@@ -1069,55 +1113,40 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
 	if (check->status == MCC_SEMANTIC_CHECK_FAIL) {
 		return;
 	}
-
 	// Get the used arguments from the AST:
 	struct mcc_ast_arguments *args = expression->arguments;
-
 	// Get the required parameters from the function declaration
-	struct mcc_ast_parameters *pars = NULL;
-	do {
-		if (strcmp(ast->function->identifier->identifier_name,
-		           expression->function_identifier->identifier_name) == 0) {
-			pars = ast->function->parameters;
-		}
-		ast = ast->next_function;
-	} while (ast);
-
+	struct mcc_ast_parameters *params = get_params_from_ast(ast, expression->function_identifier->identifier_name);
 	// No parameters found -> unkown function
-	if (!pars) {
-		if (!pars) {
-			raise_error(1, check, expression->node, "Undefined reference to `%s`",false,
-			            expression->function_identifier->identifier_name);
-			return;
-		}
+	if (!params) {
+		raise_error(1, check, expression->node, "Undefined reference to '%s'",false,
+		            expression->function_identifier->identifier_name);
+		return;
 	}
 
-	if (pars->is_empty) {
-		// Expression is set to NULL during parsing, if no args are given
-		if (expression->arguments->expression) {
-			raise_error(1, check, expression->node, "Too many arguments to function `%s`",false,
+	int num_params = get_number_of_params(params);
+	int num_args = get_number_of_args(args);
+	if(num_params == 0 && num_args == 0){
+		// nothing to check, since no params and no args
+		return;
+	} else if(num_args-num_params  > 0){
+		raise_error(1, check, expression->node, "Too many arguments to function '%s'",false,
+					expression->function_identifier->identifier_name);
+		return;
+	} else if (num_args-num_params < 0){
+		raise_error(1, check, expression->node, "Too few arguments to function '%s'",false,
 			            expression->function_identifier->identifier_name);
 			return;
-		}
-		// No arguments needed and none given: return
-		return;
 	}
 
 	struct mcc_semantic_check_data_type *type_expr = NULL, *type_decl = NULL;
 	do {
-		// Too little arguments (if no arguments are given, args exists, but args->expr is set to NULL)
-		if (!args->expression) {
-			raise_error(1, check, expression->node, "Too few arguments to function `%s`",false,
-			            expression->function_identifier->identifier_name);
-			return;
-		}
-
 		// Check for type error
 		type_expr = check_and_get_type(args->expression,check);
-		type_decl = check_and_get_type(pars->declaration,check);
+		type_decl = check_and_get_type(params->declaration,check);
 		if (!types_equal(type_expr,type_decl)) {
-			raise_error(2, check, expression->node, "Expected %s but argument is of type %s", true, to_string(type_decl),
-			            to_string(type_expr));
+			raise_error(2, check, expression->node, "Expected '%s' but argument is of type '%s'", true,
+			            to_string(type_decl), to_string(type_expr));
 			free(type_expr);
 			free(type_decl);
 			return;
@@ -1125,15 +1154,9 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
 		free(type_expr);
 		free(type_decl);
 
-		pars = pars->next_parameters;
+		params = params->next_parameters;
 		args = args->next_arguments;
-	} while (pars);
-
-	if (args) {
-		// Too many arguments
-		raise_error(1, check, expression->node, "Too many arguments to function `%s`", true,
-					expression->function_identifier->identifier_name);
-	}
+	} while (params && args);
 	return;
 }
 
