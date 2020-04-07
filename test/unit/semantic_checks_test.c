@@ -1198,6 +1198,30 @@ void function_arguments2(CuTest *tc)
 	mcc_semantic_check_delete_single_check(check);
 }
 
+// Calling a function with the wrong number of parameters
+void function_arguments3(CuTest *tc)
+{
+	// Define test input and create symbol table
+	const char input[] = "int main(){return 0;} float func(int a, float b){return func(a);}";
+	struct mcc_parser_result parser_result;
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
+	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+	struct mcc_semantic_check *check = mcc_semantic_check_initialize_check();
+	CuAssertPtrNotNull(tc,check);
+	enum mcc_semantic_check_error_code error = mcc_semantic_check_run_function_arguments((&parser_result)->program, table, check);
+	CuAssertIntEquals(tc,MCC_SEMANTIC_CHECK_ERROR_OK,error);
+
+	CuAssertPtrNotNull(tc, check->error_buffer);
+	CuAssertPtrNotNull(tc, check);
+	CuAssertIntEquals(tc, check->status, MCC_SEMANTIC_CHECK_FAIL);
+
+	// Cleanup
+	mcc_ast_delete(parser_result.program);
+	mcc_symbol_table_delete_table(table);
+	mcc_semantic_check_delete_single_check(check);
+}
+
 // invalid array operation, assignment of whole array
 void invalid_array_operation(CuTest *tc)
 {
@@ -1366,6 +1390,7 @@ void invalid_array_operation5(CuTest *tc)
 	TEST(function_return_value3) \
 	TEST(function_arguments1) \
 	TEST(function_arguments2) \
+	TEST(function_arguments3) \
 	TEST(invalid_array_operation) \
 	TEST(invalid_array_operation2) \
 	TEST(invalid_array_operation3) \
