@@ -47,11 +47,24 @@ static enum mcc_semantic_check_error_code write_error_message_to_check_with_sloc
 
 enum mcc_semantic_check_error_code raise_error(int num, struct mcc_semantic_check *check,
 														struct mcc_ast_node node,
-														const char *format_string, ...)
+														const char *format_string, 
+														bool is_from_heap,...)
 {
 	assert(format_string);
+	va_list args;
 
+	// Early abort
 	if(check->status == MCC_SEMANTIC_CHECK_FAIL){
+		// If strings are from heap, free them
+		if(is_from_heap){
+			va_start(args, is_from_heap);
+			char *temp;
+			for (int i = 0; i < num; i++) {
+				temp = va_arg(args, char *);
+				free(temp);
+			}
+			va_end(args);
+		}
 		return MCC_SEMANTIC_CHECK_ERROR_OK;
 	}
 
@@ -59,10 +72,9 @@ enum mcc_semantic_check_error_code raise_error(int num, struct mcc_semantic_chec
 
 	// Get all the args & determine string length
 	size_t args_size = 0;
-	va_list args;
-	va_start(args, format_string);
+	va_start(args, is_from_heap);
 	for (int i = 0; i < num; i++){
-		args_size += strlen(va_arg(args, const char *));
+		args_size += strlen(va_arg(args, char *));
 	}
 	va_end(args);
 
@@ -74,7 +86,7 @@ enum mcc_semantic_check_error_code raise_error(int num, struct mcc_semantic_chec
 	}
 
 	// Get args again and print string into buffer
-	va_start(args, format_string);
+	va_start(args, is_from_heap);
 	if( 0 > vsnprintf(buffer,size,format_string, args)){
 		va_end(args);
 		free(buffer);
@@ -86,6 +98,19 @@ enum mcc_semantic_check_error_code raise_error(int num, struct mcc_semantic_chec
 	// Write buffer string into check
 	error = write_error_message_to_check_with_sloc(check,node,buffer);
 	free(buffer);
+
+	// If strings are from heap, free them
+	if(is_from_heap){
+		va_start(args, is_from_heap);
+		char *temp;
+		for (int i = 0; i < num; i++) {
+			temp = va_arg(args, char *);
+			free(temp);
+		}
+		va_end(args);
+	}
+
+
 	return error;
 }
 
@@ -375,11 +400,11 @@ static struct mcc_semantic_check_data_type *check_and_get_type_binary_expression
 	}
 
 	if(!success || lhs->is_array || rhs->is_array || is_string(lhs) || is_string(rhs)){
-		raise_error(2, check, expression->node, "operation on incompatible types '%s' and '%s'.", to_string(lhs), to_string(rhs));
+		raise_error(2, check, expression->node, "operation on incompatible types '%s' and '%s'.", true, to_string(lhs), to_string(rhs));
 		lhs->type = MCC_SEMANTIC_CHECK_UNKNOWN;
 	}
 	if(success && (lhs->type == MCC_SEMANTIC_CHECK_UNKNOWN)){
-		raise_error(0, check, expression->node, "unknown type.");
+		raise_error(0, check, expression->node, "unknown type.",false);
 	}
 	if (!(op == MCC_AST_BINARY_OP_ADD || op == MCC_AST_BINARY_OP_SUB || op == MCC_AST_BINARY_OP_MUL || op == MCC_AST_BINARY_OP_DIV)){
 		lhs->type = MCC_SEMANTIC_CHECK_BOOL;
@@ -399,7 +424,7 @@ struct mcc_semantic_check_data_type *check_and_get_type_unary_expression(struct 
 	enum mcc_ast_unary_op u_op = expression->u_op;
 
 	if(child->is_array || is_string(child) || ((u_op == MCC_AST_UNARY_OP_NEGATIV) && is_bool(child)) || ((u_op == MCC_AST_UNARY_OP_NOT) && !is_bool(child)) ){
-		raise_error(1, check, expression->node, "unary operation not compatible with '%s'.", to_string(child));
+		raise_error(1, check, expression->node, "unary operation not compatible with '%s'.", true, to_string(child));
 		child->type = MCC_SEMANTIC_CHECK_UNKNOWN;
 	}
 	return child;
@@ -416,11 +441,11 @@ static struct mcc_semantic_check_data_type *check_and_get_type_array_element(str
 	struct mcc_semantic_check_data_type *identifier = check_and_get_type(array_element->array_identifier, check, array_element->array_row);
 	char *name = array_element->array_identifier->identifier_name;
 	if(!is_int(index)){
-		raise_error(1, check, array_element->node, "expected type 'INT' but was '%s'.", to_string(index));
+		raise_error(1, check, array_element->node, "expected type 'INT' but was '%s'.", true, to_string(index));
 		identifier->type = MCC_SEMANTIC_CHECK_UNKNOWN;
 	}
 	if(!identifier->is_array){
-		raise_error(1, check, array_element->node, "subscripted value '%s' is not an array.", name);
+		raise_error(1, check, array_element->node, "subscripted value '%s' is not an array.",false, name);
 		identifier->type = MCC_SEMANTIC_CHECK_UNKNOWN;
 	}
 	identifier->is_array = false;
@@ -441,7 +466,7 @@ static struct mcc_semantic_check_data_type *check_and_get_type_function_call(str
 	row = mcc_symbol_table_check_for_function_declaration(name, row);
 
 	if(!row){
-		raise_error(1, check, function_call->node, "'%s' undeclared (first use in this function).", name);
+		raise_error(1, check, function_call->node, "'%s' undeclared (first use in this function).",false, name);
 		return get_new_data_type();
 	} else {
 		return get_data_type_from_row(row);
@@ -517,7 +542,7 @@ struct mcc_semantic_check_data_type *check_and_get_type_identifier(struct mcc_as
 	char *name = identifier->identifier_name;
 	row = mcc_symbol_table_check_upwards_for_declaration(name, row);
 	if(!row){
-		raise_error(1, check, identifier->node, "'%s' undeclared (first use in this function).", name);
+		raise_error(1, check, identifier->node, "'%s' undeclared (first use in this function).",false, name);
 		return get_new_data_type();
 	}
 
@@ -555,7 +580,7 @@ static void cb_return_value(struct mcc_ast_statement *statement, void *r_v_userd
 		return_type->type = MCC_SEMANTIC_CHECK_VOID;
 	}
 	if(!types_equal(function_type, return_type)){
-		userdata->error = raise_error(2, check, statement->return_value->node, "return value of type '%s', expected '%s'.", to_string(return_type), to_string(function_type));
+		userdata->error = raise_error(2, check, statement->return_value->node, "return value of type '%s', expected '%s'.", true, to_string(return_type), to_string(function_type));
 	}
 	free(return_type);
 }
@@ -636,11 +661,11 @@ static void cb_type_conversion_assignment(struct mcc_ast_statement *statement, v
 			lhs_type->array_size = -1;
 		}
 		if(index && !is_int(index)){
-			userdata->error = raise_error(0, check, assignment->node, "array subscript is not an integer.");
+			userdata->error = raise_error(0, check, assignment->node, "array subscript is not an integer.",false);
 		} else if(!types_equal(lhs_type, rhs_type)){
-			userdata->error = raise_error(2, check, assignment->node, "implicit type conversion. Expected '%s' but was '%s'", to_string(lhs_type), to_string(rhs_type));
+			userdata->error = raise_error(2, check, assignment->node, "implicit type conversion. Expected '%s' but was '%s'", true, to_string(lhs_type), to_string(rhs_type));
 		} else if(lhs_type->is_array){
-			userdata->error = raise_error(0, check, assignment->node, "assignment to Variable of array type not possible.");
+			userdata->error = raise_error(0, check, assignment->node, "assignment to Variable of array type not possible.",false);
 		}
 	}
 	free(lhs_type);
@@ -662,7 +687,7 @@ static void cb_type_check_if_stmt(struct mcc_ast_statement *statement, void *dat
 	if(!type){
 		userdata->error = MCC_SEMANTIC_CHECK_ERROR_MALLOC_FAILED; 
 	} else if(!is_bool(type)){
-		userdata->error = raise_error(1, check, if_condition->node, "condition of if-statement of type '%s', expected type 'BOOL'.", to_string(type));
+		userdata->error = raise_error(1, check, if_condition->node, "condition of if-statement of type '%s', expected type 'BOOL'.", true, to_string(type));
 	}
 	free(type);
 }
@@ -681,7 +706,7 @@ static void cb_type_check_if_else_stmt(struct mcc_ast_statement *statement, void
 	if(!type){
 		userdata->error = MCC_SEMANTIC_CHECK_ERROR_MALLOC_FAILED; 
 	}else if(!is_bool(type)){
-		userdata->error = raise_error(1, check, if_condition->node, "condition of if-statement of type '%s', expected type 'BOOL'.", to_string(type));
+		userdata->error = raise_error(1, check, if_condition->node, "condition of if-statement of type '%s', expected type 'BOOL'.", true, to_string(type));
 	}
 	free(type);
 }
@@ -700,7 +725,7 @@ static void cb_type_check_while_stmt(struct mcc_ast_statement *statement, void *
 	if(!type){
 		userdata->error = MCC_SEMANTIC_CHECK_ERROR_MALLOC_FAILED;
 	} else if(!is_bool(type)){
-		userdata->error = raise_error(1, check, while_condition->node, "condition of while-loop of type '%s', expected type 'BOOL'.", to_string(type));
+		userdata->error = raise_error(1, check, while_condition->node, "condition of while-loop of type '%s', expected type 'BOOL'.", true, to_string(type));
 	}
 	free(type);
 }
@@ -823,7 +848,7 @@ static enum mcc_semantic_check_error_code run_nonvoid_check(struct mcc_ast_funct
 
 	if(recursively_check_nonvoid_property(function->compound_stmt) == false){
 		return raise_error(1, check, function->node,
-		            "control reaches end of non-void function '%s'.",
+		            "control reaches end of non-void function '%s'.",false,
 		            function->identifier->identifier_name);
 	}
 	return MCC_SEMANTIC_CHECK_ERROR_OK;
@@ -872,12 +897,14 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_main_function(struct m
 		if (strcmp(ast->function->identifier->identifier_name, "main") == 0) {
 			number_of_mains += 1;
 			if (number_of_mains > 1) {
-				error_code = raise_error(0, check, original_ast->node, "Too many main functions defined.");
+				error_code = raise_error(0, check, original_ast->node, "Too many main functions defined.",false);
 				return error_code;
 			}
 			if (!(ast->function->parameters->is_empty)) {
-				error_code = raise_error(0, check, original_ast->node, "Main has wrong signature. "
-																		"Must be `int main()`.");
+				error_code = raise_error(0, check, original_ast->node,
+				                         "Main has wrong signature. "
+				                         "Must be `int main()`.",
+				                         false);
 				return error_code;
 			}
 		}
@@ -885,7 +912,7 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_main_function(struct m
 	} while (ast) ;
 
 	if (number_of_mains == 0) {
-		error_code = raise_error(0, check, original_ast->node, "No main function defined.");
+		error_code = raise_error(0, check, original_ast->node, "No main function defined.",false);
 		return error_code;
 	}
 
@@ -918,7 +945,7 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_multiple_function_defi
 
 		// if name of program_to_check and name of program_to_compare equals
 		if (strcmp(name_of_check, name_of_compare) == 0) {
-			error = raise_error(1, check, program_to_check->node, "redefinition of '%s'.", name_of_compare);
+			error = raise_error(1, check, program_to_check->node, "redefinition of '%s'.",false, name_of_compare);
 			return error;
 		}
 		// compare all next_functions
@@ -927,7 +954,7 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_multiple_function_defi
 			char *name_of_compare = program_to_compare->function->identifier->identifier_name;
 			// if name of program_to_check and name of program_to_compare equals
 			if (strcmp(name_of_check, name_of_compare) == 0) {
-				error = raise_error(1, check, program_to_check->node, "redefinition of '%s'.", name_of_compare);
+				error = raise_error(1, check, program_to_check->node, "redefinition of '%s'.",false, name_of_compare);
 				return error;
 			}
 		}
@@ -973,13 +1000,13 @@ static enum mcc_semantic_check_error_code check_scope_for_multiple_variable_decl
 		row_to_compare = row_to_check->next_row;
 
 		if (strcmp(row_to_check->name, row_to_compare->name) == 0) {
-			return raise_error(1, check, *(row_to_compare->node), "redefinition of '%s'.", row_to_check->name);
+			return raise_error(1, check, *(row_to_compare->node), "redefinition of '%s'.",false, row_to_check->name);
 		}
 
 		while (row_to_compare->next_row) {
 			row_to_compare = row_to_compare->next_row;
 			if (strcmp(row_to_check->name, row_to_compare->name) == 0) {
-				return raise_error(1, check, *(row_to_compare->node), "redefinition of '%s'.", row_to_check->name);
+				return raise_error(1, check, *(row_to_compare->node), "redefinition of '%s'.",false, row_to_check->name);
 			}
 		}
 
@@ -1059,7 +1086,7 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
 	// No parameters found -> unkown function
 	if (!pars) {
 		if (!pars) {
-			raise_error(1, check, expression->node, "Undefined reference to `%s`",
+			raise_error(1, check, expression->node, "Undefined reference to `%s`",false,
 			            expression->function_identifier->identifier_name);
 			return;
 		}
@@ -1068,7 +1095,7 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
 	if (pars->is_empty) {
 		// Expression is set to NULL during parsing, if no args are given
 		if (expression->arguments->expression) {
-			raise_error(1, check, expression->node, "Too many arguments to function `%s`",
+			raise_error(1, check, expression->node, "Too many arguments to function `%s`",false,
 			            expression->function_identifier->identifier_name);
 			return;
 		}
@@ -1080,7 +1107,7 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
 	do {
 		// Too little arguments (if no arguments are given, args exists, but args->expr is set to NULL)
 		if (!args->expression) {
-			raise_error(1, check, expression->node, "Too few arguments to function `%s`",
+			raise_error(1, check, expression->node, "Too few arguments to function `%s`",false,
 			            expression->function_identifier->identifier_name);
 			return;
 		}
@@ -1089,12 +1116,8 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
 		type_expr = check_and_get_type(args->expression,check);
 		type_decl = check_and_get_type(pars->declaration,check);
 		if (!types_equal(type_expr,type_decl)) {
-			char *decl_string = to_string(type_decl);
-			char *expr_string = to_string(type_expr);
-			raise_error(2, check, expression->node, "Expected %s but argument is of type %s", decl_string,
-			            expr_string);
-			free(expr_string);
-			free(decl_string);
+			raise_error(2, check, expression->node, "Expected %s but argument is of type %s", true, to_string(type_decl),
+			            to_string(type_expr));
 			free(type_expr);
 			free(type_decl);
 			return;
@@ -1108,7 +1131,7 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
 
 	if (args) {
 		// Too many arguments
-		raise_error(1, check, expression->node, "Too many arguments to function `%s`",
+		raise_error(1, check, expression->node, "Too many arguments to function `%s`", true,
 					expression->function_identifier->identifier_name);
 	}
 	return;
