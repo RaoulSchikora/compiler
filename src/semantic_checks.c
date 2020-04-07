@@ -291,26 +291,27 @@ static char* to_string(struct mcc_semantic_check_data_type *type)
 {
 	assert(type);
 
-	char buffer[12 + (int) floor(log10(not_zero(type->array_size)))];
+	size_t size = 12 + (int)floor(log10(not_zero(type->array_size)));
+	char buffer[size];
 	switch (type->type)
 	{
 	case MCC_SEMANTIC_CHECK_INT:
-		(type->is_array) ? sprintf(buffer, "INT[%d]", type->array_size) : sprintf(buffer, "INT");
+		(type->is_array) ? snprintf(buffer, size, "INT[%d]", type->array_size) : snprintf(buffer, size, "INT");
 		break;
 	case MCC_SEMANTIC_CHECK_FLOAT:
-		(type->is_array) ? sprintf(buffer, "FLOAT[%d]", type->array_size) : sprintf(buffer, "FLOAT");
+		(type->is_array) ? snprintf(buffer, size, "FLOAT[%d]", type->array_size) : snprintf(buffer, size, "FLOAT");
 		break;
 	case MCC_SEMANTIC_CHECK_BOOL:
-		(type->is_array) ? sprintf(buffer, "BOOL[%d]", type->array_size) : sprintf(buffer, "BOOL");
+		(type->is_array) ? snprintf(buffer, size, "BOOL[%d]", type->array_size) : snprintf(buffer, size, "BOOL");
 		break;
 	case MCC_SEMANTIC_CHECK_STRING:
-		(type->is_array) ? sprintf(buffer, "STRING[%d]", type->array_size) : sprintf(buffer, "STRING");
+		(type->is_array) ? snprintf(buffer, size, "STRING[%d]", type->array_size) : snprintf(buffer, size, "STRING");
 		break;
 	case MCC_SEMANTIC_CHECK_VOID:
-		sprintf(buffer, "VOID");
+		snprintf(buffer, size, "VOID");
 		break;	
 	default:
-		sprintf(buffer, "UNKNOWN");
+		snprintf(buffer, size, "UNKNOWN");
 		break;
 	}
 	char *string = malloc(sizeof(char) * strlen(buffer) + 1);
@@ -612,7 +613,7 @@ static void cb_type_conversion_assignment(struct mcc_ast_statement *statement, v
 		index = check_and_get_type(assignment->array_index, check);
 		break;
 	default:
-		break;
+		return;
 	}
 
 	if(!lhs_type || !rhs_type || (!index && assignment->assignment_type == MCC_AST_ASSIGNMENT_TYPE_ARRAY)){
