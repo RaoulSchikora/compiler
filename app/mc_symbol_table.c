@@ -115,23 +115,44 @@ int main(int argc, char *argv[])
 		result = *(mc_ast_to_dot_merge_results(parse_results, command_line->arguments->size));
 	}
 
-	// ---------------------------------------------------------------------- Print symbol table in dot format
+	// ---------------------------------------------------------------------- Print symbol table
 
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&result)->program);
 
 	// Print to file or stdout
-	if (command_line->options->write_to_file == true) {
-		FILE *out = fopen(command_line->options->output_file, "a");
-		if (out == NULL) {
-			mcc_ast_delete_program(result.program);
-			mcc_symbol_table_delete_table(table);
-			mc_cl_parser_delete_command_line_parser(command_line);
-			return EXIT_FAILURE;
+	if(!command_line->options->print_dot){
+		if (command_line->options->write_to_file == true) {
+			FILE *out = fopen(command_line->options->output_file, "a");
+			if (out == NULL) {
+				mcc_ast_delete_program(result.program);
+				mcc_symbol_table_delete_table(table);
+				mc_cl_parser_delete_command_line_parser(command_line);
+				return EXIT_FAILURE;
+			}
+			mcc_symbol_table_print(table, out);
+			fclose(out);
+		} else {
+			mcc_symbol_table_print(table, stdout);
 		}
-		mcc_symbol_table_print(table, out);
-		fclose(out);
-	} else {
-		mcc_symbol_table_print(table, stdout);
+	}
+
+	// ---------------------------------------------------------------------- Print symbol table with flag -dot set
+
+	// Print in dot format to file or stdout
+	if(command_line->options->print_dot){
+		if (command_line->options->write_to_file == true) {
+			FILE *out = fopen(command_line->options->output_file, "a");
+			if (out == NULL) {
+				mcc_ast_delete_program(result.program);
+				mcc_symbol_table_delete_table(table);
+				mc_cl_parser_delete_command_line_parser(command_line);
+				return EXIT_FAILURE;
+			}
+			mcc_symbol_table_print_dot(table, out);
+			fclose(out);
+		} else {
+			mcc_symbol_table_print_dot(table, stdout);
+		}
 	}
 
 	// ---------------------------------------------------------------------- Clean up

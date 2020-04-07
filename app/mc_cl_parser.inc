@@ -32,6 +32,7 @@ struct mc_cl_parser_options {
     bool print_help;
     bool limited_scope;
     char *function;
+	bool print_dot;
     enum mc_cl_parser_mode mode;
 };
 
@@ -132,6 +133,9 @@ static void print_usage(const char *prg, const char *usage_string)
 	printf("  -o, --output <file>       write the output to <file> (defaults to stdout)\n");
 	printf("  -f, --function <name>     limit scope to the given function\n");
 	printf("  -t, --test                parse rules of the grammar that are not a program\n");
+	if(strcmp(prg,"./mc_symbol_table")==0){
+		printf("  -d, --dot                 print in dot-format\n");
+	}
 }
 
 // from: https://stackoverflow.com/questions/2496668
@@ -180,6 +184,7 @@ static struct mc_cl_parser_options *parse_options(int argc, char *argv[])
 	options->print_help = false;
 	options->limited_scope = false;
 	options->function = NULL;
+	options->print_dot = false;
 	options->mode = MC_CL_PARSER_MODE_PROGRAM;
 	if (argc == 1) {
 		options->print_help = true;
@@ -189,10 +194,11 @@ static struct mc_cl_parser_options *parse_options(int argc, char *argv[])
 	static struct option long_options[] = {{"help", no_argument, NULL, 'h'},
 	                                       {"output", required_argument, NULL, 'o'},
 	                                       {"function", required_argument, NULL, 'f'},
+										   {"dot", no_argument, NULL, 'd'},
 	                                       {NULL, 0, NULL, 0}};
 
 	int c;
-	while ((c = getopt_long(argc, argv, "o:hf:t", long_options, NULL)) != -1) {
+	while ((c = getopt_long(argc, argv, "o:hf:td", long_options, NULL)) != -1) {
 		switch (c) {
 		case 'o':
 			options->write_to_file = true;
@@ -206,10 +212,17 @@ static struct mc_cl_parser_options *parse_options(int argc, char *argv[])
 			options->mode = MC_CL_PARSER_MODE_FUNCTION;
 			options->function = optarg;
 			break;
+		case 'd':
+			options->print_dot = true;
+			break;
 		default:
 			options->print_help = true;
 			break;
 		}
+	}
+	if(strcmp(argv[0],"./mc_symbol_table")!=0){
+		options->print_dot = false;
+		options->print_help = true;
 	}
 
 	return options;
