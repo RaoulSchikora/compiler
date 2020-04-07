@@ -91,35 +91,30 @@ static void print_dot_symbol_table_row(struct mcc_symbol_table_row *row, const c
 	assert(leading_spaces);
 	assert(out);
 
-	if (row->row_type != MCC_SYMBOL_TABLE_ROW_TYPE_PSEUDO) {
-		print_dot_row(row, leading_spaces, out);
-	}
+	print_dot_row(row, leading_spaces, out);
 
-	// dont print scopes of built-ins
-	if((strcmp(row->name,"print")==0) || (strcmp(row->name,"print_int")==0) || (strcmp(row->name,"print_float")==0)){
+	// don't print scopes of built-ins
+	if((strcmp(row->name,"print")==0) || (strcmp(row->name,"print_int")==0) || (strcmp(row->name,"print_float")==0) ){
 	    return;
 	}
+	struct mcc_symbol_table_scope *child_scope = row->child_scope;
 
-	if (row->child_scope) {
-		struct mcc_symbol_table_scope *child_scope = row->child_scope;
+	int size = strlen(leading_spaces) + 8;
+	char *new_leading_spaces = (char *)malloc(sizeof(char) * size);
+	snprintf(new_leading_spaces, size, "        %s", leading_spaces);
 
-		int size = strlen(leading_spaces) + 8;
-		char *new_leading_spaces = (char *)malloc(sizeof(char) * size);
-		snprintf(new_leading_spaces, size, "        %s", leading_spaces);
-
-		while (child_scope && child_scope->head) {
-			if (row->row_structure == MCC_SYMBOL_TABLE_ROW_STRUCTURE_FUNCTION) {
-				print_dot_symbol_table_open_new_scope(out);
-			}
-			print_dot_symbol_table_scope(child_scope, new_leading_spaces, out);
-			if (row->row_structure == MCC_SYMBOL_TABLE_ROW_STRUCTURE_FUNCTION) {
-				print_dot_symbol_table_close_new_scope(out);
-			}
-			child_scope = child_scope->next_scope;
+	while (child_scope && child_scope->head && child_scope->head->row_type != MCC_SYMBOL_TABLE_ROW_TYPE_PSEUDO) {
+		if (row->row_structure == MCC_SYMBOL_TABLE_ROW_STRUCTURE_FUNCTION) {
+			print_dot_symbol_table_open_new_scope(out);
 		}
-
-		free(new_leading_spaces);
+		print_dot_symbol_table_scope(child_scope, new_leading_spaces, out);
+		if (row->row_structure == MCC_SYMBOL_TABLE_ROW_STRUCTURE_FUNCTION) {
+			print_dot_symbol_table_close_new_scope(out);
+		}
+		child_scope = child_scope->next_scope;
 	}
+
+	free(new_leading_spaces);
 }
 
 static void print_dot_symbol_table_scope(struct mcc_symbol_table_scope *scope, const char *leading_spaces, FILE *out)
