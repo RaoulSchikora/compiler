@@ -1146,11 +1146,7 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
 	struct function_arguments_userdata *data = userdata;
 	struct mcc_ast_program *ast = data->program;
 	struct mcc_semantic_check *check = data->check;
-
-	// Early abort if check already failed
-	if (check->status == MCC_SEMANTIC_CHECK_FAIL) {
-		return;
-	}
+	
 	// Get the used arguments from the AST:
 	struct mcc_ast_arguments *args = expression->arguments;
 	// Get the required parameters from the function declaration
