@@ -32,7 +32,7 @@ static enum mcc_semantic_check_error_code write_error_message_to_check_with_sloc
 	assert(string);
 
 	// +1 for terminating character
-	int size = sizeof(char) * (strlen(string) + get_sloc_string_size(node) + 1);
+	size_t size = sizeof(char) * (strlen(string) + get_sloc_string_size(node) + 1);
 	char *buffer = malloc(size);
 	if (!buffer) {
 		return MCC_SEMANTIC_CHECK_ERROR_MALLOC_FAILED;
@@ -67,7 +67,7 @@ enum mcc_semantic_check_error_code raise_error(int num, struct mcc_semantic_chec
 	va_end(args);
 
 	// Malloc buffer string
-	int size = sizeof(char) * (strlen(format_string) + args_size + 1);
+	size_t size = sizeof(char) * (strlen(format_string) + args_size + 1);
 	char *buffer = malloc(size);
 	if (!buffer) {
 		return MCC_SEMANTIC_CHECK_ERROR_MALLOC_FAILED;
@@ -291,7 +291,7 @@ static char* to_string(struct mcc_semantic_check_data_type *type)
 {
 	assert(type);
 
-	size_t size = 12 + (int)floor(log10(not_zero(type->array_size)));
+	size_t size = 12 + (size_t)floor(log10(not_zero(type->array_size)));
 	char buffer[size];
 	switch (type->type)
 	{
@@ -573,7 +573,7 @@ static void cb_type_check_return_value(struct mcc_ast_function_definition *funct
 	assert(data);
 
 	struct type_checking_userdata *t_c_userdata = data;
-	struct return_value_userdata *r_v_userdata = malloc(sizeof r_v_userdata);
+	struct return_value_userdata *r_v_userdata = malloc(sizeof(*r_v_userdata));
 	if(!r_v_userdata){
 		t_c_userdata->error = MCC_SEMANTIC_CHECK_ERROR_MALLOC_FAILED;
 		return;
@@ -581,6 +581,10 @@ static void cb_type_check_return_value(struct mcc_ast_function_definition *funct
 	r_v_userdata->check = t_c_userdata->check;
 	r_v_userdata->error = t_c_userdata->error;
 	r_v_userdata->function_type = get_new_data_type();
+	if(!r_v_userdata->function_type){
+		t_c_userdata->error = MCC_SEMANTIC_CHECK_ERROR_MALLOC_FAILED;
+		return;
+	}
 	r_v_userdata->function_type->type = ast_to_semantic_check_type(function->type);
 
 	struct mcc_ast_visitor visitor = return_value_visitor(r_v_userdata);
@@ -755,7 +759,7 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_type_check(struct mcc_
 {
 	UNUSED(symbol_table);
 
-	struct type_checking_userdata *userdata = malloc(sizeof userdata);
+	struct type_checking_userdata *userdata = malloc(sizeof(*userdata));
 	if(!userdata){
 		return MCC_SEMANTIC_CHECK_ERROR_MALLOC_FAILED;
 	}
