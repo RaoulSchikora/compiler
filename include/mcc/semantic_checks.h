@@ -44,6 +44,16 @@ struct mcc_semantic_check_data_type {
     bool is_array;
 };
 
+
+// ------------------------------------------------------------ Function: Error handling
+
+enum mcc_semantic_check_error_code mcc_semantic_check_raise_error(int num,
+                                                                  struct mcc_semantic_check *check,
+                                                                  struct mcc_ast_node node,
+                                                                  const char *format_string,
+                                                                  bool is_from_heap,
+                                                                  ...);
+
 // ------------------------------------------------------------ Function: Run all semantic checks
 
 // Generate struct for semantic check
