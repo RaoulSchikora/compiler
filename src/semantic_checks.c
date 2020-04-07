@@ -1093,8 +1093,6 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
 			free(type_decl);
 			return;
 		}
-		free(type_expr);
-		free(type_decl);
 
 		pars = pars->next_parameters;
 		args = args->next_arguments;
