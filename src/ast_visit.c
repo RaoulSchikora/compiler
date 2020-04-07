@@ -3,18 +3,14 @@
 #include <assert.h>
 
 #define visit(node, callback, visitor) \
-	do { \
-		if (callback) { \
-			(callback)(node, (visitor)->userdata); \
-		} \
-	} while (0)
+	if (callback) { \
+		(callback)(node, (visitor)->userdata); \
+	} \
 
 #define visit_if(cond, node, callback, visitor) \
-	do { \
-		if (cond) { \
-			visit(node, callback, visitor); \
-		} \
-	} while (0)
+	if (cond) { \
+		visit(node, callback, visitor); \
+	} \
 
 #define visit_if_pre_order(node, callback, visitor) \
 	visit_if((visitor)->order == MCC_AST_VISIT_PRE_ORDER, node, callback, visitor)
@@ -145,11 +141,11 @@ void mcc_ast_visit_compound_statement(struct mcc_ast_compound_statement *compoun
 	assert(visitor);
 
 	visit_if_pre_order(compound_statement, visitor->compound_statement, visitor);
-	if (compound_statement->has_next_statement == true) {
-		mcc_ast_visit(compound_statement->next_compound_statement, visitor);
-	}
-	if (compound_statement->is_empty == false) {
+	if (!compound_statement->is_empty) {
 		mcc_ast_visit(compound_statement->statement, visitor);
+	}
+	if (compound_statement->has_next_statement) {
+		mcc_ast_visit(compound_statement->next_compound_statement, visitor);
 	}
 	visit_if_post_order(compound_statement->statement, visitor->statement, visitor);
 }
@@ -194,9 +190,9 @@ void mcc_ast_visit_declaration(struct mcc_ast_declaration *declaration, struct m
 		break;
 	case MCC_AST_DECLARATION_TYPE_ARRAY:
 		visit_if_pre_order(declaration, visitor->array_declaration, visitor);
-		mcc_ast_visit(declaration->array_identifier, visitor);
-		mcc_ast_visit(declaration->array_size, visitor);
 		mcc_ast_visit(declaration->array_type, visitor);
+		mcc_ast_visit(declaration->array_size, visitor);
+		mcc_ast_visit(declaration->array_identifier, visitor);
 		visit_if_post_order(declaration, visitor->array_declaration, visitor);
 		break;
 	}
@@ -248,8 +244,8 @@ void mcc_ast_visit_function_definition(struct mcc_ast_function_definition *funct
 
 	visit_if_pre_order(function_definition, visitor->function_definition, visitor);
 	mcc_ast_visit(function_definition->identifier, visitor);
-	mcc_ast_visit(function_definition->compound_stmt, visitor);
 	mcc_ast_visit(function_definition->parameters, visitor);
+	mcc_ast_visit(function_definition->compound_stmt, visitor);
 	visit_if_post_order(function_definition, visitor->function_definition, visitor);
 }
 
@@ -259,7 +255,7 @@ void mcc_ast_visit_parameters(struct mcc_ast_parameters *parameters, struct mcc_
 	assert(visitor);
 
 	visit_if_pre_order(parameters, visitor->parameters, visitor);
-	if (parameters->has_next_parameter == true) {
+	if (parameters->has_next_parameter) {
 		mcc_ast_visit(parameters->next_parameters, visitor);
 	}
 	if (!(parameters->is_empty)) {
@@ -274,10 +270,10 @@ void mcc_ast_visit_arguments(struct mcc_ast_arguments *arguments, struct mcc_ast
 	assert(visitor);
 
 	visit_if_pre_order(arguments, visitor->arguments, visitor);
+	mcc_ast_visit(arguments->expression, visitor);
 	if (arguments->has_next_expression == true) {
 		mcc_ast_visit(arguments->next_arguments, visitor);
 	}
-	mcc_ast_visit(arguments->expression, visitor);
 	visit_if_post_order(arguments, visitor->arguments, visitor);
 }
 
@@ -287,9 +283,9 @@ void mcc_ast_visit_program(struct mcc_ast_program *program, struct mcc_ast_visit
 	assert(visitor);
 
 	visit_if_pre_order(program, visitor->program, visitor);
-	if (program->has_next_function == true) {
+	mcc_ast_visit(program->function, visitor);
+	if (program->has_next_function) {
 		mcc_ast_visit(program->next_function, visitor);
 	}
-	mcc_ast_visit(program->function, visitor);
 	visit_if_post_order(program, visitor->program, visitor);
 }
