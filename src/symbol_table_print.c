@@ -3,47 +3,36 @@
 #include <stdlib.h>
 #include <assert.h>
 
-// forward declaration
-static void print_dot_symbol_table_scope(struct mcc_symbol_table_scope *scope, const char *leading_spaces, FILE *out);
+// ------------------------------------------------------------- Forward declaration
 
-static void print_dot_symbol_table_begin(FILE *out)
+static void print_symbol_table_scope(struct mcc_symbol_table_scope *scope, const char *leading_spaces, FILE *out);
+
+// ------------------------------------------------------------- Implementation
+
+static void print_symbol_table_begin(struct mcc_symbol_table_scope *scope, FILE *out)
+{
+    assert(scope);
+	assert(out);
+
+    if(scope->head && scope->head->node){
+        struct mcc_ast_node node = *(scope->head->node);
+        fprintf(out, 
+        "----------------------------------------------------------------------\n" \
+        "symbol table: %s\n"\
+        "----------------------------------------------------------------------\n", node.sloc.filename);
+    } else {
+        fprintf(out, "symbol table\n");
+    }
+}
+
+static void print_symbol_table_end(FILE *out)
 {
 	assert(out);
 
-	fprintf(out, "digraph {\n\n"
-	             "tbl [\n\n"
-	             "shape=plaintext\n"
-	             "label=<\n\n"
-	             "<table border='0' cellborder='0' cellspacing='0'>\n"
-	             "<tr><td>Symbol Table</td></tr>\n");
+	fprintf(out, "----------------------------------------------------------------------\n");
 }
 
-static void print_dot_symbol_table_end(FILE *out)
-{
-	assert(out);
-
-	fprintf(out, "</table>\n\n"
-	             ">];\n\n"
-	             "}\n\n");
-}
-
-static void print_dot_symbol_table_open_new_scope(FILE *out)
-{
-	assert(out);
-
-	fprintf(out, "<tr><td cellpadding='2'>\n\n"
-	             "<table cellspacing='0'>\n");
-}
-
-static void print_dot_symbol_table_close_new_scope(FILE *out)
-{
-	assert(out);
-
-	fprintf(out, "</table>\n\n"
-	             "</td></tr>\n");
-}
-
-static const char *print_dot_row_type(enum mcc_symbol_table_row_type type)
+static const char *print_row_type(enum mcc_symbol_table_row_type type)
 {
 	switch (type) {
 	case MCC_SYMBOL_TABLE_ROW_TYPE_BOOL:
@@ -58,12 +47,12 @@ static const char *print_dot_row_type(enum mcc_symbol_table_row_type type)
 		return "void";
 	case MCC_SYMBOL_TABLE_ROW_TYPE_PSEUDO:
 		return "-";
+    default :
+	    return "unknown type";
 	}
-
-	return "unknown type";
 }
 
-static void print_dot_row(struct mcc_symbol_table_row *row, const char *leading_spaces, FILE *out)
+static void print_row(struct mcc_symbol_table_row *row, const char *leading_spaces, FILE *out)
 {
 	assert(row);
 	assert(leading_spaces);
@@ -71,27 +60,24 @@ static void print_dot_row(struct mcc_symbol_table_row *row, const char *leading_
 
 	switch (row->row_structure) {
 	case MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE:
-		fprintf(out, "<tr><td align='left'>%s%s (%s)</td></tr>\n", leading_spaces, row->name,
-		        print_dot_row_type(row->row_type));
+		fprintf(out, "%s%s (%s)\n", leading_spaces, row->name, print_row_type(row->row_type));
 		break;
 	case MCC_SYMBOL_TABLE_ROW_STRUCTURE_FUNCTION:
-		fprintf(out, "<tr><td align='left'>%s%s (%s function)</td></tr>\n", leading_spaces, row->name,
-		        print_dot_row_type(row->row_type));
+		fprintf(out, "%s%s (%s function)\n", leading_spaces, row->name, print_row_type(row->row_type));
 		break;
 	case MCC_SYMBOL_TABLE_ROW_STRUCTURE_ARRAY:
-		fprintf(out, "<tr><td align='left'>%s%s (%s[%d])</td></tr>\n", leading_spaces, row->name,
-		        print_dot_row_type(row->row_type), row->array_size);
+		fprintf(out, "%s%s (%s[%d])\n", leading_spaces, row->name, print_row_type(row->row_type), row->array_size);
 		break;
 	}
 }
 
-static void print_dot_symbol_table_row(struct mcc_symbol_table_row *row, const char *leading_spaces, FILE *out)
+static void print_symbol_table_row(struct mcc_symbol_table_row *row, const char *leading_spaces, FILE *out)
 {
 	assert(row);
 	assert(leading_spaces);
 	assert(out);
 
-	print_dot_row(row, leading_spaces, out);
+	print_row(row, leading_spaces, out);
 
 	// don't print scopes of built-ins
 	if((strcmp(row->name,"print")==0) || (strcmp(row->name,"print_int")==0) || (strcmp(row->name,"print_float")==0) ){
@@ -101,23 +87,17 @@ static void print_dot_symbol_table_row(struct mcc_symbol_table_row *row, const c
 
 	int size = strlen(leading_spaces) + 8;
 	char *new_leading_spaces = (char *)malloc(sizeof(char) * size);
-	snprintf(new_leading_spaces, size, "        %s", leading_spaces);
+	snprintf(new_leading_spaces, size, "    %s", leading_spaces);
 
 	while (child_scope && child_scope->head && child_scope->head->row_type != MCC_SYMBOL_TABLE_ROW_TYPE_PSEUDO) {
-		if (row->row_structure == MCC_SYMBOL_TABLE_ROW_STRUCTURE_FUNCTION) {
-			print_dot_symbol_table_open_new_scope(out);
-		}
-		print_dot_symbol_table_scope(child_scope, new_leading_spaces, out);
-		if (row->row_structure == MCC_SYMBOL_TABLE_ROW_STRUCTURE_FUNCTION) {
-			print_dot_symbol_table_close_new_scope(out);
-		}
+		print_symbol_table_scope(child_scope, new_leading_spaces, out);
 		child_scope = child_scope->next_scope;
 	}
 
 	free(new_leading_spaces);
 }
 
-static void print_dot_symbol_table_scope(struct mcc_symbol_table_scope *scope, const char *leading_spaces, FILE *out)
+static void print_symbol_table_scope(struct mcc_symbol_table_scope *scope, const char *leading_spaces, FILE *out)
 {
 	assert(scope);
 	assert(leading_spaces);
@@ -130,36 +110,32 @@ static void print_dot_symbol_table_scope(struct mcc_symbol_table_scope *scope, c
 		struct mcc_symbol_table_row *row = scope->head;
 
 		while (row) {
-			print_dot_symbol_table_row(row, leading_spaces, out);
+			print_symbol_table_row(row, leading_spaces, out);
 			row = row->next_row;
 		}
 	}
 }
 
-void mcc_symbol_table_print_dot(struct mcc_symbol_table *table, void *data)
+void mcc_symbol_table_print(struct mcc_symbol_table *table, void *data)
 {
-	assert(table);
+    assert(table);
 	assert(data);
 
 	FILE *out = data;
 
 	if (!table->head) {
-		fprintf(out, "<tr><td> ---- </td></tr>\n");
+		fprintf(out, "empty symbol table\n");
 	} else {
 
 		struct mcc_symbol_table_scope *scope = table->head;
 
-		print_dot_symbol_table_begin(out);
+		print_symbol_table_begin(scope, out);
 
 		while (scope) {
-
-			print_dot_symbol_table_open_new_scope(out);
-			print_dot_symbol_table_scope(scope, "", out);
-			print_dot_symbol_table_close_new_scope(out);
-
+			print_symbol_table_scope(scope, "", out);
 			scope = scope->next_scope;
 		}
 
-		print_dot_symbol_table_end(out);
+		print_symbol_table_end(out);
 	}
 }

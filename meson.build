@@ -34,7 +34,8 @@ mcc_src = [ 'src/ast.c',
             lgen.process('src/scanner.l'),
             pgen.process('src/parser.y'),
             'src/symbol_table.c',
-            'src/symbol_table_print.c']
+            'src/symbol_table_print.c',
+            'src/symbol_table_print_dot.c']
 
 mcc_lib = library('mcc', mcc_src,
                   c_args: '-D_POSIX_C_SOURCE=200809L',

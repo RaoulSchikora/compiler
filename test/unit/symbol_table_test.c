@@ -7,7 +7,6 @@
 #include "mcc/ast.h"
 #include "mcc/parser.h"
 #include "mcc/symbol_table.h"
-#include "mcc/symbol_table_print.h"
 
 
 void empty_table(CuTest *tc)

@@ -12,6 +12,7 @@
 #include "mcc/ast_visit.h"
 #include "mcc/parser.h"
 #include "mcc/symbol_table_print.h"
+#include "mcc/symbol_table_print_dot.h"
 
 #include "mc_cl_parser.inc"
 
@@ -127,10 +128,10 @@ int main(int argc, char *argv[])
 			mc_cl_parser_delete_command_line_parser(command_line);
 			return EXIT_FAILURE;
 		}
-		mcc_symbol_table_print_dot(table, out);
+		mcc_symbol_table_print(table, out);
 		fclose(out);
 	} else {
-		mcc_symbol_table_print_dot(table, stdout);
+		mcc_symbol_table_print(table, stdout);
 	}
 
 	// ---------------------------------------------------------------------- Clean up
