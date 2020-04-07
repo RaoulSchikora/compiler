@@ -547,7 +547,13 @@ static void cb_return_value(struct mcc_ast_statement *statement, void *r_v_userd
 	struct return_value_userdata *userdata = r_v_userdata;
 	struct mcc_semantic_check *check = userdata->check;
 	struct mcc_semantic_check_data_type *function_type = userdata->function_type;
-	struct mcc_semantic_check_data_type *return_type = check_and_get_type(statement->return_value, check);
+	struct mcc_semantic_check_data_type *return_type = NULL;
+	if(statement->return_value){
+		return_type = check_and_get_type(statement->return_value, check);
+	} else {
+		return_type = get_new_data_type();
+		return_type->type = MCC_SEMANTIC_CHECK_VOID;
+	}
 	if(!types_equal(function_type, return_type)){
 		userdata->error = raise_error(2, check, statement->return_value->node, "return value of type '%s', expected '%s'.", to_string(return_type), to_string(function_type));
 	}
