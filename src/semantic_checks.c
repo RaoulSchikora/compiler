@@ -538,12 +538,12 @@ struct return_value_userdata{
 	enum mcc_semantic_check_error_code error;
 };
 
-static void cb_return_value(struct mcc_ast_statement *statement, void *data)
+static void cb_return_value(struct mcc_ast_statement *statement, void *r_v_userdata)
 {
 	assert(statement);
-	assert(data);
+	assert(r_v_userdata);
 
-	struct return_value_userdata *userdata = data;
+	struct return_value_userdata *userdata = r_v_userdata;
 	struct mcc_semantic_check *check = userdata->check;
 	struct mcc_semantic_check_data_type *function_type = userdata->function_type;
 	struct mcc_semantic_check_data_type *return_type = check_and_get_type(statement->return_value, check);
@@ -554,13 +554,13 @@ static void cb_return_value(struct mcc_ast_statement *statement, void *data)
 }
 
 // Setup an AST Visitor for checking that return values have the correct type
-static struct mcc_ast_visitor return_value_visitor(struct return_value_userdata *userdata)
+static struct mcc_ast_visitor return_value_visitor(struct return_value_userdata *r_v_userdata)
 {
 	return (struct mcc_ast_visitor){
 	    .traversal = MCC_AST_VISIT_DEPTH_FIRST,
 	    .order = MCC_AST_VISIT_PRE_ORDER,
 
-	    .userdata = userdata,
+	    .userdata = r_v_userdata,
 
 		.statement_return = cb_return_value,
 	};
@@ -572,7 +572,7 @@ static void cb_type_check_return_value(struct mcc_ast_function_definition *funct
 	assert(data);
 
 	struct type_checking_userdata *t_c_userdata = data;
-	struct return_value_userdata *r_v_userdata = malloc(sizeof r_v_userdata);
+	struct return_value_userdata *r_v_userdata = malloc(sizeof *r_v_userdata);
 	if(!r_v_userdata){
 		t_c_userdata->error = MCC_SEMANTIC_CHECK_ERROR_MALLOC_FAILED;
 		return;
@@ -585,6 +585,8 @@ static void cb_type_check_return_value(struct mcc_ast_function_definition *funct
 	struct mcc_ast_visitor visitor = return_value_visitor(r_v_userdata);
 	mcc_ast_visit(function, &visitor);
 	t_c_userdata->error = r_v_userdata->error;
+	r_v_userdata->error = 0;
+	r_v_userdata->check = NULL;
 	free(r_v_userdata->function_type);
 	free(r_v_userdata);
 }
@@ -598,7 +600,7 @@ static void cb_type_conversion_assignment(struct mcc_ast_statement *statement, v
 	struct type_checking_userdata *userdata = data;
 	struct mcc_semantic_check *check = userdata->check;
 	struct mcc_ast_assignment *assignment = statement->assignment;
-	struct mcc_semantic_check_data_type *lhs_type, *rhs_type, *index = NULL;
+	struct mcc_semantic_check_data_type *lhs_type = NULL, *rhs_type = NULL, *index = NULL;
 
 	switch (assignment->assignment_type)
 	{
@@ -710,24 +712,6 @@ static void cb_type_check_expression_stmt(struct mcc_ast_statement *statement, v
 	free(type);
 }
 
-// callback for type checking return statements
-static void cb_type_conversion_return_stmt(struct mcc_ast_statement *statement, void *data)
-{
-	assert(statement->return_value);
-	assert(data);
-
-	struct type_checking_userdata *userdata = data;
-	struct mcc_semantic_check *check = userdata->check;
-	struct mcc_ast_expression *expression = statement->return_value;
-	// check the expression. No Error handling needed
-	struct mcc_semantic_check_data_type *type = check_and_get_type(expression, check);
-
-	if(!type){
-		userdata->error = MCC_SEMANTIC_CHECK_ERROR_MALLOC_FAILED;
-	}
-	free(type);
-}
-
 // Setup an AST Visitor for type checking
 static struct mcc_ast_visitor type_checking_visitor(struct type_checking_userdata *userdata)
 {
@@ -742,7 +726,6 @@ static struct mcc_ast_visitor type_checking_visitor(struct type_checking_userdat
 		.statement_if_else_stmt = cb_type_check_if_else_stmt,
 		.statement_while = cb_type_check_while_stmt,
 		.statement_expression_stmt = cb_type_check_expression_stmt,
-		.statement_return = cb_type_conversion_return_stmt,
 		.function_definition = cb_type_check_return_value,
 	};
 }
@@ -754,7 +737,7 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_type_check(struct mcc_
 {
 	UNUSED(symbol_table);
 
-	struct type_checking_userdata *userdata = malloc(sizeof userdata);
+	struct type_checking_userdata *userdata = malloc(sizeof *userdata);
 	if(!userdata){
 		return MCC_SEMANTIC_CHECK_ERROR_MALLOC_FAILED;
 	}
@@ -765,6 +748,7 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_type_check(struct mcc_
 	struct mcc_ast_visitor visitor = type_checking_visitor(userdata);
 	mcc_ast_visit(ast, &visitor);
 	error = userdata->error;
+	userdata->check = NULL;
 	free(userdata);
 	return error;
 }
@@ -1081,7 +1065,7 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
 		return;
 	}
 
-	struct mcc_semantic_check_data_type *type_expr, *type_decl = NULL;
+	struct mcc_semantic_check_data_type *type_expr = NULL, *type_decl = NULL;
 	do {
 		// Too little arguments (if no arguments are given, args exists, but args->expr is set to NULL)
 		if (!args->expression) {
