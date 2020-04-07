@@ -1027,7 +1027,7 @@ struct function_arguments_userdata {
 	struct mcc_ast_program *program;
 };
 
-static int get_number_of_parameters(struct mcc_ast_parameters *parameters)
+static int get_number_of_params(struct mcc_ast_parameters *parameters)
 {
 	assert(parameters);
 
@@ -1042,7 +1042,7 @@ static int get_number_of_parameters(struct mcc_ast_parameters *parameters)
 	return num;
 }
 
-static int get_number_of_arguments(struct mcc_ast_arguments *arguments)
+static int get_number_of_args(struct mcc_ast_arguments *arguments)
 {
 	assert(arguments);
 
@@ -1097,17 +1097,16 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
 		return;
 	}
 
-	int number_params = get_number_of_parameters(params);
-	int number_args = get_number_of_arguments(args);
-	if(number_params == 0 && number_args == 0){
+	int num_params = get_number_of_params(params);
+	int num_args = get_number_of_args(args);
+	if(num_params == 0 && num_args == 0){
+		// nothing to check, since no params and no args
 		return;
-	} else if(number_args-number_params  > 0){
-		// Too many arguments
+	} else if(num_args-num_params  > 0){
 		raise_error(1, check, expression->node, "Too many arguments to function '%s'",
 					expression->function_identifier->identifier_name);
 		return;
-	} else if (number_args-number_params < 0){
-		// Too few arguments
+	} else if (num_args-num_params < 0){
 		raise_error(1, check, expression->node, "Too few arguments to function '%s'",
 			            expression->function_identifier->identifier_name);
 			return;
