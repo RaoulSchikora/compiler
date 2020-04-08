@@ -181,9 +181,8 @@ struct mcc_semantic_check *mcc_semantic_check_run_all(struct mcc_ast_program *as
 	enum mcc_semantic_check_error_code error = MCC_SEMANTIC_CHECK_ERROR_OK;
 
 	struct mcc_semantic_check *check = mcc_semantic_check_initialize_check();
-	if (!check) {
+	if (!check)
 		return NULL;
-	}
 
 	error =
 	    mcc_semantic_check_early_abort_wrapper(mcc_semantic_check_run_type_check, ast, symbol_table, check, error);
@@ -730,8 +729,16 @@ static void cb_return_value(struct mcc_ast_statement *statement, void *r_v_userd
 	struct mcc_semantic_check_data_type *return_type = NULL;
 	if (statement->return_value) {
 		return_type = check_and_get_type(statement->return_value, check);
+		if (!return_type) {
+			userdata->error = MCC_SEMANTIC_CHECK_ERROR_UNKNOWN;
+			return;
+		}
 	} else {
 		return_type = get_new_data_type();
+		if (!return_type) {
+			userdata->error = MCC_SEMANTIC_CHECK_ERROR_UNKNOWN;
+			return;
+		}
 		return_type->type = MCC_SEMANTIC_CHECK_VOID;
 	}
 	if (!types_equal(function_type, return_type)) {
@@ -810,8 +817,30 @@ static void cb_type_conversion_assignment(struct mcc_ast_statement *statement, v
 		return;
 	}
 
-	if (!lhs_type || !rhs_type || (!index && assignment->assignment_type == MCC_AST_ASSIGNMENT_TYPE_ARRAY)) {
-		userdata->error = MCC_SEMANTIC_CHECK_ERROR_MALLOC_FAILED;
+	if (!lhs_type) {
+		userdata->error = MCC_SEMANTIC_CHECK_ERROR_UNKNOWN;
+		if (rhs_type)
+			free(rhs_type);
+		if (index)
+			free(index);
+		return;
+	}
+	if (!rhs_type) {
+		userdata->error = MCC_SEMANTIC_CHECK_ERROR_UNKNOWN;
+		if (lhs_type)
+			free(lhs_type);
+		if (index)
+			free(index);
+		return;
+	}
+
+	if (!index && assignment->assignment_type == MCC_AST_ASSIGNMENT_TYPE_ARRAY) {
+		userdata->error = MCC_SEMANTIC_CHECK_ERROR_UNKNOWN;
+		if (lhs_type)
+			free(lhs_type);
+		if (rhs_type)
+			free(rhs_type);
+		return;
 	} else {
 		if (assignment->assignment_type == MCC_AST_ASSIGNMENT_TYPE_ARRAY) {
 			lhs_type->is_array = false;
@@ -848,7 +877,7 @@ static void cb_type_check_if_stmt(struct mcc_ast_statement *statement, void *dat
 	struct mcc_semantic_check_data_type *type = check_and_get_type(if_condition, check);
 
 	if (!type) {
-		userdata->error = MCC_SEMANTIC_CHECK_ERROR_MALLOC_FAILED;
+		userdata->error = MCC_SEMANTIC_CHECK_ERROR_UNKNOWN;
 	} else if (!is_bool(type)) {
 		userdata->error = mcc_semantic_check_raise_error(
 		    userdata->error, 1, check, if_condition->node,
@@ -869,7 +898,7 @@ static void cb_type_check_if_else_stmt(struct mcc_ast_statement *statement, void
 	struct mcc_semantic_check_data_type *type = check_and_get_type(if_condition, check);
 
 	if (!type) {
-		userdata->error = MCC_SEMANTIC_CHECK_ERROR_MALLOC_FAILED;
+		userdata->error = MCC_SEMANTIC_CHECK_ERROR_UNKNOWN;
 	} else if (!is_bool(type)) {
 		userdata->error = mcc_semantic_check_raise_error(
 		    userdata->error, 1, check, if_condition->node,
@@ -890,7 +919,7 @@ static void cb_type_check_while_stmt(struct mcc_ast_statement *statement, void *
 	struct mcc_semantic_check_data_type *type = check_and_get_type(while_condition, check);
 
 	if (!type) {
-		userdata->error = MCC_SEMANTIC_CHECK_ERROR_MALLOC_FAILED;
+		userdata->error = MCC_SEMANTIC_CHECK_ERROR_UNKNOWN;
 	} else if (!is_bool(type)) {
 		userdata->error = mcc_semantic_check_raise_error(
 		    userdata->error, 1, check, while_condition->node,
@@ -912,7 +941,7 @@ static void cb_type_check_expression_stmt(struct mcc_ast_statement *statement, v
 	struct mcc_semantic_check_data_type *type = check_and_get_type(expression, check);
 
 	if (!type) {
-		userdata->error = MCC_SEMANTIC_CHECK_ERROR_MALLOC_FAILED;
+		userdata->error = MCC_SEMANTIC_CHECK_ERROR_UNKNOWN;
 	}
 	free(type);
 }
