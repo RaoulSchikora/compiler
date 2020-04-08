@@ -84,6 +84,7 @@ static enum mcc_semantic_check_error_code v_raise_error(int num,
 		temp = va_arg(args_cp, char *);
 		if (!temp)
 			// If NULL is handed as string, then to_string must have failed to malloc
+			// TODO: change to unknown error
 			return MCC_SEMANTIC_CHECK_ERROR_MALLOC_FAILED;
 		args_size += strlen(temp);
 	}
@@ -363,43 +364,88 @@ static bool types_equal(struct mcc_semantic_check_data_type *first, struct mcc_s
 	return ((first->type == second->type) && (first->array_size == second->array_size));
 }
 
-// converts a data type into a string
-// TODO:Rewrite to catch snprintf errors
+// Converts a data type into a string. Returns NULL if malloc or snprintf fail
 static char *to_string(struct mcc_semantic_check_data_type *type)
 {
 	assert(type);
 
 	size_t size = 12 + (size_t)floor(log10(not_zero(type->array_size)));
-	char buffer[size];
+	char *buffer = malloc(size);
+	if(!buffer)
+		return NULL;
+	char *type_string;
+
 	switch (type->type) {
 	case MCC_SEMANTIC_CHECK_INT:
-		(type->is_array) ? snprintf(buffer, size, "INT[%d]", type->array_size) : snprintf(buffer, size, "INT");
+		type_string = malloc(sizeof(char)*4);
+		if(!type_string)
+			return NULL;
+		if (0 > snprintf(type_string,4*sizeof(char),"INT")){
+			return NULL;
+			free(type_string);
+		}
 		break;
 	case MCC_SEMANTIC_CHECK_FLOAT:
-		(type->is_array) ? snprintf(buffer, size, "FLOAT[%d]", type->array_size)
-		                 : snprintf(buffer, size, "FLOAT");
+		type_string = malloc(sizeof(char)*6);
+		if(!type_string)
+			return NULL;
+		if (0 > snprintf(type_string,6*sizeof(char),"FLOAT")){
+			return NULL;
+			free(type_string);
+		}
 		break;
 	case MCC_SEMANTIC_CHECK_BOOL:
-		(type->is_array) ? snprintf(buffer, size, "BOOL[%d]", type->array_size)
-		                 : snprintf(buffer, size, "BOOL");
+		type_string = malloc(sizeof(char)*5);
+		if(!type_string)
+			return NULL;
+		if (0 > snprintf(type_string,5*sizeof(char),"BOOL")){
+			return NULL;
+			free(type_string);
+		}
 		break;
 	case MCC_SEMANTIC_CHECK_STRING:
-		(type->is_array) ? snprintf(buffer, size, "STRING[%d]", type->array_size)
-		                 : snprintf(buffer, size, "STRING");
+		type_string = malloc(sizeof(char)*7);
+		if(!type_string)
+			return NULL;
+		if (0 > snprintf(type_string,7*sizeof(char),"STRING")){
+			free(type_string);
+			return NULL;
+		}
 		break;
 	case MCC_SEMANTIC_CHECK_VOID:
-		snprintf(buffer, size, "VOID");
+		type_string = malloc(sizeof(char)*5);
+		if(!type_string)
+			return NULL;
+		if (0 > snprintf(type_string,5*sizeof(char),"VOID")){
+			free(type_string);
+			return NULL;
+		}
 		break;
 	default:
-		snprintf(buffer, size, "UNKNOWN");
-		break;
+		type_string = malloc(sizeof(char)*8);
+		if(!type_string)
+			return NULL;
+		if (0 > snprintf(type_string,8*sizeof(char),"UNKNOWN")){
+			free(type_string);
+			return NULL;
+		}
 	}
-	char *string = malloc(sizeof(char) * strlen(buffer) + 1);
-	if (!string)
-		return NULL;
 
-	snprintf(string, strlen(buffer) + 1, "%s", buffer);
-	return string;
+
+	if (type->is_array){
+		if(0 > snprintf(buffer, size, "%s[%d]",type_string,type->array_size)){
+			free(type_string);
+			return NULL;
+		}
+	} else {
+		if(0 > snprintf(buffer, size, "%s",type_string)){
+			free(type_string);
+			return NULL;
+		}
+	}
+
+	free(type_string);
+	return buffer;
 }
 
 // check and get type of binary expression. Returns MCC_SEMANTIC_CHECK_UNKNOWN if error occurs
