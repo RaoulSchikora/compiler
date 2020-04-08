@@ -21,7 +21,10 @@ static void print_symbol_table_begin(struct mcc_symbol_table_scope *scope, FILE 
         "symbol table: %s\n"\
         "----------------------------------------------------------------------\n", node.sloc.filename);
     } else {
-        fprintf(out, "symbol table\n");
+        fprintf(out, 
+        "----------------------------------------------------------------------\n" \
+        "symbol table:\n"\
+        "----------------------------------------------------------------------\n");
     }
 }
 

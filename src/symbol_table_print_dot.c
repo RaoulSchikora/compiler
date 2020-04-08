@@ -8,16 +8,29 @@ static void print_dot_symbol_table_scope(struct mcc_symbol_table_scope *scope, c
 
 // ------------------------------------------------------------- Implementation
 
-static void print_dot_symbol_table_begin(FILE *out)
+static void print_dot_symbol_table_begin(struct mcc_symbol_table_scope *scope, FILE *out)
 {
 	assert(out);
+	assert(scope);
 
-	fprintf(out, "digraph {\n\n"
-	             "tbl [\n\n"
-	             "shape=plaintext\n"
-	             "label=<\n\n"
-	             "<table border='0' cellborder='0' cellspacing='0'>\n"
-	             "<tr><td>Symbol Table</td></tr>\n");
+	if(scope->head && scope->head->node){
+		struct mcc_ast_node node = *(scope->head->node);
+		fprintf(out, "digraph {\n\n"
+		             "tbl [\n\n"
+		             "shape=plaintext\n"
+		             "label=<\n\n"
+		             "<table border='0' cellborder='0' cellspacing='0'>\n"
+		             "<tr><td>Symbol Table: %s</td></tr>\n",
+					 node.sloc.filename);
+	} else {
+		fprintf(out, "digraph {\n\n"
+		             "tbl [\n\n"
+		             "shape=plaintext\n"
+		             "label=<\n\n"
+		             "<table border='0' cellborder='0' cellspacing='0'>\n"
+		             "<tr><td>Symbol Table</td></tr>\n");
+	}
+	
 }
 
 static void print_dot_symbol_table_end(FILE *out)
@@ -151,7 +164,7 @@ void mcc_symbol_table_print_dot(struct mcc_symbol_table *table, void *data)
 
 		struct mcc_symbol_table_scope *scope = table->head;
 
-		print_dot_symbol_table_begin(out);
+		print_dot_symbol_table_begin(scope, out);
 
 		while (scope) {
 
