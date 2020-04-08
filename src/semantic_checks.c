@@ -571,12 +571,6 @@ struct mcc_semantic_check_data_type *check_and_get_type_identifier(struct mcc_as
 // ------------------------------------------------------------- type checker
 
 // struct for user data concerning the type checker
-struct type_checking_userdata {
-	struct mcc_semantic_check *check;
-	enum mcc_semantic_check_error_code error;
-};
-
-// struct for user data concerning the type checker
 struct return_value_userdata {
 	struct mcc_semantic_check *check;
 	struct mcc_semantic_check_data_type *function_type;
