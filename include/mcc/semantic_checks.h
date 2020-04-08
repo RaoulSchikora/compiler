@@ -9,9 +9,9 @@
 
 // ------------------------------------------------------------ Data structure: A single semantic check
 
-enum mcc_semantic_check_status{
-    MCC_SEMANTIC_CHECK_OK,
-    MCC_SEMANTIC_CHECK_FAIL,
+enum mcc_semantic_check_status {
+	MCC_SEMANTIC_CHECK_OK,
+	MCC_SEMANTIC_CHECK_FAIL,
 };
 
 enum mcc_semantic_check_error_code {
@@ -21,32 +21,36 @@ enum mcc_semantic_check_error_code {
 };
 
 struct mcc_semantic_check {
-    enum mcc_semantic_check_status status;
-    // error_buffer is set to NULL if status is OK
-    char* error_buffer;
+	enum mcc_semantic_check_status status;
+	// error_buffer is set to NULL if status is OK
+	char *error_buffer;
 };
 
 // ------------------------------------------------------------ Data structure: Data type for type checking
 
 enum mcc_semantic_check_data_types {
-    MCC_SEMANTIC_CHECK_INT,
-    MCC_SEMANTIC_CHECK_FLOAT,
-    MCC_SEMANTIC_CHECK_BOOL,
-    MCC_SEMANTIC_CHECK_STRING,
-    MCC_SEMANTIC_CHECK_VOID,
-    MCC_SEMANTIC_CHECK_UNKNOWN,
+	MCC_SEMANTIC_CHECK_INT,
+	MCC_SEMANTIC_CHECK_FLOAT,
+	MCC_SEMANTIC_CHECK_BOOL,
+	MCC_SEMANTIC_CHECK_STRING,
+	MCC_SEMANTIC_CHECK_VOID,
+	MCC_SEMANTIC_CHECK_UNKNOWN,
 };
 
 struct mcc_semantic_check_data_type {
-    enum mcc_semantic_check_data_types type;
-    // -1 if not array
-    int array_size;
-    bool is_array;
+	enum mcc_semantic_check_data_types type;
+	// -1 if not array
+	int array_size;
+	bool is_array;
 };
-
 
 // ------------------------------------------------------------ Function: Error handling
 
+/*  Writes error message (format_string) into an existing struct (check).
+    Use format_string and variable arguments like printf.
+    If "is_from_heap" is set, the variable arguments will be freed.
+    Set num to the number of variable arguments
+*/
 enum mcc_semantic_check_error_code mcc_semantic_check_raise_error(int num,
                                                                   struct mcc_semantic_check *check,
                                                                   struct mcc_ast_node node,
@@ -60,31 +64,37 @@ enum mcc_semantic_check_error_code mcc_semantic_check_raise_error(int num,
 struct mcc_semantic_check *mcc_semantic_check_initialize_check();
 
 // Run all semantic checks
-struct mcc_semantic_check* mcc_semantic_check_run_all(struct mcc_ast_program* ast,
-                                                      struct mcc_symbol_table* symbol_table);
+struct mcc_semantic_check *mcc_semantic_check_run_all(struct mcc_ast_program *ast,
+                                                      struct mcc_symbol_table *symbol_table);
 
-
-// ------------------------------------------------------------- Functions: Running single semantic checks with early abort
-
-// Define function pointer to a single sematic check
-enum mcc_semantic_check_error_code (*fctptr)(struct mcc_ast_program *ast, struct mcc_symbol_table *table, struct mcc_semantic_check *check);
+// ------------------------------------------------------------- Functions: Running single semantic checks with early
+// abort
 
 // Wrapper for running one of the checks with early abort
-enum mcc_semantic_check_error_code mcc_semantic_check_early_abort_wrapper(
-    enum mcc_semantic_check_error_code (*fctptr)(struct mcc_ast_program *ast, struct mcc_symbol_table *table, struct mcc_semantic_check *check),
-    struct mcc_ast_program *ast,
-    struct mcc_symbol_table *table,
-    struct mcc_semantic_check *check,
-    enum mcc_semantic_check_error_code);
+enum mcc_semantic_check_error_code
+mcc_semantic_check_early_abort_wrapper(enum mcc_semantic_check_error_code (*fctptr)(struct mcc_ast_program *ast,
+                                                                                    struct mcc_symbol_table *table,
+                                                                                    struct mcc_semantic_check *check),
+                                       struct mcc_ast_program *ast,
+                                       struct mcc_symbol_table *table,
+                                       struct mcc_semantic_check *check,
+                                       enum mcc_semantic_check_error_code);
 
-// ------------------------------------------------------------- Functions: Implementation of the individual semantic checks
+// ------------------------------------------------------------- Functions: Implementation of the individual semantic
+// checks
+
+// Struct for user data concerning the type check visitor
+struct type_checking_userdata {
+	struct mcc_semantic_check *check;
+	enum mcc_semantic_check_error_code error;
+};
 
 // Check and get type functions
-
-struct mcc_semantic_check_data_type *check_and_get_type_expression(struct mcc_ast_expression *expression, 
-    struct mcc_semantic_check *check);
-struct mcc_semantic_check_data_type *check_and_get_type_identifier(struct mcc_ast_identifier *identifier, 
-    struct mcc_semantic_check *check, struct mcc_symbol_table_row *row);
+struct mcc_semantic_check_data_type *check_and_get_type_expression(struct mcc_ast_expression *expression,
+                                                                   struct mcc_semantic_check *check);
+struct mcc_semantic_check_data_type *check_and_get_type_identifier(struct mcc_ast_identifier *identifier,
+                                                                   struct mcc_semantic_check *check,
+                                                                   struct mcc_symbol_table_row *row);
 struct mcc_semantic_check_data_type *check_and_get_type_literal(struct mcc_ast_literal *literal, void *placeholder);
 
 // No Type conversions in expressions
@@ -93,27 +103,25 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_type_check(struct mcc_
                                                                      struct mcc_semantic_check *check);
 
 // Each execution path of non-void function returns a value
-enum mcc_semantic_check_error_code mcc_semantic_check_run_nonvoid_check(struct mcc_ast_program* ast,
+enum mcc_semantic_check_error_code mcc_semantic_check_run_nonvoid_check(struct mcc_ast_program *ast,
                                                                         struct mcc_symbol_table *symbol_table,
                                                                         struct mcc_semantic_check *check);
 
 // Main function exists and has correct signature
-enum mcc_semantic_check_error_code mcc_semantic_check_run_main_function(struct mcc_ast_program* ast,
+enum mcc_semantic_check_error_code mcc_semantic_check_run_main_function(struct mcc_ast_program *ast,
                                                                         struct mcc_symbol_table *symbol_table,
                                                                         struct mcc_semantic_check *check);
 
 // No multiple definitions of the same function
-enum mcc_semantic_check_error_code mcc_semantic_check_run_multiple_function_definitions(struct mcc_ast_program* ast,
-                                                                                        struct mcc_symbol_table *symbol_table,
-                                                                                        struct mcc_semantic_check *check);
+enum mcc_semantic_check_error_code mcc_semantic_check_run_multiple_function_definitions(
+    struct mcc_ast_program *ast, struct mcc_symbol_table *symbol_table, struct mcc_semantic_check *check);
 
 // No multiple declarations of a variable in the same scope
-enum mcc_semantic_check_error_code mcc_semantic_check_run_multiple_variable_declarations(struct mcc_ast_program* ast,
-                                                                                        struct mcc_symbol_table *symbol_table,
-                                                                                        struct mcc_semantic_check *check);
+enum mcc_semantic_check_error_code mcc_semantic_check_run_multiple_variable_declarations(
+    struct mcc_ast_program *ast, struct mcc_symbol_table *symbol_table, struct mcc_semantic_check *check);
 
 // No incorrect function calls
-enum mcc_semantic_check_error_code mcc_semantic_check_run_function_arguments(struct mcc_ast_program* ast,
+enum mcc_semantic_check_error_code mcc_semantic_check_run_function_arguments(struct mcc_ast_program *ast,
                                                                              struct mcc_symbol_table *symbol_table,
                                                                              struct mcc_semantic_check *check);
 
@@ -135,4 +143,4 @@ void mcc_semantic_check_delete_single_check(struct mcc_semantic_check *check);
 
 // clang-format on
 
-#endif //PROJECT_SEMANTIC_CHECKS_H
+#endif // PROJECT_SEMANTIC_CHECKS_H
