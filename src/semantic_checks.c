@@ -119,12 +119,12 @@ static enum mcc_semantic_check_error_code v_raise_error(int num,
 
 }
 
-enum mcc_semantic_check_error_code mcc_semantic_check_raise_error(int num,
-                                                                  struct mcc_semantic_check *check,
-                                                                  struct mcc_ast_node node,
-                                                                  const char *format_string,
-                                                                  bool is_from_heap,
-                                                                  ...)
+static enum mcc_semantic_check_error_code raise_non_type_error(int num,
+															   struct mcc_semantic_check *check,
+															   struct mcc_ast_node node,
+															   const char *format_string,
+															   bool is_from_heap,
+															   ...)
 {
 	enum mcc_semantic_check_error_code error;
 
@@ -133,6 +133,23 @@ enum mcc_semantic_check_error_code mcc_semantic_check_raise_error(int num,
 	error = v_raise_error(num, check, node, format_string, is_from_heap, args);
 	va_end(args);
 
+	return error;
+}
+
+static enum mcc_semantic_check_error_code raise_type_error(enum mcc_semantic_check_error_code error,
+														   int num,
+														   struct mcc_semantic_check *check,
+														   struct mcc_ast_node node,
+														   const char *format_string,
+														   bool is_from_heap,
+														   ...)
+{
+	if (error == MCC_SEMANTIC_CHECK_ERROR_OK){
+		va_list args;
+		va_start(args, is_from_heap);
+		error = v_raise_error(num, check, node, format_string, is_from_heap, args);
+		va_end(args);
+	}
 	return error;
 }
 

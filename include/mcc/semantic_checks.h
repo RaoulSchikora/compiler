@@ -141,6 +141,11 @@ void mcc_semantic_check_delete_single_check(struct mcc_semantic_check *check);
         struct mcc_ast_literal *:             check_and_get_type_literal \
 	)(x, __VA_ARGS__)
 
+#define mcc_semantic_check_raise_error(x,y,...) _Generic((y), \
+        int :                                 raise_type_error, \
+        struct mcc_semantic_check *:          raise_non_type_error \
+    )(x,y,__VA_ARGS__)
+
 // clang-format on
 
 #endif // PROJECT_SEMANTIC_CHECKS_H
