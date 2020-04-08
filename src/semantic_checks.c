@@ -46,11 +46,11 @@ write_error_message_to_check_with_sloc(struct mcc_semantic_check *check, struct 
 }
 
 static enum mcc_semantic_check_error_code v_raise_error(int num,
-														struct mcc_semantic_check *check,
-														struct mcc_ast_node node,
-														const char *format_string,
-														bool is_from_heap,
-														va_list args)
+                                                        struct mcc_semantic_check *check,
+                                                        struct mcc_ast_node node,
+                                                        const char *format_string,
+                                                        bool is_from_heap,
+                                                        va_list args)
 {
 	assert(format_string);
 
@@ -116,15 +116,14 @@ static enum mcc_semantic_check_error_code v_raise_error(int num,
 	va_end(args_cp3);
 
 	return error;
-
 }
 
 static enum mcc_semantic_check_error_code raise_non_type_error(int num,
-															   struct mcc_semantic_check *check,
-															   struct mcc_ast_node node,
-															   const char *format_string,
-															   bool is_from_heap,
-															   ...)
+                                                               struct mcc_semantic_check *check,
+                                                               struct mcc_ast_node node,
+                                                               const char *format_string,
+                                                               bool is_from_heap,
+                                                               ...)
 {
 	enum mcc_semantic_check_error_code error;
 
@@ -137,14 +136,14 @@ static enum mcc_semantic_check_error_code raise_non_type_error(int num,
 }
 
 static enum mcc_semantic_check_error_code raise_type_error(enum mcc_semantic_check_error_code error,
-														   int num,
-														   struct mcc_semantic_check *check,
-														   struct mcc_ast_node node,
-														   const char *format_string,
-														   bool is_from_heap,
-														   ...)
+                                                           int num,
+                                                           struct mcc_semantic_check *check,
+                                                           struct mcc_ast_node node,
+                                                           const char *format_string,
+                                                           bool is_from_heap,
+                                                           ...)
 {
-	if (error == MCC_SEMANTIC_CHECK_ERROR_OK){
+	if (error == MCC_SEMANTIC_CHECK_ERROR_OK) {
 		va_list args;
 		va_start(args, is_from_heap);
 		error = v_raise_error(num, check, node, format_string, is_from_heap, args);
@@ -631,9 +630,10 @@ static void cb_return_value(struct mcc_ast_statement *statement, void *r_v_userd
 		return_type->type = MCC_SEMANTIC_CHECK_VOID;
 	}
 	if (!types_equal(function_type, return_type)) {
-		userdata->error = mcc_semantic_check_raise_error(2, check, statement->return_value->node,
-		                                                 "return value of type '%s', expected '%s'.", true,
-		                                                 to_string(return_type), to_string(function_type));
+		userdata->error =
+		    mcc_semantic_check_raise_error(userdata->error, 2, check, statement->return_value->node,
+		                                   "return value of type '%s', expected '%s'.", true,
+		                                   to_string(return_type), to_string(function_type));
 	}
 	free(return_type);
 }
@@ -713,15 +713,17 @@ static void cb_type_conversion_assignment(struct mcc_ast_statement *statement, v
 			lhs_type->array_size = -1;
 		}
 		if (index && !is_int(index)) {
-			userdata->error = mcc_semantic_check_raise_error(0, check, assignment->node,
+			userdata->error = mcc_semantic_check_raise_error(userdata->error, 0, check, assignment->node,
 			                                                 "array subscript is not an integer.", false);
 		} else if (!types_equal(lhs_type, rhs_type)) {
-			userdata->error = mcc_semantic_check_raise_error(
-			    2, check, assignment->node, "implicit type conversion. Expected '%s' but was '%s'", true,
-			    to_string(lhs_type), to_string(rhs_type));
+			userdata->error =
+			    mcc_semantic_check_raise_error(userdata->error, 2, check, assignment->node,
+			                                   "implicit type conversion. Expected '%s' but was '%s'", true,
+			                                   to_string(lhs_type), to_string(rhs_type));
 		} else if (lhs_type->is_array) {
-			userdata->error = mcc_semantic_check_raise_error(
-			    0, check, assignment->node, "assignment to Variable of array type not possible.", false);
+			userdata->error =
+			    mcc_semantic_check_raise_error(userdata->error, 0, check, assignment->node,
+			                                   "assignment to Variable of array type not possible.", false);
 		}
 	}
 	free(lhs_type);
@@ -744,8 +746,8 @@ static void cb_type_check_if_stmt(struct mcc_ast_statement *statement, void *dat
 		userdata->error = MCC_SEMANTIC_CHECK_ERROR_MALLOC_FAILED;
 	} else if (!is_bool(type)) {
 		userdata->error = mcc_semantic_check_raise_error(
-		    1, check, if_condition->node, "condition of if-statement of type '%s', expected type 'BOOL'.", true,
-		    to_string(type));
+		    userdata->error, 1, check, if_condition->node,
+		    "condition of if-statement of type '%s', expected type 'BOOL'.", true, to_string(type));
 	}
 	free(type);
 }
@@ -765,8 +767,8 @@ static void cb_type_check_if_else_stmt(struct mcc_ast_statement *statement, void
 		userdata->error = MCC_SEMANTIC_CHECK_ERROR_MALLOC_FAILED;
 	} else if (!is_bool(type)) {
 		userdata->error = mcc_semantic_check_raise_error(
-		    1, check, if_condition->node, "condition of if-statement of type '%s', expected type 'BOOL'.", true,
-		    to_string(type));
+		    userdata->error, 1, check, if_condition->node,
+		    "condition of if-statement of type '%s', expected type 'BOOL'.", true, to_string(type));
 	}
 	free(type);
 }
@@ -786,8 +788,8 @@ static void cb_type_check_while_stmt(struct mcc_ast_statement *statement, void *
 		userdata->error = MCC_SEMANTIC_CHECK_ERROR_MALLOC_FAILED;
 	} else if (!is_bool(type)) {
 		userdata->error = mcc_semantic_check_raise_error(
-		    1, check, while_condition->node, "condition of while-loop of type '%s', expected type 'BOOL'.",
-		    true, to_string(type));
+		    userdata->error, 1, check, while_condition->node,
+		    "condition of while-loop of type '%s', expected type 'BOOL'.", true, to_string(type));
 	}
 	free(type);
 }
@@ -1178,7 +1180,7 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
 	struct function_arguments_userdata *data = userdata;
 	struct mcc_ast_program *ast = data->program;
 	struct mcc_semantic_check *check = data->check;
-	
+
 	// Get the used arguments from the AST:
 	struct mcc_ast_arguments *args = expression->arguments;
 	// Get the required parameters from the function declaration
