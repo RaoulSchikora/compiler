@@ -222,7 +222,6 @@ static struct mc_cl_parser_options *parse_options(int argc, char *argv[])
 	}
 	if(strcmp(argv[0],"./mc_symbol_table")!=0){
 		options->print_dot = false;
-		options->print_help = true;
 	}
 
 	return options;
