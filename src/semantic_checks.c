@@ -266,7 +266,7 @@ static struct mcc_semantic_check_data_type *get_data_type_from_row(struct mcc_sy
 	assert(row);
 
 	struct mcc_semantic_check_data_type *type = get_new_data_type();
-	if(!type)
+	if (!type)
 		return NULL;
 	switch (row->row_type) {
 	case MCC_SYMBOL_TABLE_ROW_TYPE_INT:
@@ -371,74 +371,73 @@ static char *to_string(struct mcc_semantic_check_data_type *type)
 
 	size_t size = 12 + (size_t)floor(log10(not_zero(type->array_size)));
 	char *buffer = malloc(size);
-	if(!buffer)
+	if (!buffer)
 		return NULL;
 	char *type_string;
 
 	switch (type->type) {
 	case MCC_SEMANTIC_CHECK_INT:
-		type_string = malloc(sizeof(char)*4);
-		if(!type_string)
+		type_string = malloc(sizeof(char) * 4);
+		if (!type_string)
 			return NULL;
-		if (0 > snprintf(type_string,4*sizeof(char),"INT")){
+		if (0 > snprintf(type_string, 4 * sizeof(char), "INT")) {
 			return NULL;
 			free(type_string);
 		}
 		break;
 	case MCC_SEMANTIC_CHECK_FLOAT:
-		type_string = malloc(sizeof(char)*6);
-		if(!type_string)
+		type_string = malloc(sizeof(char) * 6);
+		if (!type_string)
 			return NULL;
-		if (0 > snprintf(type_string,6*sizeof(char),"FLOAT")){
+		if (0 > snprintf(type_string, 6 * sizeof(char), "FLOAT")) {
 			return NULL;
 			free(type_string);
 		}
 		break;
 	case MCC_SEMANTIC_CHECK_BOOL:
-		type_string = malloc(sizeof(char)*5);
-		if(!type_string)
+		type_string = malloc(sizeof(char) * 5);
+		if (!type_string)
 			return NULL;
-		if (0 > snprintf(type_string,5*sizeof(char),"BOOL")){
+		if (0 > snprintf(type_string, 5 * sizeof(char), "BOOL")) {
 			return NULL;
 			free(type_string);
 		}
 		break;
 	case MCC_SEMANTIC_CHECK_STRING:
-		type_string = malloc(sizeof(char)*7);
-		if(!type_string)
+		type_string = malloc(sizeof(char) * 7);
+		if (!type_string)
 			return NULL;
-		if (0 > snprintf(type_string,7*sizeof(char),"STRING")){
+		if (0 > snprintf(type_string, 7 * sizeof(char), "STRING")) {
 			free(type_string);
 			return NULL;
 		}
 		break;
 	case MCC_SEMANTIC_CHECK_VOID:
-		type_string = malloc(sizeof(char)*5);
-		if(!type_string)
+		type_string = malloc(sizeof(char) * 5);
+		if (!type_string)
 			return NULL;
-		if (0 > snprintf(type_string,5*sizeof(char),"VOID")){
+		if (0 > snprintf(type_string, 5 * sizeof(char), "VOID")) {
 			free(type_string);
 			return NULL;
 		}
 		break;
 	default:
-		type_string = malloc(sizeof(char)*8);
-		if(!type_string)
+		type_string = malloc(sizeof(char) * 8);
+		if (!type_string)
 			return NULL;
-		if (0 > snprintf(type_string,8*sizeof(char),"UNKNOWN")){
+		if (0 > snprintf(type_string, 8 * sizeof(char), "UNKNOWN")) {
 			free(type_string);
 			return NULL;
 		}
 	}
 
-
-	if (type->is_array){
-		if(0 > snprintf(buffer, size, "%s[%d]",type_string,type->array_size)){
+	if (type->is_array) {
+		if (0 > snprintf(buffer, size, "%s[%d]", type_string, type->array_size)) {
 			free(type_string);
 			return NULL;
 		}
 	} else {
-		if(0 > snprintf(buffer, size, "%s",type_string)){
+		if (0 > snprintf(buffer, size, "%s", type_string)) {
 			free(type_string);
 			return NULL;
 		}
@@ -460,7 +459,7 @@ static struct mcc_semantic_check_data_type *check_and_get_type_binary_expression
 	bool success = false;
 	struct mcc_semantic_check_data_type *lhs = check_and_get_type(expression->lhs, check);
 	struct mcc_semantic_check_data_type *rhs = check_and_get_type(expression->rhs, check);
-	if(!lhs || !rhs)
+	if (!lhs || !rhs)
 		return NULL;
 	enum mcc_ast_binary_op op = expression->op;
 
@@ -506,13 +505,19 @@ static struct mcc_semantic_check_data_type *check_and_get_type_binary_expression
 	}
 
 	if (!success || lhs->is_array || rhs->is_array || is_string(lhs) || is_string(rhs)) {
-		mcc_semantic_check_raise_error(2, check, expression->node,
-		                               "operation on incompatible types '%s' and '%s'.", true, to_string(lhs),
-		                               to_string(rhs));
+		if (mcc_semantic_check_raise_error(2, check, expression->node,
+		                                   "operation on incompatible types '%s' and '%s'.", true,
+		                                   to_string(lhs), to_string(rhs)) != MCC_SEMANTIC_CHECK_ERROR_OK) {
+			free(rhs);
+			return NULL;
+		}
 		lhs->type = MCC_SEMANTIC_CHECK_UNKNOWN;
 	}
 	if (success && (lhs->type == MCC_SEMANTIC_CHECK_UNKNOWN)) {
-		mcc_semantic_check_raise_error(0, check, expression->node, "unknown type.", false);
+		if (mcc_semantic_check_raise_error(0, check, expression->node, "unknown type.", false) != MCC_SEMANTIC_CHECK_ERROR_OK){
+			free(rhs);
+			return NULL;
+		}
 	}
 	if (!(op == MCC_AST_BINARY_OP_ADD || op == MCC_AST_BINARY_OP_SUB || op == MCC_AST_BINARY_OP_MUL ||
 	      op == MCC_AST_BINARY_OP_DIV)) {
@@ -603,7 +608,7 @@ struct mcc_semantic_check_data_type *check_and_get_type_literal(struct mcc_ast_l
 	UNUSED(placeholder);
 
 	struct mcc_semantic_check_data_type *type = get_new_data_type();
-	if(!type)
+	if (!type)
 		return NULL;
 
 	switch (literal->type) {
