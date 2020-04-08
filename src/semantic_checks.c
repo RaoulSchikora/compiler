@@ -80,7 +80,12 @@ static enum mcc_semantic_check_error_code v_raise_error(int num,
 	// Get all the args & determine string length
 	size_t args_size = 0;
 	for (int i = 0; i < num; i++) {
-		args_size += strlen(va_arg(args_cp, char *));
+		char *temp;
+		temp = va_arg(args_cp, char *);
+		if (!temp)
+			// If NULL is handed as string, then to_string must have failed to malloc
+			return MCC_SEMANTIC_CHECK_ERROR_MALLOC_FAILED;
+		args_size += strlen(temp);
 	}
 
 	// Malloc buffer string
@@ -260,6 +265,8 @@ static struct mcc_semantic_check_data_type *get_data_type_from_row(struct mcc_sy
 	assert(row);
 
 	struct mcc_semantic_check_data_type *type = get_new_data_type();
+	if(!type)
+		return NULL;
 	switch (row->row_type) {
 	case MCC_SYMBOL_TABLE_ROW_TYPE_INT:
 		type->type = MCC_SEMANTIC_CHECK_INT;
@@ -357,6 +364,7 @@ static bool types_equal(struct mcc_semantic_check_data_type *first, struct mcc_s
 }
 
 // converts a data type into a string
+// TODO:Rewrite to catch snprintf errors
 static char *to_string(struct mcc_semantic_check_data_type *type)
 {
 	assert(type);
@@ -387,11 +395,15 @@ static char *to_string(struct mcc_semantic_check_data_type *type)
 		break;
 	}
 	char *string = malloc(sizeof(char) * strlen(buffer) + 1);
+	if (!string)
+		return NULL;
+
 	snprintf(string, strlen(buffer) + 1, "%s", buffer);
 	return string;
 }
 
 // check and get type of binary expression. Returns MCC_SEMANTIC_CHECK_UNKNOWN if error occurs
+// TODO: Rewrite to catch raise_error return value
 static struct mcc_semantic_check_data_type *check_and_get_type_binary_expression(struct mcc_ast_expression *expression,
                                                                                  struct mcc_semantic_check *check)
 {
@@ -402,6 +414,8 @@ static struct mcc_semantic_check_data_type *check_and_get_type_binary_expression
 	bool success = false;
 	struct mcc_semantic_check_data_type *lhs = check_and_get_type(expression->lhs, check);
 	struct mcc_semantic_check_data_type *rhs = check_and_get_type(expression->rhs, check);
+	if(!lhs || !rhs)
+		return NULL;
 	enum mcc_ast_binary_op op = expression->op;
 
 	switch (op) {
@@ -463,6 +477,7 @@ static struct mcc_semantic_check_data_type *check_and_get_type_binary_expression
 }
 
 // check and get type of a unary expression
+// TODO: Rewrite to catch raise_error return value
 struct mcc_semantic_check_data_type *check_and_get_type_unary_expression(struct mcc_ast_expression *expression,
                                                                          struct mcc_semantic_check *check)
 {
@@ -471,6 +486,8 @@ struct mcc_semantic_check_data_type *check_and_get_type_unary_expression(struct 
 	assert(check);
 
 	struct mcc_semantic_check_data_type *child = check_and_get_type(expression->child, check);
+	if (!child)
+		return NULL;
 	enum mcc_ast_unary_op u_op = expression->u_op;
 
 	if (child->is_array || is_string(child) || ((u_op == MCC_AST_UNARY_OP_NEGATIV) && is_bool(child)) ||
@@ -483,6 +500,7 @@ struct mcc_semantic_check_data_type *check_and_get_type_unary_expression(struct 
 }
 
 // get and check the type of an array element. Includes ensuring index to be of type 'INT'
+// TODO: Rewrite to catch raise_error return value
 static struct mcc_semantic_check_data_type *check_and_get_type_array_element(struct mcc_ast_expression *array_element,
                                                                              struct mcc_semantic_check *check)
 {
@@ -492,6 +510,8 @@ static struct mcc_semantic_check_data_type *check_and_get_type_array_element(str
 	struct mcc_semantic_check_data_type *index = check_and_get_type(array_element->index, check);
 	struct mcc_semantic_check_data_type *identifier =
 	    check_and_get_type(array_element->array_identifier, check, array_element->array_row);
+	if (!index || !identifier)
+		return NULL;
 	char *name = array_element->array_identifier->identifier_name;
 	if (!is_int(index)) {
 		mcc_semantic_check_raise_error(1, check, array_element->node, "expected type 'INT' but was '%s'.", true,
@@ -509,7 +529,8 @@ static struct mcc_semantic_check_data_type *check_and_get_type_array_element(str
 	return identifier;
 }
 
-// gets the type of an function call expression. Arguments are checked seperatly.
+// gets the type of a function call expression. Arguments are checked seperatly.
+// TODO: Rewrite to catch raise_error return value, as well as get_and_check_type return value
 static struct mcc_semantic_check_data_type *check_and_get_type_function_call(struct mcc_ast_expression *function_call,
                                                                              struct mcc_semantic_check *check)
 {
@@ -536,6 +557,8 @@ struct mcc_semantic_check_data_type *check_and_get_type_literal(struct mcc_ast_l
 	UNUSED(placeholder);
 
 	struct mcc_semantic_check_data_type *type = get_new_data_type();
+	if(!type)
+		return NULL;
 
 	switch (literal->type) {
 	case MCC_AST_LITERAL_TYPE_INT:
@@ -558,6 +581,7 @@ struct mcc_semantic_check_data_type *check_and_get_type_literal(struct mcc_ast_l
 }
 
 // check and get data type of expression. Returns MCC_SEMANTIC_CHECK_UNKNOWN if error occurs
+// TODO: Handle return value of check_and_get_type
 struct mcc_semantic_check_data_type *check_and_get_type_expression(struct mcc_ast_expression *expression,
                                                                    struct mcc_semantic_check *check)
 {
@@ -586,6 +610,7 @@ struct mcc_semantic_check_data_type *check_and_get_type_expression(struct mcc_as
 
 // check and get data type of identifier. Returns MCC_SEMANTIC_CHECK_UNKNOWN if identifier
 // has not been found in the symbol table
+// TODO: Rewrite to catch raise_error return value
 struct mcc_semantic_check_data_type *check_and_get_type_identifier(struct mcc_ast_identifier *identifier,
                                                                    struct mcc_semantic_check *check,
                                                                    struct mcc_symbol_table_row *row)
