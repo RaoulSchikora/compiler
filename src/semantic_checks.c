@@ -45,40 +45,43 @@ write_error_message_to_check_with_sloc(struct mcc_semantic_check *check, struct 
 	return MCC_SEMANTIC_CHECK_ERROR_OK;
 }
 
-enum mcc_semantic_check_error_code mcc_semantic_check_raise_error(int num,
-                                                                  struct mcc_semantic_check *check,
-                                                                  struct mcc_ast_node node,
-                                                                  const char *format_string,
-                                                                  bool is_from_heap,
-                                                                  ...)
+static enum mcc_semantic_check_error_code v_raise_error(int num,
+														struct mcc_semantic_check *check,
+														struct mcc_ast_node node,
+														const char *format_string,
+														bool is_from_heap,
+														va_list args)
 {
 	assert(format_string);
-	va_list args;
 
 	// Early abort
 	if (check->status == MCC_SEMANTIC_CHECK_FAIL) {
 		// If strings are from heap, free them
 		if (is_from_heap) {
-			va_start(args, is_from_heap);
 			char *temp;
 			for (int i = 0; i < num; i++) {
 				temp = va_arg(args, char *);
 				free(temp);
 			}
-			va_end(args);
 		}
 		return MCC_SEMANTIC_CHECK_ERROR_OK;
 	}
 
 	check->status = MCC_SEMANTIC_CHECK_FAIL;
 
+	// Store a copy of the va_list for later access
+	va_list args_cp;
+	va_list args_cp2;
+	va_list args_cp3;
+	va_copy(args_cp, args);
+	va_copy(args_cp2, args);
+	va_copy(args_cp3, args);
+
 	// Get all the args & determine string length
 	size_t args_size = 0;
-	va_start(args, is_from_heap);
 	for (int i = 0; i < num; i++) {
-		args_size += strlen(va_arg(args, char *));
+		args_size += strlen(va_arg(args_cp, char *));
 	}
-	va_end(args);
 
 	// Malloc buffer string
 	size_t size = sizeof(char) * (strlen(format_string) + args_size + 1);
@@ -88,13 +91,11 @@ enum mcc_semantic_check_error_code mcc_semantic_check_raise_error(int num,
 	}
 
 	// Get args again and print string into buffer
-	va_start(args, is_from_heap);
-	if (0 > vsnprintf(buffer, size, format_string, args)) {
-		va_end(args);
+	if (0 > vsnprintf(buffer, size, format_string, args_cp2)) {
+		va_end(args_cp2);
 		free(buffer);
 		return MCC_SEMANTIC_CHECK_ERROR_SNPRINTF_FAILED;
 	}
-	va_end(args);
 	enum mcc_semantic_check_error_code error = MCC_SEMANTIC_CHECK_ERROR_OK;
 
 	// Write buffer string into check
@@ -103,14 +104,34 @@ enum mcc_semantic_check_error_code mcc_semantic_check_raise_error(int num,
 
 	// If strings are from heap, free them
 	if (is_from_heap) {
-		va_start(args, is_from_heap);
 		char *temp;
 		for (int i = 0; i < num; i++) {
 			temp = va_arg(args, char *);
 			free(temp);
 		}
-		va_end(args);
 	}
+
+	va_end(args_cp);
+	va_end(args_cp2);
+	va_end(args_cp3);
+
+	return error;
+
+}
+
+enum mcc_semantic_check_error_code mcc_semantic_check_raise_error(int num,
+                                                                  struct mcc_semantic_check *check,
+                                                                  struct mcc_ast_node node,
+                                                                  const char *format_string,
+                                                                  bool is_from_heap,
+                                                                  ...)
+{
+	enum mcc_semantic_check_error_code error;
+
+	va_list args;
+	va_start(args, is_from_heap);
+	error = v_raise_error(num, check, node, format_string, is_from_heap, args);
+	va_end(args);
 
 	return error;
 }
