@@ -701,6 +701,8 @@ struct mcc_ast_program *mcc_ast_new_program(struct mcc_ast_function_definition *
 	assert(function_definition);
 
 	struct mcc_ast_program *program = malloc(sizeof(*program));
+	if(!program)
+		return NULL;
 
 	if (next_program == NULL) {
 		program->has_next_function = false;
