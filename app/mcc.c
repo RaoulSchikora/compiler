@@ -279,7 +279,6 @@ struct mcc_parser_result parse_file(char *filename)
 		    .status = MCC_PARSER_STATUS_UNKNOWN_ERROR,
 		    .error_buffer = "unable to open file\n",
 		};
-		fclose(f);
 		return result;
 	}
 	struct mcc_parser_result return_value;

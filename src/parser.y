@@ -48,7 +48,13 @@ while (0)
 int mcc_parser_lex();
 void mcc_parser_error();
 
-#define loc(ast_node, ast_sloc, ast_sloc_last) 			      \
+
+#define loc(ast_node, ast_sloc, ast_sloc_last) \
+	if (ast_node) { \
+		do_loc(ast_node,ast_sloc,ast_sloc_last); \
+	} \
+
+#define do_loc(ast_node, ast_sloc, ast_sloc_last) 			      \
 	(ast_node)->node.sloc.start_col = (ast_sloc).first_column;    \
 	(ast_node)->node.sloc.start_line = (ast_sloc).first_line;     \
 	(ast_node)->node.sloc.end_col = (ast_sloc_last).last_column;  \
@@ -185,7 +191,7 @@ unit_test           : expression
                     	{ result->entry_point = MCC_PARSER_ENTRY_POINT_PROGRAM; result->program = $1; }
                     ;
 
-expression          : literal { $$ = mcc_ast_new_expression_literal($1); 			    loc($$, @1 ,@1);}
+expression          : literal { $$ = mcc_ast_new_expression_literal($1);loc($$, @1 ,@1);}
                     | expression PLUS expression
                     	{ $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_ADD, $1, $3);     loc($$, @1, @3);}
                     | expression MINUS expression
