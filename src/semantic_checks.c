@@ -363,32 +363,9 @@ static char *to_string(struct mcc_semantic_check_data_type *type)
 {
 	assert(type);
 
-	//char *type_string;
-	size_t type_size;
+	// Longest type has 7 characters
+	char type_string[8];
 
-	switch (type->type){
-		case MCC_SEMANTIC_CHECK_INT:
-			type_size = sizeof(char) * 4;
-			break;
-		case MCC_SEMANTIC_CHECK_FLOAT:
-			type_size = sizeof(char) * 6;
-			break;
-		case MCC_SEMANTIC_CHECK_BOOL:
-			type_size = sizeof(char) * 5;
-			break;
-		case MCC_SEMANTIC_CHECK_STRING:
-			type_size = sizeof(char) * 7;
-			break;
-		case MCC_SEMANTIC_CHECK_VOID:
-			type_size = sizeof(char) * 5;
-			break;
-		default:
-			type_size = sizeof(char) * 8;
-			break;
-		}
-
-	char type_string[type_size];
-		
 	switch (type->type){
 		case MCC_SEMANTIC_CHECK_INT:
 			strcpy(type_string, "INT");
@@ -409,7 +386,7 @@ static char *to_string(struct mcc_semantic_check_data_type *type)
 			strcpy(type_string, "UNKNOWN");
 			break;
 		}
-	size_t size = type_size + 3 + (size_t)floor(log10(not_zero(type->array_size)));
+	size_t size = 11 + (size_t)floor(log10(not_zero(type->array_size)));
 	char *buffer = malloc(size);
 	if (!buffer) {
 		return NULL;
