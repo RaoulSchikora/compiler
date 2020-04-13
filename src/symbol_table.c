@@ -10,8 +10,8 @@
 
 // ------------------------------------------------------- Forward declaration
 
-static void create_rows_statement(struct mcc_ast_statement *statement, struct mcc_symbol_table_scope *scope);
-static void link_pointer_expression(struct mcc_ast_expression *expression, struct mcc_symbol_table_scope *scope);
+static int create_rows_statement(struct mcc_ast_statement *statement, struct mcc_symbol_table_scope *scope);
+static int link_pointer_expression(struct mcc_ast_expression *expression, struct mcc_symbol_table_scope *scope);
 
 // ------------------------------------------------------- converting enum types
 
@@ -402,23 +402,28 @@ static struct mcc_symbol_table_scope *append_child_scope_to_last_row(struct mcc_
 	return new_scope;
 }
 
-static void create_rows_compound_statement(struct mcc_ast_compound_statement *compound_stmt,
+static int create_rows_compound_statement(struct mcc_ast_compound_statement *compound_stmt,
                                            struct mcc_symbol_table_scope *scope)
 {
 	assert(compound_stmt);
 	assert(scope);
 
 	if (compound_stmt->statement) {
-		create_rows_statement(compound_stmt->statement, scope);
+		if(!create_rows_statement(compound_stmt->statement, scope)){
+			return 0;
+		}
 	}
 
 	while (compound_stmt->next_compound_statement) {
 		compound_stmt = compound_stmt->next_compound_statement;
-		create_rows_statement(compound_stmt->statement, scope);
+		if(!create_rows_statement(compound_stmt->statement, scope)){
+			return 0;
+		}
 	}
+	return 1;
 }
 
-static void link_pointer_assignment(struct mcc_ast_assignment *assignment, struct mcc_symbol_table_scope *scope)
+static int link_pointer_assignment(struct mcc_ast_assignment *assignment, struct mcc_symbol_table_scope *scope)
 {
 	assert(assignment);
 	assert(scope);
@@ -427,36 +432,45 @@ static void link_pointer_assignment(struct mcc_ast_assignment *assignment, struc
 
 	if (!row) {
 		row = create_pseudo_row(scope);
+		// if still row == NULL malloc failed
+		if(!row){
+			return 0;
+		}
 	}
 
+	int exit_code = 0;
 	assignment->row = row;
 
 	switch (assignment->assignment_type) {
 	case MCC_AST_ASSIGNMENT_TYPE_VARIABLE:
-		link_pointer_expression(assignment->variable_assigned_value, scope);
+		exit_code += link_pointer_expression(assignment->variable_assigned_value, scope);
 		break;
 	case MCC_AST_ASSIGNMENT_TYPE_ARRAY:
-		link_pointer_expression(assignment->array_assigned_value, scope);
-		link_pointer_expression(assignment->array_index, scope);
+		exit_code += link_pointer_expression(assignment->array_assigned_value, scope);
+		exit_code += link_pointer_expression(assignment->array_index, scope);
+		exit_code /= (int)2 ;
 		break;
 	}
+	return exit_code;
 }
 
-static void link_pointer_arguments(struct mcc_ast_arguments *arguments, struct mcc_symbol_table_scope *scope)
+static int link_pointer_arguments(struct mcc_ast_arguments *arguments, struct mcc_symbol_table_scope *scope)
 {
 	assert(arguments);
 	assert(scope);
 
 	if (!arguments->expression) {
-		return;
+		return 1;
 	}
 	do {
 		link_pointer_expression(arguments->expression, scope);
 		arguments = arguments->next_arguments;
 	} while (arguments);
+
+	return 1;
 }
 
-static void link_pointer_expression(struct mcc_ast_expression *expression, struct mcc_symbol_table_scope *scope)
+static int link_pointer_expression(struct mcc_ast_expression *expression, struct mcc_symbol_table_scope *scope)
 {
 	assert(expression);
 	assert(scope);
@@ -465,84 +479,100 @@ static void link_pointer_expression(struct mcc_ast_expression *expression, struc
 
 	if (!row) {
 		row = create_pseudo_row(scope);
+		// if still row == NULL malloc failed
+		if(!row){
+			return 0;
+		}
 	}
 
+	int exit_code = 0;
 	switch (expression->type) {
 	case MCC_AST_EXPRESSION_TYPE_LITERAL:
-		// do nothing
+		exit_code = 1; // do nothing
 		break;
 	case MCC_AST_EXPRESSION_TYPE_BINARY_OP:
-		link_pointer_expression(expression->lhs, scope);
-		link_pointer_expression(expression->rhs, scope);
+		exit_code = link_pointer_expression(expression->lhs, scope);
+		exit_code += link_pointer_expression(expression->rhs, scope);
+		exit_code /= (int)2;
 		break;
 	case MCC_AST_EXPRESSION_TYPE_PARENTH:
-		link_pointer_expression(expression->expression, scope);
+		exit_code = link_pointer_expression(expression->expression, scope);
 		break;
 	case MCC_AST_EXPRESSION_TYPE_UNARY_OP:
-		link_pointer_expression(expression->child, scope);
+		exit_code = link_pointer_expression(expression->child, scope);
 		break;
 	case MCC_AST_EXPRESSION_TYPE_VARIABLE:
 		expression->variable_row = row;
+		exit_code = 1;
 		break;
 	case MCC_AST_EXPRESSION_TYPE_ARRAY_ELEMENT:
-		link_pointer_expression(expression->index, scope);
+		exit_code = link_pointer_expression(expression->index, scope);
 		expression->array_row = row;
 		break;
 	case MCC_AST_EXPRESSION_TYPE_FUNCTION_CALL:
 		expression->function_row = row;
-		link_pointer_arguments(expression->arguments, scope);
+		exit_code = link_pointer_arguments(expression->arguments, scope);
 		break;
 	}
+	return exit_code;
 }
 
-static void link_pointer_return(struct mcc_ast_statement *statement, struct mcc_symbol_table_scope *scope)
+static int link_pointer_return(struct mcc_ast_statement *statement, struct mcc_symbol_table_scope *scope)
 {
 	assert(statement);
 	assert(scope);
 
 	if (statement->return_value) {
-		link_pointer_expression(statement->return_value, scope);
+		if(!link_pointer_expression(statement->return_value, scope)){
+			return 0;
+		}
 	}
+	return 1;
 }
 
-static void create_rows_statement(struct mcc_ast_statement *statement, struct mcc_symbol_table_scope *scope)
+static int create_rows_statement(struct mcc_ast_statement *statement, struct mcc_symbol_table_scope *scope)
 {
 	assert(statement);
 	assert(scope);
 
+	int exit_code = 0;
 	switch (statement->type) {
 	case MCC_AST_STATEMENT_TYPE_DECLARATION:
-		create_row_declaration(statement->declaration, scope);
+		exit_code = create_row_declaration(statement->declaration, scope);
 		break;
 	case MCC_AST_STATEMENT_TYPE_IF_STMT:
-		link_pointer_expression(statement->if_condition, scope);
-		create_rows_statement(statement->if_on_true, scope);
+		exit_code = link_pointer_expression(statement->if_condition, scope);
+		exit_code += create_rows_statement(statement->if_on_true, scope);
+		exit_code /= (int)2;
 		break;
 	case MCC_AST_STATEMENT_TYPE_IF_ELSE_STMT:
-		link_pointer_expression(statement->if_else_condition, scope);
-		create_rows_statement(statement->if_else_on_true, scope);
-		create_rows_statement(statement->if_else_on_false, scope);
+		exit_code = link_pointer_expression(statement->if_else_condition, scope);
+		exit_code += create_rows_statement(statement->if_else_on_true, scope);
+		exit_code += create_rows_statement(statement->if_else_on_false, scope);
+		exit_code /= (int)3;
 		break;
 	case MCC_AST_STATEMENT_TYPE_WHILE:
-		link_pointer_expression(statement->while_condition, scope);
-		create_rows_statement(statement->while_on_true, scope);
+		exit_code = link_pointer_expression(statement->while_condition, scope);
+		exit_code += create_rows_statement(statement->while_on_true, scope);
+		exit_code /= (int)2;
 		break;
 	case MCC_AST_STATEMENT_TYPE_COMPOUND_STMT:
-		create_rows_compound_statement(statement->compound_statement, append_child_scope_to_last_row(scope));
+		exit_code = create_rows_compound_statement(statement->compound_statement, append_child_scope_to_last_row(scope));
 		break;
 	case MCC_AST_STATEMENT_TYPE_ASSIGNMENT:
-		link_pointer_assignment(statement->assignment, scope);
+		exit_code = link_pointer_assignment(statement->assignment, scope);
 		break;
 	case MCC_AST_STATEMENT_TYPE_EXPRESSION:
-		link_pointer_expression(statement->stmt_expression, scope);
+		exit_code = link_pointer_expression(statement->stmt_expression, scope);
 		break;
 	case MCC_AST_STATEMENT_TYPE_RETURN:
-		link_pointer_return(statement, scope);
+		exit_code = link_pointer_return(statement, scope);
 		break;
 	}
+	return exit_code;
 }
 
-static void create_rows_function_body(struct mcc_ast_function_definition *function_definition,
+static int create_rows_function_body(struct mcc_ast_function_definition *function_definition,
                                       struct mcc_symbol_table_row *row)
 {
 	assert(function_definition);
@@ -550,19 +580,19 @@ static void create_rows_function_body(struct mcc_ast_function_definition *functi
 
 	if (!row->child_scope) {
 		struct mcc_symbol_table_scope *child_scope = mcc_symbol_table_new_scope();
+		if(!child_scope){
+			return 0;
+		}
 		mcc_symbol_table_row_append_child_scope(row, child_scope);
 	}
 
 	struct mcc_ast_compound_statement *compound_stmt = function_definition->compound_stmt;
-
-	if (compound_stmt->statement) {
-		create_rows_statement(compound_stmt->statement, row->child_scope);
+	if(compound_stmt){
+		if(!create_rows_compound_statement(compound_stmt, row->child_scope)){
+			return 0;
+		}
 	}
-
-	while (compound_stmt->next_compound_statement) {
-		compound_stmt = compound_stmt->next_compound_statement;
-		create_rows_statement(compound_stmt->statement, row->child_scope);
-	}
+	return 1;
 }
 
 static int create_row_function_definition(struct mcc_ast_function_definition *function_definition,
@@ -571,8 +601,10 @@ static int create_row_function_definition(struct mcc_ast_function_definition *fu
 	assert(function_definition);
 	assert(table);
 
-	if (!table->head && !mcc_symbol_table_insert_new_scope(table)) {
-		return 0;
+	if (!table->head){
+	 	if(!mcc_symbol_table_insert_new_scope(table)) {
+			return 0;
+		 }
 	}
 
 	struct mcc_symbol_table_row *row = NULL;
@@ -602,13 +634,13 @@ static int create_row_function_definition(struct mcc_ast_function_definition *fu
 	if(!row){
 		return 0;
 	}
-
 	mcc_symbol_table_scope_append_row(table->head, row);
-
 	if(!create_rows_function_parameters(function_definition, row)){
 		return 0;
 	}
-	create_rows_function_body(function_definition, row);
+	if(!create_rows_function_body(function_definition, row)){
+		return 0;
+	}
 	return 1;
 }
 
