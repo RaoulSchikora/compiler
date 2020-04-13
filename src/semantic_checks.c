@@ -141,6 +141,7 @@ static enum mcc_semantic_check_error_code raise_non_type_error(int num,
 	return error;
 }
 
+// This function implements early abort depending on previously raised errors, so that the type checker doesn't have to
 static enum mcc_semantic_check_error_code raise_type_error(enum mcc_semantic_check_error_code error,
                                                            int num,
                                                            struct mcc_semantic_check *check,
@@ -171,9 +172,6 @@ struct mcc_semantic_check *mcc_semantic_check_initialize_check()
 	return check;
 }
 
-// ------------------------------------------------------------- Functions: Running single semantic checks with early
-// abort
-
 // Define function pointer to a single sematic check
 enum mcc_semantic_check_error_code (*fctptr)(struct mcc_ast_program *ast,
                                              struct mcc_symbol_table *table,
@@ -197,12 +195,10 @@ run_check_early_abrt(enum mcc_semantic_check_error_code (*fctptr)(struct mcc_ast
 	assert(check);
 	assert(fctptr);
 
-	// Early abort. Return error code of the previous check
 	if (previous_return != MCC_SEMANTIC_CHECK_ERROR_OK) {
 		return previous_return;
 	}
 
-	// Early abort. Return without doing anything.
 	if (check->status != MCC_SEMANTIC_CHECK_OK) {
 		return MCC_SEMANTIC_CHECK_ERROR_OK;
 	}
@@ -212,6 +208,7 @@ run_check_early_abrt(enum mcc_semantic_check_error_code (*fctptr)(struct mcc_ast
 }
 
 // Run all semantic checks, returns NULL if library functions fail
+// TODO: error handling?
 struct mcc_semantic_check *mcc_semantic_check_run_all(struct mcc_ast_program *ast,
                                                       struct mcc_symbol_table *symbol_table)
 {
@@ -290,7 +287,6 @@ static struct mcc_semantic_check_data_type *get_data_type_from_row(struct mcc_sy
 	return type;
 }
 
-// Convert Type from AST into Type from semantic checks
 static enum mcc_semantic_check_data_types ast_to_semantic_check_type(enum mcc_ast_types type)
 {
 	switch (type) {
@@ -309,7 +305,6 @@ static enum mcc_semantic_check_data_types ast_to_semantic_check_type(enum mcc_as
 	}
 }
 
-// get data type of declaration
 static struct mcc_semantic_check_data_type *get_data_type_declaration(struct mcc_ast_declaration *decl,
                                                                       struct mcc_semantic_check *check)
 {
@@ -329,28 +324,24 @@ static struct mcc_semantic_check_data_type *get_data_type_declaration(struct mcc
 	return type;
 }
 
-// returns true if type is INT
 static bool is_int(struct mcc_semantic_check_data_type *type)
 {
 	assert(type);
 	return ((type->type == MCC_SEMANTIC_CHECK_INT) && !type->is_array);
 }
 
-// returns true if type is BOOL
 static bool is_bool(struct mcc_semantic_check_data_type *type)
 {
 	assert(type);
 	return ((type->type == MCC_SEMANTIC_CHECK_BOOL) && !type->is_array);
 }
 
-// returns true if type is string
 static bool is_string(struct mcc_semantic_check_data_type *type)
 {
 	assert(type);
 	return ((type->type == MCC_SEMANTIC_CHECK_STRING) && !type->is_array);
 }
 
-// returns true if given types equal
 static bool types_equal(struct mcc_semantic_check_data_type *first, struct mcc_semantic_check_data_type *second)
 {
 	assert(first);
@@ -366,26 +357,26 @@ static char *to_string(struct mcc_semantic_check_data_type *type)
 	// Longest type has 7 characters
 	char type_string[8];
 
-	switch (type->type){
-		case MCC_SEMANTIC_CHECK_INT:
-			strcpy(type_string, "INT");
-			break;
-		case MCC_SEMANTIC_CHECK_FLOAT:
-			strcpy(type_string, "FLOAT");
-			break;
-		case MCC_SEMANTIC_CHECK_BOOL:
-			strcpy(type_string, "BOOL");
-			break;
-		case MCC_SEMANTIC_CHECK_STRING:
-			strcpy(type_string, "STRING");
-			break;
-		case MCC_SEMANTIC_CHECK_VOID:
-			strcpy(type_string, "VOID");
-			break;
-		default:
-			strcpy(type_string, "UNKNOWN");
-			break;
-		}
+	switch (type->type) {
+	case MCC_SEMANTIC_CHECK_INT:
+		strcpy(type_string, "INT");
+		break;
+	case MCC_SEMANTIC_CHECK_FLOAT:
+		strcpy(type_string, "FLOAT");
+		break;
+	case MCC_SEMANTIC_CHECK_BOOL:
+		strcpy(type_string, "BOOL");
+		break;
+	case MCC_SEMANTIC_CHECK_STRING:
+		strcpy(type_string, "STRING");
+		break;
+	case MCC_SEMANTIC_CHECK_VOID:
+		strcpy(type_string, "VOID");
+		break;
+	default:
+		strcpy(type_string, "UNKNOWN");
+		break;
+	}
 	size_t size = 11 + (size_t)floor(log10(not_zero(type->array_size)));
 	char *buffer = malloc(size);
 	if (!buffer) {
@@ -493,7 +484,6 @@ static struct mcc_semantic_check_data_type *check_and_get_type_binary_expression
 	return lhs;
 }
 
-// check and get type of a unary expression
 struct mcc_semantic_check_data_type *check_and_get_type_unary_expression(struct mcc_ast_expression *expression,
                                                                          struct mcc_semantic_check *check)
 {
@@ -614,7 +604,6 @@ struct mcc_semantic_check_data_type *check_and_get_type_literal(struct mcc_ast_l
 	return type;
 }
 
-// check and get data type of expression. Returns MCC_SEMANTIC_CHECK_UNKNOWN if error occurs
 struct mcc_semantic_check_data_type *check_and_get_type_expression(struct mcc_ast_expression *expression,
                                                                    struct mcc_semantic_check *check)
 {
@@ -641,8 +630,6 @@ struct mcc_semantic_check_data_type *check_and_get_type_expression(struct mcc_as
 	}
 }
 
-// check and get data type of identifier. Returns MCC_SEMANTIC_CHECK_UNKNOWN if identifier
-// has not been found in the symbol table
 struct mcc_semantic_check_data_type *check_and_get_type_identifier(struct mcc_ast_identifier *identifier,
                                                                    struct mcc_semantic_check *check,
                                                                    struct mcc_symbol_table_row *row)
@@ -748,7 +735,6 @@ static void cb_type_check_return_value(struct mcc_ast_function_definition *funct
 	free(r_v_userdata);
 }
 
-// callback for checking type conversion in an assignment
 static void cb_type_conversion_assignment(struct mcc_ast_statement *statement, void *data)
 {
 	assert(statement);
@@ -815,7 +801,6 @@ static void cb_type_conversion_assignment(struct mcc_ast_statement *statement, v
 	free(index);
 }
 
-// callback ensuring the condition of an if-statement to be of type BOOL
 static void cb_type_check_if_stmt(struct mcc_ast_statement *statement, void *data)
 {
 	assert(statement->if_condition);
@@ -836,7 +821,6 @@ static void cb_type_check_if_stmt(struct mcc_ast_statement *statement, void *dat
 	free(type);
 }
 
-// callback ensuring the condition of an if_else-statement to be of type BOOL
 static void cb_type_check_if_else_stmt(struct mcc_ast_statement *statement, void *data)
 {
 	assert(statement->if_else_condition);
@@ -857,7 +841,6 @@ static void cb_type_check_if_else_stmt(struct mcc_ast_statement *statement, void
 	free(type);
 }
 
-// callback ensuring the condition of a while-statement to be of type BOOL
 static void cb_type_check_while_stmt(struct mcc_ast_statement *statement, void *data)
 {
 	assert(statement->while_condition);
@@ -878,7 +861,6 @@ static void cb_type_check_while_stmt(struct mcc_ast_statement *statement, void *
 	free(type);
 }
 
-// callback for type checking statements consisting of a single expression
 static void cb_type_check_expression_stmt(struct mcc_ast_statement *statement, void *data)
 {
 	assert(statement->stmt_expression);
@@ -896,7 +878,6 @@ static void cb_type_check_expression_stmt(struct mcc_ast_statement *statement, v
 	free(type);
 }
 
-// Setup an AST Visitor for type checking
 static struct mcc_ast_visitor type_checking_visitor(struct type_checking_userdata *userdata)
 {
 	return (struct mcc_ast_visitor){
@@ -914,7 +895,6 @@ static struct mcc_ast_visitor type_checking_visitor(struct type_checking_userdat
 	};
 }
 
-// run the type checker
 enum mcc_semantic_check_error_code mcc_semantic_check_run_type_check(struct mcc_ast_program *ast,
                                                                      struct mcc_symbol_table *symbol_table,
                                                                      struct mcc_semantic_check *check)
@@ -939,12 +919,9 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_type_check(struct mcc_
 
 // ------------------------------------------------------------- check execution paths of non-void functions
 
-// Forward declarations:
-
 static bool recursively_check_nonvoid_property(struct mcc_ast_compound_statement *compound_statement);
 static bool check_nonvoid_property(struct mcc_ast_statement *statement);
 
-// check a single statement on non-void property
 static bool check_nonvoid_property(struct mcc_ast_statement *statement)
 {
 	if (!statement)
@@ -963,7 +940,6 @@ static bool check_nonvoid_property(struct mcc_ast_statement *statement)
 	}
 }
 
-// recursively check non-void property, i.e. all execution paths end in a return
 static bool recursively_check_nonvoid_property(struct mcc_ast_compound_statement *compound_statement)
 {
 	if (!compound_statement)
@@ -990,7 +966,6 @@ static enum mcc_semantic_check_error_code run_nonvoid_check(struct mcc_ast_funct
 	return MCC_SEMANTIC_CHECK_ERROR_OK;
 }
 
-// run non-void check
 enum mcc_semantic_check_error_code mcc_semantic_check_run_nonvoid_check(struct mcc_ast_program *ast,
                                                                         struct mcc_symbol_table *symbol_table,
                                                                         struct mcc_semantic_check *check)
@@ -1005,7 +980,7 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_nonvoid_check(struct m
 
 	do {
 		error = run_nonvoid_check(ast->function, check);
-		if(error != MCC_SEMANTIC_CHECK_ERROR_OK)
+		if (error != MCC_SEMANTIC_CHECK_ERROR_OK)
 			break;
 		ast = ast->next_function;
 	} while (ast);
@@ -1013,9 +988,8 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_nonvoid_check(struct m
 	return error;
 }
 
-// ------------------------------------------------------------- checking for main function
+// ------------------------------------------------------------- checking for correct main function
 
-// Main function exists and has correct signature
 enum mcc_semantic_check_error_code mcc_semantic_check_run_main_function(struct mcc_ast_program *ast,
                                                                         struct mcc_symbol_table *symbol_table,
                                                                         struct mcc_semantic_check *check)
@@ -1036,13 +1010,13 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_main_function(struct m
 			number_of_mains += 1;
 			if (number_of_mains > 1) {
 				return mcc_semantic_check_raise_error(0, check, original_ast->node,
-				                                            "Too many main functions defined.", false);
+				                                      "Too many main functions defined.", false);
 			}
 			if (!(ast->function->parameters->is_empty)) {
 				return mcc_semantic_check_raise_error(0, check, original_ast->node,
-				                                            "Main has wrong signature. "
-				                                            "Must be `int main()`.",
-				                                            false);
+				                                      "Main has wrong signature. "
+				                                      "Must be `int main()`.",
+				                                      false);
 			}
 		}
 		ast = ast->next_function;
@@ -1057,7 +1031,6 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_main_function(struct m
 
 // ------------------------------------------------------------- check for multiple function definitions
 
-// No multiple definitions of the same function
 enum mcc_semantic_check_error_code mcc_semantic_check_run_multiple_function_definitions(
     struct mcc_ast_program *ast, struct mcc_symbol_table *symbol_table, struct mcc_semantic_check *check)
 {
@@ -1078,19 +1051,17 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_multiple_function_defi
 		char *name_of_check = program_to_check->function->identifier->identifier_name;
 		char *name_of_compare = program_to_compare->function->identifier->identifier_name;
 
-		// if name of program_to_check and name of program_to_compare equals
 		if (strcmp(name_of_check, name_of_compare) == 0) {
-			return mcc_semantic_check_raise_error(1, check, program_to_check->node,
-			                                       "redefinition of '%s'.", false, name_of_compare);
+			return mcc_semantic_check_raise_error(1, check, program_to_check->node, "redefinition of '%s'.",
+			                                      false, name_of_compare);
 		}
 		// compare all next_functions
 		while (program_to_compare->next_function) {
 			program_to_compare = program_to_compare->next_function;
 			char *name_of_compare = program_to_compare->function->identifier->identifier_name;
-			// if name of program_to_check and name of program_to_compare equals
 			if (strcmp(name_of_check, name_of_compare) == 0) {
 				return mcc_semantic_check_raise_error(1, check, program_to_check->node,
-				                                       "redefinition of '%s'.", false, name_of_compare);
+				                                      "redefinition of '%s'.", false, name_of_compare);
 			}
 		}
 
@@ -1102,7 +1073,6 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_multiple_function_defi
 
 // ------------------------------------------------------------- check for multiple variable declarations
 
-// check scopes individually
 static enum mcc_semantic_check_error_code
 check_scope_for_multiple_variable_declaration(struct mcc_symbol_table_scope *scope, struct mcc_semantic_check *check)
 {
@@ -1157,7 +1127,6 @@ check_scope_for_multiple_variable_declaration(struct mcc_symbol_table_scope *sco
 	return error;
 }
 
-// No multiple declarations of a variable in the same scope
 enum mcc_semantic_check_error_code mcc_semantic_check_run_multiple_variable_declarations(
     struct mcc_ast_program *ast, struct mcc_symbol_table *symbol_table, struct mcc_semantic_check *check)
 {
@@ -1195,7 +1164,7 @@ static int get_number_of_params(struct mcc_ast_parameters *parameters)
 {
 	assert(parameters);
 
-	if (parameters->is_empty){
+	if (parameters->is_empty) {
 		return 0;
 	}
 	int num = 1;
@@ -1236,7 +1205,6 @@ static struct mcc_ast_parameters *get_params_from_ast(struct mcc_ast_program *as
 	return params;
 }
 
-// callback for checking correctness of function calls
 static void cb_function_arguments_expression_function_call(struct mcc_ast_expression *expression, void *userdata)
 {
 	assert(expression);
@@ -1260,7 +1228,6 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
 	int num_params = get_number_of_params(params);
 	int num_args = get_number_of_args(args);
 	if (num_params == 0 && num_args == 0) {
-		// nothing to check, since no params and no args
 		return;
 	} else if (num_args - num_params > 0) {
 		mcc_semantic_check_raise_error(1, check, expression->node, "Too many arguments to function '%s'", false,
@@ -1317,9 +1284,8 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_function_arguments(str
 	assert(!check->error_buffer);
 	assert(check->status == MCC_SEMANTIC_CHECK_OK);
 
-	// Set up userdata
 	struct function_arguments_userdata *userdata = malloc(sizeof(*userdata));
-	if (!userdata) 
+	if (!userdata)
 		return MCC_SEMANTIC_CHECK_ERROR_MALLOC_FAILED;
 	userdata->check = check;
 	userdata->program = ast;
@@ -1332,7 +1298,6 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_function_arguments(str
 
 // ------------------------------------------------------------- Functions: Cleanup
 
-// Delete single checks
 void mcc_semantic_check_delete_single_check(struct mcc_semantic_check *check)
 {
 	if (check == NULL)
