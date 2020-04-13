@@ -122,22 +122,11 @@ int main(int argc, char *argv[])
 	// ---------------------------------------------------------------------- Create Symbol Table
 
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&result)->program);
-<<<<<<< HEAD
-	if (!table) {
-		mc_cl_parser_delete_command_line_parser(command_line);
-		mcc_ast_delete_result(&result);
-		perror("mcc_symbol_table_create: returned NULL pointer.");
-		return EXIT_FAILURE;
-||||||| merged common ancestors
-	if (table == NULL) {
-		perror("mcc_symbol_table_create: returned NULL pointer.");
-=======
 	if (!table) {
 		clean_up(&result);
 		clean_up(command_line);
 		fprintf(stderr, "mcc_symbol_table_create: returned NULL pointer.");
 		return EXIT_FAILURE;
->>>>>>> 8746e4f7e4846fc779de209a9786876136f0a329
 	}
 
 	// ---------------------------------------------------------------------- Run semantic checks
