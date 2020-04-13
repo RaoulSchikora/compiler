@@ -163,7 +163,6 @@ void mcc_ast_delete_expression(struct mcc_ast_expression *expression)
 
 void mcc_ast_delete_type(struct mcc_ast_type *type)
 {
-	assert(type);
 	free(type);
 }
 
@@ -192,6 +191,11 @@ struct mcc_ast_declaration *mcc_ast_new_variable_declaration(enum mcc_ast_types 
 	}
 
 	struct mcc_ast_type *newtype = mcc_ast_new_type(type);
+	
+	if(!newtype){
+		free(decl);
+		return NULL;
+	}
 
 	decl->variable_type = newtype;
 	decl->variable_identifier = identifier;
@@ -222,6 +226,10 @@ mcc_ast_new_array_declaration(enum mcc_ast_types type, struct mcc_ast_literal *s
 	}
 
 	struct mcc_ast_type *newtype = mcc_ast_new_type(type);
+	if(!newtype){
+		free(array_decl);
+		return NULL;
+	}
 
 	array_decl->array_type = newtype;
 	array_decl->array_identifier = identifier;
@@ -280,7 +288,7 @@ struct mcc_ast_assignment *mcc_ast_new_array_assignment(struct mcc_ast_identifie
 	assert(identifier);
 	assert(assigned_value);
 	struct mcc_ast_assignment *assignment = malloc(sizeof(*assignment));
-	if (assignment == NULL) {
+	if (!assignment) {
 		return NULL;
 	}
 	assignment->array_identifier = identifier;
@@ -603,8 +611,14 @@ struct mcc_ast_literal *mcc_ast_new_literal_string(char *value)
 		return NULL;
 	}
 
+	char *string_no_quotes = mcc_remove_quotes_from_string(value);
+	if(!string_no_quotes){
+		free(lit);
+		return NULL;
+	}
+
 	lit->type = MCC_AST_LITERAL_TYPE_STRING;
-	lit->string_value = mcc_remove_quotes_from_string(value);
+	lit->string_value = string_no_quotes;
 
 	return lit;
 }
@@ -614,6 +628,8 @@ char *mcc_remove_quotes_from_string(char *string)
 
 	assert(string);
 	char *intermediate = (char *)malloc((strlen(string) - 1) * sizeof(char));
+	if(!intermediate)
+		return NULL;
 	strncpy(intermediate, string + 1, strlen(string) - 2);
 	*(intermediate + strlen(string) - 2) = '\0';
 	return intermediate;
