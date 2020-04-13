@@ -13,6 +13,18 @@
 
 #define BUF_SIZE 1024
 
+
+// clang-format off
+
+#define clean_up(x)  _Generic((x), \
+			struct mcc_symbol_table * : mcc_symbol_table_delete_table, \
+			struct mc_cl_parser_command_line_parser * : mc_cl_parser_delete_command_line_parser, \
+			struct mcc_parser_result * : mcc_ast_delete_result, \
+			struct mcc_semantic_check * : mcc_semantic_check_delete_single_check\
+			)(x)
+
+// clang-format on
+
 // get a function out of a mcc_parser_result
 struct mcc_parser_result *limit_result_to_function_scope(struct mcc_parser_result *result, char *wanted_function_name);
 
@@ -31,26 +43,12 @@ int main(int argc, char *argv[])
 	char *usage_string = "The mC compiler. It takes an mC input file and produces an executable.\n"
 	                     "Errors are reported on invalid inputs.\n";
 	struct mc_cl_parser_command_line_parser *command_line = mc_cl_parser_parse(argc, argv, usage_string);
-	if (command_line == NULL) {
-		mc_cl_parser_delete_command_line_parser(command_line);
-		return EXIT_FAILURE;
-	}
 
-	// print usage if "-h" or "--help" was specified
-	if (command_line->options->print_help == true) {
-		mc_cl_parser_delete_command_line_parser(command_line);
-		return EXIT_FAILURE;
-	}
-
-	// Args were malformed
-	if (command_line->argument_status == MC_CL_PARSER_ARGSTAT_ERROR) {
-		mc_cl_parser_delete_command_line_parser(command_line);
-		return EXIT_FAILURE;
-	}
-
-	// Given file does not exist
-	if (command_line->argument_status == MC_CL_PARSER_ARGSTAT_FILE_NOT_FOUND) {
-		mc_cl_parser_delete_command_line_parser(command_line);
+	// Check if command line parser returned any errors or if "-h" was passed. If so, return.
+	if (!command_line || command_line->options->print_help ||
+	    command_line->argument_status == MC_CL_PARSER_ARGSTAT_ERROR ||
+	    command_line->argument_status == MC_CL_PARSER_ARGSTAT_FILE_NOT_FOUND) {
+		clean_up(command_line);
 		return EXIT_FAILURE;
 	}
 
@@ -72,7 +70,7 @@ int main(int argc, char *argv[])
 		if (result.status != MCC_PARSER_STATUS_OK) {
 			fprintf(stderr, "%s", result.error_buffer);
 			free(result.error_buffer);
-			mc_cl_parser_delete_command_line_parser(command_line);
+			clean_up(command_line);
 			return EXIT_FAILURE;
 		}
 	}
@@ -97,7 +95,7 @@ int main(int argc, char *argv[])
 					free(parse_results + j);
 					j++;
 				}
-				mc_cl_parser_delete_command_line_parser(command_line);
+				clean_up(command_line);
 				return EXIT_FAILURE;
 			}
 
@@ -111,8 +109,8 @@ int main(int argc, char *argv[])
 	if (command_line->options->write_to_file == true) {
 		FILE *out = fopen(command_line->options->output_file, "a");
 		if (out == NULL) {
-			mcc_ast_delete_result(&result);
-			mc_cl_parser_delete_command_line_parser(command_line);
+			clean_up(&result);
+			clean_up(command_line);
 			return EXIT_FAILURE;
 		}
 		fprintf(out, "Teststring for integration testing\n");
@@ -124,31 +122,38 @@ int main(int argc, char *argv[])
 	// ---------------------------------------------------------------------- Create Symbol Table
 
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&result)->program);
-	if (table == NULL) {
-		perror("mcc_symbol_table_create: returned NULL pointer.");
+	if (!table) {
+		clean_up(&result);
+		clean_up(command_line);
+		fprintf(stderr, "mcc_symbol_table_create: returned NULL pointer.");
+		return EXIT_FAILURE;
 	}
 
 	// ---------------------------------------------------------------------- Run semantic checks
 
 	struct mcc_semantic_check *semantic_check = mcc_semantic_check_run_all((&result)->program, table);
-	if(!semantic_check){
+	if (!semantic_check) {
 		printf("Library error: mcc_semantic_check_run_all returned with NULL");
+		clean_up(command_line);
+		clean_up(&result);
+		clean_up(table);
+		return EXIT_FAILURE;
 	}
 	if (semantic_check->error_buffer) {
 		fprintf(stderr, "Semantic check failed:\n%s\n", semantic_check->error_buffer);
-		mc_cl_parser_delete_command_line_parser(command_line);
-		mcc_ast_delete_result(&result);
-		mcc_symbol_table_delete_table(table);
-		mcc_semantic_check_delete_single_check(semantic_check);
+		clean_up(command_line);
+		clean_up(&result);
+		clean_up(table);
+		clean_up(semantic_check);
 		return EXIT_FAILURE;
 	}
 
 	// ---------------------------------------------------------------------- Clean up
 
-	mc_cl_parser_delete_command_line_parser(command_line);
-	mcc_ast_delete_result(&result);
-	mcc_symbol_table_delete_table(table);
-	mcc_semantic_check_delete_single_check(semantic_check);
+	clean_up(command_line);
+	clean_up(&result);
+	clean_up(table);
+	clean_up(semantic_check);
 
 	// TODO:
 	// - run semantic checks
