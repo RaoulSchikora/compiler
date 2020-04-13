@@ -775,27 +775,21 @@ static void cb_type_conversion_assignment(struct mcc_ast_statement *statement, v
 
 	if (!lhs_type) {
 		userdata->error = MCC_SEMANTIC_CHECK_ERROR_UNKNOWN;
-		if (rhs_type)
-			free(rhs_type);
-		if (index)
-			free(index);
+		free(rhs_type);
+		free(index);
 		return;
 	}
 	if (!rhs_type) {
 		userdata->error = MCC_SEMANTIC_CHECK_ERROR_UNKNOWN;
-		if (lhs_type)
-			free(lhs_type);
-		if (index)
-			free(index);
+		free(lhs_type);
+		free(index);
 		return;
 	}
 
 	if (!index && assignment->assignment_type == MCC_AST_ASSIGNMENT_TYPE_ARRAY) {
 		userdata->error = MCC_SEMANTIC_CHECK_ERROR_UNKNOWN;
-		if (lhs_type)
-			free(lhs_type);
-		if (rhs_type)
-			free(rhs_type);
+		free(lhs_type);
+		free(rhs_type);
 		return;
 	} else {
 		if (assignment->assignment_type == MCC_AST_ASSIGNMENT_TYPE_ARRAY) {
@@ -957,26 +951,16 @@ static bool check_nonvoid_property(struct mcc_ast_statement *statement)
 		return false;
 
 	switch (statement->type) {
-	case MCC_AST_STATEMENT_TYPE_IF_STMT:
-		break;
 	case MCC_AST_STATEMENT_TYPE_IF_ELSE_STMT:
 		return (check_nonvoid_property(statement->if_else_on_true) &&
 		        check_nonvoid_property(statement->if_else_on_false));
-	case MCC_AST_STATEMENT_TYPE_EXPRESSION:
-		break;
-	case MCC_AST_STATEMENT_TYPE_WHILE:
-		break;
-	case MCC_AST_STATEMENT_TYPE_DECLARATION:
-		break;
-	case MCC_AST_STATEMENT_TYPE_ASSIGNMENT:
-		break;
 	case MCC_AST_STATEMENT_TYPE_RETURN:
 		return true;
 	case MCC_AST_STATEMENT_TYPE_COMPOUND_STMT:
 		return recursively_check_nonvoid_property(statement->compound_statement);
+	default:
+		return false;
 	}
-
-	return false;
 }
 
 // recursively check non-void property, i.e. all execution paths end in a return
@@ -994,9 +978,6 @@ static enum mcc_semantic_check_error_code run_nonvoid_check(struct mcc_ast_funct
 {
 	assert(function);
 	assert(check);
-	// Early abort if already failed
-	if (check->status == MCC_SEMANTIC_CHECK_FAIL)
-		return MCC_SEMANTIC_CHECK_ERROR_OK;
 
 	if (function->type == VOID)
 		return MCC_SEMANTIC_CHECK_ERROR_OK;
@@ -1024,6 +1005,8 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_nonvoid_check(struct m
 
 	do {
 		error = run_nonvoid_check(ast->function, check);
+		if(error != MCC_SEMANTIC_CHECK_ERROR_OK)
+			break;
 		ast = ast->next_function;
 	} while (ast);
 
@@ -1046,32 +1029,27 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_main_function(struct m
 
 	// Memorize AST entry point to get the correct filename later
 	struct mcc_ast_program *original_ast = ast;
-	enum mcc_semantic_check_error_code error_code = MCC_SEMANTIC_CHECK_OK;
 	int number_of_mains = 0;
 
 	do {
 		if (strcmp(ast->function->identifier->identifier_name, "main") == 0) {
 			number_of_mains += 1;
 			if (number_of_mains > 1) {
-				error_code = mcc_semantic_check_raise_error(0, check, original_ast->node,
+				return mcc_semantic_check_raise_error(0, check, original_ast->node,
 				                                            "Too many main functions defined.", false);
-				return error_code;
 			}
 			if (!(ast->function->parameters->is_empty)) {
-				error_code = mcc_semantic_check_raise_error(0, check, original_ast->node,
+				return mcc_semantic_check_raise_error(0, check, original_ast->node,
 				                                            "Main has wrong signature. "
 				                                            "Must be `int main()`.",
 				                                            false);
-				return error_code;
 			}
 		}
 		ast = ast->next_function;
 	} while (ast);
 
 	if (number_of_mains == 0) {
-		error_code =
-		    mcc_semantic_check_raise_error(0, check, original_ast->node, "No main function defined.", false);
-		return error_code;
+		return mcc_semantic_check_raise_error(0, check, original_ast->node, "No main function defined.", false);
 	}
 
 	return MCC_SEMANTIC_CHECK_ERROR_OK;
@@ -1089,7 +1067,6 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_multiple_function_defi
 	assert(ast);
 
 	struct mcc_ast_program *program_to_check = ast;
-	enum mcc_semantic_check_error_code error = MCC_SEMANTIC_CHECK_ERROR_OK;
 
 	// Program has only one function
 	if (!program_to_check->next_function) {
@@ -1103,9 +1080,8 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_multiple_function_defi
 
 		// if name of program_to_check and name of program_to_compare equals
 		if (strcmp(name_of_check, name_of_compare) == 0) {
-			error = mcc_semantic_check_raise_error(1, check, program_to_check->node,
+			return mcc_semantic_check_raise_error(1, check, program_to_check->node,
 			                                       "redefinition of '%s'.", false, name_of_compare);
-			return error;
 		}
 		// compare all next_functions
 		while (program_to_compare->next_function) {
@@ -1113,9 +1089,8 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_multiple_function_defi
 			char *name_of_compare = program_to_compare->function->identifier->identifier_name;
 			// if name of program_to_check and name of program_to_compare equals
 			if (strcmp(name_of_check, name_of_compare) == 0) {
-				error = mcc_semantic_check_raise_error(1, check, program_to_check->node,
+				return mcc_semantic_check_raise_error(1, check, program_to_check->node,
 				                                       "redefinition of '%s'.", false, name_of_compare);
-				return error;
 			}
 		}
 
@@ -1177,9 +1152,9 @@ check_scope_for_multiple_variable_declaration(struct mcc_symbol_table_scope *sco
 	}
 
 	if (row_to_check->child_scope) {
-		check_scope_for_multiple_variable_declaration(row_to_check->child_scope, check);
+		error = check_scope_for_multiple_variable_declaration(row_to_check->child_scope, check);
 	}
-	return MCC_SEMANTIC_CHECK_ERROR_OK;
+	return error;
 }
 
 // No multiple declarations of a variable in the same scope
@@ -1200,7 +1175,7 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_multiple_variable_decl
 		if (function_row->child_scope) {
 			error = check_scope_for_multiple_variable_declaration(function_row->child_scope, check);
 		}
-		if (check->status != MCC_SEMANTIC_CHECK_OK) {
+		if (check->status != MCC_SEMANTIC_CHECK_OK || error != MCC_SEMANTIC_CHECK_ERROR_OK) {
 			return error;
 		}
 		function_row = function_row->next_row;
@@ -1220,7 +1195,7 @@ static int get_number_of_params(struct mcc_ast_parameters *parameters)
 {
 	assert(parameters);
 
-	if (parameters->is_empty) {
+	if (parameters->is_empty){
 		return 0;
 	}
 	int num = 1;
@@ -1344,9 +1319,8 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_function_arguments(str
 
 	// Set up userdata
 	struct function_arguments_userdata *userdata = malloc(sizeof(*userdata));
-	if (!userdata) {
+	if (!userdata) 
 		return MCC_SEMANTIC_CHECK_ERROR_MALLOC_FAILED;
-	}
 	userdata->check = check;
 	userdata->program = ast;
 
@@ -1363,9 +1337,6 @@ void mcc_semantic_check_delete_single_check(struct mcc_semantic_check *check)
 {
 	if (check == NULL)
 		return;
-
-	if (check->error_buffer != NULL)
-		free(check->error_buffer);
-
+	free(check->error_buffer);
 	free(check);
 }
