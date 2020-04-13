@@ -31,6 +31,7 @@ mcc_src = [ 'src/ast.c',
             'src/ast_print.c',
             'src/ast_visit.c',
             'src/semantic_checks.c',
+	    'src/ir.c',
             lgen.process('src/scanner.l'),
             pgen.process('src/parser.y'),
             'src/symbol_table.c',
@@ -44,7 +45,7 @@ mcc_lib = library('mcc', mcc_src,
 
 # ---------------------------------------------------------------- Applications
 
-mcc_apps = [ 'mcc', 'mc_ast_to_dot','mc_symbol_table']
+mcc_apps = [ 'mcc', 'mc_ast_to_dot','mc_symbol_table','mc_ir']
 
 foreach app : mcc_apps
     executable(app, 'app/' + app + '.c',
@@ -54,7 +55,7 @@ endforeach
 
 # ----------------------------------------------------------------------- Tests
 
-mcc_tests = [ 'parser_test', 'symbol_table_test', 'semantic_checks_test' ]
+mcc_tests = [ 'parser_test', 'symbol_table_test', 'semantic_checks_test','ir_test' ]
 
 cutest_inc = include_directories('vendor/cutest')
 
