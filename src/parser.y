@@ -307,7 +307,7 @@ struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_par
 
 
 	input = (char*) malloc ((strlen(input_string)+1)*sizeof(char));
-	if(input == NULL){
+	if(!input){
 		return (struct mcc_parser_result){
 			.status = MCC_PARSER_STATUS_UNKNOWN_ERROR,
 		};
@@ -315,7 +315,7 @@ struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_par
 	strcpy (input,input_string);
 
 	FILE *in = fmemopen((void *)input, strlen(input), "r");
-	if (in == NULL) {
+	if (!in) {
 		return (struct mcc_parser_result){
 		    .status = MCC_PARSER_STATUS_UNABLE_TO_OPEN_STREAM,
 		};
@@ -342,8 +342,8 @@ struct mcc_parser_result mcc_parse_file(FILE *input, enum mcc_parser_entry_point
 		filename = "<test_suite>";
 		start_token = 1;
 	} else {
-		start_token = 2;
 		filename = name;
+		start_token = 2;
 	}
 
 	struct mcc_parser_result result = {
@@ -354,6 +354,11 @@ struct mcc_parser_result mcc_parse_file(FILE *input, enum mcc_parser_entry_point
 	if (yyparse(scanner, &result) != 0) {
 		result.status = MCC_PARSER_STATUS_UNKNOWN_ERROR;
 		result.error_buffer = (char *)malloc(sizeof(char) * strlen(buffer) + 1);
+		if(!result.error_buffer){
+			free(buffer);
+			mcc_parser_lex_destroy(scanner);
+			return result;
+		}
 		strcpy(result.error_buffer, buffer);
 		free(buffer);
 	}
@@ -408,9 +413,15 @@ void mcc_parser_error(struct MCC_PARSER_LTYPE *yylloc, struct mcc_parser_result 
 {
 	int size = strlen(msg) + 50 + strlen(yylloc->filename);
 	char* str = (char *)malloc( sizeof(char) * size);
+	if(!str)
+		return;
 	snprintf(str, size, "%s:%d:%d: %s\n", yylloc->filename, yylloc->first_line, yylloc->first_column, msg);
 
 	buffer = (char *)malloc(sizeof(char) * strlen(str) + 1);
+	if(!buffer){
+		free(str);
+		return;
+	}
 	strcpy(buffer, str);
 
 	free(str);
