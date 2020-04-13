@@ -124,8 +124,11 @@ int main(int argc, char *argv[])
 	// ---------------------------------------------------------------------- Create Symbol Table
 
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&result)->program);
-	if (table == NULL) {
+	if (!table) {
+		mc_cl_parser_delete_command_line_parser(command_line);
+		mcc_ast_delete_result(&result);
 		perror("mcc_symbol_table_create: returned NULL pointer.");
+		return EXIT_FAILURE;
 	}
 
 	// ---------------------------------------------------------------------- Run semantic checks

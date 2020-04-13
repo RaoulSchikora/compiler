@@ -441,7 +441,7 @@ void mcc_ast_delete_arguments(struct mcc_ast_arguments *arguments);
 
 // ------------------------------------------------------------------- add built_ins
 
-void mcc_ast_add_built_ins(struct mcc_ast_program *program);
+int mcc_ast_add_built_ins(struct mcc_ast_program *program);
 
 // clang-format off
 

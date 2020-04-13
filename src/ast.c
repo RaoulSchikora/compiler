@@ -867,7 +867,7 @@ void mcc_ast_delete_arguments(struct mcc_ast_arguments *arguments)
 // ------------------------------------------------------------------- add built_ins
 
 // adds built-in function definitions to the AST
-void mcc_ast_add_built_ins(struct mcc_ast_program *program)
+int mcc_ast_add_built_ins(struct mcc_ast_program *program)
 {
 	assert(program);
 
@@ -878,6 +878,9 @@ void mcc_ast_add_built_ins(struct mcc_ast_program *program)
 						  int read_int(){return 0;}   \
 						  float read_float(){return 0.0;}";
 	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_EXPRESSION);
+	if(result.status != MCC_PARSER_STATUS_OK){
+		return 0;
+	}
 	
 	if(!program->function){
 		program->function = (&result)->program->function;
@@ -895,4 +898,6 @@ void mcc_ast_add_built_ins(struct mcc_ast_program *program)
 		program_iter->has_next_function = true;
 		(&result)->program = NULL;
 	}
+
+	return 1;
 }
