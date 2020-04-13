@@ -25,7 +25,7 @@ static int get_sloc_string_size(struct mcc_ast_node node)
 }
 
 static enum mcc_semantic_check_error_code
-write_error_message_to_check_with_sloc(struct mcc_semantic_check *check, struct mcc_ast_node node, const char *string)
+err_to_check_with_sloc(struct mcc_semantic_check *check, struct mcc_ast_node node, const char *string)
 {
 	assert(check);
 	assert(check->error_buffer == NULL);
@@ -39,6 +39,7 @@ write_error_message_to_check_with_sloc(struct mcc_semantic_check *check, struct 
 	}
 	if (0 > snprintf(buffer, size, "%s:%d:%d: %s\n", node.sloc.filename, node.sloc.start_line, node.sloc.start_col,
 	                 string)) {
+		free(buffer);
 		return MCC_SEMANTIC_CHECK_ERROR_SNPRINTF_FAILED;
 	}
 	check->error_buffer = buffer;
@@ -84,8 +85,7 @@ static enum mcc_semantic_check_error_code v_raise_error(int num,
 		temp = va_arg(args_cp, char *);
 		if (!temp)
 			// If NULL is handed as string, then to_string must have failed to malloc
-			// TODO: change to unknown error
-			return MCC_SEMANTIC_CHECK_ERROR_MALLOC_FAILED;
+			return MCC_SEMANTIC_CHECK_ERROR_UNKNOWN;
 		args_size += strlen(temp);
 	}
 
@@ -105,7 +105,7 @@ static enum mcc_semantic_check_error_code v_raise_error(int num,
 	enum mcc_semantic_check_error_code error = MCC_SEMANTIC_CHECK_ERROR_OK;
 
 	// Write buffer string into check
-	error = write_error_message_to_check_with_sloc(check, node, buffer);
+	error = err_to_check_with_sloc(check, node, buffer);
 	free(buffer);
 
 	// If strings are from heap, free them
@@ -171,39 +171,6 @@ struct mcc_semantic_check *mcc_semantic_check_initialize_check()
 	return check;
 }
 
-// Run all semantic checks, returns NULL if library functions fail
-struct mcc_semantic_check *mcc_semantic_check_run_all(struct mcc_ast_program *ast,
-                                                      struct mcc_symbol_table *symbol_table)
-{
-	assert(ast);
-	assert(symbol_table);
-
-	enum mcc_semantic_check_error_code error = MCC_SEMANTIC_CHECK_ERROR_OK;
-
-	struct mcc_semantic_check *check = mcc_semantic_check_initialize_check();
-	if (!check)
-		return NULL;
-
-	error =
-	    mcc_semantic_check_early_abort_wrapper(mcc_semantic_check_run_type_check, ast, symbol_table, check, error);
-	error = mcc_semantic_check_early_abort_wrapper(mcc_semantic_check_run_nonvoid_check, ast, symbol_table, check,
-	                                               error);
-	error = mcc_semantic_check_early_abort_wrapper(mcc_semantic_check_run_main_function, ast, symbol_table, check,
-	                                               error);
-	error = mcc_semantic_check_early_abort_wrapper(mcc_semantic_check_run_multiple_function_definitions, ast,
-	                                               symbol_table, check, error);
-	error = mcc_semantic_check_early_abort_wrapper(mcc_semantic_check_run_multiple_variable_declarations, ast,
-	                                               symbol_table, check, error);
-	error = mcc_semantic_check_early_abort_wrapper(mcc_semantic_check_run_function_arguments, ast, symbol_table,
-	                                               check, error);
-
-	if (error != MCC_SEMANTIC_CHECK_ERROR_OK) {
-		mcc_semantic_check_delete_single_check(check);
-		return NULL;
-	}
-	return check;
-}
-
 // ------------------------------------------------------------- Functions: Running single semantic checks with early
 // abort
 
@@ -216,13 +183,13 @@ enum mcc_semantic_check_error_code (*fctptr)(struct mcc_ast_program *ast,
 // Error code of the previous check is not OK: Error code is handed back immediately
 // Status code of the previous check is not OK: Abort with error code OK, but don't change check
 enum mcc_semantic_check_error_code
-mcc_semantic_check_early_abort_wrapper(enum mcc_semantic_check_error_code (*fctptr)(struct mcc_ast_program *ast,
-                                                                                    struct mcc_symbol_table *table,
-                                                                                    struct mcc_semantic_check *check),
-                                       struct mcc_ast_program *ast,
-                                       struct mcc_symbol_table *table,
-                                       struct mcc_semantic_check *check,
-                                       enum mcc_semantic_check_error_code previous_return)
+run_check_early_abrt(enum mcc_semantic_check_error_code (*fctptr)(struct mcc_ast_program *ast,
+                                                                  struct mcc_symbol_table *table,
+                                                                  struct mcc_semantic_check *check),
+                     struct mcc_ast_program *ast,
+                     struct mcc_symbol_table *table,
+                     struct mcc_semantic_check *check,
+                     enum mcc_semantic_check_error_code previous_return)
 {
 
 	assert(ast);
@@ -244,15 +211,43 @@ mcc_semantic_check_early_abort_wrapper(enum mcc_semantic_check_error_code (*fctp
 	return (*fctptr)(ast, table, check);
 }
 
+// Run all semantic checks, returns NULL if library functions fail
+struct mcc_semantic_check *mcc_semantic_check_run_all(struct mcc_ast_program *ast,
+                                                      struct mcc_symbol_table *symbol_table)
+{
+	assert(ast);
+	assert(symbol_table);
+
+	enum mcc_semantic_check_error_code error = MCC_SEMANTIC_CHECK_ERROR_OK;
+
+	struct mcc_semantic_check *check = mcc_semantic_check_initialize_check();
+	if (!check)
+		return NULL;
+
+	error = run_check_early_abrt(mcc_semantic_check_run_type_check, ast, symbol_table, check, error);
+	error = run_check_early_abrt(mcc_semantic_check_run_nonvoid_check, ast, symbol_table, check, error);
+	error = run_check_early_abrt(mcc_semantic_check_run_main_function, ast, symbol_table, check, error);
+	error =
+	    run_check_early_abrt(mcc_semantic_check_run_multiple_function_definitions, ast, symbol_table, check, error);
+	error = run_check_early_abrt(mcc_semantic_check_run_multiple_variable_declarations, ast, symbol_table, check,
+	                             error);
+	error = run_check_early_abrt(mcc_semantic_check_run_function_arguments, ast, symbol_table, check, error);
+
+	if (error != MCC_SEMANTIC_CHECK_ERROR_OK) {
+		mcc_semantic_check_delete_single_check(check);
+		return NULL;
+	}
+	return check;
+}
+
 // ------------------------------------------------------------- check_and_get_type functionalities
 
 // getter for default data type
 static struct mcc_semantic_check_data_type *get_new_data_type()
 {
 	struct mcc_semantic_check_data_type *type = malloc(sizeof(*type));
-	if (!type) {
+	if (!type)
 		return NULL;
-	}
 	type->type = MCC_SEMANTIC_CHECK_UNKNOWN;
 	type->is_array = false;
 	type->array_size = -1;
@@ -368,86 +363,70 @@ static char *to_string(struct mcc_semantic_check_data_type *type)
 {
 	assert(type);
 
-	char *type_string;
+	//char *type_string;
+	size_t type_size;
 
-	switch (type->type) {
-	case MCC_SEMANTIC_CHECK_INT:
-		type_string = malloc(sizeof(char) * 4);
-		if (!type_string)
-			return NULL;
-		if (0 > snprintf(type_string, 4 * sizeof(char), "INT")) {
-			return NULL;
-			free(type_string);
+	switch (type->type){
+		case MCC_SEMANTIC_CHECK_INT:
+			type_size = sizeof(char) * 4;
+			break;
+		case MCC_SEMANTIC_CHECK_FLOAT:
+			type_size = sizeof(char) * 6;
+			break;
+		case MCC_SEMANTIC_CHECK_BOOL:
+			type_size = sizeof(char) * 5;
+			break;
+		case MCC_SEMANTIC_CHECK_STRING:
+			type_size = sizeof(char) * 7;
+			break;
+		case MCC_SEMANTIC_CHECK_VOID:
+			type_size = sizeof(char) * 5;
+			break;
+		default:
+			type_size = sizeof(char) * 8;
+			break;
 		}
-		break;
-	case MCC_SEMANTIC_CHECK_FLOAT:
-		type_string = malloc(sizeof(char) * 6);
-		if (!type_string)
-			return NULL;
-		if (0 > snprintf(type_string, 6 * sizeof(char), "FLOAT")) {
-			return NULL;
-			free(type_string);
-		}
-		break;
-	case MCC_SEMANTIC_CHECK_BOOL:
-		type_string = malloc(sizeof(char) * 5);
-		if (!type_string)
-			return NULL;
-		if (0 > snprintf(type_string, 5 * sizeof(char), "BOOL")) {
-			return NULL;
-			free(type_string);
-		}
-		break;
-	case MCC_SEMANTIC_CHECK_STRING:
-		type_string = malloc(sizeof(char) * 7);
-		if (!type_string)
-			return NULL;
-		if (0 > snprintf(type_string, 7 * sizeof(char), "STRING")) {
-			free(type_string);
-			return NULL;
-		}
-		break;
-	case MCC_SEMANTIC_CHECK_VOID:
-		type_string = malloc(sizeof(char) * 5);
-		if (!type_string)
-			return NULL;
-		if (0 > snprintf(type_string, 5 * sizeof(char), "VOID")) {
-			free(type_string);
-			return NULL;
-		}
-		break;
-	default:
-		type_string = malloc(sizeof(char) * 8);
-		if (!type_string)
-			return NULL;
-		if (0 > snprintf(type_string, 8 * sizeof(char), "UNKNOWN")) {
-			free(type_string);
-			return NULL;
-		}
-	}
 
-	size_t size = 12 + (size_t)floor(log10(not_zero(type->array_size)));
+	char type_string[type_size];
+		
+	switch (type->type){
+		case MCC_SEMANTIC_CHECK_INT:
+			strcpy(type_string, "INT");
+			break;
+		case MCC_SEMANTIC_CHECK_FLOAT:
+			strcpy(type_string, "FLOAT");
+			break;
+		case MCC_SEMANTIC_CHECK_BOOL:
+			strcpy(type_string, "BOOL");
+			break;
+		case MCC_SEMANTIC_CHECK_STRING:
+			strcpy(type_string, "STRING");
+			break;
+		case MCC_SEMANTIC_CHECK_VOID:
+			strcpy(type_string, "VOID");
+			break;
+		default:
+			strcpy(type_string, "UNKNOWN");
+			break;
+		}
+	size_t size = type_size + 3 + (size_t)floor(log10(not_zero(type->array_size)));
 	char *buffer = malloc(size);
 	if (!buffer) {
-		free(type_string);
 		return NULL;
 	}
 
 	if (type->is_array) {
 		if (0 > snprintf(buffer, size, "%s[%d]", type_string, type->array_size)) {
-			free(type_string);
 			free(buffer);
 			return NULL;
 		}
 	} else {
 		if (0 > snprintf(buffer, size, "%s", type_string)) {
-			free(type_string);
 			free(buffer);
 			return NULL;
 		}
 	}
 
-	free(type_string);
 	return buffer;
 }
 

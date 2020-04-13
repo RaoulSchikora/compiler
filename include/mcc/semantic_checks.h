@@ -68,19 +68,6 @@ struct mcc_semantic_check *mcc_semantic_check_initialize_check();
 struct mcc_semantic_check *mcc_semantic_check_run_all(struct mcc_ast_program *ast,
                                                       struct mcc_symbol_table *symbol_table);
 
-// ------------------------------------------------------------- Functions: Running single semantic checks with early
-// abort
-
-// Wrapper for running one of the checks with early abort
-enum mcc_semantic_check_error_code
-mcc_semantic_check_early_abort_wrapper(enum mcc_semantic_check_error_code (*fctptr)(struct mcc_ast_program *ast,
-                                                                                    struct mcc_symbol_table *table,
-                                                                                    struct mcc_semantic_check *check),
-                                       struct mcc_ast_program *ast,
-                                       struct mcc_symbol_table *table,
-                                       struct mcc_semantic_check *check,
-                                       enum mcc_semantic_check_error_code);
-
 // ------------------------------------------------------------- Functions: Implementation of the individual semantic
 // checks
 
