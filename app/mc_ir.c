@@ -6,6 +6,7 @@
 #include "mcc/ast.h"
 #include "mcc/ast_print.h"
 #include "mcc/ast_visit.h"
+#include "mcc/ir.h"
 #include "mcc/parser.h"
 #include "mcc/semantic_checks.h"
 
@@ -105,39 +106,15 @@ int main(int argc, char *argv[])
 		result = *(mc_ast_to_dot_merge_results(parse_results, command_line->arguments->size));
 	}
 
-	// Print to file or stdout
-	if (command_line->options->write_to_file == true) {
-		FILE *out = fopen(command_line->options->output_file, "a");
-		if (out == NULL) {
-			clean_up(&result);
-			clean_up(command_line);
-			return EXIT_FAILURE;
-		}
-		fprintf(out, "Teststring for integration testing\n");
-		fclose(out);
-	} else {
-		printf("Teststring for integration testing\n");
-	}
 
 	// ---------------------------------------------------------------------- Create Symbol Table
 
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&result)->program);
-<<<<<<< HEAD
-	if (!table) {
-		mc_cl_parser_delete_command_line_parser(command_line);
-		mcc_ast_delete_result(&result);
-		perror("mcc_symbol_table_create: returned NULL pointer.");
-		return EXIT_FAILURE;
-||||||| merged common ancestors
-	if (table == NULL) {
-		perror("mcc_symbol_table_create: returned NULL pointer.");
-=======
 	if (!table) {
 		clean_up(&result);
 		clean_up(command_line);
 		fprintf(stderr, "mcc_symbol_table_create: returned NULL pointer.");
 		return EXIT_FAILURE;
->>>>>>> 8746e4f7e4846fc779de209a9786876136f0a329
 	}
 
 	// ---------------------------------------------------------------------- Run semantic checks
@@ -159,20 +136,50 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
-	// ---------------------------------------------------------------------- Clean up
+	// ---------------------------------------------------------------------- Generate IR
 
-	clean_up(command_line);
-	clean_up(&result);
-	clean_up(table);
-	clean_up(semantic_check);
+	struct mcc_ir_row *ir = mcc_ir_generate((&result)->program, table);
+    if(!ir){
+		fprintf(stderr, "IR generation failed\n");
+		clean_up(command_line);
+		clean_up(&result);
+		clean_up(table);
+		clean_up(semantic_check);
+		return EXIT_FAILURE;
+    }
 
-	// TODO:
-	// - run semantic checks
-	// - create three-address code
-	// - output assembly code
-	// - invoke backend compiler
+	// ---------------------------------------------------------------------- Print IR
 
-	return EXIT_SUCCESS;
+	// Print to file or stdout
+	if (command_line->options->write_to_file == true) {
+		FILE *out = fopen(command_line->options->output_file, "a");
+		if (out == NULL) {
+			clean_up(&result);
+			clean_up(command_line);
+            clean_up(table);
+            clean_up(semantic_check);
+			return EXIT_FAILURE;
+		}
+		fprintf(out, "Teststring while we wait for IR implementation\n");
+		fclose(out);
+	} else {
+		printf("Teststring while we wait for IR implementation\n");
+	}
+
+    // ---------------------------------------------------------------------- Clean up
+
+    clean_up(command_line);
+    clean_up(&result);
+    clean_up(table);
+    clean_up(semantic_check);
+
+    // TODO:
+    // - run semantic checks
+    // - create three-address code
+    // - output assembly code
+    // - invoke backend compiler
+
+    return EXIT_SUCCESS;
 }
 
 struct mcc_parser_result *limit_result_to_function_scope(struct mcc_parser_result *result, char *wanted_function_name)
