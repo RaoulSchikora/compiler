@@ -1158,6 +1158,7 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_multiple_variable_decl
 struct function_arguments_userdata {
 	struct mcc_semantic_check *check;
 	struct mcc_ast_program *program;
+	enum mcc_semantic_check_error_code error;
 };
 
 static int get_number_of_params(struct mcc_ast_parameters *parameters)
@@ -1220,8 +1221,8 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
 	struct mcc_ast_parameters *params = get_params_from_ast(ast, expression->function_identifier->identifier_name);
 	// No parameters found -> unkown function
 	if (!params) {
-		mcc_semantic_check_raise_error(1, check, expression->node, "Undefined reference to '%s'", false,
-		                               expression->function_identifier->identifier_name);
+		data->error = mcc_semantic_check_raise_error(1, check, expression->node, "Undefined reference to '%s'",
+		                                             false, expression->function_identifier->identifier_name);
 		return;
 	}
 
@@ -1230,12 +1231,14 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
 	if (num_params == 0 && num_args == 0) {
 		return;
 	} else if (num_args - num_params > 0) {
-		mcc_semantic_check_raise_error(1, check, expression->node, "Too many arguments to function '%s'", false,
-		                               expression->function_identifier->identifier_name);
+		data->error =
+		    mcc_semantic_check_raise_error(1, check, expression->node, "Too many arguments to function '%s'",
+		                                   false, expression->function_identifier->identifier_name);
 		return;
 	} else if (num_args - num_params < 0) {
-		mcc_semantic_check_raise_error(1, check, expression->node, "Too few arguments to function '%s'", false,
-		                               expression->function_identifier->identifier_name);
+		data->error =
+		    mcc_semantic_check_raise_error(1, check, expression->node, "Too few arguments to function '%s'",
+		                                   false, expression->function_identifier->identifier_name);
 		return;
 	}
 
@@ -1245,9 +1248,9 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
 		type_expr = check_and_get_type(args->expression, check);
 		type_decl = check_and_get_type(params->declaration, check);
 		if (!types_equal(type_expr, type_decl)) {
-			mcc_semantic_check_raise_error(2, check, expression->node,
-			                               "Expected '%s' but argument is of type '%s'", true,
-			                               to_string(type_decl), to_string(type_expr));
+			data->error = mcc_semantic_check_raise_error(2, check, expression->node,
+			                                             "Expected '%s' but argument is of type '%s'", true,
+			                                             to_string(type_decl), to_string(type_expr));
 			free(type_expr);
 			free(type_decl);
 			return;
@@ -1289,11 +1292,13 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_function_arguments(str
 		return MCC_SEMANTIC_CHECK_ERROR_MALLOC_FAILED;
 	userdata->check = check;
 	userdata->program = ast;
+	userdata->error = MCC_SEMANTIC_CHECK_ERROR_OK;
 
 	struct mcc_ast_visitor visitor = function_arguments_visitor(userdata);
 	mcc_ast_visit(ast, &visitor);
+	enum mcc_semantic_check_error_code error = userdata->error;
 	free(userdata);
-	return MCC_SEMANTIC_CHECK_ERROR_OK;
+	return error;
 }
 
 // ------------------------------------------------------------- Functions: Cleanup
