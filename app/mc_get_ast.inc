@@ -46,11 +46,17 @@ struct mcc_parser_result get_ast_from_files(struct mc_cl_parser_command_line_par
 struct mcc_parser_result parse_file(char *filename)
 {
 	FILE *f = fopen(filename, "rt");
-	if (f == NULL) {
+	if (!f) {
 		struct mcc_parser_result result = {
 		    .status = MCC_PARSER_STATUS_UNKNOWN_ERROR,
-		    .error_buffer = "unable to open file\n",
 		};
+		char *string = malloc(sizeof(char) * (1 + strlen("unable to open file\n")));
+		if (!string) {
+			result.error_buffer = NULL;
+		} else {
+			strcpy(string, "unable to open file\n");
+			result.error_buffer = string;
+		}
 		return result;
 	}
 	struct mcc_parser_result return_value;

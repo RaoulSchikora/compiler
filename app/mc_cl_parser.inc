@@ -234,8 +234,9 @@ static struct mc_cl_parser_program_arguments *parse_arguments(int argc, char *ar
 	int i = optind;
 
 	struct mc_cl_parser_program_arguments *arguments = malloc(sizeof(*arguments));
-	if (arguments == NULL) {
+	if (!arguments) {
 		perror("parse_arguments: malloc");
+		return NULL;
 	}
 
 	if (argc == 1) {
@@ -245,7 +246,7 @@ static struct mc_cl_parser_program_arguments *parse_arguments(int argc, char *ar
 	}
 
 	char **args = malloc(sizeof(char *) * (argc - optind));
-	if (args == NULL) {
+	if (!args) {
 		perror("parse_arguments: malloc");
 		free(arguments);
 		return NULL;
