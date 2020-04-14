@@ -1,3 +1,5 @@
+#ifndef MC_CL_PARSER_INC
+#define MC_CL_PARSER_INC
 
 #include <assert.h>
 #include <getopt.h>
@@ -112,18 +114,13 @@ void mc_cl_parser_delete_command_line_parser(struct mc_cl_parser_command_line_pa
 	if(!command_line){
 		return;
 	}
-	if (command_line->arguments->args != NULL) {
-		free(command_line->arguments->args);
-	}
 	if (command_line->arguments != NULL) {
-		free(command_line->arguments);
-	}
-	if (command_line->options != NULL) {
-		free(command_line->options);
-	}
-	if (command_line != NULL) {
-		free(command_line);
-	}
+		free(command_line->arguments->args);
+	} 	
+	
+	free(command_line->options);
+	free(command_line->arguments);
+	free(command_line);
 }
 
 static void print_usage(const char *prg, const char *usage_string)
@@ -148,27 +145,27 @@ char *mc_cl_parser_stdin_to_string()
 	size_t contentSize = 1; // includes NULL
 	/* Preallocate space. */
 	char *content = malloc(sizeof(char) * BUF_SIZE);
-	if (content == NULL) {
+	if (!content) {
 		perror("mc_cl_stdin_to_string:Failed to allocate content");
-		exit(1);
+		return NULL;
 	}
 	content[0] = '\0'; // make null-terminated
 	while (fgets(buffer, BUF_SIZE, stdin)) {
 		char *old = content;
 		contentSize += strlen(buffer);
 		content = realloc(content, contentSize);
-		if (content == NULL) {
+		if (!content) {
 			perror("mc_cl_stdin_to_string:Failed to reallocate content");
 			free(old);
-			exit(2);
+			return NULL;
 		}
 		strcat(content, buffer);
 	}
 
 	if (ferror(stdin)) {
-		free(content);
 		perror("Error reading from stdin.");
-		exit(3);
+		free(content);
+		return NULL;
 	}
 
 	return content;
@@ -305,13 +302,12 @@ static enum mc_cl_parser_argument_status check_args(struct mc_cl_parser_command_
 	if (command_line->arguments->size == 1 && strcmp(*(command_line->arguments->args), "-") == 0) {
 		return MC_CL_PARSER_ARGSTAT_STDIN;
 
-		// 1+ arguments -> does "-" appear among arguments?
+	// 1+ arguments -> does "-" appear among arguments?
 	} else {
 
-		int i = 0;
 
 		// Check if one of the specified files is stdin
-		while (i < command_line->arguments->size) {
+		for (int i = 0; i<command_line->arguments->size; i++){
 			if (strcmp(*(command_line->arguments->args + i), "-") == 0) {
 				command_line->options->print_help = true;
 				return MC_CL_PARSER_ARGSTAT_ERROR;
@@ -321,9 +317,10 @@ static enum mc_cl_parser_argument_status check_args(struct mc_cl_parser_command_
 					return MC_CL_PARSER_ARGSTAT_FILE_NOT_FOUND;
 				}
 			}
-			i++;
 		}
 		// 1+ arguments, all of which are files
 		return MC_CL_PARSER_ARGSTAT_FILES;
 	}
 }
+
+#endif // MC_CL_PARSER_INC

@@ -8,11 +8,11 @@
 #include "mcc/ast_visit.h"
 #include "mcc/ir.h"
 #include "mcc/parser.h"
+#include "mcc/symbol_table.h"
 #include "mcc/semantic_checks.h"
 
 #include "mc_cl_parser.inc"
-
-#define BUF_SIZE 1024
+#include "mc_get_ast.inc"
 
 
 // clang-format off
@@ -26,15 +26,6 @@
 
 // clang-format on
 
-// get a function out of a mcc_parser_result
-struct mcc_parser_result *mcc_ast_limit_result_to_function(struct mcc_parser_result *result, char *wanted_function_name);
-
-// take an array of mcc_parser_results and merge them into one
-struct mcc_parser_result *mcc_ast_merge_results(struct mcc_parser_result *array, int size);
-
-// Hand file to the parser
-struct mcc_parser_result parse_file(char *filename);
-
 int main(int argc, char *argv[])
 {
 
@@ -45,7 +36,7 @@ int main(int argc, char *argv[])
 	                     "Errors are reported on invalid inputs.\n";
 	struct mc_cl_parser_command_line_parser *command_line = mc_cl_parser_parse(argc, argv, usage_string);
 
-	// Check if command line parser returned any errors or if "-h" was passed. If so, return.
+	// Check if command line parser returned any errors or if "-h" was passed. If so, help was already printed, return.
 	if (!command_line || command_line->options->print_help ||
 	    command_line->argument_status == MC_CL_PARSER_ARGSTAT_ERROR ||
 	    command_line->argument_status == MC_CL_PARSER_ARGSTAT_FILE_NOT_FOUND) {
@@ -53,11 +44,6 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
-	// Read from Stdin
-	char *input = NULL;
-	if (command_line->argument_status == MC_CL_PARSER_ARGSTAT_STDIN) {
-		input = mc_cl_parser_stdin_to_string();
-	}
 
 	// ---------------------------------------------------------------------- Parsing provided input and create AST
 
@@ -65,47 +51,30 @@ int main(int argc, char *argv[])
 	struct mcc_parser_result result;
 
 	// Invoke parser on input from Stdin
+	char *input = NULL;
 	if (command_line->argument_status == MC_CL_PARSER_ARGSTAT_STDIN) {
-		result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
-		free(input);
-		if (result.status != MCC_PARSER_STATUS_OK) {
-			fprintf(stderr, "%s", result.error_buffer);
-			free(result.error_buffer);
+		input = mc_cl_parser_stdin_to_string();
+		if(!input){
+			// mc_cl_parser_stdin_to_string() prints error message to stderr itself
 			clean_up(command_line);
 			return EXIT_FAILURE;
 		}
+		result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+		free(input);
 	}
 
-	// Invoke parser on input files, merge resulting trees into one
-	struct mcc_parser_result parse_results[command_line->arguments->size];
-	if (command_line->argument_status == MC_CL_PARSER_ARGSTAT_FILES) {
-
-		// Iterate over all files and hand them to parser
-		int i = 0;
-		while (i < command_line->arguments->size) {
-			parse_results[i] = parse_file(*(command_line->arguments->args + i));
-			// If error of parser: print error and clean up
-			if (parse_results[i].status != MCC_PARSER_STATUS_OK) {
-				fprintf(stderr, "%s", parse_results[i].error_buffer);
-				free(parse_results[i].error_buffer);
-				// only invalid inputs will be destroyed by parser: manually delete parser_results of
-				// other files:
-				int j = 0;
-				while (j < i) {
-					mcc_ast_delete_result(parse_results + j);
-					free(parse_results + j);
-					j++;
-				}
-				clean_up(command_line);
-				return EXIT_FAILURE;
-			}
-
-			// Continue Loop
-			i++;
-		}
-		result = *(mcc_ast_merge_results(parse_results, command_line->arguments->size));
+	if(command_line->argument_status == MC_CL_PARSER_ARGSTAT_FILES){
+		result = get_ast_from_files(command_line);
 	}
 
+	if (result.status != MCC_PARSER_STATUS_OK) {
+		fprintf(stderr, "%s", result.error_buffer);
+		free(result.error_buffer);
+		clean_up(command_line);
+		return EXIT_FAILURE;
+	}
+
+	
 
 	// ---------------------------------------------------------------------- Create Symbol Table
 
@@ -113,7 +82,7 @@ int main(int argc, char *argv[])
 	if (!table) {
 		clean_up(&result);
 		clean_up(command_line);
-		fprintf(stderr, "mcc_symbol_table_create: returned NULL pointer.");
+		fprintf(stderr, "mcc_symbol_table_create: returned NULL pointer\n");
 		return EXIT_FAILURE;
 	}
 
@@ -121,14 +90,14 @@ int main(int argc, char *argv[])
 
 	struct mcc_semantic_check *semantic_check = mcc_semantic_check_run_all((&result)->program, table);
 	if (!semantic_check) {
-		printf("Library error: mcc_semantic_check_run_all returned with NULL");
+		fprintf(stderr,"library error: mcc_semantic_check_run_all returned with NULL\n");
 		clean_up(command_line);
 		clean_up(&result);
 		clean_up(table);
 		return EXIT_FAILURE;
 	}
 	if (semantic_check->error_buffer) {
-		fprintf(stderr, "Semantic check failed:\n%s\n", semantic_check->error_buffer);
+		fprintf(stderr, "%s\n", semantic_check->error_buffer);
 		clean_up(command_line);
 		clean_up(&result);
 		clean_up(table);
@@ -166,35 +135,12 @@ int main(int argc, char *argv[])
 		printf("Teststring while we wait for IR implementation\n");
 	}
 
-    // ---------------------------------------------------------------------- Clean up
+	// ---------------------------------------------------------------------- Clean up
 
-    clean_up(command_line);
-    clean_up(&result);
-    clean_up(table);
-    clean_up(semantic_check);
+	clean_up(command_line);
+	clean_up(&result);
+	clean_up(table);
+	clean_up(semantic_check);
 
-    // TODO:
-    // - run semantic checks
-    // - create three-address code
-    // - output assembly code
-    // - invoke backend compiler
-
-    return EXIT_SUCCESS;
-}
-
-
-struct mcc_parser_result parse_file(char *filename)
-{
-	FILE *f = fopen(filename, "rt");
-	if (f == NULL) {
-		struct mcc_parser_result result = {
-		    .status = MCC_PARSER_STATUS_UNKNOWN_ERROR,
-		    .error_buffer = "unable to open file\n",
-		};
-		return result;
-	}
-	struct mcc_parser_result return_value;
-	return_value = mcc_parse_file(f, MCC_PARSER_ENTRY_POINT_PROGRAM, filename);
-	fclose(f);
-	return return_value;
+	return EXIT_SUCCESS;
 }
