@@ -8,6 +8,8 @@ builddir/
 # debug directory
 debug/
 
+tmp_development/
+
 # .idea directory from IDE
 .idea/
 
