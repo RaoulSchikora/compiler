@@ -901,3 +901,110 @@ int mcc_ast_add_built_ins(struct mcc_ast_program *program)
 
 	return 1;
 }
+
+// ------------------------------------------------------------------- Transforming the complete AST
+
+// Remove everything but one function from the AST
+struct mcc_parser_result *mcc_ast_limit_result_to_function(struct mcc_parser_result *result, char *wanted_function_name)
+{
+
+	// INPUT: 	- pointer to struct mcc_parser_result that is allocated on the heap
+	//			- string that contains the name of the function that the result should be limited to
+	// RETURN: 	- pointer to struct mcc_parser_result that is allocated on the heap and contains only
+	//			  the function that was specified by the input string
+	//			- returns NULL in case of runtime errors (in that case the input result won't have been
+	// deleted)
+	// RECOMMENDED USE: call it like this: 		ptr = limit_result_to_function_scope(ptr,function_name)
+
+	// New struct mcc_parser_result that will be returned
+	struct mcc_parser_result *new_result = malloc(sizeof(struct mcc_parser_result));
+	if (!new_result) {
+		return NULL;
+	}
+
+	// Set default values of the mcc_parser_result struct
+	new_result->status = MCC_PARSER_STATUS_OK;
+	new_result->entry_point = MCC_PARSER_ENTRY_POINT_PROGRAM;
+
+	// Decleare pointer that will be iterated over and initialize it with the first function of the input
+	struct mcc_ast_program *cur_program = result->program;
+
+	// Set up two pointers to keep track of the found function and its predecessor
+	struct mcc_ast_program *right_function = NULL;
+	struct mcc_ast_program *predecessor = NULL;
+
+	// Set up boolean to keep track of wether the function was encountered yet
+	bool found_function = false;
+
+	// Check if wanted function is the toplevel function
+	if (strcmp(wanted_function_name, cur_program->function->identifier->identifier_name) == 0) {
+		right_function = cur_program;
+		found_function = true;
+	}
+
+	// Iterate over the rest of the tree
+	struct mcc_ast_program *intermediate = cur_program;
+	while (cur_program->has_next_function) {
+		intermediate = cur_program;
+		cur_program = cur_program->next_function;
+
+		// check if wanted function is found
+		if (strcmp(wanted_function_name, cur_program->function->identifier->identifier_name) == 0) {
+			if (!found_function) {
+				free(new_result);
+				return NULL;
+			} else {
+				right_function = cur_program;
+				predecessor = intermediate;
+				found_function = true;
+			}
+		}
+	}
+
+	// Check if the function was found
+	if (found_function == true) {
+		// Delete all nodes followed by the found function
+		if (right_function->has_next_function) {
+			mcc_ast_delete_program(right_function->next_function);
+		}
+		// Tell the predecessor of the found function to forget about its successor
+		if (predecessor != NULL) {
+			predecessor->has_next_function = false;
+			predecessor->next_function = NULL;
+		}
+		// Set up the new result with the found function
+		new_result->program = right_function;
+		right_function->has_next_function = false;
+		right_function->next_function = NULL;
+		// Delete the previous AST up to including the predecessor
+		if (predecessor != NULL) {
+			mcc_ast_delete_result(result);
+		}
+
+		return new_result;
+	} else {
+		free(new_result);
+		return NULL;
+	}
+}
+
+
+// Merge an array of parser results into one AST
+struct mcc_parser_result *mcc_ast_merge_results(struct mcc_parser_result *array, int size)
+{
+
+	struct mcc_ast_program *cur_prog = NULL;
+
+	// Iterate over array
+	for (int i = 0; i < size - 1; i++) {
+		// Iterate over programs within result
+		cur_prog = array[i].program;
+		while (cur_prog->has_next_function) {
+			cur_prog = cur_prog->next_function;
+		}
+		cur_prog->has_next_function = true;
+		cur_prog->next_function = array[i + 1].program;
+	}
+
+	return array;
+}

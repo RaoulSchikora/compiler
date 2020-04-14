@@ -439,9 +439,18 @@ mcc_ast_new_arguments(bool is_empty, struct mcc_ast_expression *expression, stru
 
 void mcc_ast_delete_arguments(struct mcc_ast_arguments *arguments);
 
-// ------------------------------------------------------------------- add built_ins
+// ------------------------------------------------------------------- Add built_ins
 
 int mcc_ast_add_built_ins(struct mcc_ast_program *program);
+
+// ------------------------------------------------------------------- Transforming the complete AST
+
+// Remove everything but one function from the AST
+struct mcc_parser_result *mcc_ast_limit_result_to_function(struct mcc_parser_result *result,
+                                                           char *wanted_function_name);
+
+// Merge an array of parser results into one single AST (e.g. when combining files)
+struct mcc_parser_result *mcc_ast_merge_results(struct mcc_parser_result *array, int size);
 
 // clang-format off
 
