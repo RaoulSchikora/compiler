@@ -54,14 +54,14 @@ int main(int argc, char *argv[])
 	// Invoke parser on input from Stdin
 	char *input = NULL;
 	if (command_line->argument_status == MC_CL_PARSER_ARGSTAT_STDIN) {
-		result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
-		free(input);
-		if (result.status != MCC_PARSER_STATUS_OK) {
-			fprintf(stderr, "%s", result.error_buffer);
-			free(result.error_buffer);
-			mc_cl_parser_delete_command_line_parser(command_line);
+		input = mc_cl_parser_stdin_to_string();
+		if(!input){
+			// mc_cl_parser_stdin_to_string() prints error message to stderr itself
+			clean_up(command_line);
 			return EXIT_FAILURE;
 		}
+		result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+		free(input);
 	}
 
 	if(command_line->argument_status == MC_CL_PARSER_ARGSTAT_FILES){
