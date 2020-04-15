@@ -10,6 +10,7 @@
 - `flex` for generating the lexer
 - `bison` for generating the parser
 - A compiler supporting C11 — typically GCC or Clang
+- glibc version 2.20 or higher
 
 ## Build Instructions
 

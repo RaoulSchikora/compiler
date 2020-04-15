@@ -1,6 +1,8 @@
 #ifndef MC_CL_PARSER_INC
 #define MC_CL_PARSER_INC
 
+#define _GNU_SOURCE
+
 #include <assert.h>
 #include <getopt.h>
 #include <stdio.h>

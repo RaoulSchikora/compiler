@@ -1,6 +1,8 @@
 #ifndef MC_CLEANUP_INC
 #define MC_CLEANUP_INC
 
+#define _GNU_SOURCE
+
 // clang-format off
 
 #define clean_func(x)  _Generic((x), \
