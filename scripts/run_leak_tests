@@ -7,7 +7,7 @@ function print_usage(){
 		echo ""
 		echo "Usage: ./run_leak_tests <program>"
 		echo ""
-		echo "<program> can be mcc, mc_ast_to_dot, mc_symbol_table"
+		echo "<program> can be mcc, mc_ast_to_dot, mc_symbol_table, mc_ir"
 		exit
 }
 
