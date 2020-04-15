@@ -20,19 +20,6 @@
 // register datastructures with register_cleanup and they will be deleted on exit
 #include "mc_cleanup.inc"
 
-
-// clang-format off
-
-#define clean_up(x)  _Generic((x), \
-			struct mcc_symbol_table * : mcc_symbol_table_delete_table, \
-			struct mc_cl_parser_command_line_parser * : mc_cl_parser_delete_command_line_parser, \
-			struct mcc_parser_result * : mcc_ast_delete_result, \
-			struct mcc_semantic_check * : mcc_semantic_check_delete_single_check, \
-			struct mcc_ir_row * : mcc_ir_delete_ir \
-			)(x)
-
-// clang-format on
-
 int main(int argc, char *argv[])
 {
 
