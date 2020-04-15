@@ -19,6 +19,8 @@ struct mcc_parser_result parse_file(char *filename);
 // Parse all given files and return a single AST
 struct mcc_parser_result get_ast_from_files(struct mc_cl_parser_command_line_parser *command_line);
 
+struct mcc_parser_result get_ast_from_stdin();
+
 struct mcc_parser_result get_ast_from_files(struct mc_cl_parser_command_line_parser *command_line)
 {
 
@@ -42,6 +44,19 @@ struct mcc_parser_result get_ast_from_files(struct mc_cl_parser_command_line_par
 	return *(mcc_ast_merge_results(parse_results, command_line->arguments->size));
 }
 
+struct mcc_parser_result get_ast_from_stdin(){
+	struct mcc_parser_result result;
+	char* input = mc_cl_parser_stdin_to_string();
+	if (!input) {
+		// mc_cl_parser_stdin_to_string() prints error message to stderr itself
+		result.status = MCC_PARSER_STATUS_UNABLE_TO_OPEN_STREAM;
+		result.error_buffer = NULL;
+		return result;
+	}
+	result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	free(input);
+	return result;
+}
 
 struct mcc_parser_result parse_file(char *filename)
 {

@@ -13,6 +13,8 @@
 #include "utils/unused.h"
 
 
+//---------------------------------------------------------------------------------------- Generate IR datastructures
+
 static struct mcc_ir_row *get_fake_ir_line(){
 	struct mcc_ir_row *head = malloc(sizeof(*head));
 	if(!head)
@@ -61,15 +63,52 @@ static struct mcc_ir_row *get_fake_ir(){
 	return head;
 }
 
+struct mcc_ir_arg *mcc_ir_new_arg_row(struct mcc_ir_row* row){
+	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
+	if(!arg)
+		return NULL;
+	arg->type = MCC_IR_TYPE_ROW;
+	arg->row = row;
+	return arg;
+}
+
+struct mcc_ir_arg *mcc_ir_new_arg_var(char* var){
+	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
+	if(!arg)
+		return NULL;
+	arg->type = MCC_IR_TYPE_VAR;
+	arg->var = var;
+	return arg;
+}
+
+struct mcc_ir_row *mcc_ir_new_row(int row_no,struct mcc_ir_arg* arg1, struct mcc_ir_arg* arg2, enum mcc_ir_instruction instr){
+	struct mcc_ir_row *row = malloc(sizeof(*row));
+	if(!row)
+		return NULL;
+	row->row_no = row_no;
+	row->arg1 = arg1;
+	row->arg2 = arg2;
+	row->instr = instr;
+	row->next_row = NULL;
+	row->prev_row = NULL;
+	return row;
+}
+
 struct mcc_ir_row *mcc_ir_generate(struct mcc_ast_program *ast, struct mcc_symbol_table *table){
 	UNUSED(ast);
 	UNUSED(table);
 
-	// Return fake IR for testing purpose
+	// Return fake IR for testing purpose, until we have real IR
 	return get_fake_ir();
 }
 
-static void mcc_ir_delete_ir_arg(struct mcc_ir_arg *arg){
+//---------------------------------------------------------------------------------------- Generate IR for different AST nodes
+
+
+
+//---------------------------------------------------------------------------------------- Cleanup
+
+void mcc_ir_delete_ir_arg(struct mcc_ir_arg *arg){
 	if(!arg)
 		return;
 	if(arg->type == MCC_IR_TYPE_VAR){

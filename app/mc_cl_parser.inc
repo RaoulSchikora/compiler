@@ -1,6 +1,8 @@
 #ifndef MC_CL_PARSER_INC
 #define MC_CL_PARSER_INC
 
+#define _GNU_SOURCE
+
 #include <assert.h>
 #include <getopt.h>
 #include <stdio.h>
@@ -229,7 +231,7 @@ static struct mc_cl_parser_options *parse_options(int argc, char *argv[])
 		options->print_dot = false;
 		options->print_help = true;
 	}
-	if(strcmp(argv[0],"./mc_cfg_to_ast")!=0 && options->limited_scope){
+	if(strcmp(argv[0],"./mc_cfg_to_dot")!=0 && options->limited_scope){
 		options->limited_scope = false;
 		options->print_help = true;
 	}
