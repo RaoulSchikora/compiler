@@ -69,7 +69,7 @@ static void print_row(struct mcc_symbol_table_row *row, const char *leading_spac
 		fprintf(out, "%s%s (%s function)\n", leading_spaces, row->name, print_row_type(row->row_type));
 		break;
 	case MCC_SYMBOL_TABLE_ROW_STRUCTURE_ARRAY:
-		fprintf(out, "%s%s (%s[%d])\n", leading_spaces, row->name, print_row_type(row->row_type), row->array_size);
+		fprintf(out, "%s%s (%s[%ld])\n", leading_spaces, row->name, print_row_type(row->row_type), row->array_size);
 		break;
 	}
 }

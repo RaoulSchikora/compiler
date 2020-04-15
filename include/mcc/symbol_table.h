@@ -32,7 +32,7 @@ enum mcc_symbol_table_row_type{
 struct mcc_symbol_table_row {
     enum mcc_symbol_table_row_structure row_structure;
     enum mcc_symbol_table_row_type row_type;
-    int array_size; //-1 if no array
+    long array_size; //-1 if no array
     char *name;
 
     struct mcc_symbol_table_row *prev_row;
@@ -52,7 +52,7 @@ struct mcc_symbol_table_row *mcc_symbol_table_new_row_function(char *name,
                                                                enum mcc_symbol_table_row_type type,
                                                                struct mcc_ast_node *node);
 struct mcc_symbol_table_row *mcc_symbol_table_new_row_array(char *name,
-                                                            int array_size,
+                                                            long array_size,
                                                             enum mcc_symbol_table_row_type type,
                                                             struct mcc_ast_node *node);
 void mcc_symbol_table_delete_row(struct mcc_symbol_table_row *row);

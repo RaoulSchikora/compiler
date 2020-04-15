@@ -342,6 +342,11 @@ struct mcc_parser_result mcc_parse_file(FILE *input, enum mcc_parser_entry_point
 
 	yyscan_t scanner;
 	mcc_parser_lex_init(&scanner);
+	if(!scanner){
+		return (struct mcc_parser_result){
+			.status = MCC_PARSER_STATUS_UNKNOWN_ERROR,
+		};
+	}
 	mcc_parser_set_in(input, scanner);
 
 	if (entry_point != MCC_PARSER_ENTRY_POINT_PROGRAM){
@@ -371,6 +376,9 @@ struct mcc_parser_result mcc_parse_file(FILE *input, enum mcc_parser_entry_point
 
 	mcc_parser_lex_destroy(scanner);
 
+	if(!(&result)->program){
+		result.status = MCC_PARSER_STATUS_UNKNOWN_ERROR;
+	}
 	return result;
 }
 

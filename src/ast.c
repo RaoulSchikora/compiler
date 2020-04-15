@@ -879,7 +879,7 @@ int mcc_ast_add_built_ins(struct mcc_ast_program *program)
 						  float read_float(){return 0.0;}";
 	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_EXPRESSION);
 	if(result.status != MCC_PARSER_STATUS_OK){
-		return 0;
+		return 1;
 	}
 	
 	if(!program->function){
@@ -899,7 +899,7 @@ int mcc_ast_add_built_ins(struct mcc_ast_program *program)
 		(&result)->program = NULL;
 	}
 
-	return 1;
+	return 0;
 }
 
 // ------------------------------------------------------------------- Transforming the complete AST

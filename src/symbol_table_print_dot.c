@@ -94,7 +94,7 @@ static void print_dot_row(struct mcc_symbol_table_row *row, const char *leading_
 		        print_dot_row_type(row->row_type));
 		break;
 	case MCC_SYMBOL_TABLE_ROW_STRUCTURE_ARRAY:
-		fprintf(out, "<tr><td align='left'>%s%s (%s[%d])</td></tr>\n", leading_spaces, row->name,
+		fprintf(out, "<tr><td align='left'>%s%s (%s[%ld])</td></tr>\n", leading_spaces, row->name,
 		        print_dot_row_type(row->row_type), row->array_size);
 		break;
 	}
