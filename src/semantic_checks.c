@@ -759,23 +759,11 @@ static void cb_type_conversion_assignment(struct mcc_ast_statement *statement, v
 		return;
 	}
 
-	if (!lhs_type) {
-		userdata->error = MCC_SEMANTIC_CHECK_ERROR_UNKNOWN;
-		free(rhs_type);
-		free(index);
-		return;
-	}
-	if (!rhs_type) {
-		userdata->error = MCC_SEMANTIC_CHECK_ERROR_UNKNOWN;
-		free(lhs_type);
-		free(index);
-		return;
-	}
-
-	if (!index && assignment->assignment_type == MCC_AST_ASSIGNMENT_TYPE_ARRAY) {
+	if (!lhs_type || !rhs_type || (!index && assignment->assignment_type == MCC_AST_ASSIGNMENT_TYPE_ARRAY)) {
 		userdata->error = MCC_SEMANTIC_CHECK_ERROR_UNKNOWN;
 		free(lhs_type);
 		free(rhs_type);
+		free(index);
 		return;
 	} else {
 		if (assignment->assignment_type == MCC_AST_ASSIGNMENT_TYPE_ARRAY) {
@@ -1247,6 +1235,12 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
 		// Check for type error
 		type_expr = check_and_get_type(args->expression, check);
 		type_decl = check_and_get_type(params->declaration, check);
+		if(!type_expr || !type_decl){
+			data->error = MCC_SEMANTIC_CHECK_ERROR_UNKNOWN;
+			free(type_decl);
+			free(type_expr);
+			return;
+		}
 		if (!types_equal(type_expr, type_decl)) {
 			data->error = mcc_semantic_check_raise_error(2, check, expression->node,
 			                                             "Expected '%s' but argument is of type '%s'", true,
