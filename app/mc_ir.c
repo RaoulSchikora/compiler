@@ -54,8 +54,12 @@ int main(int argc, char *argv[])
 	}
 
 	if (result.status != MCC_PARSER_STATUS_OK) {
-		fprintf(stderr, "%s", result.error_buffer);
-		free(result.error_buffer);
+		if(result.error_buffer){
+			fprintf(stderr, "%s", result.error_buffer);
+			free(result.error_buffer);
+		} else {
+			fprintf(stderr, "Unknown error from parser. Error buffer is NULL.\n");
+		}
 		return EXIT_FAILURE;
 	}
 
@@ -107,9 +111,6 @@ int main(int argc, char *argv[])
 	} else {
 		mcc_ir_print_ir(stdout, ir);
 	}
-
-	// ---------------------------------------------------------------------- Clean up
-
 
 	return EXIT_SUCCESS;
 }
