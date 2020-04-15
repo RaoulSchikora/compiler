@@ -130,11 +130,16 @@ static void print_usage(const char *prg, const char *usage_string)
 	printf("Use '-' as input file to read from stdin.\n\n");
 	printf("OPTIONS:\n");
 	printf("  -h, --help                displays this help message\n");
-	printf("  -o, --output <file>       write the output to <file> (defaults to stdout)\n");
-	printf("  -f, --function <name>     limit scope to the given function\n");
-	printf("  -t, --test                parse rules of the grammar that are not a program\n");
 	if(strcmp(prg,"./mc_symbol_table")==0){
 		printf("  -d, --dot                 print in dot-format\n");
+	}
+	if(strcmp(prg, "./mcc")==0){
+		printf("  -o, --output <out-file>   write the output to <out-file> (defaults to 'a.out')\n");
+	} else {
+		printf("  -o, --output <out-file>   write the output to <out-file> (defaults to stdout)\n");
+	}
+	if(strcmp(prg,"./mc_cfg_to_dot")==0){
+		printf("  -f, --function            print the CFG of the given function (defaults to 'main')\n");
 	}
 }
 
@@ -222,6 +227,10 @@ static struct mc_cl_parser_options *parse_options(int argc, char *argv[])
 	}
 	if(strcmp(argv[0],"./mc_symbol_table")!=0 && options->print_dot){
 		options->print_dot = false;
+		options->print_help = true;
+	}
+	if(strcmp(argv[0],"./mc_cfg_to_ast")!=0 && options->limited_scope){
+		options->limited_scope = false;
 		options->print_help = true;
 	}
 
