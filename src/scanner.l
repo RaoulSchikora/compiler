@@ -113,6 +113,6 @@ string_literal \"[^"]*\"
 <COMMENT>"*/"     { BEGIN INITIAL; /* get back to normal mode */ }
 
 
-<<EOF>>           { return TK_END; }
+<<EOF>>           { yylloc->filename = filename; return TK_END; }
 
 .                 { fprintf(stderr, "invalid character '%c'\n", yytext[0]); }

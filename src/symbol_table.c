@@ -550,6 +550,13 @@ static int create_rows_statement(struct mcc_ast_statement *statement, struct mcc
 	assert(scope);
 
 	int exit_code = 0;
+	struct mcc_symbol_table_scope *new_child = NULL;
+	if(statement->type == MCC_AST_STATEMENT_TYPE_COMPOUND_STMT){
+		new_child = append_child_scope_to_last_row(scope);
+		if(!new_child){
+			return 1;
+		}
+	}
 	switch (statement->type) {
 	case MCC_AST_STATEMENT_TYPE_DECLARATION:
 		exit_code = create_row_declaration(statement->declaration, scope);
@@ -568,7 +575,7 @@ static int create_rows_statement(struct mcc_ast_statement *statement, struct mcc
 		exit_code += create_rows_statement(statement->while_on_true, scope);
 		break;
 	case MCC_AST_STATEMENT_TYPE_COMPOUND_STMT:
-		exit_code = create_rows_compound_statement(statement->compound_statement, append_child_scope_to_last_row(scope));
+		exit_code = create_rows_compound_statement(statement->compound_statement, new_child);
 		break;
 	case MCC_AST_STATEMENT_TYPE_ASSIGNMENT:
 		exit_code = link_pointer_assignment(statement->assignment, scope);
