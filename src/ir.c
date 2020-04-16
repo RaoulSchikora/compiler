@@ -58,6 +58,8 @@ static struct mcc_ir_row *get_fake_ir_line(){
 static struct mcc_ir_row *get_fake_ir(){
 	struct mcc_ir_row *head = get_fake_ir_line();
 	struct mcc_ir_row *next = get_fake_ir_line();
+	if(!head || !next)
+		return NULL;
 	head->next_row = next;
 	next->prev_row = head;
 	return head;
