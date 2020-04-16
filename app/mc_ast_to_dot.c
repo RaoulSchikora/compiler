@@ -43,12 +43,15 @@ int main(int argc, char *argv[])
 	// Declare struct that will hold the result of the parser and corresponding pointer
 	struct mcc_parser_result result;
 
-	if (command_line->argument_status == MC_CL_PARSER_ARGSTAT_STDIN) {
-		result = get_ast_from_stdin();
-	}
-
-	if(command_line->argument_status == MC_CL_PARSER_ARGSTAT_FILES){
-		result = get_ast_from_files(command_line);
+	switch(command_line->argument_status){
+		case MC_CL_PARSER_ARGSTAT_STDIN:
+			result = get_ast_from_stdin();
+			break;
+		case MC_CL_PARSER_ARGSTAT_FILES:
+			result = get_ast_from_files(command_line);
+			break;
+		default:
+			return EXIT_FAILURE;	
 	}
 
 	if (result.status != MCC_PARSER_STATUS_OK) {
