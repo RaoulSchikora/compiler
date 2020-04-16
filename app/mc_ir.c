@@ -55,19 +55,17 @@ int main(int argc, char *argv[])
 		default:
 			return EXIT_FAILURE;	
 	}
+	register_cleanup(result.error_buffer);
+	register_cleanup(result.program);
 
 	if (result.status != MCC_PARSER_STATUS_OK) {
 		if(result.error_buffer){
 			fprintf(stderr, "%s", result.error_buffer);
-			free(result.error_buffer);
 		} else {
 			fprintf(stderr, "Unknown error from parser. Error buffer is NULL.\n");
 		}
 		return EXIT_FAILURE;
 	}
-
-	register_cleanup(result.error_buffer);
-	register_cleanup(result.program);
 
 	// ---------------------------------------------------------------------- Create Symbol Table
 
