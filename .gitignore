@@ -24,3 +24,13 @@ scripts/integration_tests/*
 
 # VS Code config
 .vscode
+
+# Compilation database for autocompletion
+compile_commands.json
+
+# Cland for autocompletion
+.clangd/
+
+# All .swp files from vim
+*.swp
+
