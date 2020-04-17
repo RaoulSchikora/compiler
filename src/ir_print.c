@@ -29,6 +29,32 @@ static char* instr_to_string(enum mcc_ir_instruction instr){
             return "jump";
         case MCC_IR_INSTR_JUMPFALSE:
             return "jumpfalse";
+		case MCC_IR_INSTR_AND:
+			return "and";
+		case MCC_IR_INSTR_ARRAY_EL:
+			return "array el.";
+		case MCC_IR_INSTR_DIVIDE:
+			return "divide";
+		case MCC_IR_INSTR_EQUALS:
+			return "equals";
+		case MCC_IR_INSTR_LESS_THAN:
+			return "less than";
+		case MCC_IR_INSTR_MINUS:
+			return "minus";
+		case MCC_IR_INSTR_MODULO:
+			return "modulo";
+		case MCC_IR_INSTR_MULTIPLY:
+			return "multiply";
+		case MCC_IR_INSTR_OR:
+			return "or";
+		case MCC_IR_INSTR_PLUS:
+			return "plus";
+		case MCC_IR_INSTR_POP:
+			return "pop";
+		case MCC_IR_INSTR_PUSH:
+			return "push";
+		case MCC_IR_INSTR_LABEL:
+			return "label";
         default:
             return "unknown";
 	};

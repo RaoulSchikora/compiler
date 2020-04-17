@@ -6,10 +6,23 @@
 
 //---------------------------------------------------------------------------------------- Data structure: IR
 
+// TODO: Update ir_print.c 
 enum mcc_ir_instruction {
+	MCC_IR_INSTR_LABEL,
 	MCC_IR_INSTR_JUMP,
 	MCC_IR_INSTR_JUMPFALSE,
-	// Remember to update ir_print.c if you add more here
+	MCC_IR_INSTR_PUSH,
+	MCC_IR_INSTR_POP,
+	MCC_IR_INSTR_PLUS,
+	MCC_IR_INSTR_MINUS,
+	MCC_IR_INSTR_MULTIPLY,
+	MCC_IR_INSTR_DIVIDE,
+	MCC_IR_INSTR_MODULO,
+	MCC_IR_INSTR_EQUALS,
+	MCC_IR_INSTR_LESS_THAN,
+	MCC_IR_INSTR_AND,
+	MCC_IR_INSTR_OR,
+	MCC_IR_INSTR_ARRAY_EL	
 };
 
 enum mcc_ir_arg_type {
