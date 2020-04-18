@@ -6,7 +6,6 @@
 
 //---------------------------------------------------------------------------------------- Data structure: IR
 
-// TODO: Update ir_print.c 
 enum mcc_ir_instruction {
 	MCC_IR_INSTR_LABEL,
 	MCC_IR_INSTR_JUMP,
@@ -22,7 +21,7 @@ enum mcc_ir_instruction {
 	MCC_IR_INSTR_LESS_THAN,
 	MCC_IR_INSTR_AND,
 	MCC_IR_INSTR_OR,
-	MCC_IR_INSTR_ARRAY_EL	
+	MCC_IR_INSTR_ARRAY_EL
 };
 
 enum mcc_ir_arg_type {
@@ -54,16 +53,6 @@ struct mcc_ir_row {
 //---------------------------------------------------------------------------------------- Generate IR datastructures
 
 struct mcc_ir_row *mcc_ir_generate(struct mcc_ast_program *ast, struct mcc_symbol_table *table);
-
-struct mcc_ir_row *mcc_ir_new_row(int row_no, struct mcc_ir_arg *arg1, struct mcc_ir_arg *arg2, enum mcc_ir_instruction instr);
-
-struct mcc_ir_arg *mcc_ir_new_arg_row(struct mcc_ir_row *row);
-
-struct mcc_ir_arg *mcc_ir_new_arg_var(char *var);
-
-//---------------------------------------------------------------------------------------- Generate IR for different AST nodes
-
-
 
 //---------------------------------------------------------------------------------------- Cleanup
 
