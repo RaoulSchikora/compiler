@@ -35,7 +35,7 @@ static struct mcc_ir_row *get_fake_ir();
 
 static void generate_ir_expression(struct mcc_ast_expression *expression, void *data)
 {
-	assert(identifier);
+	assert(expression);
 	assert(data);
 }
 
