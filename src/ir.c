@@ -21,7 +21,7 @@ struct ir_generation_userdata {
 //------------------------------------------------------------------------------ Forward declarations
 
 static struct mcc_ir_row *
-mcc_ir_new_row(int row_no, struct mcc_ir_arg *arg1, struct mcc_ir_arg *arg2, enum mcc_ir_instruction instr);
+mcc_ir_new_row(struct mcc_ir_arg *arg1, struct mcc_ir_arg *arg2, enum mcc_ir_instruction instr);
 static struct mcc_ir_arg *mcc_ir_new_arg_var(char *var);
 static struct mcc_ir_arg *mcc_ir_new_arg_row(struct mcc_ir_row *row);
 static void append_row(struct mcc_ir_row *row, struct ir_generation_userdata *data);
@@ -347,12 +347,12 @@ static struct mcc_ir_arg *mcc_ir_new_arg_var(char *var)
 }
 
 static struct mcc_ir_row *
-mcc_ir_new_row(int row_no, struct mcc_ir_arg *arg1, struct mcc_ir_arg *arg2, enum mcc_ir_instruction instr)
+mcc_ir_new_row(struct mcc_ir_arg *arg1, struct mcc_ir_arg *arg2, enum mcc_ir_instruction instr)
 {
 	struct mcc_ir_row *row = malloc(sizeof(*row));
 	if (!row)
 		return NULL;
-	row->row_no = row_no;
+	row->row_no = 0;
 	row->arg1 = arg1;
 	row->arg2 = arg2;
 	row->instr = instr;
@@ -413,6 +413,18 @@ static struct mcc_ast_visitor generate_ir_visitor(void *data)
 	};
 }
 
+static void number_rows(struct mcc_ir_row *head)
+{
+	if (!head)
+		return;
+	int i = 0;
+	do {
+		head->row_no = i;
+		i = i + 1;
+		head = head->next_row;
+	} while (head);
+}
+
 struct mcc_ir_row *mcc_ir_generate(struct mcc_ast_program *ast, struct mcc_symbol_table *table)
 {
 	UNUSED(ast);
@@ -434,6 +446,7 @@ struct mcc_ir_row *mcc_ir_generate(struct mcc_ast_program *ast, struct mcc_symbo
 	}
 	struct mcc_ir_row *head = data->head;
 	free(data);
+	number_rows(head);
 	return head;
 }
 
@@ -470,4 +483,3 @@ void mcc_ir_delete_ir(struct mcc_ir_row *head)
 		head = temp;
 	} while (temp);
 }
-
