@@ -12,6 +12,25 @@
 #include "mcc/symbol_table.h"
 #include "utils/unused.h"
 
+struct ir_generation_userdata {
+	struct mcc_ir_row *head;
+	struct mcc_ir_row *current;
+	bool has_failed;
+};
+
+//------------------------------------------------------------------------------ Forward declarations
+
+static struct mcc_ir_row *
+mcc_ir_new_row(int row_no, struct mcc_ir_arg *arg1, struct mcc_ir_arg *arg2, enum mcc_ir_instruction instr);
+static struct mcc_ir_arg *mcc_ir_new_arg_var(char *var);
+static struct mcc_ir_arg *mcc_ir_new_arg_row(struct mcc_ir_row *row);
+static void append_row(struct mcc_ir_row *row, struct ir_generation_userdata *data);
+
+//------------------------------------------------------------------------------ Forward declarations, Fake IR
+
+static struct mcc_ir_row *get_fake_ir_line();
+static struct mcc_ir_row *get_fake_ir();
+
 //------------------------------------------------------------------------------ Callbacks for visitor that generates IR
 
 static void generate_ir_expression_literal(struct mcc_ast_expression *expression, void *data)
@@ -186,6 +205,8 @@ static void generate_ir_program(struct mcc_ast_program *program, void *data)
 {
 	assert(program);
 	assert(data);
+	struct ir_generation_userdata *userdata = data;
+	append_row(get_fake_ir(), userdata);
 }
 
 static void generate_ir_parameters(struct mcc_ast_parameters *parameters, void *data)
@@ -206,7 +227,79 @@ static void generate_ir_function_definition(struct mcc_ast_function_definition *
 	assert(data);
 }
 
+//---------------------------------------------------------------------------------------- Generate Fake IR for testing
+
+static struct mcc_ir_row *get_fake_ir_line()
+{
+	struct mcc_ir_row *head = malloc(sizeof(*head));
+	if (!head)
+		return NULL;
+
+	struct mcc_ir_arg *arg1 = malloc(sizeof(*arg1));
+	struct mcc_ir_arg *arg2 = malloc(sizeof(*arg2));
+	if (!arg1 || !arg2) {
+		free(arg1);
+		free(arg2);
+		free(head);
+		return NULL;
+	}
+
+	arg1->type = MCC_IR_TYPE_VAR;
+	arg2->type = MCC_IR_TYPE_VAR;
+
+	char *str1 = malloc(sizeof(char) * 5);
+	char *str2 = malloc(sizeof(char) * 5);
+	if (!str1 || !str2) {
+		free(arg1);
+		free(arg2);
+		free(head);
+		free(str1);
+		free(str2);
+		return NULL;
+	}
+	snprintf(str1, 5, "test");
+	snprintf(str2, 5, "var2");
+	arg1->var = str1;
+	arg2->var = str2;
+	head->instr = MCC_IR_INSTR_JUMPFALSE;
+	head->row_no = 0;
+	head->next_row = NULL;
+	head->prev_row = NULL;
+	head->arg1 = arg1;
+	head->arg2 = arg2;
+	return head;
+}
+
+static struct mcc_ir_row *get_fake_ir()
+{
+	struct mcc_ir_row *head = get_fake_ir_line();
+	struct mcc_ir_row *next = get_fake_ir_line();
+	if (!head || !next)
+		return NULL;
+	head->next_row = next;
+	next->prev_row = head;
+	return head;
+}
+
 //---------------------------------------------------------------------------------------- Generate IR datastructures
+
+static void append_row(struct mcc_ir_row *row, struct ir_generation_userdata *data)
+{
+	assert(data);
+	struct ir_generation_userdata *userdata = data;
+	if (!row) {
+		userdata->has_failed = true;
+		return;
+	}
+	if (!data->head) {
+		data->head = row;
+		data->current = row;
+		return;
+	}
+	data->current->next_row = row;
+	row->prev_row = data->current;
+	data->current = row;
+}
 
 static struct mcc_ir_arg *mcc_ir_new_arg_row(struct mcc_ir_row *row)
 {
@@ -292,11 +385,6 @@ static struct mcc_ast_visitor generate_ir_visitor(void *data)
 	};
 }
 
-struct ir_generation_userdata {
-	struct mcc_ir_row *head;
-	bool has_failed;
-};
-
 struct mcc_ir_row *mcc_ir_generate(struct mcc_ast_program *ast, struct mcc_symbol_table *table)
 {
 	UNUSED(ast);
@@ -307,6 +395,7 @@ struct mcc_ir_row *mcc_ir_generate(struct mcc_ast_program *ast, struct mcc_symbo
 		return NULL;
 	data->head = NULL;
 	data->has_failed = false;
+	data->current = NULL;
 
 	struct mcc_ast_visitor visitor = generate_ir_visitor(data);
 	mcc_ast_visit(ast, &visitor);
