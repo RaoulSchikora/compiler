@@ -33,6 +33,12 @@ static struct mcc_ir_row *get_fake_ir();
 
 //------------------------------------------------------------------------------ Callbacks for visitor that generates IR
 
+static void generate_ir_expression(struct mcc_ast_expression *expression, void *data)
+{
+	assert(identifier);
+	assert(data);
+}
+
 static void generate_ir_expression_literal(struct mcc_ast_expression *expression, void *data)
 {
 	assert(expression);
@@ -85,6 +91,13 @@ static void generate_ir_statement_if_else_stmt(struct mcc_ast_statement *stateme
 {
 	assert(statement);
 	assert(data);
+	// Generate IR for condition (resulting in the last line holding the result of that expression)
+	// Generate Jumpfalse condition L1
+	// Generate IR for on_true directly afterwards
+	// Generate jump L2
+	// Label L1
+	// Generate IR for on_false
+	// Label L2
 }
 
 static void generate_ir_statement_expression_stmt(struct mcc_ast_statement *statement, void *data)
@@ -96,6 +109,12 @@ static void generate_ir_statement_expression_stmt(struct mcc_ast_statement *stat
 static void generate_ir_statement_while(struct mcc_ast_statement *statement, void *data)
 {
 	assert(statement);
+	assert(data);
+}
+
+static void generate_ir_literal(struct mcc_ast_literal *literal, void *data)
+{
+	assert(literal);
 	assert(data);
 }
 
@@ -168,6 +187,12 @@ static void generate_ir_type(struct mcc_ast_type *type, void *data)
 static void generate_ir_expression_identifier(struct mcc_ast_identifier *identifier, void *data)
 {
 	assert(identifier);
+	assert(data);
+}
+
+static void generate_ir_statement(struct mcc_ast_statement *statement, void *data)
+{
+	assert(statement);
 	assert(data);
 }
 
@@ -345,6 +370,7 @@ static struct mcc_ast_visitor generate_ir_visitor(void *data)
 
 	    .userdata = data,
 
+	    .expression = generate_ir_expression,
 	    .expression_literal = generate_ir_expression_literal,
 	    .expression_binary_op = generate_ir_expression_binary_op,
 	    .expression_parenth = generate_ir_expression_parenth,
@@ -353,11 +379,13 @@ static struct mcc_ast_visitor generate_ir_visitor(void *data)
 	    .expression_array_element = generate_ir_expression_array_element,
 	    .expression_function_call = generate_ir_expression_function_call,
 
+	    .literal = generate_ir_literal,
 	    .literal_int = generate_ir_literal_int,
 	    .literal_float = generate_ir_literal_float,
 	    .literal_bool = generate_ir_literal_bool,
 	    .literal_string = generate_ir_literal_string,
 
+	    .statement = generate_ir_statement,
 	    .statement_if_stmt = generate_ir_statememt_if_stmt,
 	    .statement_if_else_stmt = generate_ir_statement_if_else_stmt,
 	    .statement_expression_stmt = generate_ir_statement_expression_stmt,
