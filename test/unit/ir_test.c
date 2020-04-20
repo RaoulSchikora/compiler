@@ -9,6 +9,8 @@
 #include "mcc/symbol_table.h"
 #include "mcc/ir.h"
 
+#include "mcc/symbol_table_print.h" // TODO remove - only for test purpose
+
 void test1(CuTest *tc)
 {
 	// Define test input and create symbol table
@@ -66,6 +68,6 @@ void test2(CuTest *tc)
 
 #define TESTS \
 	TEST(test1) \
-	TEST(test2)
+	TEST(test2)	
 #include "main_stub.inc"
 #undef TESTS

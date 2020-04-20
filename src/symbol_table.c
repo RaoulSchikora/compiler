@@ -728,18 +728,11 @@ struct mcc_symbol_table_row *mcc_symbol_table_check_for_function_declaration(con
 	return NULL;
 }
 
-// Creates the symbol table to the given program. Returns NULL if error occured.
-struct mcc_symbol_table *mcc_symbol_table_create(struct mcc_ast_program *program)
+// inserts the corresponding rows of a ast program into a given table
+static struct mcc_symbol_table *create_program(struct mcc_ast_program *program, struct mcc_symbol_table *table)
 {
 	assert(program);
-
-	if(mcc_ast_add_built_ins(program)){
-		return NULL;
-	}
-	struct mcc_symbol_table *table = mcc_symbol_table_new_table();
-	if(!table){
-		return NULL;
-	}
+	assert(table);
 
 	if (program->function) {
 
@@ -758,6 +751,80 @@ struct mcc_symbol_table *mcc_symbol_table_create(struct mcc_ast_program *program
 			}
 		}
 	}
+
+	return table;
+}
+
+// Creates the symbol table to a lower level
+struct mcc_symbol_table *mcc_symbol_table_entry_point(struct mcc_parser_result result, enum mcc_parser_entry_point entry_point)
+{
+	struct mcc_symbol_table *table = mcc_symbol_table_new_table();
+	if(!table){
+		return NULL;
+	}
+	struct mcc_symbol_table_scope *scope = mcc_symbol_table_new_scope();
+	if(!scope){
+		return NULL;
+	}
+	int exit_code = 0;
+
+	switch (entry_point){
+	case MCC_PARSER_ENTRY_POINT_EXPRESSION:
+		mcc_symbol_table_insert_scope(table, scope);
+		break;
+	case MCC_PARSER_ENTRY_POINT_PROGRAM:
+		mcc_symbol_table_delete_scope(scope);
+		table = create_program((&result)->program, table);
+		break;
+	case MCC_PARSER_ENTRY_POINT_DECLARATION:
+		mcc_symbol_table_insert_scope(table, scope);
+		exit_code = create_row_declaration((&result)->declaration, scope);
+		break;
+	case MCC_PARSER_ENTRY_POINT_ASSIGNMENT:
+		mcc_symbol_table_insert_scope(table, scope);
+		break;
+	case MCC_PARSER_ENTRY_POINT_STATEMENT:
+		mcc_symbol_table_insert_scope(table, scope);
+		exit_code = create_rows_statement((&result)->statement, scope);
+		break;
+	case MCC_PARSER_ENTRY_POINT_FUNCTION_DEFINITION:
+		mcc_symbol_table_insert_scope(table, scope);
+		exit_code = create_row_function_definition((&result)->function_definition, table);
+		break;
+	case MCC_PARSER_ENTRY_POINT_PARAMETERS:
+		mcc_symbol_table_insert_scope(table, scope);
+		break;
+	case MCC_PARSER_ENTRY_POINT_ARGUMENTS:
+		mcc_symbol_table_insert_scope(table, scope);
+		break;
+	case MCC_PARSER_ENTRY_POINT_COMPOUND_STATEMENT:
+		mcc_symbol_table_insert_scope(table, scope);
+		exit_code = create_rows_compound_statement((&result)->compound_statement, scope);
+		break;
+	default:
+		break;
+	}
+	if(exit_code){
+		return NULL;
+	}
+
+	return table;
+}
+
+// Creates the symbol table to the given program. Returns NULL if error occured.
+struct mcc_symbol_table *mcc_symbol_table_create(struct mcc_ast_program *program)
+{
+	assert(program);
+
+	if(mcc_ast_add_built_ins(program)){
+		return NULL;
+	}
+	struct mcc_symbol_table *table = mcc_symbol_table_new_table();
+	if(!table){
+		return NULL;
+	}
+
+	table = create_program(program, table);
 
 	return table;
 }
