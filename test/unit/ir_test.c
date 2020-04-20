@@ -22,6 +22,8 @@ void test1(CuTest *tc)
 
 	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program, table);
 
+	CuAssertPtrNotNull(tc, ir);
+
 	CuAssertIntEquals(tc, ir->row_no, 0);
 	CuAssertIntEquals(tc, ir->instr, MCC_IR_INSTR_LABEL);
 	CuAssertIntEquals(tc, ir->arg1->type, MCC_IR_TYPE_VAR);
@@ -68,11 +70,13 @@ void expression(CuTest *tc)
 {
 	const char input[] = "a + b + 1";
 	struct mcc_parser_result parser_result;
-	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_STATEMENT);
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_EXPRESSION);
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
-	struct mcc_symbol_table *table = mcc_symbol_table_entry_point(parser_result, MCC_PARSER_ENTRY_POINT_STATEMENT);
+	struct mcc_symbol_table *table = mcc_symbol_table_entry_point(&parser_result, MCC_PARSER_ENTRY_POINT_EXPRESSION);
 	
-	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program, table);
+	struct mcc_ir_row *ir = mcc_ir_generate_entry_point((&parser_result), table, MCC_PARSER_ENTRY_POINT_EXPRESSION);
+
+	CuAssertPtrNotNull(tc, ir);
 
 	CuAssertIntEquals(tc, ir->row_no, 0);
 	CuAssertIntEquals(tc, ir->instr, MCC_IR_INSTR_PLUS);
@@ -94,12 +98,14 @@ void expression(CuTest *tc)
 	CuAssertPtrEquals(tc, ir->next_row, NULL);
 
 	// Cleanup
-	mcc_ast_delete(parser_result.program);
+	mcc_ir_delete_ir(ir);
+	mcc_ast_delete(parser_result.expression);
 	mcc_symbol_table_delete_table(table);
 }
 
 #define TESTS \
 	TEST(test1) \
-	TEST(test2)	
+	TEST(test2)	\
+	TEST(expression)
 #include "main_stub.inc"
 #undef TESTS
