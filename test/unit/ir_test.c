@@ -82,13 +82,15 @@ void expression(CuTest *tc)
 	CuAssertStrEquals(tc, ir->arg2->var, "0");
 
 	struct mcc_ir_row *next_ir = ir->next_row;
-	CuAssertPtrNotNull(tc, ir);
+	CuAssertPtrNotNull(tc, next_ir);
 
 	CuAssertIntEquals(tc, ir->row_no, 1);
 	CuAssertIntEquals(tc, ir->instr, MCC_IR_INSTR_PLUS);
 	CuAssertIntEquals(tc, ir->arg1->type, MCC_IR_TYPE_ROW);
 	CuAssertPtrEquals(tc, ir->arg1->row, next_ir);
-	CuAssertStrEquals(tc, ir->arg2, "1");
+	CuAssertIntEquals(tc, ir->arg2->type, MCC_IR_TYPE_VAR);
+	CuAssertStrEquals(tc, ir->arg2->var, "1");
+
 	CuAssertPtrEquals(tc, ir->next_row, NULL);
 
 	// Cleanup
@@ -98,7 +100,6 @@ void expression(CuTest *tc)
 
 #define TESTS \
 	TEST(test1) \
-	TEST(test2)	\
-	TEST(expression)
+	TEST(test2)	
 #include "main_stub.inc"
 #undef TESTS
