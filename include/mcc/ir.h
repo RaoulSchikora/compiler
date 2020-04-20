@@ -21,6 +21,7 @@ enum mcc_ir_instruction {
 	MCC_IR_INSTR_LESS_THAN,
 	MCC_IR_INSTR_AND,
 	MCC_IR_INSTR_OR,
+	MCC_IR_INSTR_RETURN,
 	MCC_IR_INSTR_ARRAY_EL
 };
 
@@ -39,12 +40,12 @@ struct mcc_ir_arg {
 };
 
 struct mcc_ir_row {
+	unsigned row_no;
 	enum mcc_ir_instruction instr;
 
 	struct mcc_ir_arg *arg1;
 	struct mcc_ir_arg *arg2;
 
-	unsigned row_no;
 
 	struct mcc_ir_row *prev_row;
 	struct mcc_ir_row *next_row;
