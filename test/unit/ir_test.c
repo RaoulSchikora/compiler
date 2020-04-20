@@ -30,17 +30,18 @@ void test1(CuTest *tc)
 	CuAssertStrEquals(tc, ir->arg1->var, "main");
 	CuAssertPtrEquals(tc, ir->arg2, NULL);
 
-	ir = ir->next_row;
+	struct mcc_ir_row *ir_next = ir->next_row;
 	CuAssertPtrNotNull(tc, ir);
 
-	CuAssertIntEquals(tc, ir->row_no, 1);
-	CuAssertIntEquals(tc, ir->instr, MCC_IR_INSTR_RETURN);
-	CuAssertIntEquals(tc, ir->arg1->type, MCC_IR_TYPE_VAR);
-	CuAssertStrEquals(tc, ir->arg1->var, "42");
-	CuAssertPtrEquals(tc, ir->arg2, NULL);
-	CuAssertPtrEquals(tc, ir->next_row, NULL);
+	CuAssertIntEquals(tc, ir_next->row_no, 1);
+	CuAssertIntEquals(tc, ir_next->instr, MCC_IR_INSTR_RETURN);
+	CuAssertIntEquals(tc, ir_next->arg1->type, MCC_IR_TYPE_VAR);
+	CuAssertStrEquals(tc, ir_next->arg1->var, "42");
+	CuAssertPtrEquals(tc, ir_next->arg2, NULL);
+	CuAssertPtrEquals(tc, ir_next->next_row, NULL);
 
 	// Cleanup
+	mcc_ir_delete_ir(ir);
 	mcc_ast_delete(parser_result.program);
 	mcc_symbol_table_delete_table(table);
 	mcc_semantic_check_delete_single_check(checks);
