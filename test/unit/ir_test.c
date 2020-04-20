@@ -9,8 +9,6 @@
 #include "mcc/symbol_table.h"
 #include "mcc/ir.h"
 
-#include "mcc/symbol_table_print.h" // TODO remove - only for test purpose
-
 void test1(CuTest *tc)
 {
 	// Define test input and create symbol table
@@ -66,8 +64,41 @@ void test2(CuTest *tc)
 	mcc_semantic_check_delete_single_check(checks);
 }
 
+void expression(CuTest *tc)
+{
+	const char input[] = "a + b + 1";
+	struct mcc_parser_result parser_result;
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_STATEMENT);
+	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
+	struct mcc_symbol_table *table = mcc_symbol_table_entry_point(parser_result, MCC_PARSER_ENTRY_POINT_STATEMENT);
+	
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program, table);
+
+	CuAssertIntEquals(tc, ir->row_no, 0);
+	CuAssertIntEquals(tc, ir->instr, MCC_IR_INSTR_PLUS);
+	CuAssertIntEquals(tc, ir->arg1->type, MCC_IR_TYPE_VAR);
+	CuAssertStrEquals(tc, ir->arg1->var, "0");
+	CuAssertIntEquals(tc, ir->arg2->type, MCC_IR_TYPE_VAR);
+	CuAssertStrEquals(tc, ir->arg2->var, "0");
+
+	struct mcc_ir_row *next_ir = ir->next_row;
+	CuAssertPtrNotNull(tc, ir);
+
+	CuAssertIntEquals(tc, ir->row_no, 1);
+	CuAssertIntEquals(tc, ir->instr, MCC_IR_INSTR_PLUS);
+	CuAssertIntEquals(tc, ir->arg1->type, MCC_IR_TYPE_ROW);
+	CuAssertPtrEquals(tc, ir->arg1->row, next_ir);
+	CuAssertStrEquals(tc, ir->arg2, "1");
+	CuAssertPtrEquals(tc, ir->next_row, NULL);
+
+	// Cleanup
+	mcc_ast_delete(parser_result.program);
+	mcc_symbol_table_delete_table(table);
+}
+
 #define TESTS \
 	TEST(test1) \
-	TEST(test2)	
+	TEST(test2)	\
+	TEST(expression)
 #include "main_stub.inc"
 #undef TESTS
