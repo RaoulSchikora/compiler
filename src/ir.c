@@ -231,7 +231,7 @@ static void generate_ir_program(struct mcc_ast_program *program, void *data)
 	assert(program);
 	assert(data);
 	struct ir_generation_userdata *userdata = data;
-	append_row(get_fake_ir(), userdata);
+	append_row(get_fake_ir(program->function->identifier->identifier_name), userdata);
 }
 
 static void generate_ir_parameters(struct mcc_ast_parameters *parameters, void *data)
@@ -254,8 +254,9 @@ static void generate_ir_function_definition(struct mcc_ast_function_definition *
 
 //---------------------------------------------------------------------------------------- Generate Fake IR for testing
 
-static struct mcc_ir_row *get_fake_ir_line()
+static struct mcc_ir_row *get_fake_ir_line(char *name)
 {
+	size_t size = strlen(name) +1;
 	struct mcc_ir_row *head = malloc(sizeof(*head));
 	if (!head)
 		return NULL;
@@ -272,7 +273,7 @@ static struct mcc_ir_row *get_fake_ir_line()
 	arg1->type = MCC_IR_TYPE_VAR;
 	arg2->type = MCC_IR_TYPE_VAR;
 
-	char *str1 = malloc(sizeof(char) * 5);
+	char *str1 = malloc(sizeof(char) * size);
 	char *str2 = malloc(sizeof(char) * 5);
 	if (!str1 || !str2) {
 		free(arg1);
@@ -282,7 +283,7 @@ static struct mcc_ir_row *get_fake_ir_line()
 		free(str2);
 		return NULL;
 	}
-	snprintf(str1, 5, "test");
+	snprintf(str1, size, "%s", name);
 	snprintf(str2, 5, "var2");
 	arg1->var = str1;
 	arg2->var = str2;
@@ -295,14 +296,12 @@ static struct mcc_ir_row *get_fake_ir_line()
 	return head;
 }
 
-static struct mcc_ir_row *get_fake_ir()
+static struct mcc_ir_row *get_fake_ir(char *name)
 {
-	struct mcc_ir_row *head = get_fake_ir_line();
-	struct mcc_ir_row *next = get_fake_ir_line();
-	if (!head || !next)
+	struct mcc_ir_row *head = get_fake_ir_line(name);
+	if (!head)
 		return NULL;
-	head->next_row = next;
-	next->prev_row = head;
+	head->next_row = NULL;
 	return head;
 }
 
@@ -425,7 +424,9 @@ static void number_rows(struct mcc_ir_row *head)
 	} while (head);
 }
 
-struct mcc_ir_row *mcc_ir_generate_entry_point(struct mcc_parser_result *result, struct mcc_symbol_table *table, enum mcc_parser_entry_point entry_point)
+struct mcc_ir_row *mcc_ir_generate_entry_point(struct mcc_parser_result *result,
+                                               struct mcc_symbol_table *table,
+                                               enum mcc_parser_entry_point entry_point)
 {
 	assert(table);
 
@@ -438,12 +439,12 @@ struct mcc_ir_row *mcc_ir_generate_entry_point(struct mcc_parser_result *result,
 
 	struct mcc_ast_visitor visitor = generate_ir_visitor(data);
 
-	switch (entry_point){
+	switch (entry_point) {
 	case MCC_PARSER_ENTRY_POINT_EXPRESSION:
 		mcc_ast_visit(result->expression, &visitor);
 		break;
 	case MCC_PARSER_ENTRY_POINT_PROGRAM:
-		mcc_ast_visit(result->program, &visitor);	
+		mcc_ast_visit(result->program, &visitor);
 		break;
 	case MCC_PARSER_ENTRY_POINT_DECLARATION:
 		mcc_ast_visit(result->declaration, &visitor);
