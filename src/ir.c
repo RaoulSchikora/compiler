@@ -131,6 +131,8 @@ static void generate_ir_expression(struct mcc_ast_expression *expression, void *
 
 static void generate_ir_comp_statement(struct mcc_ast_compound_statement *cmp_stmt, struct ir_generation_userdata *data)
 {
+	if (data->has_failed)
+		return;
 	while (cmp_stmt->has_next_statement) {
 		generate_ir_statement(cmp_stmt->statement, data);
 		cmp_stmt = cmp_stmt->next_compound_statement;
@@ -139,11 +141,39 @@ static void generate_ir_comp_statement(struct mcc_ast_compound_statement *cmp_st
 	UNUSED(data);
 }
 
+static void generate_ir_assignment(struct mcc_ast_assignment *asgn, struct ir_generation_userdata *data)
+{
+	if (data->has_failed)
+		return;
+	UNUSED(asgn);
+	UNUSED(data);
+}
+
 static void generate_ir_statement(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data)
 {
+	if (data->has_failed)
+		return;
 	switch (stmt->type) {
 	case MCC_AST_STATEMENT_TYPE_EXPRESSION:
-		generate_ir_expression(stmt->stmt_expression,data);
+		generate_ir_expression(stmt->stmt_expression, data);
+		break;
+	case MCC_AST_STATEMENT_TYPE_COMPOUND_STMT:
+		generate_ir_comp_statement(stmt->compound_statement, data);
+		break;
+	case MCC_AST_STATEMENT_TYPE_ASSIGNMENT:
+		generate_ir_assignment(stmt->assignment, data);
+		break;
+	case MCC_AST_STATEMENT_TYPE_DECLARATION:
+		break;
+	case MCC_AST_STATEMENT_TYPE_IF_ELSE_STMT:
+		break;
+	case MCC_AST_STATEMENT_TYPE_IF_STMT:
+		break;
+	case MCC_AST_STATEMENT_TYPE_RETURN:
+		break;
+	case MCC_AST_STATEMENT_TYPE_WHILE:
+		break;
+	default:
 		break;
 	}
 	UNUSED(stmt);
@@ -154,8 +184,12 @@ static void generate_ir_program(struct mcc_ast_program *program, struct ir_gener
 {
 	assert(program);
 	assert(data);
-	struct ir_generation_userdata *userdata = data;
-	append_row(get_fake_ir(program->function->identifier->identifier_name), userdata);
+
+	if (data->has_failed)
+		return;
+	// Fake IR that replaces the IR code generation of the function signature
+	append_row(get_fake_ir(program->function->identifier->identifier_name), data);
+
 	generate_ir_comp_statement(program->function->compound_stmt, data);
 }
 
@@ -398,7 +432,7 @@ struct mcc_ir_row *mcc_ir_generate(struct mcc_ast_program *ast, struct mcc_symbo
 	data->has_failed = false;
 	data->current = NULL;
 
-	while (ast->has_next_function) {
+	while (ast) {
 		generate_ir_program(ast, data);
 		ast = ast->next_function;
 	}
