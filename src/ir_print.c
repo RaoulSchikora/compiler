@@ -39,8 +39,16 @@ static char *instr_to_string(enum mcc_ir_instruction instr)
 		return "divide";
 	case MCC_IR_INSTR_EQUALS:
 		return "equals";
-	case MCC_IR_INSTR_LESS_THAN:
-		return "less than";
+	case MCC_IR_INSTR_NOTEQUALS:
+		return "not equal";
+	case MCC_IR_INSTR_SMALLER:
+		return "smaller";
+	case MCC_IR_INSTR_GREATER:
+		return "greater";
+	case MCC_IR_INSTR_SMALLEREQ:
+		return "smaller eq";
+	case MCC_IR_INSTR_GREATEREQ:
+		return "greater eq";
 	case MCC_IR_INSTR_MINUS:
 		return "minus";
 	case MCC_IR_INSTR_MODULO:
@@ -59,7 +67,7 @@ static char *instr_to_string(enum mcc_ir_instruction instr)
 		return "label";
 	default:
 		return "unknown";
-	};
+	}
 }
 
 static int length_of_int(int num)
