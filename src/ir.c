@@ -18,7 +18,6 @@ struct ir_generation_userdata {
 	struct mcc_ir_row *head;
 	struct mcc_ir_row *current;
 	bool has_failed;
-        int label_counter;
 };
 
 //------------------------------------------------------------------------------ Forward declarations
@@ -499,7 +498,6 @@ struct mcc_ir_row *mcc_ir_generate(struct mcc_ast_program *ast, struct mcc_symbo
 	data->head = NULL;
 	data->has_failed = false;
 	data->current = NULL;
-        data->label_counter = 0;
 
 	while (ast) {
 		generate_ir_program(ast, data);
