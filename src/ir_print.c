@@ -79,11 +79,16 @@ static int length_of_int(int num)
 
 static int arg_size(struct mcc_ir_arg *arg)
 {
+	if (!arg)
+		return length_of_int(1000);
+
 	switch (arg->type) {
 	case MCC_IR_TYPE_ROW:
 		return length_of_int(arg->row->row_no);
 	case MCC_IR_TYPE_LIT:
 		return strlen(arg->lit);
+	case MCC_IR_TYPE_LABEL:
+		return length_of_int(arg->label) + 1;
 	default:
 		return length_of_int(1000);
 	};
@@ -96,12 +101,20 @@ static void row_no_to_string(char *dest, int no)
 
 static void arg_to_string(char *dest, struct mcc_ir_arg *arg)
 {
+	if (!arg) {
+		strcpy(dest, "");
+		return;
+	}
+
 	switch (arg->type) {
 	case MCC_IR_TYPE_ROW:
 		row_no_to_string(dest, arg->row->row_no);
 		return;
 	case MCC_IR_TYPE_LIT:
 		strcpy(dest, arg->lit);
+		return;
+	case MCC_IR_TYPE_LABEL:
+		sprintf(dest, "L%d", arg->label);
 	};
 }
 

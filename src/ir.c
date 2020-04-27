@@ -18,6 +18,7 @@ struct ir_generation_userdata {
 	struct mcc_ir_row *head;
 	struct mcc_ir_row *current;
 	bool has_failed;
+	unsigned label_counter;
 };
 
 //------------------------------------------------------------------------------ Forward declarations
@@ -26,6 +27,7 @@ static struct mcc_ir_row *
 mcc_ir_new_row(struct mcc_ir_arg *arg1, struct mcc_ir_arg *arg2, enum mcc_ir_instruction instr);
 static struct mcc_ir_arg *mcc_ir_new_arg_lit(char *lit);
 static struct mcc_ir_arg *mcc_ir_new_arg_row(struct mcc_ir_row *row);
+static struct mcc_ir_arg *mcc_ir_new_arg_label(struct ir_generation_userdata *data);
 static void append_row(struct mcc_ir_row *row, struct ir_generation_userdata *data);
 static void generate_ir_statement(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data);
 static struct mcc_ir_arg *generate_ir_expression(struct mcc_ast_expression *expression, void *data);
@@ -353,6 +355,17 @@ static struct mcc_ir_arg *mcc_ir_new_arg_lit(char *lit)
 	return arg;
 }
 
+static struct mcc_ir_arg *mcc_ir_new_arg_label(struct ir_generation_userdata *data)
+{
+	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
+	if (!arg)
+		return NULL;
+	arg->type = MCC_IR_TYPE_LABEL;
+	arg->label = data->label_counter;
+	data->label_counter = data->label_counter + 1;
+	return arg;
+}
+
 static struct mcc_ir_row *
 mcc_ir_new_row(struct mcc_ir_arg *arg1, struct mcc_ir_arg *arg2, enum mcc_ir_instruction instr)
 {
@@ -444,6 +457,7 @@ struct mcc_ir_row *mcc_ir_generate_entry_point(struct mcc_parser_result *result,
 	data->head = NULL;
 	data->has_failed = false;
 	data->current = NULL;
+	data->label_counter = 0;
 
 	struct mcc_ast_visitor visitor = generate_ir_visitor(data);
 

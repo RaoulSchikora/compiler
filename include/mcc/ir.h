@@ -35,6 +35,7 @@ enum mcc_ir_instruction {
 enum mcc_ir_arg_type {
 	MCC_IR_TYPE_ROW,
 	MCC_IR_TYPE_LIT,
+	MCC_IR_TYPE_LABEL,
 };
 
 struct mcc_ir_arg {
@@ -43,6 +44,7 @@ struct mcc_ir_arg {
 	union {
 		char *lit;
 		struct mcc_ir_row *row;
+		unsigned label;
 	};
 };
 
