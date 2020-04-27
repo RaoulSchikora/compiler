@@ -28,6 +28,7 @@ static struct mcc_ir_arg *mcc_ir_new_arg_lit(char *lit);
 static struct mcc_ir_arg *mcc_ir_new_arg_row(struct mcc_ir_row *row);
 static void append_row(struct mcc_ir_row *row, struct ir_generation_userdata *data);
 static void generate_ir_statement(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data);
+static struct mcc_ir_arg *generate_ir_expression(struct mcc_ast_expression *expression, void *data);
 
 //------------------------------------------------------------------------------ Forward declarations, Fake IR
 
@@ -42,14 +43,14 @@ static struct mcc_ir_arg *generate_arg_lit(struct mcc_ast_literal *literal)
 	char *buffer;
 
 	if (literal->type == MCC_AST_LITERAL_TYPE_INT) {
-		size_t size = sizeof(char) * floor(log10(not_zero(literal->i_value))) + 1;
+		size_t size = sizeof(char) * ceil(log10(not_zero(literal->i_value))) + 2;
 		buffer = malloc(size);
 		if (!buffer || 0 > snprintf(buffer, size, "%ld", literal->i_value)) {
 			free(buffer);
 			return NULL;
 		}
 	} else if (literal->type == MCC_AST_LITERAL_TYPE_FLOAT) {
-		size_t size = sizeof(char) * floor(log10(not_zero(literal->f_value))) + 8;
+		size_t size = sizeof(char) * ceil(log10(not_zero(literal->f_value))) + 9;
 		buffer = malloc(size);
 		if (!buffer || 0 > snprintf(buffer, size, "%f", literal->f_value)) {
 			free(buffer);
@@ -88,37 +89,101 @@ static void generate_ir_expression_literal(struct mcc_ast_expression *expression
 	assert(data);
 }
 
-static struct mcc_ir_row *generate_ir_expression_binary_op(struct mcc_ast_expression *expression, void *data)
+static struct mcc_ir_arg *generate_ir_expression_binary_op(struct mcc_ast_expression *expression, void *data)
 {
 	assert(expression->lhs);
 	assert(expression->rhs);
 	assert(data);
 
-	struct mcc_ir_arg *lhs = NULL, *rhs = NULL;
-	if (expression->lhs->type == MCC_AST_EXPRESSION_TYPE_LITERAL) {
-		lhs = generate_arg_lit(expression->lhs->literal);
+	struct mcc_ir_arg *lhs = generate_ir_expression(expression->lhs, data);
+	struct mcc_ir_arg *rhs = generate_ir_expression(expression->rhs, data);
+
+	enum mcc_ir_instruction instr = MCC_IR_INSTR_UNKNOWN;
+	switch (expression->op)
+	{
+	case MCC_AST_BINARY_OP_ADD:
+		instr = MCC_IR_INSTR_PLUS;
+		break;
+	case MCC_AST_BINARY_OP_SUB:
+		instr = MCC_IR_INSTR_MINUS;
+		break;
+	case MCC_AST_BINARY_OP_MUL:
+		instr = MCC_IR_INSTR_MULTIPLY;
+		break;
+	case MCC_AST_BINARY_OP_DIV:
+		instr = MCC_IR_INSTR_DIVIDE;
+		break;
+	case MCC_AST_BINARY_OP_SMALLER:
+		instr = MCC_IR_INSTR_SMALLER;
+		break;
+	case MCC_AST_BINARY_OP_GREATER:
+		instr = MCC_IR_INSTR_GREATER;
+		break;
+	case MCC_AST_BINARY_OP_SMALLEREQ:
+		instr = MCC_IR_INSTR_SMALLEREQ;
+		break;
+	case MCC_AST_BINARY_OP_GREATEREQ:
+		instr = MCC_IR_INSTR_GREATEREQ;
+		break;
+	case MCC_AST_BINARY_OP_CONJ:
+		instr = MCC_IR_INSTR_AND;
+		break;
+	case MCC_AST_BINARY_OP_DISJ:
+		instr = MCC_IR_INSTR_OR;
+		break;
+	case MCC_AST_BINARY_OP_EQUAL:
+		instr = MCC_IR_INSTR_EQUALS;
+		break;
+	case MCC_AST_BINARY_OP_NOTEQUAL:
+		instr = MCC_IR_INSTR_NOTEQUALS;
+		break;
 	}
-	if (expression->rhs->type == MCC_AST_EXPRESSION_TYPE_LITERAL) {
-		rhs = generate_arg_lit(expression->rhs->literal);
-	}
+
+	struct mcc_ir_row *row = mcc_ir_new_row(lhs, rhs, instr);
+	append_row(row, data);
+
+	struct mcc_ir_arg *arg = mcc_ir_new_arg_row(row);
+	return arg;
 }
 
-static void generate_ir_expression(struct mcc_ast_expression *expression, void *data)
+static struct mcc_ir_arg *generate_ir_expression_unary_op(struct mcc_ast_expression *expression, void *data)
+{
+	assert(expression->child);
+	assert(data);
+
+	struct mcc_ir_arg *child = generate_ir_expression(expression->child, data);
+	enum mcc_ir_instruction instr = MCC_IR_INSTR_UNKNOWN;
+	switch (expression->u_op)
+	{
+	case MCC_AST_UNARY_OP_NEGATIV:
+		instr = MCC_IR_INSTR_NEGATIV;
+		break;
+	case MCC_AST_UNARY_OP_NOT:
+		instr = MCC_IR_INSTR_NOT;
+		break;
+	}
+
+}
+
+static struct mcc_ir_arg *generate_ir_expression(struct mcc_ast_expression *expression, void *data)
 {
 	assert(expression);
 	assert(data);
 
-	struct mcc_ir_row *row = NULL;
+	struct mcc_ir_arg *arg = NULL;
 
 	switch (expression->type) {
 	case MCC_AST_EXPRESSION_TYPE_LITERAL:
+		arg = generate_arg_lit(expression->literal);
 		break;
 	case MCC_AST_EXPRESSION_TYPE_BINARY_OP:
-		row = generate_ir_expression_binary_op(expression, data);
+		arg = generate_ir_expression_binary_op(expression, data);
 		break;
 	case MCC_AST_EXPRESSION_TYPE_PARENTH:
+		arg = generate_ir_expression(expression->expression, data);
 		break;
 	case MCC_AST_EXPRESSION_TYPE_UNARY_OP:
+		arg = generate_ir_expression_unary_op(expression, data);
 		break;
 	case MCC_AST_EXPRESSION_TYPE_VARIABLE:
 		break;
@@ -127,6 +192,7 @@ static void generate_ir_expression(struct mcc_ast_expression *expression, void *
 	case MCC_AST_EXPRESSION_TYPE_FUNCTION_CALL:
 		break;
 	}
+	return arg;
 }
 
 static void generate_ir_comp_statement(struct mcc_ast_compound_statement *cmp_stmt, struct ir_generation_userdata *data)
