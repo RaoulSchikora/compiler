@@ -83,12 +83,6 @@ static struct mcc_ir_arg *generate_arg_lit(struct mcc_ast_literal *literal)
 	return arg;
 }
 
-static void generate_ir_expression_literal(struct mcc_ast_expression *expression, void *data)
-{
-	assert(expression);
-	assert(data);
-}
-
 static struct mcc_ir_arg *generate_ir_expression_binary_op(struct mcc_ast_expression *expression, void *data)
 {
 	assert(expression->lhs);
@@ -163,6 +157,11 @@ static struct mcc_ir_arg *generate_ir_expression_unary_op(struct mcc_ast_express
 		break;
 	}
 
+	struct mcc_ir_arg *empty = mcc_ir_new_arg_lit("-");
+	struct mcc_it_row *row = mcc_ir_new_row(child, empty, instr);
+	append_row(row, data);
+	struct mcc_ir_arg *arg = mcc_ir_new_arg_row(row);
+	return arg;
 }
 
 static struct mcc_ir_arg *generate_ir_expression(struct mcc_ast_expression *expression, void *data)
