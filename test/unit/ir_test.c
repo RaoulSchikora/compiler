@@ -26,8 +26,8 @@ void test1(CuTest *tc)
 
 	CuAssertIntEquals(tc, ir->row_no, 0);
 	CuAssertIntEquals(tc, ir->instr, MCC_IR_INSTR_LABEL);
-	CuAssertIntEquals(tc, ir->arg1->type, MCC_IR_TYPE_VAR);
-	CuAssertStrEquals(tc, ir->arg1->var, "main");
+	CuAssertIntEquals(tc, ir->arg1->type, MCC_IR_TYPE_LIT);
+	CuAssertStrEquals(tc, ir->arg1->lit, "main");
 	CuAssertPtrEquals(tc, ir->arg2, NULL);
 
 	struct mcc_ir_row *ir_next = ir->next_row;
@@ -35,8 +35,8 @@ void test1(CuTest *tc)
 
 	CuAssertIntEquals(tc, ir_next->row_no, 1);
 	CuAssertIntEquals(tc, ir_next->instr, MCC_IR_INSTR_RETURN);
-	CuAssertIntEquals(tc, ir_next->arg1->type, MCC_IR_TYPE_VAR);
-	CuAssertStrEquals(tc, ir_next->arg1->var, "42");
+	CuAssertIntEquals(tc, ir_next->arg1->type, MCC_IR_TYPE_LIT);
+	CuAssertStrEquals(tc, ir_next->arg1->lit, "42");
 	CuAssertPtrEquals(tc, ir_next->arg2, NULL);
 	CuAssertPtrEquals(tc, ir_next->next_row, NULL);
 
@@ -75,16 +75,16 @@ void expression(CuTest *tc)
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_entry_point(&parser_result, MCC_PARSER_ENTRY_POINT_EXPRESSION);
 	
-	struct mcc_ir_row *ir = mcc_ir_generate_entry_point((&parser_result), table, MCC_PARSER_ENTRY_POINT_EXPRESSION);
+	struct mcc_ir_row *ir = mcc_ir_generate_entry_point(&parser_result, table, MCC_PARSER_ENTRY_POINT_EXPRESSION);
 
 	CuAssertPtrNotNull(tc, ir);
 
 	CuAssertIntEquals(tc, ir->row_no, 0);
 	CuAssertIntEquals(tc, ir->instr, MCC_IR_INSTR_PLUS);
-	CuAssertIntEquals(tc, ir->arg1->type, MCC_IR_TYPE_VAR);
-	CuAssertStrEquals(tc, ir->arg1->var, "0");
-	CuAssertIntEquals(tc, ir->arg2->type, MCC_IR_TYPE_VAR);
-	CuAssertStrEquals(tc, ir->arg2->var, "0");
+	CuAssertIntEquals(tc, ir->arg1->type, MCC_IR_TYPE_LIT);
+	CuAssertStrEquals(tc, ir->arg1->lit, "0");
+	CuAssertIntEquals(tc, ir->arg2->type, MCC_IR_TYPE_LIT);
+	CuAssertStrEquals(tc, ir->arg2->lit, "0");
 
 	struct mcc_ir_row *next_ir = ir->next_row;
 	CuAssertPtrNotNull(tc, next_ir);
@@ -93,8 +93,8 @@ void expression(CuTest *tc)
 	CuAssertIntEquals(tc, ir->instr, MCC_IR_INSTR_PLUS);
 	CuAssertIntEquals(tc, ir->arg1->type, MCC_IR_TYPE_ROW);
 	CuAssertPtrEquals(tc, ir->arg1->row, next_ir);
-	CuAssertIntEquals(tc, ir->arg2->type, MCC_IR_TYPE_VAR);
-	CuAssertStrEquals(tc, ir->arg2->var, "1");
+	CuAssertIntEquals(tc, ir->arg2->type, MCC_IR_TYPE_LIT);
+	CuAssertStrEquals(tc, ir->arg2->lit, "1");
 
 	CuAssertPtrEquals(tc, ir->next_row, NULL);
 

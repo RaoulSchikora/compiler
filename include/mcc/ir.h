@@ -27,14 +27,14 @@ enum mcc_ir_instruction {
 
 enum mcc_ir_arg_type {
 	MCC_IR_TYPE_ROW,
-	MCC_IR_TYPE_VAR,
+	MCC_IR_TYPE_LIT,
 };
 
 struct mcc_ir_arg {
 	enum mcc_ir_arg_type type;
 
 	union {
-		char *var;
+		char *lit;
 		struct mcc_ir_row *row;
 	};
 };
@@ -67,7 +67,7 @@ void mcc_ir_delete_ir_arg(struct mcc_ir_arg *arg);
 // clang-format off
 
 #define mcc_ir_new_arg(x) _Generic((x), \
-        char* :                                 mcc_ir_new_arg_var, \
+        char* :                                 mcc_ir_new_arg_lit, \
         struct mcc_ir_row *:          			mcc_ir_new_arg_row \
     )(x)
 

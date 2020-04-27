@@ -12,6 +12,8 @@
 #include "mcc/symbol_table.h"
 #include "utils/unused.h"
 
+#define not_zero(x) (x > 0 ? x : 1)
+
 struct ir_generation_userdata {
 	struct mcc_ir_row *head;
 	struct mcc_ir_row *current;
@@ -22,7 +24,7 @@ struct ir_generation_userdata {
 
 static struct mcc_ir_row *
 mcc_ir_new_row(struct mcc_ir_arg *arg1, struct mcc_ir_arg *arg2, enum mcc_ir_instruction instr);
-static struct mcc_ir_arg *mcc_ir_new_arg_var(char *var);
+static struct mcc_ir_arg *mcc_ir_new_arg_lit(char *lit);
 static struct mcc_ir_arg *mcc_ir_new_arg_row(struct mcc_ir_row *row);
 static void append_row(struct mcc_ir_row *row, struct ir_generation_userdata *data);
 
@@ -33,10 +35,50 @@ static struct mcc_ir_row *get_fake_ir();
 
 //------------------------------------------------------------------------------ Callbacks for visitor that generates IR
 
-static void generate_ir_expression(struct mcc_ast_expression *expression, void *data)
+static struct mcc_ir_arg *generate_arg_lit(struct mcc_ast_literal *literal)
 {
-	assert(expression);
-	assert(data);
+	assert(literal);
+	char *buffer;
+
+	if(literal->type == MCC_AST_LITERAL_TYPE_INT){
+		size_t size = sizeof(char) * floor(log10(not_zero(literal->i_value)))+1;
+		buffer = malloc(size);
+		if(!buffer || 0>snprintf(buffer, size, "%ld", literal->i_value)){
+			free(buffer);
+			return NULL;
+		}
+	} else if(literal->type == MCC_AST_LITERAL_TYPE_FLOAT){
+		size_t size = sizeof(char) * floor(log10(not_zero(literal->f_value)))+8;
+		buffer = malloc(size);
+		if(!buffer || 0>snprintf(buffer, size, "%f", literal->f_value)){
+			free(buffer);
+			return NULL;
+		}
+	} else if(literal->type == MCC_AST_LITERAL_TYPE_BOOL){
+		size_t size = sizeof(char) * 6;
+		buffer = malloc(size);
+		if(!buffer){
+			return NULL;
+		}
+		if(literal->bool_value){
+			if(0>snprintf(buffer, size, "true")){
+				return NULL;
+			}
+		} else {
+			if(0>snprintf(buffer, size, "false")){
+				return NULL;
+			}
+		}
+	} else { // literal->type == MCC_AST_LITERAL_TYPE_STRING
+		size_t size = sizeof(char) * strlen(literal->string_value);
+		buffer = malloc(size);
+		if(!buffer || 0>snprintf(buffer, size, "%s", literal->string_value)){
+			return NULL;
+		}
+	}
+	
+	struct mcc_ir_arg *arg = mcc_ir_new_arg_lit(buffer);
+	return arg;
 }
 
 static void generate_ir_expression_literal(struct mcc_ast_expression *expression, void *data)
@@ -45,10 +87,45 @@ static void generate_ir_expression_literal(struct mcc_ast_expression *expression
 	assert(data);
 }
 
-static void generate_ir_expression_binary_op(struct mcc_ast_expression *expression, void *data)
+static struct mcc_ir_row *generate_ir_expression_binary_op(struct mcc_ast_expression *expression, void *data)
+{
+	assert(expression->lhs);
+	assert(expression->rhs);
+	assert(data);
+
+	struct mcc_ir_arg *lhs = NULL, *rhs = NULL;
+	if(expression->lhs->type == MCC_AST_EXPRESSION_TYPE_LITERAL){
+		lhs = generate_arg_lit(expression->lhs->literal);
+	}
+	if(expression->rhs->type == MCC_AST_EXPRESSION_TYPE_LITERAL){
+		rhs = generate_arg_lit(expression->rhs->literal);
+	}
+}
+
+static void generate_ir_expression(struct mcc_ast_expression *expression, void *data)
 {
 	assert(expression);
 	assert(data);
+
+	struct mcc_ir_row *row = NULL;
+
+	switch(expression->type){
+	case MCC_AST_EXPRESSION_TYPE_LITERAL:
+		break;
+	case MCC_AST_EXPRESSION_TYPE_BINARY_OP:
+		row = generate_ir_expression_binary_op(expression, data);
+		break;
+	case MCC_AST_EXPRESSION_TYPE_PARENTH:
+		break;
+	case MCC_AST_EXPRESSION_TYPE_UNARY_OP:
+		break;
+	case MCC_AST_EXPRESSION_TYPE_VARIABLE:
+		break;
+	case MCC_AST_EXPRESSION_TYPE_ARRAY_ELEMENT:
+		break;
+	case MCC_AST_EXPRESSION_TYPE_FUNCTION_CALL:
+		break;
+	}
 }
 
 static void generate_ir_expression_parenth(struct mcc_ast_expression *expression, void *data)
@@ -270,8 +347,8 @@ static struct mcc_ir_row *get_fake_ir_line(char *name)
 		return NULL;
 	}
 
-	arg1->type = MCC_IR_TYPE_VAR;
-	arg2->type = MCC_IR_TYPE_VAR;
+	arg1->type = MCC_IR_TYPE_LIT;
+	arg2->type = MCC_IR_TYPE_LIT;
 
 	char *str1 = malloc(sizeof(char) * size);
 	char *str2 = malloc(sizeof(char) * 5);
@@ -285,8 +362,8 @@ static struct mcc_ir_row *get_fake_ir_line(char *name)
 	}
 	snprintf(str1, size, "%s", name);
 	snprintf(str2, 5, "var2");
-	arg1->var = str1;
-	arg2->var = str2;
+	arg1->lit = str1;
+	arg2->lit = str2;
 	head->instr = MCC_IR_INSTR_JUMPFALSE;
 	head->row_no = 0;
 	head->next_row = NULL;
@@ -335,13 +412,13 @@ static struct mcc_ir_arg *mcc_ir_new_arg_row(struct mcc_ir_row *row)
 	return arg;
 }
 
-static struct mcc_ir_arg *mcc_ir_new_arg_var(char *var)
+static struct mcc_ir_arg *mcc_ir_new_arg_lit(char *lit)
 {
 	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
 	if (!arg)
 		return NULL;
-	arg->type = MCC_IR_TYPE_VAR;
-	arg->var = var;
+	arg->type = MCC_IR_TYPE_LIT;
+	arg->lit = lit;
 	return arg;
 }
 
@@ -464,6 +541,8 @@ struct mcc_ir_row *mcc_ir_generate_entry_point(struct mcc_parser_result *result,
 	case MCC_PARSER_ENTRY_POINT_COMPOUND_STATEMENT:
 		mcc_ast_visit(result->compound_statement, &visitor);
 		break;
+	case MCC_PARSER_ENTRY_POINT_PARAMETERS:
+		mcc_ast_visit(result->parameters, &visitor);
 	}
 
 	if (data->has_failed) {
@@ -508,8 +587,8 @@ void mcc_ir_delete_ir_arg(struct mcc_ir_arg *arg)
 {
 	if (!arg)
 		return;
-	if (arg->type == MCC_IR_TYPE_VAR) {
-		free(arg->var);
+	if (arg->type == MCC_IR_TYPE_LIT) {
+		free(arg->lit);
 	}
 	free(arg);
 }

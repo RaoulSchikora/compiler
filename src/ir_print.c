@@ -74,8 +74,8 @@ static int arg_size(struct mcc_ir_arg *arg)
 	switch (arg->type) {
 	case MCC_IR_TYPE_ROW:
 		return length_of_int(arg->row->row_no);
-	case MCC_IR_TYPE_VAR:
-		return strlen(arg->var);
+	case MCC_IR_TYPE_LIT:
+		return strlen(arg->lit);
 	default:
 		return length_of_int(1000);
 	};
@@ -92,8 +92,8 @@ static void arg_to_string(char *dest, struct mcc_ir_arg *arg)
 	case MCC_IR_TYPE_ROW:
 		row_no_to_string(dest, arg->row->row_no);
 		return;
-	case MCC_IR_TYPE_VAR:
-		strcpy(dest, arg->var);
+	case MCC_IR_TYPE_LIT:
+		strcpy(dest, arg->lit);
 	};
 }
 
