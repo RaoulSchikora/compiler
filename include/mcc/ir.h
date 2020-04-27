@@ -44,7 +44,7 @@ struct mcc_ir_arg {
 	union {
 		char *lit;
 		struct mcc_ir_row *row;
-		unsigned label;
+                unsigned label;
 	};
 };
 
@@ -55,14 +55,15 @@ struct mcc_ir_row {
 	struct mcc_ir_arg *arg1;
 	struct mcc_ir_arg *arg2;
 
-
 	struct mcc_ir_row *prev_row;
 	struct mcc_ir_row *next_row;
 };
 
 //---------------------------------------------------------------------------------------- Generate IR datastructures
 
-struct mcc_ir_row *mcc_ir_generate_entry_point(struct mcc_parser_result *result, struct mcc_symbol_table *table, enum mcc_parser_entry_point entry_point);
+struct mcc_ir_row *mcc_ir_generate_entry_point(struct mcc_parser_result *result,
+                                               struct mcc_symbol_table *table,
+                                               enum mcc_parser_entry_point entry_point);
 struct mcc_ir_row *mcc_ir_generate(struct mcc_ast_program *ast, struct mcc_symbol_table *table);
 
 //---------------------------------------------------------------------------------------- Cleanup

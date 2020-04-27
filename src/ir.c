@@ -101,8 +101,7 @@ static struct mcc_ir_arg *generate_ir_expression_binary_op(struct mcc_ast_expres
 	struct mcc_ir_arg *rhs = generate_ir_expression(expression->rhs, data);
 
 	enum mcc_ir_instruction instr = MCC_IR_INSTR_UNKNOWN;
-	switch (expression->op)
-	{
+	switch (expression->op) {
 	case MCC_AST_BINARY_OP_ADD:
 		instr = MCC_IR_INSTR_PLUS;
 		break;
@@ -155,8 +154,7 @@ static struct mcc_ir_arg *generate_ir_expression_unary_op(struct mcc_ast_express
 
 	struct mcc_ir_arg *child = generate_ir_expression(expression->child, data);
 	enum mcc_ir_instruction instr = MCC_IR_INSTR_UNKNOWN;
-	switch (expression->u_op)
-	{
+	switch (expression->u_op) {
 	case MCC_AST_UNARY_OP_NEGATIV:
 		instr = MCC_IR_INSTR_NEGATIV;
 		break;
@@ -164,7 +162,6 @@ static struct mcc_ir_arg *generate_ir_expression_unary_op(struct mcc_ast_express
 		instr = MCC_IR_INSTR_NOT;
 		break;
 	}
-
 }
 
 static struct mcc_ir_arg *generate_ir_expression(struct mcc_ast_expression *expression, void *data)
@@ -217,6 +214,20 @@ static void generate_ir_assignment(struct mcc_ast_assignment *asgn, struct ir_ge
 	UNUSED(data);
 }
 
+// TODO: Finish implementation
+static void generate_ir_statememt_if_stmt(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data)
+{
+	if (data->has_failed)
+		return;
+	struct mcc_ir_arg *cond = generate_ir_expression(stmt->if_condition, data);
+        struct mcc_ir_arg *label_arg = mcc_ir_new_arg_label(data);
+        struct mcc_ir_row *jumpfalse = mcc_ir_new_row(cond,label_arg,MCC_IR_INSTR_JUMPFALSE);
+        append_row(jumpfalse,data);
+        generate_ir_statement(stmt->if_on_true,data);
+        struct mcc_ir_row *label_row =  mcc_ir_new_row(label_arg,NULL,MCC_IR_INSTR_LABEL); 
+        append_row(label_row,data);
+}
+
 static void generate_ir_statement(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data)
 {
 	if (data->has_failed)
@@ -237,6 +248,7 @@ static void generate_ir_statement(struct mcc_ast_statement *stmt, struct ir_gene
 	case MCC_AST_STATEMENT_TYPE_IF_ELSE_STMT:
 		break;
 	case MCC_AST_STATEMENT_TYPE_IF_STMT:
+		generate_ir_statememt_if_stmt(stmt, data);
 		break;
 	case MCC_AST_STATEMENT_TYPE_RETURN:
 		break;
