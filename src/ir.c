@@ -248,7 +248,7 @@ static void generate_ir_comp_statement(struct mcc_ast_compound_statement *cmp_st
 
 	while (cmp_stmt) {
 		if (!cmp_stmt->is_empty)
-		generate_ir_statement(cmp_stmt->statement, data);
+			generate_ir_statement(cmp_stmt->statement, data);
 		cmp_stmt = cmp_stmt->next_compound_statement;
 	}
 	UNUSED(cmp_stmt);
@@ -274,7 +274,6 @@ static void generate_ir_assignment(struct mcc_ast_assignment *asgn, struct ir_ge
 	append_row(row, data);
 }
 
-// TODO: Finish implementation
 static void generate_ir_statememt_if_stmt(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data)
 {
 	if (data->has_failed)
