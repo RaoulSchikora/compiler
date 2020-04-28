@@ -332,8 +332,6 @@ static void generate_ir_statement(struct mcc_ast_statement *stmt, struct ir_gene
 		break;
 	}
 	mcc_ir_delete_ir_arg(arg);
-	UNUSED(stmt);
-	UNUSED(data);
 }
 
 static void generate_ir_program(struct mcc_ast_program *program, struct ir_generation_userdata *data)
@@ -560,62 +558,6 @@ static void number_rows(struct mcc_ir_row *head)
 		i = i + 1;
 		head = head->next_row;
 	} while (head);
-}
-
-struct mcc_ir_row *mcc_ir_generate_entry_point(struct mcc_parser_result *result,
-                                               struct mcc_symbol_table *table,
-                                               enum mcc_parser_entry_point entry_point)
-{
-	assert(table);
-
-	struct ir_generation_userdata *data = malloc(sizeof(*data));
-	if (!data)
-		return NULL;
-	data->head = NULL;
-	data->has_failed = false;
-	data->current = NULL;
-	data->label_counter = 0;
-
-	struct mcc_ast_visitor visitor = generate_ir_visitor(data);
-
-	switch (entry_point) {
-	case MCC_PARSER_ENTRY_POINT_EXPRESSION:
-		mcc_ast_visit(result->expression, &visitor);
-		break;
-	case MCC_PARSER_ENTRY_POINT_PROGRAM:
-		mcc_ast_visit(result->program, &visitor);
-		break;
-	case MCC_PARSER_ENTRY_POINT_DECLARATION:
-		mcc_ast_visit(result->declaration, &visitor);
-		break;
-	case MCC_PARSER_ENTRY_POINT_ASSIGNMENT:
-		mcc_ast_visit(result->assignment, &visitor);
-		break;
-	case MCC_PARSER_ENTRY_POINT_STATEMENT:
-		mcc_ast_visit(result->statement, &visitor);
-		break;
-	case MCC_PARSER_ENTRY_POINT_FUNCTION_DEFINITION:
-		mcc_ast_visit(result->function_definition, &visitor);
-		break;
-	case MCC_PARSER_ENTRY_POINT_ARGUMENTS:
-		mcc_ast_visit(result->arguments, &visitor);
-		break;
-	case MCC_PARSER_ENTRY_POINT_COMPOUND_STATEMENT:
-		mcc_ast_visit(result->compound_statement, &visitor);
-		break;
-	case MCC_PARSER_ENTRY_POINT_PARAMETERS:
-		mcc_ast_visit(result->parameters, &visitor);
-	}
-
-	if (data->has_failed) {
-		mcc_ir_delete_ir(data->head);
-		free(data);
-		return NULL;
-	}
-	struct mcc_ir_row *head = data->head;
-	free(data);
-	number_rows(head);
-	return head;
 }
 
 struct mcc_ir_row *mcc_ir_generate(struct mcc_ast_program *ast, struct mcc_symbol_table *table)

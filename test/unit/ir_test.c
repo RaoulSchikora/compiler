@@ -35,11 +35,11 @@ void test1(CuTest *tc)
 	CuAssertPtrNotNull(tc, ir);
 
 	CuAssertIntEquals(tc, ir_next->row_no, 1);
-	CuAssertIntEquals(tc, ir_next->instr, MCC_IR_INSTR_RETURN);
-	CuAssertIntEquals(tc, ir_next->arg1->type, MCC_IR_TYPE_LIT_INT);
-	CuAssertIntEquals(tc, (int) ir_next->arg1->lit_int, 42);
+	CuAssertIntEquals(tc, ir_next->instr, MCC_IR_INSTR_LABEL);
+	CuAssertIntEquals(tc, ir_next->arg1->type, MCC_IR_TYPE_LIT_STRING);
+	// CuAssertIntEquals(tc, (int) ir_next->arg1->lit_int, 42);
 	CuAssertPtrEquals(tc, ir_next->arg2, NULL);
-	CuAssertPtrEquals(tc, ir_next->next_row, NULL);
+	// CuAssertPtrEquals(tc, ir_next->next_row, NULL);
 
 	// Cleanup
 	mcc_ir_delete_ir(ir_head);
@@ -235,7 +235,7 @@ void if_stmt(CuTest *tc)
 	TEST(test2) \
 	TEST(expression) \
 	TEST(exp_plus_exp) \
-	TEST(expression_var) 
+	TEST(expression_var)
 	// TEST(if_stmt)
 #include "main_stub.inc"
 #undef TESTS
