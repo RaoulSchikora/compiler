@@ -300,6 +300,22 @@ static void generate_ir_statememt_if_stmt(struct mcc_ast_statement *stmt, struct
 	append_row(label_row, data);
 }
 
+
+static void generate_ir_statement_return(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data)
+{
+	assert(stmt);
+	assert(data);
+
+	if(stmt->return_value){
+		struct mcc_ir_arg *exp = generate_ir_expression(stmt->return_value, data);
+		struct mcc_ir_row *row = mcc_ir_new_row(exp, NULL, MCC_IR_INSTR_RETURN);
+		append_row(row, data);
+	} else {
+		struct mcc_ir_row *row = mcc_ir_new_row(NULL, NULL, MCC_IR_INSTR_RETURN);
+		append_row(row, data);
+	}
+}
+
 static void generate_ir_statement(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data)
 {
 	if (data->has_failed)
@@ -325,6 +341,7 @@ static void generate_ir_statement(struct mcc_ast_statement *stmt, struct ir_gene
 		generate_ir_statememt_if_stmt(stmt, data);
 		break;
 	case MCC_AST_STATEMENT_TYPE_RETURN:
+		generate_ir_statement_return(stmt, data);
 		break;
 	case MCC_AST_STATEMENT_TYPE_WHILE:
 		break;

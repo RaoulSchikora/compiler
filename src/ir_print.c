@@ -71,6 +71,8 @@ static char *instr_to_string(enum mcc_ir_instruction instr)
 		return "negativ";
 	case MCC_IR_INSTR_NOT:
 		return "not";
+	case MCC_IR_INSTR_RETURN:
+		return "return";
 	default:
 		return "unknown";
 	}
