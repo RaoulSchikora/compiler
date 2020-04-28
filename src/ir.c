@@ -49,7 +49,9 @@ static struct mcc_ir_row *look_up_row(char *lit, struct ir_generation_userdata *
 
 	struct mcc_ir_row *iter = data->current;
 	do {
-		if (iter->arg1->type == MCC_IR_TYPE_LIT && strcmp(iter->arg1->lit, lit)) {
+		printf("iter->arg1->lit: %s\n", iter->arg1->lit);
+		printf("lit: %s\n", lit);
+		if (iter->instr == MCC_IR_INSTR_ASSIGN && strcmp(iter->arg1->lit, lit)==0) {
 			return iter;
 		}
 		iter = iter->prev_row;
@@ -639,7 +641,7 @@ void mcc_ir_delete_ir_row(struct mcc_ir_row *row)
 	if (!row)
 		return;
 	mcc_ir_delete_ir_arg(row->arg1);
-	mcc_ir_delete_ir_arg(row->arg2);
+	//mcc_ir_delete_ir_arg(row->arg2);
 	free(row);
 }
 

@@ -75,8 +75,8 @@ void expression(CuTest *tc)
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 	
-	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program, table);
-	ir = ir->next_row;
+	struct mcc_ir_row *ir_head = mcc_ir_generate((&parser_result)->program, table);
+	struct mcc_ir_row *ir = ir_head->next_row;
 
 	CuAssertPtrNotNull(tc, ir);
 
@@ -99,7 +99,7 @@ void expression(CuTest *tc)
 	CuAssertStrEquals(tc, next_ir->arg2->lit, "1");
 
 	// Cleanup
-	mcc_ir_delete_ir(ir);
+	mcc_ir_delete_ir(ir_head);
 	mcc_ast_delete(parser_result.expression);
 	mcc_symbol_table_delete_table(table);
 }
@@ -112,8 +112,8 @@ void exp_plus_exp(CuTest *tc)
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 	
-	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program, table);
-	ir = ir->next_row;
+	struct mcc_ir_row *ir_head = mcc_ir_generate((&parser_result)->program, table);
+	struct mcc_ir_row *ir = ir_head->next_row;
 
 	CuAssertPtrNotNull(tc, ir); 
 
@@ -130,7 +130,7 @@ void exp_plus_exp(CuTest *tc)
 	CuAssertPtrEquals(tc, exp_row->arg2->row, ir->next_row);
 
 	// Cleanup
-	mcc_ir_delete_ir(ir);
+	mcc_ir_delete_ir(ir_head);
 	mcc_ast_delete(parser_result.expression);
 	mcc_symbol_table_delete_table(table);
 }
@@ -143,8 +143,8 @@ void expression_var(CuTest *tc)
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 	
-	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program, table);
-	ir = ir->next_row;
+	struct mcc_ir_row *ir_head = mcc_ir_generate((&parser_result)->program, table);
+	struct mcc_ir_row *ir = ir_head->next_row;
 
 	CuAssertPtrNotNull(tc, ir); 
 
@@ -167,7 +167,7 @@ void expression_var(CuTest *tc)
 	CuAssertStrEquals(tc, next_ir->arg2->lit, "1");
 
 	// Cleanup
-	mcc_ir_delete_ir(ir);
+	mcc_ir_delete_ir(ir_head);
 	mcc_ast_delete(parser_result.expression);
 	mcc_symbol_table_delete_table(table);
 }
