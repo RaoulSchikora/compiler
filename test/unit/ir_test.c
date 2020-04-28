@@ -100,7 +100,7 @@ void expression(CuTest *tc)
 
 	// Cleanup
 	mcc_ir_delete_ir(ir);
-	mcc_ast_delete(parser_result.expression);
+	mcc_ast_delete(parser_result.program);
 	mcc_symbol_table_delete_table(table);
 }
 
@@ -131,7 +131,7 @@ void exp_plus_exp(CuTest *tc)
 
 	// Cleanup
 	mcc_ir_delete_ir(ir);
-	mcc_ast_delete(parser_result.expression);
+	mcc_ast_delete(parser_result.program);
 	mcc_symbol_table_delete_table(table);
 }
 
@@ -168,7 +168,62 @@ void expression_var(CuTest *tc)
 
 	// Cleanup
 	mcc_ir_delete_ir(ir);
-	mcc_ast_delete(parser_result.expression);
+	mcc_ast_delete(parser_result.program);
+	mcc_symbol_table_delete_table(table);
+}
+
+void if_stmt(CuTest *tc){
+	const char input[] = "int main(){if(0==1) 1*2+2; return 0;}";
+	struct mcc_parser_result parser_result;
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
+	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+	
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program, table);
+        // Skip first row
+	ir = ir->next_row;
+
+        // Condition
+	CuAssertPtrNotNull(tc, ir); 
+	CuAssertIntEquals(tc, ir->row_no, 1);
+	CuAssertIntEquals(tc, ir->instr, MCC_IR_INSTR_EQUALS);
+	CuAssertPtrNotNull(tc, ir->arg1);
+	CuAssertIntEquals(tc, ir->arg1->type, MCC_IR_TYPE_LIT);
+	CuAssertStrEquals(tc, ir->arg1->lit, "0");
+	CuAssertIntEquals(tc, ir->arg2->type, MCC_IR_TYPE_LIT);
+	CuAssertStrEquals(tc, ir->arg2->lit, "1");
+
+        // Jumpfalse L0
+        struct mcc_ir_row * tmp = ir;
+	ir = ir->next_row;
+	CuAssertPtrNotNull(tc, ir); 
+	CuAssertIntEquals(tc, ir->row_no, 2);
+	CuAssertIntEquals(tc, ir->instr, MCC_IR_INSTR_JUMPFALSE);
+	CuAssertPtrNotNull(tc, ir->arg1);
+	CuAssertIntEquals(tc, ir->arg1->type, MCC_IR_TYPE_ROW);
+	CuAssertPtrEquals(tc, ir->arg1->row,tmp);
+	CuAssertIntEquals(tc, ir->arg2->type, MCC_IR_TYPE_LABEL);
+	CuAssertIntEquals(tc, ir->arg2->label,0);
+
+        // On true: 1*2
+        ir = ir->next_row;
+	CuAssertPtrNotNull(tc, ir); 
+	CuAssertIntEquals(tc, ir->row_no, 3);
+        CuAssertIntEquals(tc,ir->instr, MCC_IR_INSTR_MULTIPLY);
+        CuAssertPtrNotNull(tc, ir->arg1);
+        CuAssertPtrNotNull(tc, ir->arg2);
+	CuAssertIntEquals(tc, ir->arg1->type, MCC_IR_TYPE_LIT);
+	CuAssertIntEquals(tc, ir->arg2->type, MCC_IR_TYPE_LIT);
+
+        // TODO: Finish
+       
+        // On true: x + 2
+
+        // L0
+
+	// Cleanup
+	mcc_ir_delete_ir(ir);
+	mcc_ast_delete(parser_result.program);
 	mcc_symbol_table_delete_table(table);
 }
 

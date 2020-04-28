@@ -397,6 +397,7 @@ static struct mcc_ir_row *get_fake_ir_line(char *name)
 	head->next_row = NULL;
 	head->prev_row = NULL;
 	head->arg1 = arg1;
+	head->arg2 = NULL;
 	return head;
 }
 
