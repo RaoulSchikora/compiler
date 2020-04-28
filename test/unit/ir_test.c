@@ -104,9 +104,79 @@ void expression(CuTest *tc)
 	mcc_symbol_table_delete_table(table);
 }
 
+void exp_plus_exp(CuTest *tc)
+{
+	const char input[] = "int main(){ (1 + 2) - (3 + 4); return 0;}";
+	struct mcc_parser_result parser_result;
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
+	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+	
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program, table);
+	ir = ir->next_row;
+
+	CuAssertPtrNotNull(tc, ir); 
+
+	struct mcc_ir_row * exp_row = ir->next_row->next_row;
+
+	CuAssertIntEquals(tc, exp_row->row_no, 3);
+	CuAssertIntEquals(tc, exp_row->instr, MCC_IR_INSTR_MINUS);
+	CuAssertPtrNotNull(tc, exp_row->arg1);
+	CuAssertIntEquals(tc, exp_row->arg1->type, MCC_IR_TYPE_ROW);
+	CuAssertIntEquals(tc, exp_row->arg1->row->row_no, 1);
+	CuAssertPtrEquals(tc, exp_row->arg1->row, ir);
+	CuAssertIntEquals(tc, exp_row->arg2->type, MCC_IR_TYPE_ROW);
+	CuAssertIntEquals(tc, exp_row->arg2->row->row_no, 2);
+	CuAssertPtrEquals(tc, exp_row->arg2->row, ir->next_row);
+
+	// Cleanup
+	mcc_ir_delete_ir(ir);
+	mcc_ast_delete(parser_result.expression);
+	mcc_symbol_table_delete_table(table);
+}
+
+void expression_var(CuTest *tc)
+{
+	const char input[] = "int main(){ int a; a = 3; a + 1; return 0;}";
+	struct mcc_parser_result parser_result;
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
+	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+	
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program, table);
+	ir = ir->next_row;
+
+	CuAssertPtrNotNull(tc, ir); 
+
+	CuAssertIntEquals(tc, ir->row_no, 1);
+	CuAssertIntEquals(tc, ir->instr, MCC_IR_INSTR_ASSIGN);
+	CuAssertPtrNotNull(tc, ir->arg1);
+	CuAssertIntEquals(tc, ir->arg1->type, MCC_IR_TYPE_LIT);
+	CuAssertStrEquals(tc, ir->arg1->lit, "a");
+	CuAssertIntEquals(tc, ir->arg2->type, MCC_IR_TYPE_LIT);
+	CuAssertStrEquals(tc, ir->arg2->lit, "3");
+
+	struct mcc_ir_row *next_ir = ir->next_row;
+	CuAssertPtrNotNull(tc, next_ir);
+
+	CuAssertIntEquals(tc, next_ir->row_no, 2);
+	CuAssertIntEquals(tc, next_ir->instr, MCC_IR_INSTR_PLUS);
+	CuAssertIntEquals(tc, next_ir->arg1->type, MCC_IR_TYPE_ROW);
+	CuAssertPtrEquals(tc, next_ir->arg1->row, ir);
+	CuAssertIntEquals(tc, next_ir->arg2->type, MCC_IR_TYPE_LIT);
+	CuAssertStrEquals(tc, next_ir->arg2->lit, "1");
+
+	// Cleanup
+	mcc_ir_delete_ir(ir);
+	mcc_ast_delete(parser_result.expression);
+	mcc_symbol_table_delete_table(table);
+}
+
 #define TESTS \
 	TEST(test1) \
 	TEST(test2)	\
-	TEST(expression)
+	TEST(expression) \
+	TEST(exp_plus_exp) \
+	TEST(expression_var)
 #include "main_stub.inc"
 #undef TESTS
