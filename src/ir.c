@@ -53,7 +53,7 @@ static struct mcc_ir_row *look_up_row(char *ident, struct ir_generation_userdata
 
 	struct mcc_ir_row *iter = data->current;
 	do {
-		if (iter->instr == MCC_IR_INSTR_ASSIGN && strcmp(iter->arg1->ident->identifier_name, ident)==0) {
+		if (iter->instr == MCC_IR_INSTR_ASSIGN && strcmp(iter->arg1->ident->identifier_name, ident) == 0) {
 			return iter;
 		}
 		iter = iter->prev_row;
@@ -67,8 +67,7 @@ static struct mcc_ir_arg *generate_arg_lit(struct mcc_ast_literal *literal, stru
 
 	struct mcc_ir_arg *arg = NULL;
 
-	switch (literal->type)
-	{
+	switch (literal->type) {
 	case MCC_AST_LITERAL_TYPE_INT:
 		arg = mcc_ir_new_arg(literal->i_value);
 		break;
@@ -83,7 +82,7 @@ static struct mcc_ir_arg *generate_arg_lit(struct mcc_ast_literal *literal, stru
 		break;
 	}
 
-	if(!arg){
+	if (!arg) {
 		data->has_failed = true;
 	}
 
@@ -300,13 +299,12 @@ static void generate_ir_statememt_if_stmt(struct mcc_ast_statement *stmt, struct
 	append_row(label_row, data);
 }
 
-
 static void generate_ir_statement_return(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data)
 {
 	assert(stmt);
 	assert(data);
 
-	if(stmt->return_value){
+	if (stmt->return_value) {
 		struct mcc_ir_arg *exp = generate_ir_expression(stmt->return_value, data);
 		struct mcc_ir_row *row = mcc_ir_new_row(exp, NULL, MCC_IR_INSTR_RETURN);
 		append_row(row, data);
@@ -612,7 +610,7 @@ void mcc_ir_delete_ir_arg(struct mcc_ir_arg *arg)
 		return;
 	if (arg->type == MCC_IR_TYPE_LIT_STRING) {
 		free(arg->lit_string);
-	} 
+	}
 	free(arg);
 }
 
