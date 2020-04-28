@@ -292,11 +292,11 @@ static void generate_ir_statememt_if_stmt(struct mcc_ast_statement *stmt, struct
 	if (data->has_failed)
 		return;
 	struct mcc_ir_arg *cond = generate_ir_expression(stmt->if_condition, data);
-	struct mcc_ir_arg *label_arg = mcc_ir_new_arg_label(data);
-	struct mcc_ir_row *jumpfalse = mcc_ir_new_row(cond, label_arg, MCC_IR_INSTR_JUMPFALSE);
+	struct mcc_ir_arg *label = mcc_ir_new_arg_label(data);
+	struct mcc_ir_row *jumpfalse = mcc_ir_new_row(cond, label, MCC_IR_INSTR_JUMPFALSE);
 	append_row(jumpfalse, data);
 	generate_ir_statement(stmt->if_on_true, data);
-	struct mcc_ir_row *label_row = mcc_ir_new_row(mcc_ir_copy_arg(label_arg), NULL, MCC_IR_INSTR_LABEL);
+	struct mcc_ir_row *label_row = mcc_ir_new_row(mcc_ir_copy_arg(label), NULL, MCC_IR_INSTR_LABEL);
 	append_row(label_row, data);
 }
 
