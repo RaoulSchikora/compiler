@@ -81,7 +81,7 @@ static struct mcc_ir_arg *generate_arg_lit(struct mcc_ast_literal *literal, stru
 	} else { // literal->type == MCC_AST_LITERAL_TYPE_STRING
 		size_t size = sizeof(char) * strlen(literal->string_value);
 		buffer = malloc(size);
-		if (!buffer || 0 > snprintf(buffer, size, "%s", literal->string_value)) {
+		if (!buffer || 0 > snprintf(buffer, size, "\"%s\"", literal->string_value)) {
 			data->has_failed = true;
 			return NULL;
 		}
@@ -220,10 +220,12 @@ static void generate_ir_comp_statement(struct mcc_ast_compound_statement *cmp_st
 
 static void generate_ir_assignment(struct mcc_ast_assignment *asgn, struct ir_generation_userdata *data)
 {
+	assert(asgn);
+	assert(data);
 	if (data->has_failed)
 		return;
-	UNUSED(asgn);
-	UNUSED(data);
+
+
 }
 
 // TODO: Finish implementation
