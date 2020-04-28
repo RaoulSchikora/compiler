@@ -274,6 +274,39 @@ static void generate_ir_assignment(struct mcc_ast_assignment *asgn, struct ir_ge
 	append_row(row, data);
 }
 
+static void generate_ir_statememt_if_else_stmt(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data)
+{
+	if (data->has_failed)
+		return;
+
+	// Condition
+	struct mcc_ir_arg *cond = generate_ir_expression(stmt->if_condition, data);
+
+	// Jumpfalse L1
+	struct mcc_ir_arg *l1 = mcc_ir_new_arg_label(data);
+	struct mcc_ir_row *jumpfalse = mcc_ir_new_row(cond, l1, MCC_IR_INSTR_JUMPFALSE);
+	append_row(jumpfalse, data);
+
+	// If true
+	generate_ir_statement(stmt->if_else_on_true, data);
+
+	// Jump L2
+	struct mcc_ir_arg *l2 = mcc_ir_new_arg_label(data);
+	struct mcc_ir_row *jump_row = mcc_ir_new_row(l2, NULL, MCC_IR_INSTR_JUMP);
+	append_row(jump_row, data);
+
+	// Label L1
+	struct mcc_ir_row *label_row = mcc_ir_new_row(l1, NULL, MCC_IR_INSTR_LABEL);
+	append_row(label_row, data);
+
+	// If false
+	generate_ir_statement(stmt->if_else_on_false, data);
+
+	// Label L2
+	struct mcc_ir_row *label_row_2 = mcc_ir_new_row(l2, NULL, MCC_IR_INSTR_LABEL);
+	append_row(label_row_2, data);
+}
+
 static void generate_ir_statememt_if_stmt(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data)
 {
 	if (data->has_failed)
@@ -305,6 +338,7 @@ static void generate_ir_statement(struct mcc_ast_statement *stmt, struct ir_gene
 	case MCC_AST_STATEMENT_TYPE_DECLARATION:
 		break;
 	case MCC_AST_STATEMENT_TYPE_IF_ELSE_STMT:
+		generate_ir_statememt_if_else_stmt(stmt, data);
 		break;
 	case MCC_AST_STATEMENT_TYPE_IF_STMT:
 		generate_ir_statememt_if_stmt(stmt, data);
@@ -351,7 +385,7 @@ static struct mcc_ir_row *get_fake_ir_line(char *name)
 	arg1->type = MCC_IR_TYPE_LIT;
 
 	char *str1 = malloc(sizeof(char) * size);
-	if (!str1 ) {
+	if (!str1) {
 		free(arg1);
 		free(head);
 		return NULL;
