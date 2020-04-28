@@ -64,7 +64,6 @@ static struct mcc_ir_row *look_up_row(char *ident, struct ir_generation_userdata
 static struct mcc_ir_arg *generate_arg_lit(struct mcc_ast_literal *literal, struct ir_generation_userdata *data)
 {
 	assert(literal);
-	char *buffer;
 
 	struct mcc_ir_arg *arg = NULL;
 
@@ -365,7 +364,7 @@ static struct mcc_ir_row *get_fake_ir_line(char *name)
 		return NULL;
 	}
 
-	arg1->type = MCC_IR_TYPE_LIT;
+	arg1->type = MCC_IR_TYPE_LIT_STRING;
 
 	char *str1 = malloc(sizeof(char) * size);
 	if (!str1) {
