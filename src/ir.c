@@ -35,8 +35,8 @@ static struct mcc_ir_arg *generate_ir_expression(struct mcc_ast_expression *expr
 
 //------------------------------------------------------------------------------ Forward declarations, Fake IR
 
-static struct mcc_ir_row *get_fake_ir_line();
-static struct mcc_ir_row *get_fake_ir();
+static struct mcc_ir_row *get_fake_ir_line(char *name);
+static struct mcc_ir_row *get_fake_ir(char *name);
 
 //------------------------------------------------------------------------------ Callbacks for visitor that generates IR
 
