@@ -91,10 +91,18 @@ static int arg_size(struct mcc_ir_arg *arg)
 	switch (arg->type) {
 	case MCC_IR_TYPE_ROW:
 		return length_of_int(arg->row->row_no) + 2;
-	case MCC_IR_TYPE_LIT:
-		return strlen(arg->lit);
+	case MCC_IR_TYPE_LIT_INT:
+		return length_of_int((int)arg->lit_int) + 1;
+	case MCC_IR_TYPE_LIT_FLOAT:
+		return length_of_int((int)arg->lit_float) + 8;
+	case MCC_IR_TYPE_LIT_BOOL:
+		return 6;
+	case MCC_IR_TYPE_LIT_STRING:
+		return strlen(arg->lit_string) + 2;
 	case MCC_IR_TYPE_LABEL:
 		return length_of_int(arg->label) + 1;
+	case MCC_IR_TYPE_IDENTIFIER:
+		return strlen(arg->ident->identifier_name) + 2;
 	default:
 		return length_of_int(1000);
 	};
@@ -103,6 +111,15 @@ static int arg_size(struct mcc_ir_arg *arg)
 static void row_no_to_string(char *dest, int no)
 {
 	sprintf(dest, "(%d)", no);
+}
+
+static void bool_to_string(char* dest, bool b)
+{
+	if (b){
+		sprintf(dest, "true");
+	} else {
+		sprintf(dest, "false");
+	}
 }
 
 static void arg_to_string(char *dest, struct mcc_ir_arg *arg)
@@ -116,11 +133,23 @@ static void arg_to_string(char *dest, struct mcc_ir_arg *arg)
 	case MCC_IR_TYPE_ROW:
 		row_no_to_string(dest, arg->row->row_no);
 		return;
-	case MCC_IR_TYPE_LIT:
-		strcpy(dest, arg->lit);
+	case MCC_IR_TYPE_LIT_INT:
+		sprintf(dest, "%ld", arg->lit_int);
+		return;
+	case MCC_IR_TYPE_LIT_FLOAT:
+		sprintf(dest, "%f", arg->lit_float);
+		return;
+	case MCC_IR_TYPE_LIT_BOOL:
+		bool_to_string(dest, arg->lit_bool);
+		return;
+	case MCC_IR_TYPE_LIT_STRING:
+		sprintf(dest, "\"%s\"", arg->lit_string);
 		return;
 	case MCC_IR_TYPE_LABEL:
 		sprintf(dest, "L%d", arg->label);
+		return;
+	case MCC_IR_TYPE_IDENTIFIER:
+		strcpy(dest, arg->ident->identifier_name);
 	};
 }
 

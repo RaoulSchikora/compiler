@@ -1,6 +1,8 @@
 #ifndef MCC_IR_H
 #define MCC_IR_H
 
+#include <stdbool.h>
+
 #include "mcc/ast.h"
 #include "mcc/symbol_table.h"
 
@@ -35,7 +37,11 @@ enum mcc_ir_instruction {
 
 enum mcc_ir_arg_type {
 	MCC_IR_TYPE_ROW,
-	MCC_IR_TYPE_LIT,
+	MCC_IR_TYPE_LIT_INT,
+	MCC_IR_TYPE_LIT_FLOAT,
+	MCC_IR_TYPE_LIT_BOOL,
+	MCC_IR_TYPE_LIT_STRING,
+	MCC_IR_TYPE_IDENTIFIER,
 	MCC_IR_TYPE_LABEL,
 };
 
@@ -43,9 +49,13 @@ struct mcc_ir_arg {
 	enum mcc_ir_arg_type type;
 
 	union {
-		char *lit;
+		long lit_int;
+		double lit_float;
+		bool lit_bool;
+		char* lit_string;
 		struct mcc_ir_row *row;
-                unsigned label;
+        unsigned label;
+		struct mcc_ast_identifier *ident;
 	};
 };
 
@@ -78,8 +88,13 @@ void mcc_ir_delete_ir_arg(struct mcc_ir_arg *arg);
 // clang-format off
 
 #define mcc_ir_new_arg(x) _Generic((x), \
-        char* :                                 mcc_ir_new_arg_lit, \
-        struct mcc_ir_row *:          			mcc_ir_new_arg_row \
+		long:									mcc_ir_new_arg_int, \
+		double:									mcc_ir_new_arg_float, \
+		bool:									mcc_ir_new_arg_bool, \
+        char* :                                 mcc_ir_new_arg_string, \
+        struct mcc_ir_row *:          			mcc_ir_new_arg_row, \
+		unsigned:								mcc_ir_new_arg_label, \
+		struct mcc_ast_identifier *:			mcc_ir_new_arg_identifier \
     )(x)
 
 // clang-format on

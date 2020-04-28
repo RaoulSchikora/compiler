@@ -26,8 +26,8 @@ void test1(CuTest *tc)
 
 	CuAssertIntEquals(tc, ir->row_no, 0);
 	CuAssertIntEquals(tc, ir->instr, MCC_IR_INSTR_LABEL);
-	CuAssertIntEquals(tc, ir->arg1->type, MCC_IR_TYPE_LIT);
-	CuAssertStrEquals(tc, ir->arg1->lit, "main");
+	CuAssertIntEquals(tc, ir->arg1->type, MCC_IR_TYPE_LIT_STRING);
+	CuAssertStrEquals(tc, ir->arg1->lit_string, "main");
 	CuAssertPtrEquals(tc, ir->arg2, NULL);
 
 	struct mcc_ir_row *ir_next = ir->next_row;
@@ -35,8 +35,8 @@ void test1(CuTest *tc)
 
 	CuAssertIntEquals(tc, ir_next->row_no, 1);
 	CuAssertIntEquals(tc, ir_next->instr, MCC_IR_INSTR_RETURN);
-	CuAssertIntEquals(tc, ir_next->arg1->type, MCC_IR_TYPE_LIT);
-	CuAssertStrEquals(tc, ir_next->arg1->lit, "42");
+	CuAssertIntEquals(tc, ir_next->arg1->type, MCC_IR_TYPE_LIT_INT);
+	CuAssertIntEquals(tc, (int) ir_next->arg1->lit_int, 42);
 	CuAssertPtrEquals(tc, ir_next->arg2, NULL);
 	CuAssertPtrEquals(tc, ir_next->next_row, NULL);
 
@@ -83,10 +83,10 @@ void expression(CuTest *tc)
 	CuAssertIntEquals(tc, ir->row_no, 1);
 	CuAssertIntEquals(tc, ir->instr, MCC_IR_INSTR_PLUS);
 	CuAssertPtrNotNull(tc, ir->arg1);
-	CuAssertIntEquals(tc, ir->arg1->type, MCC_IR_TYPE_LIT);
-	CuAssertStrEquals(tc, ir->arg1->lit, "0");
-	CuAssertIntEquals(tc, ir->arg2->type, MCC_IR_TYPE_LIT);
-	CuAssertStrEquals(tc, ir->arg2->lit, "0");
+	CuAssertIntEquals(tc, ir->arg1->type, MCC_IR_TYPE_LIT_INT);
+	CuAssertIntEquals(tc, (int) ir->arg1->lit_int, 0);
+	CuAssertIntEquals(tc, ir->arg2->type, MCC_IR_TYPE_LIT_INT);
+	CuAssertIntEquals(tc, (int) ir->arg2->lit_int, 0);
 
 	struct mcc_ir_row *next_ir = ir->next_row;
 	CuAssertPtrNotNull(tc, next_ir);
@@ -95,8 +95,8 @@ void expression(CuTest *tc)
 	CuAssertIntEquals(tc, next_ir->instr, MCC_IR_INSTR_PLUS);
 	CuAssertIntEquals(tc, next_ir->arg1->type, MCC_IR_TYPE_ROW);
 	CuAssertPtrEquals(tc, next_ir->arg1->row, ir);
-	CuAssertIntEquals(tc, next_ir->arg2->type, MCC_IR_TYPE_LIT);
-	CuAssertStrEquals(tc, next_ir->arg2->lit, "1");
+	CuAssertIntEquals(tc, next_ir->arg2->type, MCC_IR_TYPE_LIT_INT);
+	CuAssertIntEquals(tc, (int) next_ir->arg2->lit_int, 1);
 
 	// Cleanup
 	mcc_ir_delete_ir(ir_head);
@@ -151,10 +151,10 @@ void expression_var(CuTest *tc)
 	CuAssertIntEquals(tc, ir->row_no, 1);
 	CuAssertIntEquals(tc, ir->instr, MCC_IR_INSTR_ASSIGN);
 	CuAssertPtrNotNull(tc, ir->arg1);
-	CuAssertIntEquals(tc, ir->arg1->type, MCC_IR_TYPE_LIT);
-	CuAssertStrEquals(tc, ir->arg1->lit, "a");
-	CuAssertIntEquals(tc, ir->arg2->type, MCC_IR_TYPE_LIT);
-	CuAssertStrEquals(tc, ir->arg2->lit, "3");
+	CuAssertIntEquals(tc, ir->arg1->type, MCC_IR_TYPE_IDENTIFIER);
+	CuAssertStrEquals(tc, ir->arg1->ident->identifier_name, "a");
+	CuAssertIntEquals(tc, ir->arg2->type, MCC_IR_TYPE_LIT_INT);
+	CuAssertIntEquals(tc, (int) ir->arg2->lit_int, 3);
 
 	struct mcc_ir_row *next_ir = ir->next_row;
 	CuAssertPtrNotNull(tc, next_ir);
@@ -163,8 +163,8 @@ void expression_var(CuTest *tc)
 	CuAssertIntEquals(tc, next_ir->instr, MCC_IR_INSTR_PLUS);
 	CuAssertIntEquals(tc, next_ir->arg1->type, MCC_IR_TYPE_ROW);
 	CuAssertPtrEquals(tc, next_ir->arg1->row, ir);
-	CuAssertIntEquals(tc, next_ir->arg2->type, MCC_IR_TYPE_LIT);
-	CuAssertStrEquals(tc, next_ir->arg2->lit, "1");
+	CuAssertIntEquals(tc, next_ir->arg2->type, MCC_IR_TYPE_LIT_INT);
+	CuAssertIntEquals(tc, (int) next_ir->arg2->lit_int, 1);
 
 	// Cleanup
 	mcc_ir_delete_ir(ir_head);
