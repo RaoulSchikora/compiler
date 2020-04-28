@@ -324,10 +324,11 @@ static void generate_ir_statement(struct mcc_ast_statement *stmt, struct ir_gene
 {
 	if (data->has_failed)
 		return;
+	struct mcc_ir_arg *arg = NULL;
 	switch (stmt->type) {
 	case MCC_AST_STATEMENT_TYPE_EXPRESSION:
 		// TODO: When everything is done: Don't generate IR here (has no effect)
-		generate_ir_expression(stmt->stmt_expression, data);
+		arg = generate_ir_expression(stmt->stmt_expression, data);
 		break;
 	case MCC_AST_STATEMENT_TYPE_COMPOUND_STMT:
 		generate_ir_comp_statement(stmt->compound_statement, data);
@@ -350,6 +351,7 @@ static void generate_ir_statement(struct mcc_ast_statement *stmt, struct ir_gene
 	default:
 		break;
 	}
+	mcc_ir_delete_ir_arg(arg);
 	UNUSED(stmt);
 	UNUSED(data);
 }
