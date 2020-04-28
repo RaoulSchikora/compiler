@@ -235,7 +235,7 @@ void if_stmt(CuTest *tc)
 	TEST(test2) \
 	TEST(expression) \
 	TEST(exp_plus_exp) \
-	TEST(expression_var)
-	// TEST(if_stmt)
+	TEST(expression_var) \
+	TEST(if_stmt)
 #include "main_stub.inc"
 #undef TESTS

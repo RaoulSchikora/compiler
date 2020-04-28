@@ -25,6 +25,7 @@ struct ir_generation_userdata {
 
 static struct mcc_ir_row *
 mcc_ir_new_row(struct mcc_ir_arg *arg1, struct mcc_ir_arg *arg2, enum mcc_ir_instruction instr);
+static struct mcc_ir_arg *mcc_ir_copy_arg(struct mcc_ir_arg *arg);
 static struct mcc_ir_arg *mcc_ir_new_arg_int(long lit);
 static struct mcc_ir_arg *mcc_ir_new_arg_float(double lit);
 static struct mcc_ir_arg *mcc_ir_new_arg_bool(bool lit);
@@ -275,14 +276,14 @@ static void generate_ir_statememt_if_else_stmt(struct mcc_ast_statement *stmt, s
 	append_row(jump_row, data);
 
 	// Label L1
-	struct mcc_ir_row *label_row = mcc_ir_new_row(l1, NULL, MCC_IR_INSTR_LABEL);
+	struct mcc_ir_row *label_row = mcc_ir_new_row(mcc_ir_copy_arg(l1), NULL, MCC_IR_INSTR_LABEL);
 	append_row(label_row, data);
 
 	// If false
 	generate_ir_statement(stmt->if_else_on_false, data);
 
 	// Label L2
-	struct mcc_ir_row *label_row_2 = mcc_ir_new_row(l2, NULL, MCC_IR_INSTR_LABEL);
+	struct mcc_ir_row *label_row_2 = mcc_ir_new_row(mcc_ir_copy_arg(l2), NULL, MCC_IR_INSTR_LABEL);
 	append_row(label_row_2, data);
 }
 
@@ -295,7 +296,7 @@ static void generate_ir_statememt_if_stmt(struct mcc_ast_statement *stmt, struct
 	struct mcc_ir_row *jumpfalse = mcc_ir_new_row(cond, label_arg, MCC_IR_INSTR_JUMPFALSE);
 	append_row(jumpfalse, data);
 	generate_ir_statement(stmt->if_on_true, data);
-	struct mcc_ir_row *label_row = mcc_ir_new_row(label_arg, NULL, MCC_IR_INSTR_LABEL);
+	struct mcc_ir_row *label_row = mcc_ir_new_row(mcc_ir_copy_arg(label_arg), NULL, MCC_IR_INSTR_LABEL);
 	append_row(label_row, data);
 }
 
@@ -423,6 +424,38 @@ static void append_row(struct mcc_ir_row *row, struct ir_generation_userdata *da
 	data->current->next_row = row;
 	row->prev_row = data->current;
 	data->current = row;
+}
+
+static struct mcc_ir_arg *copy_label_arg(struct mcc_ir_arg *arg)
+{
+	struct mcc_ir_arg *new = malloc(sizeof(*new));
+	if (!new)
+		return NULL;
+	new->type = MCC_IR_TYPE_LABEL;
+	new->label = arg->label;
+	return new;
+}
+
+static struct mcc_ir_arg *mcc_ir_copy_arg(struct mcc_ir_arg *arg)
+{
+	switch (arg->type) {
+	case MCC_IR_TYPE_LIT_INT:
+		return mcc_ir_new_arg_int(arg->lit_int);
+	case MCC_IR_TYPE_LIT_BOOL:
+		return mcc_ir_new_arg_bool(arg->lit_bool);
+	case MCC_IR_TYPE_LIT_FLOAT:
+		return mcc_ir_new_arg_float(arg->lit_float);
+	case MCC_IR_TYPE_LIT_STRING:
+		return mcc_ir_new_arg_string(arg->lit_string);
+	case MCC_IR_TYPE_IDENTIFIER:
+		return mcc_ir_new_arg_identifier(arg->ident);
+	case MCC_IR_TYPE_LABEL:
+		return copy_label_arg(arg);
+	case MCC_IR_TYPE_ROW:
+		return mcc_ir_new_arg_row(arg->row);
+	default:
+		return NULL;
+	}
 }
 
 static struct mcc_ir_arg *mcc_ir_new_arg_row(struct mcc_ir_row *row)
