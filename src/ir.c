@@ -39,8 +39,8 @@ static struct mcc_ir_arg *generate_ir_expression(struct mcc_ast_expression *expr
 
 //------------------------------------------------------------------------------ Forward declarations, Fake IR
 
-static struct mcc_ir_row *get_fake_ir_line();
-static struct mcc_ir_row *get_fake_ir();
+static struct mcc_ir_row *get_fake_ir_line(char *name);
+static struct mcc_ir_row *get_fake_ir(char *name);
 
 //------------------------------------------------------------------------------ Callbacks for visitor that generates IR
 
@@ -363,7 +363,7 @@ static struct mcc_ir_row *get_fake_ir_line(char *name)
 		return NULL;
 	}
 
-	arg1->type = MCC_IR_TYPE_LIT_STRING;
+	arg1->type = MCC_IR_TYPE_LABEL;
 
 	char *str1 = malloc(sizeof(char) * size);
 	if (!str1) {
@@ -378,6 +378,7 @@ static struct mcc_ir_row *get_fake_ir_line(char *name)
 	head->next_row = NULL;
 	head->prev_row = NULL;
 	head->arg1 = arg1;
+	head->arg2 = NULL;
 	return head;
 }
 
@@ -662,7 +663,7 @@ void mcc_ir_delete_ir_row(struct mcc_ir_row *row)
 	if (!row)
 		return;
 	mcc_ir_delete_ir_arg(row->arg1);
-	//mcc_ir_delete_ir_arg(row->arg2);
+	mcc_ir_delete_ir_arg(row->arg2);
 	free(row);
 }
 
