@@ -21,6 +21,7 @@ void test1(CuTest *tc)
 	CuAssertIntEquals(tc, checks->status, MCC_SEMANTIC_CHECK_OK);
 
 	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program, table);
+	struct mcc_ir_row *ir_head = ir;
 
 	CuAssertPtrNotNull(tc, ir);
 
@@ -41,7 +42,7 @@ void test1(CuTest *tc)
 	CuAssertPtrEquals(tc, ir_next->next_row, NULL);
 
 	// Cleanup
-	mcc_ir_delete_ir(ir);
+	mcc_ir_delete_ir(ir_head);
 	mcc_ast_delete(parser_result.program);
 	mcc_symbol_table_delete_table(table);
 	mcc_semantic_check_delete_single_check(checks);
@@ -180,7 +181,8 @@ void if_stmt(CuTest *tc){
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 	
 	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program, table);
-        // Skip first row
+	struct mcc_ir_row *ir_head = ir;
+	// Skip first row
 	ir = ir->next_row;
 
         // Condition
@@ -222,7 +224,7 @@ void if_stmt(CuTest *tc){
         // L0
 
 	// Cleanup
-	mcc_ir_delete_ir(ir);
+	mcc_ir_delete_ir(ir_head);
 	mcc_ast_delete(parser_result.program);
 	mcc_symbol_table_delete_table(table);
 }
@@ -232,6 +234,7 @@ void if_stmt(CuTest *tc){
 	TEST(test2)	\
 	TEST(expression) \
 	TEST(exp_plus_exp) \
-	TEST(expression_var)
+	TEST(expression_var) \
+	TEST(if_stmt)
 #include "main_stub.inc"
 #undef TESTS
