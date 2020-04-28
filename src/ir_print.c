@@ -88,7 +88,7 @@ static int arg_size(struct mcc_ir_arg *arg)
 
 	switch (arg->type) {
 	case MCC_IR_TYPE_ROW:
-		return length_of_int(arg->row->row_no);
+		return length_of_int(arg->row->row_no) + 2;
 	case MCC_IR_TYPE_LIT:
 		return strlen(arg->lit);
 	case MCC_IR_TYPE_LABEL:
