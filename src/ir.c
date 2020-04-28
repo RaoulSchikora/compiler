@@ -156,17 +156,12 @@ static struct mcc_ir_arg *generate_ir_expression_unary_op(struct mcc_ast_express
 		instr = MCC_IR_INSTR_NOT;
 		break;
 	}
-<<<<<<< HEAD
 
 	struct mcc_ir_arg *empty = mcc_ir_new_arg_lit("-");
 	struct mcc_ir_row *row = mcc_ir_new_row(child, empty, instr);
 	append_row(row, data);
 	struct mcc_ir_arg *arg = mcc_ir_new_arg_row(row);
 	return arg;
-||||||| merged common ancestors
-
-=======
->>>>>>> e6d4fbbf511d5798bdc651749c20b7dc2e644c6f
 }
 
 static struct mcc_ir_arg *generate_ir_expression(struct mcc_ast_expression *expression, void *data)
