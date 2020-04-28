@@ -653,9 +653,7 @@ void mcc_ir_delete_ir_arg(struct mcc_ir_arg *arg)
 		return;
 	if (arg->type == MCC_IR_TYPE_LIT_STRING) {
 		free(arg->lit_string);
-	} else if (arg->type == MCC_IR_TYPE_IDENTIFIER) {
-		free(arg->ident);
-	}
+	} 
 	free(arg);
 }
 
