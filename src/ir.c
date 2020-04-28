@@ -382,7 +382,7 @@ static struct mcc_ir_row *get_fake_ir_line(char *name)
 		return NULL;
 	}
 
-	arg1->type = MCC_IR_TYPE_LIT;
+	arg1->type = MCC_IR_TYPE_LABEL;
 
 	char *str1 = malloc(sizeof(char) * size);
 	if (!str1) {
