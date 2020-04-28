@@ -619,7 +619,7 @@ struct mcc_ir_row *mcc_ir_generate(struct mcc_ast_program *ast, struct mcc_symbo
 	data->head = NULL;
 	data->has_failed = false;
 	data->current = NULL;
-        data->label_counter = 0;
+	data->label_counter = 0;
 
 	while (ast) {
 		generate_ir_program(ast, data);
