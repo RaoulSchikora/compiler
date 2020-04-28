@@ -30,7 +30,7 @@ static struct mcc_ir_arg *mcc_ir_new_arg_row(struct mcc_ir_row *row);
 static struct mcc_ir_arg *mcc_ir_new_arg_label(struct ir_generation_userdata *data);
 static void append_row(struct mcc_ir_row *row, struct ir_generation_userdata *data);
 static void generate_ir_statement(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data);
-static struct mcc_ir_arg *generate_ir_expression(struct mcc_ast_expression *expression, void *data);
+static struct mcc_ir_arg *generate_ir_expression(struct mcc_ast_expression *expression, struct ir_generation_userdata *data);
 
 //------------------------------------------------------------------------------ Forward declarations, Fake IR
 
@@ -39,7 +39,24 @@ static struct mcc_ir_row *get_fake_ir();
 
 //------------------------------------------------------------------------------ Callbacks for visitor that generates IR
 
-static struct mcc_ir_arg *generate_arg_lit(struct mcc_ast_literal *literal)
+static struct mcc_ir_row *look_up_row(char *lit, struct ir_generation_userdata *data)
+{
+	assert(lit);
+	assert(data);
+	if(data->has_failed)
+		return NULL;
+
+	struct mcc_ir_row *iter = data->current;
+	do{
+		if(iter->arg1->type == MCC_IR_TYPE_LIT && strcmp(iter->arg1->lit, lit)){
+			return iter;
+		}
+		iter = iter->prev_row;
+	} while(iter);
+	return NULL;
+}
+
+static struct mcc_ir_arg *generate_arg_lit(struct mcc_ast_literal *literal, struct ir_generation_userdata *data)
 {
 	assert(literal);
 	char *buffer;
@@ -49,6 +66,7 @@ static struct mcc_ir_arg *generate_arg_lit(struct mcc_ast_literal *literal)
 		buffer = malloc(size);
 		if (!buffer || 0 > snprintf(buffer, size, "%ld", literal->i_value)) {
 			free(buffer);
+			data->has_failed = true;
 			return NULL;
 		}
 	} else if (literal->type == MCC_AST_LITERAL_TYPE_FLOAT) {
@@ -56,40 +74,47 @@ static struct mcc_ir_arg *generate_arg_lit(struct mcc_ast_literal *literal)
 		buffer = malloc(size);
 		if (!buffer || 0 > snprintf(buffer, size, "%f", literal->f_value)) {
 			free(buffer);
+			data->has_failed = true;
 			return NULL;
 		}
 	} else if (literal->type == MCC_AST_LITERAL_TYPE_BOOL) {
 		size_t size = sizeof(char) * 6;
 		buffer = malloc(size);
 		if (!buffer) {
+			data->has_failed = true;
 			return NULL;
 		}
 		if (literal->bool_value) {
 			if (0 > snprintf(buffer, size, "true")) {
+				data->has_failed = true;
 				return NULL;
 			}
 		} else {
 			if (0 > snprintf(buffer, size, "false")) {
+				data->has_failed = true;
 				return NULL;
 			}
 		}
 	} else { // literal->type == MCC_AST_LITERAL_TYPE_STRING
 		size_t size = sizeof(char) * strlen(literal->string_value);
 		buffer = malloc(size);
-		if (!buffer || 0 > snprintf(buffer, size, "%s", literal->string_value)) {
+		if (!buffer || 0 > snprintf(buffer, size, "\"%s\"", literal->string_value)) {
+			data->has_failed = true;
 			return NULL;
 		}
 	}
 
-	struct mcc_ir_arg *arg = mcc_ir_new_arg_lit(buffer);
+	struct mcc_ir_arg *arg = mcc_ir_new_arg(buffer);
 	return arg;
 }
 
-static struct mcc_ir_arg *generate_ir_expression_binary_op(struct mcc_ast_expression *expression, void *data)
+static struct mcc_ir_arg *generate_ir_expression_binary_op(struct mcc_ast_expression *expression, struct ir_generation_userdata *data)
 {
 	assert(expression->lhs);
 	assert(expression->rhs);
 	assert(data);
+	if (data->has_failed)
+		return NULL;
 
 	struct mcc_ir_arg *lhs = generate_ir_expression(expression->lhs, data);
 	struct mcc_ir_arg *rhs = generate_ir_expression(expression->rhs, data);
@@ -137,14 +162,16 @@ static struct mcc_ir_arg *generate_ir_expression_binary_op(struct mcc_ast_expres
 	struct mcc_ir_row *row = mcc_ir_new_row(lhs, rhs, instr);
 	append_row(row, data);
 
-	struct mcc_ir_arg *arg = mcc_ir_new_arg_row(row);
+	struct mcc_ir_arg *arg = mcc_ir_new_arg(row);
 	return arg;
 }
 
-static struct mcc_ir_arg *generate_ir_expression_unary_op(struct mcc_ast_expression *expression, void *data)
+static struct mcc_ir_arg *generate_ir_expression_unary_op(struct mcc_ast_expression *expression, struct ir_generation_userdata *data)
 {
 	assert(expression->child);
 	assert(data);
+	if (data->has_failed)
+		return NULL;
 
 	struct mcc_ir_arg *child = generate_ir_expression(expression->child, data);
 	enum mcc_ir_instruction instr = MCC_IR_INSTR_UNKNOWN;
@@ -160,20 +187,34 @@ static struct mcc_ir_arg *generate_ir_expression_unary_op(struct mcc_ast_express
 	struct mcc_ir_arg *empty = mcc_ir_new_arg_lit("-");
 	struct mcc_ir_row *row = mcc_ir_new_row(child, empty, instr);
 	append_row(row, data);
-	struct mcc_ir_arg *arg = mcc_ir_new_arg_row(row);
+	struct mcc_ir_arg *arg = mcc_ir_new_arg(row);
 	return arg;
 }
 
-static struct mcc_ir_arg *generate_ir_expression(struct mcc_ast_expression *expression, void *data)
+static struct mcc_ir_arg *generate_ir_expression_var(struct mcc_ast_expression *expression, struct ir_generation_userdata *data)
+{
+	assert(expression->identifier);
+	assert(data);
+	if(data->has_failed)
+		return NULL;
+
+	struct mcc_ir_row *row = look_up_row(expression->identifier->identifier_name, data);
+	struct mcc_ir_arg *arg = mcc_ir_new_arg(row);
+	return arg;
+}
+
+static struct mcc_ir_arg *generate_ir_expression(struct mcc_ast_expression *expression, struct ir_generation_userdata *data)
 {
 	assert(expression);
 	assert(data);
+	if (data->has_failed)
+		return NULL;
 
 	struct mcc_ir_arg *arg = NULL;
 
 	switch (expression->type) {
 	case MCC_AST_EXPRESSION_TYPE_LITERAL:
-		arg = generate_arg_lit(expression->literal);
+		arg = generate_arg_lit(expression->literal, data);
 		break;
 	case MCC_AST_EXPRESSION_TYPE_BINARY_OP:
 		arg = generate_ir_expression_binary_op(expression, data);
@@ -185,6 +226,7 @@ static struct mcc_ir_arg *generate_ir_expression(struct mcc_ast_expression *expr
 		arg = generate_ir_expression_unary_op(expression, data);
 		break;
 	case MCC_AST_EXPRESSION_TYPE_VARIABLE:
+		arg = generate_ir_expression_var(expression, data);
 		break;
 	case MCC_AST_EXPRESSION_TYPE_ARRAY_ELEMENT:
 		break;
@@ -208,10 +250,21 @@ static void generate_ir_comp_statement(struct mcc_ast_compound_statement *cmp_st
 
 static void generate_ir_assignment(struct mcc_ast_assignment *asgn, struct ir_generation_userdata *data)
 {
+	assert(asgn);
+	assert(data);
 	if (data->has_failed)
 		return;
-	UNUSED(asgn);
-	UNUSED(data);
+
+	struct mcc_ir_arg *identifier = NULL, *exp = NULL;
+	struct mcc_ir_row *row = NULL;
+	if(asgn->assignment_type == MCC_AST_ASSIGNMENT_TYPE_VARIABLE){
+		identifier = mcc_ir_new_arg(asgn->variable_identifier->identifier_name);
+		exp = generate_ir_expression(asgn->variable_assigned_value, data);
+		row = mcc_ir_new_row(identifier, exp, MCC_IR_INSTR_ASSIGN);
+	} else {
+		// TODO
+	}
+	append_row(row, data);
 }
 
 // TODO: Finish implementation

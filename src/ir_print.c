@@ -27,6 +27,8 @@ static void print_row(FILE *out, char *row_no, char *instruction, char *arg1, ch
 static char *instr_to_string(enum mcc_ir_instruction instr)
 {
 	switch (instr) {
+	case MCC_IR_INSTR_ASSIGN:
+		return "assign";
 	case MCC_IR_INSTR_JUMP:
 		return "jump";
 	case MCC_IR_INSTR_JUMPFALSE:

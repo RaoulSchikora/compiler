@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------------------- Data structure: IR
 
 enum mcc_ir_instruction {
+	MCC_IR_INSTR_ASSIGN,
 	MCC_IR_INSTR_LABEL,
 	MCC_IR_INSTR_JUMP,
 	MCC_IR_INSTR_JUMPFALSE,
