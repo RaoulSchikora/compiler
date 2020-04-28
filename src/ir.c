@@ -158,7 +158,7 @@ static struct mcc_ir_arg *generate_ir_expression_unary_op(struct mcc_ast_express
 	}
 
 	struct mcc_ir_arg *empty = mcc_ir_new_arg_lit("-");
-	struct mcc_it_row *row = mcc_ir_new_row(child, empty, instr);
+	struct mcc_ir_row *row = mcc_ir_new_row(child, empty, instr);
 	append_row(row, data);
 	struct mcc_ir_arg *arg = mcc_ir_new_arg_row(row);
 	return arg;
