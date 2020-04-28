@@ -49,7 +49,7 @@ static struct mcc_ir_row *look_up_row(char *lit, struct ir_generation_userdata *
 
 	struct mcc_ir_row *iter = data->current;
 	do {
-		if (iter->arg1->type == MCC_IR_TYPE_LIT && strcmp(iter->arg1->lit, lit)) {
+		if (iter->instr == MCC_IR_INSTR_ASSIGN && strcmp(iter->arg1->lit, lit)==0) {
 			return iter;
 		}
 		iter = iter->prev_row;
