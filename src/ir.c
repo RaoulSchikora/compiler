@@ -18,6 +18,7 @@ struct ir_generation_userdata {
 	struct mcc_ir_row *head;
 	struct mcc_ir_row *current;
 	bool has_failed;
+	unsigned label_counter;
 };
 
 //------------------------------------------------------------------------------ Forward declarations
@@ -26,6 +27,7 @@ static struct mcc_ir_row *
 mcc_ir_new_row(struct mcc_ir_arg *arg1, struct mcc_ir_arg *arg2, enum mcc_ir_instruction instr);
 static struct mcc_ir_arg *mcc_ir_new_arg_lit(char *lit);
 static struct mcc_ir_arg *mcc_ir_new_arg_row(struct mcc_ir_row *row);
+static struct mcc_ir_arg *mcc_ir_new_arg_label(struct ir_generation_userdata *data);
 static void append_row(struct mcc_ir_row *row, struct ir_generation_userdata *data);
 static void generate_ir_statement(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data);
 static struct mcc_ir_arg *generate_ir_expression(struct mcc_ast_expression *expression, void *data);
@@ -93,8 +95,7 @@ static struct mcc_ir_arg *generate_ir_expression_binary_op(struct mcc_ast_expres
 	struct mcc_ir_arg *rhs = generate_ir_expression(expression->rhs, data);
 
 	enum mcc_ir_instruction instr = MCC_IR_INSTR_UNKNOWN;
-	switch (expression->op)
-	{
+	switch (expression->op) {
 	case MCC_AST_BINARY_OP_ADD:
 		instr = MCC_IR_INSTR_PLUS;
 		break;
@@ -147,8 +148,7 @@ static struct mcc_ir_arg *generate_ir_expression_unary_op(struct mcc_ast_express
 
 	struct mcc_ir_arg *child = generate_ir_expression(expression->child, data);
 	enum mcc_ir_instruction instr = MCC_IR_INSTR_UNKNOWN;
-	switch (expression->u_op)
-	{
+	switch (expression->u_op) {
 	case MCC_AST_UNARY_OP_NEGATIV:
 		instr = MCC_IR_INSTR_NEGATIV;
 		break;
@@ -156,12 +156,17 @@ static struct mcc_ir_arg *generate_ir_expression_unary_op(struct mcc_ast_express
 		instr = MCC_IR_INSTR_NOT;
 		break;
 	}
+<<<<<<< HEAD
 
 	struct mcc_ir_arg *empty = mcc_ir_new_arg_lit("-");
 	struct mcc_ir_row *row = mcc_ir_new_row(child, empty, instr);
 	append_row(row, data);
 	struct mcc_ir_arg *arg = mcc_ir_new_arg_row(row);
 	return arg;
+||||||| merged common ancestors
+
+=======
+>>>>>>> e6d4fbbf511d5798bdc651749c20b7dc2e644c6f
 }
 
 static struct mcc_ir_arg *generate_ir_expression(struct mcc_ast_expression *expression, void *data)
@@ -196,6 +201,8 @@ static struct mcc_ir_arg *generate_ir_expression(struct mcc_ast_expression *expr
 
 static void generate_ir_comp_statement(struct mcc_ast_compound_statement *cmp_stmt, struct ir_generation_userdata *data)
 {
+	if (data->has_failed)
+		return;
 	while (cmp_stmt->has_next_statement) {
 		generate_ir_statement(cmp_stmt->statement, data);
 		cmp_stmt = cmp_stmt->next_compound_statement;
@@ -204,11 +211,55 @@ static void generate_ir_comp_statement(struct mcc_ast_compound_statement *cmp_st
 	UNUSED(data);
 }
 
+static void generate_ir_assignment(struct mcc_ast_assignment *asgn, struct ir_generation_userdata *data)
+{
+	if (data->has_failed)
+		return;
+	UNUSED(asgn);
+	UNUSED(data);
+}
+
+// TODO: Finish implementation
+static void generate_ir_statememt_if_stmt(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data)
+{
+	if (data->has_failed)
+		return;
+	struct mcc_ir_arg *cond = generate_ir_expression(stmt->if_condition, data);
+        struct mcc_ir_arg *label_arg = mcc_ir_new_arg_label(data);
+        struct mcc_ir_row *jumpfalse = mcc_ir_new_row(cond,label_arg,MCC_IR_INSTR_JUMPFALSE);
+        append_row(jumpfalse,data);
+        generate_ir_statement(stmt->if_on_true,data);
+        struct mcc_ir_row *label_row =  mcc_ir_new_row(label_arg,NULL,MCC_IR_INSTR_LABEL); 
+        append_row(label_row,data);
+}
+
 static void generate_ir_statement(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data)
 {
+	if (data->has_failed)
+		return;
 	switch (stmt->type) {
 	case MCC_AST_STATEMENT_TYPE_EXPRESSION:
-		generate_ir_expression(stmt->stmt_expression,data);
+		// TODO: When everything is done: Don't generate IR here (has no effect)
+		generate_ir_expression(stmt->stmt_expression, data);
+		break;
+	case MCC_AST_STATEMENT_TYPE_COMPOUND_STMT:
+		generate_ir_comp_statement(stmt->compound_statement, data);
+		break;
+	case MCC_AST_STATEMENT_TYPE_ASSIGNMENT:
+		generate_ir_assignment(stmt->assignment, data);
+		break;
+	case MCC_AST_STATEMENT_TYPE_DECLARATION:
+		break;
+	case MCC_AST_STATEMENT_TYPE_IF_ELSE_STMT:
+		break;
+	case MCC_AST_STATEMENT_TYPE_IF_STMT:
+		generate_ir_statememt_if_stmt(stmt, data);
+		break;
+	case MCC_AST_STATEMENT_TYPE_RETURN:
+		break;
+	case MCC_AST_STATEMENT_TYPE_WHILE:
+		break;
+	default:
 		break;
 	}
 	UNUSED(stmt);
@@ -219,8 +270,12 @@ static void generate_ir_program(struct mcc_ast_program *program, struct ir_gener
 {
 	assert(program);
 	assert(data);
-	struct ir_generation_userdata *userdata = data;
-	append_row(get_fake_ir(program->function->identifier->identifier_name), userdata);
+
+	if (data->has_failed)
+		return;
+	// Fake IR that replaces the IR code generation of the function signature
+	append_row(get_fake_ir(program->function->identifier->identifier_name), data);
+
 	generate_ir_comp_statement(program->function->compound_stmt, data);
 }
 
@@ -317,6 +372,17 @@ static struct mcc_ir_arg *mcc_ir_new_arg_lit(char *lit)
 	return arg;
 }
 
+static struct mcc_ir_arg *mcc_ir_new_arg_label(struct ir_generation_userdata *data)
+{
+	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
+	if (!arg)
+		return NULL;
+	arg->type = MCC_IR_TYPE_LABEL;
+	arg->label = data->label_counter;
+	data->label_counter = data->label_counter + 1;
+	return arg;
+}
+
 static struct mcc_ir_row *
 mcc_ir_new_row(struct mcc_ir_arg *arg1, struct mcc_ir_arg *arg2, enum mcc_ir_instruction instr)
 {
@@ -408,6 +474,7 @@ struct mcc_ir_row *mcc_ir_generate_entry_point(struct mcc_parser_result *result,
 	data->head = NULL;
 	data->has_failed = false;
 	data->current = NULL;
+	data->label_counter = 0;
 
 	struct mcc_ast_visitor visitor = generate_ir_visitor(data);
 
@@ -463,7 +530,7 @@ struct mcc_ir_row *mcc_ir_generate(struct mcc_ast_program *ast, struct mcc_symbo
 	data->has_failed = false;
 	data->current = NULL;
 
-	while (ast->has_next_function) {
+	while (ast) {
 		generate_ir_program(ast, data);
 		ast = ast->next_function;
 	}
