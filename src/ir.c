@@ -343,37 +343,26 @@ static struct mcc_ir_row *get_fake_ir_line(char *name)
 		return NULL;
 
 	struct mcc_ir_arg *arg1 = malloc(sizeof(*arg1));
-	struct mcc_ir_arg *arg2 = malloc(sizeof(*arg2));
-	if (!arg1 || !arg2) {
-		free(arg1);
-		free(arg2);
+	if (!arg1) {
 		free(head);
 		return NULL;
 	}
 
 	arg1->type = MCC_IR_TYPE_LIT;
-	arg2->type = MCC_IR_TYPE_LIT;
 
 	char *str1 = malloc(sizeof(char) * size);
-	char *str2 = malloc(sizeof(char) * 5);
-	if (!str1 || !str2) {
+	if (!str1 ) {
 		free(arg1);
-		free(arg2);
 		free(head);
-		free(str1);
-		free(str2);
 		return NULL;
 	}
 	snprintf(str1, size, "%s", name);
-	snprintf(str2, 5, "var2");
 	arg1->lit = str1;
-	arg2->lit = str2;
-	head->instr = MCC_IR_INSTR_JUMPFALSE;
+	head->instr = MCC_IR_INSTR_LABEL;
 	head->row_no = 0;
 	head->next_row = NULL;
 	head->prev_row = NULL;
 	head->arg1 = arg1;
-	head->arg2 = arg2;
 	return head;
 }
 
