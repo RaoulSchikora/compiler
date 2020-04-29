@@ -513,7 +513,7 @@ void func_def(CuTest *tc)
 
 	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program, table);
 	struct mcc_ir_row *tmp = ir;
-	struct mcc_ir_row *ir_head = ir;
+        struct mcc_ir_row *ir_head = ir;
 
 	// Label test
 	CuAssertPtrNotNull(tc, ir);
