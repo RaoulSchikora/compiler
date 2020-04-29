@@ -24,21 +24,21 @@ struct ir_generation_userdata {
 //------------------------------------------------------------------------------ Forward declarations
 
 static struct mcc_ir_row *
-mcc_ir_new_row(struct mcc_ir_arg *arg1, struct mcc_ir_arg *arg2, enum mcc_ir_instruction instr);
-static struct mcc_ir_arg *mcc_ir_copy_arg(struct mcc_ir_arg *arg);
-static struct mcc_ir_arg *mcc_ir_new_arg_int(long lit);
-static struct mcc_ir_arg *mcc_ir_new_arg_float(double lit);
-static struct mcc_ir_arg *mcc_ir_new_arg_bool(bool lit);
-static struct mcc_ir_arg *mcc_ir_new_arg_string(char *lit);
-static struct mcc_ir_arg *mcc_ir_new_arg_row(struct mcc_ir_row *row);
-static struct mcc_ir_arg *mcc_ir_new_arg_label(struct ir_generation_userdata *data);
-static struct mcc_ir_arg *mcc_ir_new_arg_identifier(struct mcc_ast_identifier *ident);
+new_row(struct mcc_ir_arg *arg1, struct mcc_ir_arg *arg2, enum mcc_ir_instruction instr);
+static struct mcc_ir_arg *copy_arg(struct mcc_ir_arg *arg);
+static struct mcc_ir_arg *new_arg_int(long lit);
+static struct mcc_ir_arg *new_arg_float(double lit);
+static struct mcc_ir_arg *new_arg_bool(bool lit);
+static struct mcc_ir_arg *new_arg_string(char *lit);
+static struct mcc_ir_arg *new_arg_row(struct mcc_ir_row *row);
+static struct mcc_ir_arg *new_arg_label(struct ir_generation_userdata *data);
+static struct mcc_ir_arg *new_arg_identifier(struct mcc_ast_identifier *ident);
 static void append_row(struct mcc_ir_row *row, struct ir_generation_userdata *data);
 static void generate_ir_statement(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data);
 static struct mcc_ir_arg *generate_ir_expression(struct mcc_ast_expression *expression,
                                                  struct ir_generation_userdata *data);
 
-//------------------------------------------------------------------------------ Callbacks for visitor that generates IR
+//------------------------------------------------------------------------------ Functions that recursively create IR
 
 static struct mcc_ir_row *look_up_row(char *ident, struct ir_generation_userdata *data)
 {
@@ -137,7 +137,7 @@ static struct mcc_ir_arg *generate_ir_expression_binary_op(struct mcc_ast_expres
 		break;
 	}
 
-	struct mcc_ir_row *row = mcc_ir_new_row(lhs, rhs, instr);
+	struct mcc_ir_row *row = new_row(lhs, rhs, instr);
 	append_row(row, data);
 
 	struct mcc_ir_arg *arg = mcc_ir_new_arg(row);
@@ -163,7 +163,7 @@ static struct mcc_ir_arg *generate_ir_expression_unary_op(struct mcc_ast_express
 		break;
 	}
 
-	struct mcc_ir_row *row = mcc_ir_new_row(child, NULL, instr);
+	struct mcc_ir_row *row = new_row(child, NULL, instr);
 	append_row(row, data);
 	struct mcc_ir_arg *arg = mcc_ir_new_arg(row);
 	return arg;
@@ -242,7 +242,7 @@ static void generate_ir_assignment(struct mcc_ast_assignment *asgn, struct ir_ge
 	if (asgn->assignment_type == MCC_AST_ASSIGNMENT_TYPE_VARIABLE) {
 		identifier = mcc_ir_new_arg(asgn->variable_identifier);
 		exp = generate_ir_expression(asgn->variable_assigned_value, data);
-		row = mcc_ir_new_row(identifier, exp, MCC_IR_INSTR_ASSIGN);
+		row = new_row(identifier, exp, MCC_IR_INSTR_ASSIGN);
 	} else {
 		// TODO
 	}
@@ -258,27 +258,27 @@ static void generate_ir_statememt_if_else_stmt(struct mcc_ast_statement *stmt, s
 	struct mcc_ir_arg *cond = generate_ir_expression(stmt->if_condition, data);
 
 	// Jumpfalse L1
-	struct mcc_ir_arg *l1 = mcc_ir_new_arg_label(data);
-	struct mcc_ir_row *jumpfalse = mcc_ir_new_row(cond, l1, MCC_IR_INSTR_JUMPFALSE);
+	struct mcc_ir_arg *l1 = new_arg_label(data);
+	struct mcc_ir_row *jumpfalse = new_row(cond, l1, MCC_IR_INSTR_JUMPFALSE);
 	append_row(jumpfalse, data);
 
 	// If true
 	generate_ir_statement(stmt->if_else_on_true, data);
 
 	// Jump L2
-	struct mcc_ir_arg *l2 = mcc_ir_new_arg_label(data);
-	struct mcc_ir_row *jump_row = mcc_ir_new_row(l2, NULL, MCC_IR_INSTR_JUMP);
+	struct mcc_ir_arg *l2 = new_arg_label(data);
+	struct mcc_ir_row *jump_row = new_row(l2, NULL, MCC_IR_INSTR_JUMP);
 	append_row(jump_row, data);
 
 	// Label L1
-	struct mcc_ir_row *label_row = mcc_ir_new_row(mcc_ir_copy_arg(l1), NULL, MCC_IR_INSTR_LABEL);
+	struct mcc_ir_row *label_row = new_row(copy_arg(l1), NULL, MCC_IR_INSTR_LABEL);
 	append_row(label_row, data);
 
 	// If false
 	generate_ir_statement(stmt->if_else_on_false, data);
 
 	// Label L2
-	struct mcc_ir_row *label_row_2 = mcc_ir_new_row(mcc_ir_copy_arg(l2), NULL, MCC_IR_INSTR_LABEL);
+	struct mcc_ir_row *label_row_2 = new_row(copy_arg(l2), NULL, MCC_IR_INSTR_LABEL);
 	append_row(label_row_2, data);
 }
 
@@ -287,11 +287,11 @@ static void generate_ir_statememt_if_stmt(struct mcc_ast_statement *stmt, struct
 	if (data->has_failed)
 		return;
 	struct mcc_ir_arg *cond = generate_ir_expression(stmt->if_condition, data);
-	struct mcc_ir_arg *label = mcc_ir_new_arg_label(data);
-	struct mcc_ir_row *jumpfalse = mcc_ir_new_row(cond, label, MCC_IR_INSTR_JUMPFALSE);
+	struct mcc_ir_arg *label = new_arg_label(data);
+	struct mcc_ir_row *jumpfalse = new_row(cond, label, MCC_IR_INSTR_JUMPFALSE);
 	append_row(jumpfalse, data);
 	generate_ir_statement(stmt->if_on_true, data);
-	struct mcc_ir_row *label_row = mcc_ir_new_row(mcc_ir_copy_arg(label), NULL, MCC_IR_INSTR_LABEL);
+	struct mcc_ir_row *label_row = new_row(copy_arg(label), NULL, MCC_IR_INSTR_LABEL);
 	append_row(label_row, data);
 }
 
@@ -302,10 +302,10 @@ static void generate_ir_statement_return(struct mcc_ast_statement *stmt, struct 
 
 	if (stmt->return_value) {
 		struct mcc_ir_arg *exp = generate_ir_expression(stmt->return_value, data);
-		struct mcc_ir_row *row = mcc_ir_new_row(exp, NULL, MCC_IR_INSTR_RETURN);
+		struct mcc_ir_row *row = new_row(exp, NULL, MCC_IR_INSTR_RETURN);
 		append_row(row, data);
 	} else {
-		struct mcc_ir_row *row = mcc_ir_new_row(NULL, NULL, MCC_IR_INSTR_RETURN);
+		struct mcc_ir_row *row = new_row(NULL, NULL, MCC_IR_INSTR_RETURN);
 		append_row(row, data);
 	}
 }
@@ -353,8 +353,8 @@ static void generate_ir_program(struct mcc_ast_program *program, struct ir_gener
 	if (data->has_failed)
 		return;
 	// Fake IR that replaces the IR code generation of the function signature
-	struct mcc_ir_arg *arg1 = mcc_ir_new_arg_identifier(program->function->identifier);
-	struct mcc_ir_row *row = mcc_ir_new_row(arg1, NULL, MCC_IR_INSTR_LABEL);
+	struct mcc_ir_arg *arg1 = new_arg_identifier(program->function->identifier);
+	struct mcc_ir_row *row = new_row(arg1, NULL, MCC_IR_INSTR_LABEL);
 	append_row(row, data);
 
 	generate_ir_comp_statement(program->function->compound_stmt, data);
@@ -390,29 +390,29 @@ static struct mcc_ir_arg *copy_label_arg(struct mcc_ir_arg *arg)
 	return new;
 }
 
-static struct mcc_ir_arg *mcc_ir_copy_arg(struct mcc_ir_arg *arg)
+static struct mcc_ir_arg *copy_arg(struct mcc_ir_arg *arg)
 {
 	switch (arg->type) {
 	case MCC_IR_TYPE_LIT_INT:
-		return mcc_ir_new_arg_int(arg->lit_int);
+		return new_arg_int(arg->lit_int);
 	case MCC_IR_TYPE_LIT_BOOL:
-		return mcc_ir_new_arg_bool(arg->lit_bool);
+		return new_arg_bool(arg->lit_bool);
 	case MCC_IR_TYPE_LIT_FLOAT:
-		return mcc_ir_new_arg_float(arg->lit_float);
+		return new_arg_float(arg->lit_float);
 	case MCC_IR_TYPE_LIT_STRING:
-		return mcc_ir_new_arg_string(arg->lit_string);
+		return new_arg_string(arg->lit_string);
 	case MCC_IR_TYPE_IDENTIFIER:
-		return mcc_ir_new_arg_identifier(arg->ident);
+		return new_arg_identifier(arg->ident);
 	case MCC_IR_TYPE_LABEL:
 		return copy_label_arg(arg);
 	case MCC_IR_TYPE_ROW:
-		return mcc_ir_new_arg_row(arg->row);
+		return new_arg_row(arg->row);
 	default:
 		return NULL;
 	}
 }
 
-static struct mcc_ir_arg *mcc_ir_new_arg_row(struct mcc_ir_row *row)
+static struct mcc_ir_arg *new_arg_row(struct mcc_ir_row *row)
 {
 	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
 	if (!arg)
@@ -422,7 +422,7 @@ static struct mcc_ir_arg *mcc_ir_new_arg_row(struct mcc_ir_row *row)
 	return arg;
 }
 
-static struct mcc_ir_arg *mcc_ir_new_arg_int(long lit)
+static struct mcc_ir_arg *new_arg_int(long lit)
 {
 	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
 	if (!arg)
@@ -432,7 +432,7 @@ static struct mcc_ir_arg *mcc_ir_new_arg_int(long lit)
 	return arg;
 }
 
-static struct mcc_ir_arg *mcc_ir_new_arg_float(double lit)
+static struct mcc_ir_arg *new_arg_float(double lit)
 {
 	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
 	if (!arg)
@@ -442,7 +442,7 @@ static struct mcc_ir_arg *mcc_ir_new_arg_float(double lit)
 	return arg;
 }
 
-static struct mcc_ir_arg *mcc_ir_new_arg_bool(bool lit)
+static struct mcc_ir_arg *new_arg_bool(bool lit)
 {
 	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
 	if (!arg)
@@ -452,7 +452,7 @@ static struct mcc_ir_arg *mcc_ir_new_arg_bool(bool lit)
 	return arg;
 }
 
-static struct mcc_ir_arg *mcc_ir_new_arg_string(char *lit)
+static struct mcc_ir_arg *new_arg_string(char *lit)
 {
 	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
 	if (!arg)
@@ -462,7 +462,7 @@ static struct mcc_ir_arg *mcc_ir_new_arg_string(char *lit)
 	return arg;
 }
 
-static struct mcc_ir_arg *mcc_ir_new_arg_label(struct ir_generation_userdata *data)
+static struct mcc_ir_arg *new_arg_label(struct ir_generation_userdata *data)
 {
 	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
 	if (!arg)
@@ -473,7 +473,7 @@ static struct mcc_ir_arg *mcc_ir_new_arg_label(struct ir_generation_userdata *da
 	return arg;
 }
 
-static struct mcc_ir_arg *mcc_ir_new_arg_identifier(struct mcc_ast_identifier *ident)
+static struct mcc_ir_arg *new_arg_identifier(struct mcc_ast_identifier *ident)
 {
 	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
 	if (!arg)
@@ -484,7 +484,7 @@ static struct mcc_ir_arg *mcc_ir_new_arg_identifier(struct mcc_ast_identifier *i
 }
 
 static struct mcc_ir_row *
-mcc_ir_new_row(struct mcc_ir_arg *arg1, struct mcc_ir_arg *arg2, enum mcc_ir_instruction instr)
+new_row(struct mcc_ir_arg *arg1, struct mcc_ir_arg *arg2, enum mcc_ir_instruction instr)
 {
 	struct mcc_ir_row *row = malloc(sizeof(*row));
 	if (!row)
