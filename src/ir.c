@@ -22,46 +22,48 @@ struct ir_generation_userdata {
 };
 
 /* TODO:
-.expression = generate_ir_expression,
-.expression_literal = generate_ir_expression_literal,
-.expression_binary_op = generate_ir_expression_binary_op,
-.expression_parenth = generate_ir_expression_parenth,
-.expression_unary_op = generate_ir_expression_unary_op,
-.expression_variable = generate_ir_expression_variable,
-.expression_array_element = generate_ir_expression_array_element,
-.expression_function_call = generate_ir_expression_function_call,
 
-.literal = generate_ir_literal,
-.literal_int = generate_ir_literal_int,
-.literal_float = generate_ir_literal_float,
-.literal_bool = generate_ir_literal_bool,
-.literal_string = generate_ir_literal_string,
+ *    expression                :    DONE (Just update when other expression functions are added)
+ *    expression_literal        :    DONE
+ *    expression_binary_op      :    DONE
+ *    expression_parenth        :    TODO
+ *    expression_unary_op       :    DONE
+ *    expression_variable       :    TODO
+ *    expression_array_element  :    TODO
+ *    expression_function_call  :    TODO
 
-.statement = generate_ir_statement,
-.statement_if_stmt = generate_ir_statememt_if_stmt,
-.statement_if_else_stmt = generate_ir_statement_if_else_stmt,
-.statement_expression_stmt = generate_ir_statement_expression_stmt,
-.statement_while = generate_ir_statement_while,
-.statement_assignment = generate_ir_statement_assignment,
-.statement_declaration = generate_ir_statement_declaration,
-.statement_return = generate_ir_statement_return,
-.statement_compound_stmt = generate_ir_statement_compound_statement,
+ *    literal                   :    DONE
+ *    literal_int               :    DONE
+ *    literal_float             :    DONE
+ *    literal_bool              :    DONE
+ *    literal_string            :    DONE
 
-.compound_statement = generate_ir_compound_statement,
-.program = generate_ir_program,
-.function_definition = generate_ir_function_definition,
-.parameters = generate_ir_parameters,
-.arguments = generate_ir_arguments,
+ *    statement                 :    DONE (Just update when other statement functions are added)
+ *    statement_if_stmt         :    DONE
+ *    statement_if_else_stmt    :    DONE
+ *    statement_expression_stmt :    DONE
+ *    statement_while           :    DONE
+ *    statement_assignment      :    TODO: move  from row number to identifier
+ *    statement_declaration     :    Not needed?
+ *    statement_return          :    DONE
+ *    statement_compound_stmt   :    DONE 
 
-.assignment = generate_ir_assignment,
-.variable_assignment = generate_ir_variable_assignment,
-.array_assignment = generate_ir_array_assignment,
-.declaration = generate_ir_declaration,
-.variable_declaration = generate_ir_variable_declaration,
-.array_declaration = generate_ir_array_declaration,
+ *    compound_statement        :    DONE
+ *    program                   :    TODO
+ *    function_definition       :    TODO
+ *    parameters                :    TODO
+ *    arguments                 :    TODO
 
-.type = generate_ir_type,
-.identifier = generate_ir_expression_identifier,
+ *    assignment                :    
+ *    variable_assignment       :    DONE
+ *    array_assignment          :    TODO
+ *    declaration               :    Not needed?
+ *    variable_declaration      :    Not needed?
+ *    array_declaration         :    Not needed?
+
+ *    type                      :    Not needed?
+ *    identifier                :    Not needed?
+
 */
 
 //------------------------------------------------------------------------------ Forward declarations: IR datastructures
