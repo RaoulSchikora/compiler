@@ -38,11 +38,6 @@ static void generate_ir_statement(struct mcc_ast_statement *stmt, struct ir_gene
 static struct mcc_ir_arg *generate_ir_expression(struct mcc_ast_expression *expression,
                                                  struct ir_generation_userdata *data);
 
-//------------------------------------------------------------------------------ Forward declarations, Fake IR
-
-static struct mcc_ir_row *get_fake_ir_line(char *name);
-static struct mcc_ir_row *get_fake_ir(char *name);
-
 //------------------------------------------------------------------------------ Callbacks for visitor that generates IR
 
 static struct mcc_ir_row *look_up_row(char *ident, struct ir_generation_userdata *data)
@@ -358,52 +353,11 @@ static void generate_ir_program(struct mcc_ast_program *program, struct ir_gener
 	if (data->has_failed)
 		return;
 	// Fake IR that replaces the IR code generation of the function signature
-	append_row(get_fake_ir(program->function->identifier->identifier_name), data);
+	struct mcc_ir_arg *arg1 = mcc_ir_new_arg_identifier(program->function->identifier);
+	struct mcc_ir_row *row = mcc_ir_new_row(arg1, NULL, MCC_IR_INSTR_LABEL);
+	append_row(row, data);
 
 	generate_ir_comp_statement(program->function->compound_stmt, data);
-}
-
-//---------------------------------------------------------------------------------------- Generate Fake IR for testing
-
-static struct mcc_ir_row *get_fake_ir_line(char *name)
-{
-	size_t size = strlen(name) + 1;
-	struct mcc_ir_row *head = malloc(sizeof(*head));
-	if (!head)
-		return NULL;
-
-	struct mcc_ir_arg *arg1 = malloc(sizeof(*arg1));
-	if (!arg1) {
-		free(head);
-		return NULL;
-	}
-
-	arg1->type = MCC_IR_TYPE_LIT_STRING;
-
-	char *str1 = malloc(sizeof(char) * size);
-	if (!str1) {
-		free(arg1);
-		free(head);
-		return NULL;
-	}
-	snprintf(str1, size, "%s", name);
-	arg1->lit_string = str1;
-	head->instr = MCC_IR_INSTR_LABEL;
-	head->row_no = 0;
-	head->next_row = NULL;
-	head->prev_row = NULL;
-	head->arg1 = arg1;
-	head->arg2 = NULL;
-	return head;
-}
-
-static struct mcc_ir_row *get_fake_ir(char *name)
-{
-	struct mcc_ir_row *head = get_fake_ir_line(name);
-	if (!head)
-		return NULL;
-	head->next_row = NULL;
-	return head;
 }
 
 //---------------------------------------------------------------------------------------- Generate IR datastructures
