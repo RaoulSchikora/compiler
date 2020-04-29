@@ -68,6 +68,7 @@ struct ir_generation_userdata {
 
 //------------------------------------------------------------------------------ Forward declarations: IR datastructures
 
+static struct mcc_ir_arg *arg_from_declaration(struct mcc_ast_declaration *decl);
 static struct mcc_ir_row *new_row(struct mcc_ir_arg *arg1, struct mcc_ir_arg *arg2, enum mcc_ir_instruction instr);
 static struct mcc_ir_arg *copy_arg(struct mcc_ir_arg *arg);
 static struct mcc_ir_arg *new_arg_func_label(struct mcc_ast_function_definition *def);
@@ -93,6 +94,8 @@ static void generate_ir_statememt_if_stmt(struct mcc_ast_statement *stmt, struct
 static void generate_ir_statememt_if_else_stmt(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data);
 static void generate_ir_statement_return(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data);
 static void generate_ir_program(struct mcc_ast_program *program, struct ir_generation_userdata *data);
+static void generate_ir_function_definition(struct mcc_ast_function_definition *def,
+                                            struct ir_generation_userdata *data);
 static struct mcc_ir_arg *generate_ir_expression(struct mcc_ast_expression *expression,
                                                  struct ir_generation_userdata *data);
 static struct mcc_ir_arg *generate_ir_expression_var(struct mcc_ast_expression *expression,
@@ -405,15 +408,61 @@ static void generate_ir_program(struct mcc_ast_program *program, struct ir_gener
 
 	if (data->has_failed)
 		return;
-	// Fake IR that replaces the IR code generation of the function signature
-	struct mcc_ir_arg *arg1 = new_arg_identifier(program->function->identifier);
-	struct mcc_ir_row *row = new_row(arg1, NULL, MCC_IR_INSTR_LABEL);
-	append_row(row, data);
+	generate_ir_function_definition(program->function, data);
+}
 
-	generate_ir_comp_statement(program->function->compound_stmt, data);
+static void generate_ir_function_definition(struct mcc_ast_function_definition *def,
+                                            struct ir_generation_userdata *data)
+{
+	if (data->has_failed)
+		return;
+
+	// Function Label
+	struct mcc_ir_arg *func_label = new_arg_func_label(def);
+	struct mcc_ir_row *label_row = new_row(func_label, NULL, MCC_IR_INSTR_FUNC_LABEL);
+	append_row(label_row, data);
+
+	// Pop args and assign them
+	struct mcc_ast_parameters *pars = def->parameters;
+	struct mcc_ir_row *pop_row;
+	struct mcc_ir_row *assign;
+	struct mcc_ir_arg *var;
+	struct mcc_ir_arg *pop_arg;
+
+	while (pars && !pars->is_empty) {
+		// Pop arg
+		pop_row = new_row(NULL, NULL, MCC_IR_INSTR_POP);
+		append_row(pop_row, data);
+		pop_arg = new_arg_row(pop_row);
+
+		// Assign it
+		var = arg_from_declaration(pars->declaration);
+		assign = new_row(var, pop_arg, MCC_IR_INSTR_ASSIGN);
+		append_row(assign, data);
+		pars = pars->next_parameters;
+	}
+
+	// Function body
+	generate_ir_comp_statement(def->compound_stmt, data);
 }
 
 //---------------------------------------------------------------------------------------- IR datastructures
+
+static struct mcc_ir_arg *arg_from_declaration(struct mcc_ast_declaration *decl)
+{
+	assert(decl);
+	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
+	if (!arg)
+		return NULL;
+	switch (decl->declaration_type) {
+	case MCC_AST_DECLARATION_TYPE_ARRAY:
+		return new_arg_identifier(decl->array_identifier);
+	case MCC_AST_DECLARATION_TYPE_VARIABLE:
+		return new_arg_identifier(decl->variable_identifier);
+	default:
+		return NULL;
+	}
+}
 
 static struct mcc_ir_arg *generate_arg_lit(struct mcc_ast_literal *literal, struct ir_generation_userdata *data)
 {

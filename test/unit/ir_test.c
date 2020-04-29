@@ -26,9 +26,9 @@ void test1(CuTest *tc)
 	CuAssertPtrNotNull(tc, ir);
 
 	CuAssertIntEquals(tc, ir->row_no, 0);
-	CuAssertIntEquals(tc, ir->instr, MCC_IR_INSTR_LABEL);
-	CuAssertIntEquals(tc, ir->arg1->type, MCC_IR_TYPE_IDENTIFIER);
-	CuAssertStrEquals(tc, ir->arg1->ident->identifier_name, "main");
+	CuAssertIntEquals(tc, ir->instr, MCC_IR_INSTR_FUNC_LABEL);
+	CuAssertIntEquals(tc, ir->arg1->type, MCC_IR_TYPE_FUNC_LABEL);
+	CuAssertStrEquals(tc, ir->arg1->func_label, "main");
 	CuAssertPtrEquals(tc, ir->arg2, NULL);
 
 	struct mcc_ir_row *ir_next = ir->next_row;
