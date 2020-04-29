@@ -8,9 +8,9 @@ void mcc_ir_print_table_begin(FILE *out)
 {
 
 	fprintf(out, "--------------------------------------------------------------------------------\n"
-	             "| Intermediate representation (TAC)                                            |\n"
+	             " Intermediate representation (TAC)                                             |\n"
 	             "--------------------------------------------------------------------------------\n"
-	             "| line no.  | instruction      | arg1                  | arg2                  |\n"
+	             "    | line no.  | instruction      | arg1                | arg2                |\n"
 	             "--------------------------------------------------------------------------------\n");
 }
 
@@ -19,9 +19,9 @@ void mcc_ir_print_table_end(FILE *out)
 	fprintf(out, "--------------------------------------------------------------------------------\n");
 }
 
-static void print_row(FILE *out, char *row_no, char *instruction, char *arg1, char *arg2)
+static void print_row(FILE *out, char *label, char *row_no, char *instruction, char *arg1, char *arg2)
 {
-	fprintf(out, "| %-7s   | %-16s | %-21s | %-21s |\n", row_no, instruction, arg1, arg2);
+	fprintf(out, "%-4s| %-7s   | %-16s | %-19s | %-19s |\n", label, row_no, instruction, arg1, arg2);
 }
 
 static char *instr_to_string(enum mcc_ir_instruction instr)
@@ -175,8 +175,15 @@ void mcc_ir_print_ir_row(FILE *out, struct mcc_ir_row *row)
 	row_no_to_string(no, row->row_no);
 	arg_to_string(arg1, row->arg1);
 	arg_to_string(arg2, row->arg2);
+	char label[arg_size(row->arg1)];
+	if (row->instr == MCC_IR_INSTR_LABEL && row->arg1->type == MCC_IR_TYPE_LABEL) {
+		strcpy(label, arg1);
+		strcpy(arg1, "");
+	} else {
+		strcpy(label, "");
+	}
 
-	print_row(out, no, instr, arg1, arg2);
+	print_row(out, label, no, instr, arg1, arg2);
 }
 
 void mcc_ir_print_ir(FILE *out, struct mcc_ir_row *head)
