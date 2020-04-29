@@ -494,6 +494,73 @@ void while_stmt(CuTest *tc)
 	mcc_ast_delete(parser_result.program);
 	mcc_symbol_table_delete_table(table);
 }
+
+void func_def(CuTest *tc)
+{
+	const char input[] = "int test(int a, float b){return 0;} int main(){return 0;}";
+	struct mcc_parser_result parser_result;
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
+	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program, table);
+	struct mcc_ir_row *tmp = ir;
+
+	// Label test
+	CuAssertPtrNotNull(tc, ir);
+	CuAssertIntEquals(tc, ir->row_no, 0);
+	CuAssertIntEquals(tc, ir->instr, MCC_IR_INSTR_FUNC_LABEL);
+	CuAssertPtrNotNull(tc, ir->arg1);
+	CuAssertPtrEquals(tc, NULL, ir->arg2);
+	CuAssertIntEquals(tc, ir->arg1->type, MCC_IR_TYPE_FUNC_LABEL);
+	CuAssertStrEquals(tc, ir->arg1->func_label, "test");
+
+	// Pop and assign a
+	ir = ir->next_row;
+	CuAssertPtrNotNull(tc, ir);
+	CuAssertIntEquals(tc, ir->row_no, 1);
+	CuAssertIntEquals(tc, ir->instr, MCC_IR_INSTR_POP);
+	CuAssertPtrEquals(tc, NULL, ir->arg1);
+	CuAssertPtrEquals(tc, NULL, ir->arg2);
+
+	tmp = ir;
+	ir = ir->next_row;
+	CuAssertPtrNotNull(tc, ir);
+	CuAssertIntEquals(tc, ir->row_no, 2);
+	CuAssertIntEquals(tc, ir->instr, MCC_IR_INSTR_ASSIGN);
+	CuAssertIntEquals(tc, ir->arg1->type, MCC_IR_TYPE_IDENTIFIER);
+	CuAssertStrEquals(tc, ir->arg1->ident->identifier_name, "a");
+	CuAssertIntEquals(tc, ir->arg2->type, MCC_IR_TYPE_ROW);
+	CuAssertPtrEquals(tc, ir->arg2->row, tmp);
+
+	// Pop and assign b
+	ir = ir->next_row;
+	CuAssertPtrNotNull(tc, ir);
+	CuAssertIntEquals(tc, ir->row_no, 3);
+	CuAssertIntEquals(tc, ir->instr, MCC_IR_INSTR_POP);
+	CuAssertPtrEquals(tc, NULL, ir->arg1);
+	CuAssertPtrEquals(tc, NULL, ir->arg2);
+
+	tmp = ir;
+	ir = ir->next_row;
+	CuAssertPtrNotNull(tc, ir);
+	CuAssertIntEquals(tc, ir->row_no, 4);
+	CuAssertIntEquals(tc, ir->instr, MCC_IR_INSTR_ASSIGN);
+	CuAssertIntEquals(tc, ir->arg1->type, MCC_IR_TYPE_IDENTIFIER);
+	CuAssertStrEquals(tc, ir->arg1->ident->identifier_name, "b");
+	CuAssertIntEquals(tc, ir->arg2->type, MCC_IR_TYPE_ROW);
+	CuAssertPtrEquals(tc, ir->arg2->row, tmp);
+
+	// Return 0
+	ir = ir->next_row;
+	CuAssertPtrNotNull(tc, ir);
+	CuAssertIntEquals(tc, ir->row_no, 5);
+	CuAssertIntEquals(tc, ir->instr, MCC_IR_INSTR_RETURN);
+	CuAssertIntEquals(tc, ir->arg1->type, MCC_IR_TYPE_LIT_INT);
+	CuAssertIntEquals(tc, ir->arg1->lit_int, 0);
+	CuAssertPtrEquals(tc, NULL, ir->arg2);
+}
+
 // clang-format off
 
 #define TESTS \
@@ -504,7 +571,8 @@ void while_stmt(CuTest *tc)
 	TEST(expression_var) \
 	TEST(expression_arr) \
 	TEST(if_stmt) \
-	TEST(while_stmt)
+	TEST(while_stmt) \
+        TEST(func_def)
 
 // clang-format on
 
