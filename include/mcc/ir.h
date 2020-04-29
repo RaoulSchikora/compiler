@@ -12,6 +12,7 @@ enum mcc_ir_instruction {
 	MCC_IR_INSTR_ASSIGN,
 	MCC_IR_INSTR_LABEL,
 	MCC_IR_INSTR_JUMP,
+	MCC_IR_INSTR_CALL,
 	MCC_IR_INSTR_JUMPFALSE,
 	MCC_IR_INSTR_PUSH,
 	MCC_IR_INSTR_POP,
@@ -44,6 +45,7 @@ enum mcc_ir_arg_type {
 	MCC_IR_TYPE_IDENTIFIER,
 	MCC_IR_TYPE_ARR_ELEM,
 	MCC_IR_TYPE_LABEL,
+	MCC_IR_TYPE_FUNC_LABEL,
 };
 
 struct mcc_ir_arg {
@@ -53,14 +55,15 @@ struct mcc_ir_arg {
 		long lit_int;
 		double lit_float;
 		bool lit_bool;
-		char* lit_string;
+		char *lit_string;
 		struct mcc_ir_row *row;
-        unsigned label;
+		unsigned label;
 		struct mcc_ast_identifier *ident;
 		struct {
 			struct mcc_ast_identifier *arr_ident;
 			struct mcc_ir_arg *index;
 		};
+		char *func_label;
 	};
 };
 

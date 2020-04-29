@@ -33,6 +33,8 @@ static char *instr_to_string(enum mcc_ir_instruction instr)
 		return "jump";
 	case MCC_IR_INSTR_JUMPFALSE:
 		return "jumpfalse";
+	case MCC_IR_INSTR_CALL:
+		return "call";
 	case MCC_IR_INSTR_AND:
 		return "and";
 	case MCC_IR_INSTR_ARRAY_EL:
@@ -107,6 +109,8 @@ static int arg_size(struct mcc_ir_arg *arg)
 		return strlen(arg->ident->identifier_name) + 2;
 	case MCC_IR_TYPE_ARR_ELEM:
 		return strlen(arg->arr_ident->identifier_name) + arg_size(arg->index) + 3;
+	case MCC_IR_TYPE_FUNC_LABEL:
+		return strlen(arg->func_label);
 	default:
 		return length_of_int(1000);
 	};
@@ -163,6 +167,9 @@ static void arg_to_string(char *dest, struct mcc_ir_arg *arg)
 	case MCC_IR_TYPE_ARR_ELEM:
 		arg_to_string(index, arg->index);
 		sprintf(dest, "%s[%s]", arg->arr_ident->identifier_name, index);
+		return;
+	case MCC_IR_TYPE_FUNC_LABEL:
+		strcpy(dest, arg->func_label);
 	};
 }
 
