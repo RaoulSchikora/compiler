@@ -346,6 +346,115 @@ void if_else_stmt(CuTest *tc)
 	mcc_symbol_table_delete_table(table);
 }
 
+void while_stmt(CuTest *tc)
+{
+	const char input[] = "int main(){int a; a = 1; while(a<11) {a = a + 1;} return 0;}";
+	struct mcc_parser_result parser_result;
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
+	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program, table);
+	struct mcc_ir_row *ir_head = ir;
+	struct mcc_ir_row *tmp = ir;
+	// Skip first row
+	ir = ir->next_row;
+
+	// a = 1
+	CuAssertPtrNotNull(tc, ir);
+	CuAssertIntEquals(tc, ir->row_no, 1);
+	CuAssertIntEquals(tc, ir->instr, MCC_IR_INSTR_ASSIGN);
+	CuAssertPtrNotNull(tc, ir->arg1);
+	CuAssertIntEquals(tc, ir->arg1->type, MCC_IR_TYPE_IDENTIFIER);
+	CuAssertStrEquals(tc, ir->arg1->ident->identifier_name, "a");
+	CuAssertIntEquals(tc, ir->arg2->type, MCC_IR_TYPE_LIT_INT);
+	CuAssertIntEquals(tc, ir->arg2->lit_int, 1);
+
+	// L0
+	tmp = ir;
+	ir = ir->next_row;
+	CuAssertPtrNotNull(tc, ir);
+	CuAssertIntEquals(tc, ir->row_no, 2);
+	CuAssertIntEquals(tc, ir->instr, MCC_IR_INSTR_LABEL);
+	CuAssertPtrEquals(tc, ir->arg2, NULL);
+	CuAssertIntEquals(tc, ir->arg1->type, MCC_IR_TYPE_LABEL);
+	CuAssertIntEquals(tc, ir->arg1->label, 0);
+
+	// condition
+	tmp = ir;
+	ir = ir->next_row;
+	CuAssertPtrNotNull(tc, ir);
+	CuAssertIntEquals(tc, ir->row_no, 3);
+	CuAssertIntEquals(tc, ir->instr, MCC_IR_INSTR_SMALLER);
+	CuAssertPtrNotNull(tc, ir->arg1);
+	CuAssertIntEquals(tc, ir->arg1->type, MCC_IR_TYPE_IDENTIFIER);
+	CuAssertStrEquals(tc, ir->arg1->ident->identifier_name, "a");
+	CuAssertIntEquals(tc, ir->arg2->type, MCC_IR_TYPE_LIT_INT);
+	CuAssertIntEquals(tc, ir->arg2->label, 11);
+
+	// Jumpfalse L1
+	tmp = ir;
+	ir = ir->next_row;
+	CuAssertPtrNotNull(tc, ir);
+	CuAssertIntEquals(tc, ir->row_no, 4);
+	CuAssertIntEquals(tc, ir->instr, MCC_IR_INSTR_JUMPFALSE);
+	CuAssertPtrNotNull(tc, ir->arg1);
+	CuAssertIntEquals(tc, ir->arg1->type, MCC_IR_TYPE_ROW);
+	CuAssertPtrEquals(tc, ir->arg1->row, tmp);
+	CuAssertIntEquals(tc, ir->arg2->type, MCC_IR_TYPE_LABEL);
+	CuAssertIntEquals(tc, ir->arg2->label, 1);
+
+	// On true: a + 1
+	ir = ir->next_row;
+	CuAssertPtrNotNull(tc, ir);
+	CuAssertIntEquals(tc, ir->row_no, 5);
+	CuAssertIntEquals(tc, ir->instr, MCC_IR_INSTR_PLUS);
+	CuAssertPtrNotNull(tc, ir->arg1);
+	CuAssertPtrNotNull(tc, ir->arg2);
+	CuAssertIntEquals(tc, ir->arg1->type, MCC_IR_TYPE_IDENTIFIER);
+	CuAssertStrEquals(tc, ir->arg1->ident->identifier_name, "a");
+	CuAssertIntEquals(tc, ir->arg2->type, MCC_IR_TYPE_LIT_INT);
+	CuAssertIntEquals(tc, ir->arg2->lit_int, 1);
+
+	// On true: a = x
+	tmp = ir;
+	ir = ir->next_row;
+	CuAssertPtrNotNull(tc, ir);
+	CuAssertIntEquals(tc, ir->row_no, 6);
+	CuAssertIntEquals(tc, ir->instr, MCC_IR_INSTR_ASSIGN);
+	CuAssertPtrNotNull(tc, ir->arg1);
+	CuAssertPtrNotNull(tc, ir->arg2);
+	CuAssertIntEquals(tc, ir->arg1->type, MCC_IR_TYPE_IDENTIFIER);
+	CuAssertStrEquals(tc, ir->arg1->ident->identifier_name, "a");
+	CuAssertIntEquals(tc, ir->arg2->type, MCC_IR_TYPE_ROW);
+	CuAssertPtrEquals(tc, ir->arg2->row, tmp);
+
+	// jump L0
+	tmp = ir;
+	ir = ir->next_row;
+	CuAssertPtrNotNull(tc, ir);
+	CuAssertIntEquals(tc, ir->row_no, 7);
+	CuAssertIntEquals(tc, ir->instr, MCC_IR_INSTR_JUMP);
+	CuAssertPtrNotNull(tc, ir->arg1);
+	CuAssertPtrEquals(tc, NULL, ir->arg2);
+	CuAssertIntEquals(tc, ir->arg1->type, MCC_IR_TYPE_LABEL);
+	CuAssertIntEquals(tc, ir->arg1->label, 0);
+
+	// L1
+	tmp = ir;
+	ir = ir->next_row;
+	CuAssertPtrNotNull(tc, ir);
+	CuAssertIntEquals(tc, ir->row_no, 8);
+	CuAssertIntEquals(tc, ir->instr, MCC_IR_INSTR_LABEL);
+	CuAssertPtrEquals(tc, ir->arg2, NULL);
+	CuAssertIntEquals(tc, ir->arg1->type, MCC_IR_TYPE_LABEL);
+	CuAssertIntEquals(tc, ir->arg1->label, 1);
+
+	// Cleanup
+	mcc_ir_delete_ir(ir_head);
+	mcc_ast_delete(parser_result.program);
+	mcc_symbol_table_delete_table(table);
+}
 // clang-format off
 
 #define TESTS \
@@ -355,7 +464,7 @@ void if_else_stmt(CuTest *tc)
 	TEST(exp_plus_exp) \
 	TEST(expression_var) \
 	TEST(if_stmt) \
-	TEST(if_stmt)
+        TEST(while_stmt)
 
 // clang-format on
 
