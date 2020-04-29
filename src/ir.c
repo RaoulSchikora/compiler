@@ -46,7 +46,7 @@ struct ir_generation_userdata {
  *    statement_assignment      :    TODO: move  from row number to identifier
  *    statement_declaration     :    Not needed?
  *    statement_return          :    DONE
- *    statement_compound_stmt   :    DONE 
+ *    statement_compound_stmt   :    DONE
 
  *    compound_statement        :    DONE
  *    program                   :    TODO
@@ -54,7 +54,7 @@ struct ir_generation_userdata {
  *    parameters                :    TODO
  *    arguments                 :    TODO
 
- *    assignment                :    
+ *    assignment                :
  *    variable_assignment       :    DONE
  *    array_assignment          :    TODO
  *    declaration               :    Not needed?
@@ -78,7 +78,6 @@ static struct mcc_ir_arg *new_arg_row(struct mcc_ir_row *row);
 static struct mcc_ir_arg *new_arg_label(struct ir_generation_userdata *data);
 static struct mcc_ir_arg *new_arg_identifier(struct mcc_ast_identifier *ident);
 static void append_row(struct mcc_ir_row *row, struct ir_generation_userdata *data);
-static struct mcc_ir_row *look_up_row(char *ident, struct ir_generation_userdata *data);
 static struct mcc_ir_arg *generate_arg_lit(struct mcc_ast_literal *literal, struct ir_generation_userdata *data);
 
 //------------------------------------------------------------------------------ Forward declarations: IR generation
@@ -195,8 +194,7 @@ static struct mcc_ir_arg *generate_ir_expression_var(struct mcc_ast_expression *
 	if (data->has_failed)
 		return NULL;
 
-	struct mcc_ir_row *row = look_up_row(expression->identifier->identifier_name, data);
-	struct mcc_ir_arg *arg = mcc_ir_new_arg(row);
+	struct mcc_ir_arg *arg = mcc_ir_new_arg(expression->identifier);
 	return arg;
 }
 
@@ -410,23 +408,6 @@ static void generate_ir_program(struct mcc_ast_program *program, struct ir_gener
 }
 
 //---------------------------------------------------------------------------------------- IR datastructures
-
-static struct mcc_ir_row *look_up_row(char *ident, struct ir_generation_userdata *data)
-{
-	assert(ident);
-	assert(data);
-	if (data->has_failed)
-		return NULL;
-
-	struct mcc_ir_row *iter = data->current;
-	do {
-		if (iter->instr == MCC_IR_INSTR_ASSIGN && strcmp(iter->arg1->ident->identifier_name, ident) == 0) {
-			return iter;
-		}
-		iter = iter->prev_row;
-	} while (iter);
-	return NULL;
-}
 
 static struct mcc_ir_arg *generate_arg_lit(struct mcc_ast_literal *literal, struct ir_generation_userdata *data)
 {

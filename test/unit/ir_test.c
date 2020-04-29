@@ -161,8 +161,8 @@ void expression_var(CuTest *tc)
 
 	CuAssertIntEquals(tc, next_ir->row_no, 2);
 	CuAssertIntEquals(tc, next_ir->instr, MCC_IR_INSTR_PLUS);
-	CuAssertIntEquals(tc, next_ir->arg1->type, MCC_IR_TYPE_ROW);
-	CuAssertPtrEquals(tc, next_ir->arg1->row, ir);
+	CuAssertIntEquals(tc, next_ir->arg1->type, MCC_IR_TYPE_IDENTIFIER);
+	CuAssertStrEquals(tc, next_ir->arg1->ident->identifier_name, "a");
 	CuAssertIntEquals(tc, next_ir->arg2->type, MCC_IR_TYPE_LIT_INT);
 	CuAssertIntEquals(tc, (int)next_ir->arg2->lit_int, 1);
 
