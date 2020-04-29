@@ -361,6 +361,21 @@ static void generate_ir_statement_return(struct mcc_ast_statement *stmt, struct 
 	}
 }
 
+static void generate_ir_declaration(struct mcc_ast_declaration *decl, struct ir_generation_userdata *data)
+{
+	assert(decl);
+	assert(data);
+	if(data->has_failed)
+		return;
+	if(decl->declaration_type == MCC_AST_DECLARATION_TYPE_VARIABLE)
+		return;
+	
+	struct mcc_ir_arg *arg1 = mcc_ir_new_arg(decl->array_identifier);
+	struct mcc_ir_arg *arg2 = generate_arg_lit(decl->array_size, data);
+	struct mcc_ir_row *row = new_row(arg1, arg2, MCC_IR_INSTR_ARRAY);
+	append_row(row, data);
+}
+
 static void generate_ir_statement(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data)
 {
 	if (data->has_failed)
@@ -378,6 +393,7 @@ static void generate_ir_statement(struct mcc_ast_statement *stmt, struct ir_gene
 		generate_ir_assignment(stmt->assignment, data);
 		break;
 	case MCC_AST_STATEMENT_TYPE_DECLARATION:
+		generate_ir_declaration(stmt->declaration, data);
 		break;
 	case MCC_AST_STATEMENT_TYPE_IF_ELSE_STMT:
 		generate_ir_statememt_if_else_stmt(stmt, data);

@@ -35,8 +35,8 @@ static char *instr_to_string(enum mcc_ir_instruction instr)
 		return "jumpfalse";
 	case MCC_IR_INSTR_AND:
 		return "and";
-	case MCC_IR_INSTR_ARRAY_EL:
-		return "array el.";
+	case MCC_IR_INSTR_ARRAY:
+		return "array";
 	case MCC_IR_INSTR_DIVIDE:
 		return "divide";
 	case MCC_IR_INSTR_EQUALS:
