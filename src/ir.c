@@ -50,7 +50,7 @@ struct ir_generation_userdata {
 
  *    compound_statement        :    DONE
  *    program                   :    TODO
- *    function_definition       :    TODO
+ *    function_definition       :    Need handle passed arrays
  *    parameters                :    TODO
  *    arguments                 :    TODO
 
