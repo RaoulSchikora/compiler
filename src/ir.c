@@ -64,7 +64,7 @@ struct ir_generation_userdata {
 .identifier = generate_ir_expression_identifier,
 */
 
-//------------------------------------------------------------------------------ Forward declarations
+//------------------------------------------------------------------------------ Forward declarations: IR datastructures
 
 static struct mcc_ir_row *new_row(struct mcc_ir_arg *arg1, struct mcc_ir_arg *arg2, enum mcc_ir_instruction instr);
 static struct mcc_ir_arg *copy_arg(struct mcc_ir_arg *arg);
@@ -76,56 +76,29 @@ static struct mcc_ir_arg *new_arg_row(struct mcc_ir_row *row);
 static struct mcc_ir_arg *new_arg_label(struct ir_generation_userdata *data);
 static struct mcc_ir_arg *new_arg_identifier(struct mcc_ast_identifier *ident);
 static void append_row(struct mcc_ir_row *row, struct ir_generation_userdata *data);
+static struct mcc_ir_row *look_up_row(char *ident, struct ir_generation_userdata *data);
+static struct mcc_ir_arg *generate_arg_lit(struct mcc_ast_literal *literal, struct ir_generation_userdata *data);
+
+//------------------------------------------------------------------------------ Forward declarations: IR generation
+
+static void generate_ir_comp_statement(struct mcc_ast_compound_statement *cmp_stmt,
+                                       struct ir_generation_userdata *data);
 static void generate_ir_statement(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data);
+static void generate_ir_assignment(struct mcc_ast_assignment *asgn, struct ir_generation_userdata *data);
+static void generate_ir_statememt_if_stmt(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data);
+static void generate_ir_statememt_if_else_stmt(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data);
+static void generate_ir_statement_return(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data);
+static void generate_ir_program(struct mcc_ast_program *program, struct ir_generation_userdata *data);
 static struct mcc_ir_arg *generate_ir_expression(struct mcc_ast_expression *expression,
                                                  struct ir_generation_userdata *data);
+static struct mcc_ir_arg *generate_ir_expression_var(struct mcc_ast_expression *expression,
+                                                     struct ir_generation_userdata *data);
+static struct mcc_ir_arg *generate_ir_expression_unary_op(struct mcc_ast_expression *expression,
+                                                          struct ir_generation_userdata *data);
+static struct mcc_ir_arg *generate_ir_expression_binary_op(struct mcc_ast_expression *expression,
+                                                           struct ir_generation_userdata *data);
 
-//------------------------------------------------------------------------------ Functions that recursively create IR
-
-static struct mcc_ir_row *look_up_row(char *ident, struct ir_generation_userdata *data)
-{
-	assert(ident);
-	assert(data);
-	if (data->has_failed)
-		return NULL;
-
-	struct mcc_ir_row *iter = data->current;
-	do {
-		if (iter->instr == MCC_IR_INSTR_ASSIGN && strcmp(iter->arg1->ident->identifier_name, ident) == 0) {
-			return iter;
-		}
-		iter = iter->prev_row;
-	} while (iter);
-	return NULL;
-}
-
-static struct mcc_ir_arg *generate_arg_lit(struct mcc_ast_literal *literal, struct ir_generation_userdata *data)
-{
-	assert(literal);
-
-	struct mcc_ir_arg *arg = NULL;
-
-	switch (literal->type) {
-	case MCC_AST_LITERAL_TYPE_INT:
-		arg = mcc_ir_new_arg(literal->i_value);
-		break;
-	case MCC_AST_LITERAL_TYPE_FLOAT:
-		arg = mcc_ir_new_arg(literal->f_value);
-		break;
-	case MCC_AST_LITERAL_TYPE_BOOL:
-		arg = mcc_ir_new_arg(literal->bool_value);
-		break;
-	case MCC_AST_LITERAL_TYPE_STRING:
-		arg = mcc_ir_new_arg(literal->string_value);
-		break;
-	}
-
-	if (!arg) {
-		data->has_failed = true;
-	}
-
-	return arg;
-}
+//------------------------------------------------------------------------------ IR generation
 
 static struct mcc_ir_arg *generate_ir_expression_binary_op(struct mcc_ast_expression *expression,
                                                            struct ir_generation_userdata *data)
@@ -402,7 +375,52 @@ static void generate_ir_program(struct mcc_ast_program *program, struct ir_gener
 	generate_ir_comp_statement(program->function->compound_stmt, data);
 }
 
-//---------------------------------------------------------------------------------------- Generate IR datastructures
+//---------------------------------------------------------------------------------------- IR datastructures
+
+static struct mcc_ir_row *look_up_row(char *ident, struct ir_generation_userdata *data)
+{
+	assert(ident);
+	assert(data);
+	if (data->has_failed)
+		return NULL;
+
+	struct mcc_ir_row *iter = data->current;
+	do {
+		if (iter->instr == MCC_IR_INSTR_ASSIGN && strcmp(iter->arg1->ident->identifier_name, ident) == 0) {
+			return iter;
+		}
+		iter = iter->prev_row;
+	} while (iter);
+	return NULL;
+}
+
+static struct mcc_ir_arg *generate_arg_lit(struct mcc_ast_literal *literal, struct ir_generation_userdata *data)
+{
+	assert(literal);
+
+	struct mcc_ir_arg *arg = NULL;
+
+	switch (literal->type) {
+	case MCC_AST_LITERAL_TYPE_INT:
+		arg = mcc_ir_new_arg(literal->i_value);
+		break;
+	case MCC_AST_LITERAL_TYPE_FLOAT:
+		arg = mcc_ir_new_arg(literal->f_value);
+		break;
+	case MCC_AST_LITERAL_TYPE_BOOL:
+		arg = mcc_ir_new_arg(literal->bool_value);
+		break;
+	case MCC_AST_LITERAL_TYPE_STRING:
+		arg = mcc_ir_new_arg(literal->string_value);
+		break;
+	}
+
+	if (!arg) {
+		data->has_failed = true;
+	}
+
+	return arg;
+}
 
 static void append_row(struct mcc_ir_row *row, struct ir_generation_userdata *data)
 {
