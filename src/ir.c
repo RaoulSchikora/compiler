@@ -70,6 +70,7 @@ struct ir_generation_userdata {
 
 static struct mcc_ir_row *new_row(struct mcc_ir_arg *arg1, struct mcc_ir_arg *arg2, enum mcc_ir_instruction instr);
 static struct mcc_ir_arg *copy_arg(struct mcc_ir_arg *arg);
+static struct mcc_ir_arg *new_arg_func_label(struct mcc_ast_function_definition *def);
 static struct mcc_ir_arg *new_arg_int(long lit);
 static struct mcc_ir_arg *new_arg_float(double lit);
 static struct mcc_ir_arg *new_arg_bool(bool lit);
@@ -492,6 +493,16 @@ static struct mcc_ir_arg *copy_arg(struct mcc_ir_arg *arg)
 	}
 }
 
+static struct mcc_ir_arg *new_arg_func_label(struct mcc_ast_function_definition *def)
+{
+	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
+	if (!arg)
+		return NULL;
+	arg->type = MCC_IR_TYPE_FUNC_LABEL;
+	arg->func_label = strdup(def->identifier->identifier_name);
+	return arg;
+}
+
 static struct mcc_ir_arg *new_arg_row(struct mcc_ir_row *row)
 {
 	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
@@ -636,6 +647,9 @@ void mcc_ir_delete_ir_arg(struct mcc_ir_arg *arg)
 		return;
 	if (arg->type == MCC_IR_TYPE_LIT_STRING) {
 		free(arg->lit_string);
+	}
+	if (arg->type == MCC_IR_TYPE_FUNC_LABEL) {
+		free(arg->func_label);
 	}
 	free(arg);
 }
