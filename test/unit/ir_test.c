@@ -513,6 +513,7 @@ void func_def(CuTest *tc)
 
 	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program, table);
 	struct mcc_ir_row *tmp = ir;
+	struct mcc_ir_row *ir_head = ir;
 
 	// Label test
 	CuAssertPtrNotNull(tc, ir);
@@ -567,6 +568,11 @@ void func_def(CuTest *tc)
 	CuAssertIntEquals(tc, ir->arg1->type, MCC_IR_TYPE_LIT_INT);
 	CuAssertIntEquals(tc, ir->arg1->lit_int, 0);
 	CuAssertPtrEquals(tc, NULL, ir->arg2);
+
+	// Cleanup
+	mcc_ir_delete_ir(ir_head);
+	mcc_ast_delete(parser_result.program);
+	mcc_symbol_table_delete_table(table);
 }
 
 // clang-format off
