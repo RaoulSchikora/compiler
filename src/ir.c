@@ -26,10 +26,10 @@ struct ir_generation_userdata {
  *    expression                :    DONE (Just update when other expression functions are added)
  *    expression_literal        :    DONE
  *    expression_binary_op      :    DONE
- *    expression_parenth        :    TODO
+ *    expression_parenth        :    DONE
  *    expression_unary_op       :    DONE
  *    expression_variable       :    TODO
- *    expression_array_element  :    TODO
+ *    expression_array_element  :    DONE
  *    expression_function_call  :    TODO
 
  *    literal                   :    DONE
@@ -43,7 +43,7 @@ struct ir_generation_userdata {
  *    statement_if_else_stmt    :    DONE
  *    statement_expression_stmt :    DONE
  *    statement_while           :    DONE
- *    statement_assignment      :    TODO: move  from row number to identifier
+ *    statement_assignment      :    DONE
  *    statement_declaration     :    Not needed?
  *    statement_return          :    DONE
  *    statement_compound_stmt   :    DONE 
