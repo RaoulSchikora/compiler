@@ -28,7 +28,7 @@ struct ir_generation_userdata {
  *    expression_binary_op      :    DONE
  *    expression_parenth        :    DONE
  *    expression_unary_op       :    DONE
- *    expression_variable       :    TODO
+ *    expression_variable       :    DONE
  *    expression_array_element  :    DONE
  *    expression_function_call  :    TODO
 
@@ -44,7 +44,7 @@ struct ir_generation_userdata {
  *    statement_expression_stmt :    DONE
  *    statement_while           :    DONE
  *    statement_assignment      :    DONE
- *    statement_declaration     :    Not needed?
+ *    statement_declaration     :    DONE
  *    statement_return          :    DONE
  *    statement_compound_stmt   :    DONE
 
@@ -56,10 +56,10 @@ struct ir_generation_userdata {
 
  *    assignment                :
  *    variable_assignment       :    DONE
- *    array_assignment          :    TODO
- *    declaration               :    Not needed?
- *    variable_declaration      :    Not needed?
- *    array_declaration         :    Not needed?
+ *    array_assignment          :    DONE
+ *    declaration               :    DONE
+ *    variable_declaration      :    Not needed!
+ *    array_declaration         :    DONE
 
  *    type                      :    Not needed?
  *    identifier                :    Not needed?
