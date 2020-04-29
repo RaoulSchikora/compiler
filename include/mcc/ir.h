@@ -42,6 +42,7 @@ enum mcc_ir_arg_type {
 	MCC_IR_TYPE_LIT_BOOL,
 	MCC_IR_TYPE_LIT_STRING,
 	MCC_IR_TYPE_IDENTIFIER,
+	MCC_IR_TYPE_ARR_ELEM,
 	MCC_IR_TYPE_LABEL,
 };
 
@@ -56,6 +57,10 @@ struct mcc_ir_arg {
 		struct mcc_ir_row *row;
         unsigned label;
 		struct mcc_ast_identifier *ident;
+		struct {
+			struct mcc_ast_identifier *arr_ident;
+			struct mcc_ir_arg *index;
+		};
 	};
 };
 

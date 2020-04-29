@@ -77,6 +77,7 @@ static struct mcc_ir_arg *new_arg_string(char *lit);
 static struct mcc_ir_arg *new_arg_row(struct mcc_ir_row *row);
 static struct mcc_ir_arg *new_arg_label(struct ir_generation_userdata *data);
 static struct mcc_ir_arg *new_arg_identifier(struct mcc_ast_identifier *ident);
+static struct mcc_ir_arg *new_arg_arr_elem(struct mcc_ast_identifier *ident, struct mcc_ir_arg *elem);
 static void append_row(struct mcc_ir_row *row, struct ir_generation_userdata *data);
 static struct mcc_ir_row *look_up_row(char *ident, struct ir_generation_userdata *data);
 static struct mcc_ir_arg *generate_arg_lit(struct mcc_ast_literal *literal, struct ir_generation_userdata *data);
@@ -227,6 +228,7 @@ static struct mcc_ir_arg *generate_ir_expression(struct mcc_ast_expression *expr
 		arg = generate_ir_expression_var(expression, data);
 		break;
 	case MCC_AST_EXPRESSION_TYPE_ARRAY_ELEMENT:
+		arg = new_arg_arr_elem(expression->array_identifier, generate_ir_expression(expression->index, data));
 		break;
 	case MCC_AST_EXPRESSION_TYPE_FUNCTION_CALL:
 		break;
@@ -262,7 +264,10 @@ static void generate_ir_assignment(struct mcc_ast_assignment *asgn, struct ir_ge
 		exp = generate_ir_expression(asgn->variable_assigned_value, data);
 		row = new_row(identifier, exp, MCC_IR_INSTR_ASSIGN);
 	} else {
-		// TODO
+		struct mcc_ir_arg *index = generate_ir_expression(asgn->array_index, data);
+		identifier = new_arg_arr_elem(asgn->array_identifier, index);
+		exp = generate_ir_expression(asgn->array_assigned_value, data);
+		row = new_row(identifier, exp, MCC_IR_INSTR_ASSIGN);
 	}
 	append_row(row, data);
 }
@@ -574,6 +579,17 @@ static struct mcc_ir_arg *new_arg_identifier(struct mcc_ast_identifier *ident)
 		return NULL;
 	arg->type = MCC_IR_TYPE_IDENTIFIER;
 	arg->ident = ident;
+	return arg;
+}
+
+static struct mcc_ir_arg *new_arg_arr_elem(struct mcc_ast_identifier *ident, struct mcc_ir_arg *index)
+{
+	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
+	if (!arg)
+		return NULL;
+	arg->type = MCC_IR_TYPE_ARR_ELEM;
+	arg->arr_ident = ident;
+	arg->index = index;
 	return arg;
 }
 

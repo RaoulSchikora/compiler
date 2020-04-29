@@ -172,6 +172,45 @@ void expression_var(CuTest *tc)
 	mcc_symbol_table_delete_table(table);
 }
 
+void expression_arr(CuTest *tc)
+{
+	const char input[] = "int main(){ int[10] arr; arr[4] = 3; return arr[4];}";
+	struct mcc_parser_result parser_result;
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
+	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+
+	struct mcc_ir_row *ir_head = mcc_ir_generate((&parser_result)->program, table);
+	struct mcc_ir_row *ir = ir_head->next_row;
+
+	CuAssertPtrNotNull(tc, ir);
+
+	CuAssertIntEquals(tc, ir->row_no, 1);
+	CuAssertIntEquals(tc, ir->instr, MCC_IR_INSTR_ASSIGN);
+	CuAssertPtrNotNull(tc, ir->arg1);
+	CuAssertIntEquals(tc, ir->arg1->type, MCC_IR_TYPE_ARR_ELEM);
+	CuAssertStrEquals(tc, ir->arg1->arr_ident->identifier_name, "arr");
+	CuAssertIntEquals(tc, (int)ir->arg1->index->type, MCC_IR_TYPE_LIT_INT);
+	CuAssertIntEquals(tc, (int)ir->arg1->index->lit_int, 4);
+	CuAssertIntEquals(tc, ir->arg2->type, MCC_IR_TYPE_LIT_INT);
+	CuAssertIntEquals(tc, (int)ir->arg2->lit_int, 3);
+
+	struct mcc_ir_row *next_ir = ir->next_row;
+	CuAssertPtrNotNull(tc, next_ir);
+
+	CuAssertIntEquals(tc, next_ir->row_no, 2);
+	CuAssertIntEquals(tc, next_ir->instr, MCC_IR_INSTR_RETURN);
+	CuAssertIntEquals(tc, next_ir->arg1->type, MCC_IR_TYPE_ARR_ELEM);
+	CuAssertStrEquals(tc, ir->arg1->arr_ident->identifier_name, "arr");
+	CuAssertIntEquals(tc, (int)ir->arg1->index->type, MCC_IR_TYPE_LIT_INT);
+	CuAssertIntEquals(tc, (int)ir->arg1->index->lit_int, 4);
+
+	// Cleanup
+	mcc_ir_delete_ir(ir_head);
+	mcc_ast_delete(parser_result.program);
+	mcc_symbol_table_delete_table(table);
+}
+
 void if_stmt(CuTest *tc)
 {
 	const char input[] = "int main(){if(0==1) 1*2+2; return 0;}";
@@ -463,8 +502,9 @@ void while_stmt(CuTest *tc)
 	TEST(expression) \
 	TEST(exp_plus_exp) \
 	TEST(expression_var) \
+	TEST(expression_arr) \
 	TEST(if_stmt) \
-        TEST(while_stmt)
+	TEST(while_stmt)
 
 // clang-format on
 

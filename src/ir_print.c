@@ -105,6 +105,8 @@ static int arg_size(struct mcc_ir_arg *arg)
 		return length_of_int(arg->label) + 1;
 	case MCC_IR_TYPE_IDENTIFIER:
 		return strlen(arg->ident->identifier_name) + 2;
+	case MCC_IR_TYPE_ARR_ELEM:
+		return strlen(arg->arr_ident->identifier_name) + arg_size(arg->index) + 3;
 	default:
 		return length_of_int(1000);
 	};
@@ -130,6 +132,11 @@ static void arg_to_string(char *dest, struct mcc_ir_arg *arg)
 		strcpy(dest, "");
 		return;
 	}
+	int index_size = 0;
+	if(MCC_IR_TYPE_ARR_ELEM) {
+		index_size = arg_size(arg->index);
+	}
+	char index[index_size];
 
 	switch (arg->type) {
 	case MCC_IR_TYPE_ROW:
@@ -152,6 +159,10 @@ static void arg_to_string(char *dest, struct mcc_ir_arg *arg)
 		return;
 	case MCC_IR_TYPE_IDENTIFIER:
 		strcpy(dest, arg->ident->identifier_name);
+		return;
+	case MCC_IR_TYPE_ARR_ELEM:
+		arg_to_string(index, arg->index);
+		sprintf(dest, "%s[%s]", arg->arr_ident->identifier_name, index);
 	};
 }
 
