@@ -85,6 +85,7 @@ static void generate_ir_comp_statement(struct mcc_ast_compound_statement *cmp_st
                                        struct ir_generation_userdata *data);
 static void generate_ir_statement(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data);
 static void generate_ir_assignment(struct mcc_ast_assignment *asgn, struct ir_generation_userdata *data);
+static void generate_ir_statememt_while_stmt(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data);
 static void generate_ir_statememt_if_stmt(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data);
 static void generate_ir_statememt_if_else_stmt(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data);
 static void generate_ir_statement_return(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data);
@@ -264,6 +265,36 @@ static void generate_ir_assignment(struct mcc_ast_assignment *asgn, struct ir_ge
 	append_row(row, data);
 }
 
+static void generate_ir_statememt_while_stmt(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data)
+{
+	if (data->has_failed)
+		return;
+
+	// L0
+	struct mcc_ir_arg *l0 = new_arg_label(data);
+	struct mcc_ir_row *label_row = new_row(l0, NULL, MCC_IR_INSTR_LABEL);
+	append_row(label_row, data);
+
+	// Condition
+	struct mcc_ir_arg *cond = generate_ir_expression(stmt->if_condition, data);
+
+	// Jumpfalse L1
+	struct mcc_ir_arg *l1 = new_arg_label(data);
+	struct mcc_ir_row *jumpfalse = new_row(cond, l1, MCC_IR_INSTR_JUMPFALSE);
+	append_row(jumpfalse, data);
+
+	// On true
+	generate_ir_statement(stmt->while_on_true, data);
+
+	// Jump L0
+	struct mcc_ir_row *jump_row = new_row(copy_arg(l0), NULL, MCC_IR_INSTR_JUMP);
+	append_row(jump_row, data);
+
+	// Label L1
+	struct mcc_ir_row *label_row_2 = new_row(copy_arg(l1), NULL, MCC_IR_INSTR_LABEL);
+	append_row(label_row_2, data);
+}
+
 static void generate_ir_statememt_if_else_stmt(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data)
 {
 	if (data->has_failed)
@@ -353,6 +384,7 @@ static void generate_ir_statement(struct mcc_ast_statement *stmt, struct ir_gene
 		generate_ir_statement_return(stmt, data);
 		break;
 	case MCC_AST_STATEMENT_TYPE_WHILE:
+		generate_ir_statememt_while_stmt(stmt, data);
 		break;
 	default:
 		break;
