@@ -117,9 +117,9 @@ static void row_no_to_string(char *dest, int no)
 	sprintf(dest, "(%d)", no);
 }
 
-static void bool_to_string(char* dest, bool b)
+static void bool_to_string(char *dest, bool b)
 {
-	if (b){
+	if (b) {
 		sprintf(dest, "true");
 	} else {
 		sprintf(dest, "false");
@@ -133,7 +133,7 @@ static void arg_to_string(char *dest, struct mcc_ir_arg *arg)
 		return;
 	}
 	int index_size = 0;
-	if(MCC_IR_TYPE_ARR_ELEM) {
+	if (MCC_IR_TYPE_ARR_ELEM) {
 		index_size = arg_size(arg->index);
 	}
 	char index[index_size];
