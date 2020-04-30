@@ -164,7 +164,7 @@ static void arg_to_string(char *dest, struct mcc_ir_arg *arg)
 		sprintf(dest, "L%d", arg->label);
 		return;
 	case MCC_IR_TYPE_IDENTIFIER:
-		strcpy(dest, arg->ident->identifier_name);
+		sprintf(dest, "%s", arg->ident->identifier_name);
 		return;
 	case MCC_IR_TYPE_ARR_ELEM:
 		arg_to_string(index, arg->index);
