@@ -69,7 +69,8 @@ struct ir_generation_userdata {
 //------------------------------------------------------------------------------ Forward declarations: IR datastructures
 
 static struct mcc_ir_arg *arg_from_declaration(struct mcc_ast_declaration *decl, struct ir_generation_userdata *data);
-static struct mcc_ir_arg *new_arg_func_label(struct mcc_ast_function_definition *def);
+static struct mcc_ir_arg *new_arg_func_label(struct mcc_ast_function_definition *def,
+                                             struct ir_generation_userdata *data);
 static struct mcc_ir_row *new_row(struct mcc_ir_arg *arg1,
                                   struct mcc_ir_arg *arg2,
                                   enum mcc_ir_instruction instr,
@@ -471,7 +472,7 @@ static void generate_ir_function_definition(struct mcc_ast_function_definition *
 		return;
 
 	// Function Label
-	struct mcc_ir_arg *func_label = new_arg_func_label(def);
+	struct mcc_ir_arg *func_label = new_arg_func_label(def, data);
 	struct mcc_ir_row *label_row = new_row(func_label, NULL, MCC_IR_INSTR_FUNC_LABEL, data);
 	append_row(label_row, data);
 
@@ -594,11 +595,14 @@ static struct mcc_ir_arg *copy_arg(struct mcc_ir_arg *arg, struct ir_generation_
 	}
 }
 
-static struct mcc_ir_arg *new_arg_func_label(struct mcc_ast_function_definition *def)
+static struct mcc_ir_arg *new_arg_func_label(struct mcc_ast_function_definition *def,
+                                             struct ir_generation_userdata *data)
 {
 	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
-	if (!arg)
+	if (!arg) {
+		data->has_failed = true;
 		return NULL;
+	}
 	arg->type = MCC_IR_TYPE_FUNC_LABEL;
 	arg->func_label = strdup(def->identifier->identifier_name);
 	return arg;
