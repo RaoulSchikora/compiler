@@ -212,13 +212,13 @@ static void generate_ir_arguments(struct mcc_ast_arguments *arguments, struct ir
 {
 	assert(data);
 	assert(arguments);
-	if(data->has_failed)
+	if (data->has_failed)
 		return;
 
-	if(arguments->next_arguments){
+	if (arguments->next_arguments) {
 		generate_ir_arguments(arguments->next_arguments, data);
 	}
-	if(!arguments->is_empty){
+	if (!arguments->is_empty) {
 		struct mcc_ir_arg *arg_push = generate_ir_expression(arguments->expression, data);
 		struct mcc_ir_row *row = new_row(arg_push, NULL, MCC_IR_INSTR_PUSH, data);
 		append_row(row, data);
@@ -230,7 +230,7 @@ static struct mcc_ir_arg *generate_ir_expression_func_call(struct mcc_ast_expres
 {
 	assert(expression->function_identifier);
 	assert(data);
-	if(data->has_failed)
+	if (data->has_failed)
 		return NULL;
 
 	generate_ir_arguments(expression->arguments, data);
