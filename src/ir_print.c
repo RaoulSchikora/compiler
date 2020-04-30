@@ -139,7 +139,7 @@ static void arg_to_string(char *dest, struct mcc_ir_arg *arg)
 		return;
 	}
 	int index_size = 0;
-	if (MCC_IR_TYPE_ARR_ELEM) {
+	if (arg->type == MCC_IR_TYPE_ARR_ELEM) {
 		index_size = arg_size(arg->index);
 	}
 	char index[index_size];
