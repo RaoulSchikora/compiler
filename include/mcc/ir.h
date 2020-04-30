@@ -97,13 +97,13 @@ void mcc_ir_delete_ir_arg(struct mcc_ir_arg *arg);
 // clang-format off
 
 #define mcc_ir_new_arg(x, y) _Generic((x), \
-		long:									new_arg_int, \
-		double:									new_arg_float, \
-		bool:									new_arg_bool, \
-        char* :                                 new_arg_string, \
-        struct mcc_ir_row *:          			new_arg_row, \
-		unsigned:								new_arg_label, \
-		struct mcc_ast_identifier *:			new_arg_identifier \
+    long:                           new_arg_int, \
+    double:                         new_arg_float, \
+    bool:                           new_arg_bool, \
+    char*:                          new_arg_string, \
+    struct mcc_ir_row *:            new_arg_row, \
+    unsigned:                       new_arg_label, \
+    struct mcc_ast_identifier *:    new_arg_identifier \
     )(x,y)
 
 // clang-format on
