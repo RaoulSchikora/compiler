@@ -743,10 +743,19 @@ struct mcc_ir_row *mcc_ir_generate(struct mcc_ast_program *ast, struct mcc_symbo
 	data->current = NULL;
 	data->label_counter = 0;
 
+	struct mcc_ast_program *main_func = NULL;
 	while (ast) {
+		// Generate main code last
+		if (strcmp(ast->function->identifier->identifier_name, "main") == 0) {
+			main_func = ast;
+			ast = ast->next_function;
+			continue;
+		}
 		generate_ir_program(ast, data);
 		ast = ast->next_function;
 	}
+	generate_ir_program(main_func, data);
+
 	if (data->has_failed) {
 		mcc_ir_delete_ir(data->head);
 		free(data);
