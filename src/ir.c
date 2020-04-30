@@ -49,10 +49,10 @@ struct ir_generation_userdata {
  *    statement_compound_stmt   :    DONE
 
  *    compound_statement        :    DONE
- *    program                   :    TODO
- *    function_definition       :    Need handle passed arrays
- *    parameters                :    TODO
- *    arguments                 :    TODO
+ *    program                   :    TODO: Generate return statements for void functions
+ *    function_definition       :    Need to handle passed arrays
+ *    parameters                :    DONE
+ *    arguments                 :    DONE
 
  *    assignment                :
  *    variable_assignment       :    DONE
@@ -465,6 +465,7 @@ static void generate_ir_program(struct mcc_ast_program *program, struct ir_gener
 	generate_ir_function_definition(program->function, data);
 }
 
+// TODO: generate return statements for void functions
 static void generate_ir_function_definition(struct mcc_ast_function_definition *def,
                                             struct ir_generation_userdata *data)
 {
