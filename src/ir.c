@@ -532,10 +532,6 @@ static struct mcc_ir_arg *generate_arg_lit(struct mcc_ast_literal *literal, stru
 		break;
 	}
 
-	if (!arg) {
-		data->has_failed = true;
-	}
-
 	return arg;
 }
 
