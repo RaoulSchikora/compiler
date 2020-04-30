@@ -33,6 +33,8 @@ static char *instr_to_string(enum mcc_ir_instruction instr)
 		return "jump";
 	case MCC_IR_INSTR_FUNC_LABEL:
 		return "funclabel";
+	case MCC_IR_INSTR_FUNC_CALL:
+		return "call";
 	case MCC_IR_INSTR_JUMPFALSE:
 		return "jumpfalse";
 	case MCC_IR_INSTR_CALL:
