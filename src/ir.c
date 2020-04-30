@@ -478,20 +478,16 @@ static void generate_ir_function_definition(struct mcc_ast_function_definition *
 
 	// Pop args and assign them
 	struct mcc_ast_parameters *pars = def->parameters;
-	struct mcc_ir_row *pop_row;
-	struct mcc_ir_row *assign;
-	struct mcc_ir_arg *var;
-	struct mcc_ir_arg *pop_arg;
 
 	while (pars && !pars->is_empty) {
 		// Pop arg
-		pop_row = new_row(NULL, NULL, MCC_IR_INSTR_POP, data);
+		struct mcc_ir_row *pop_row = new_row(NULL, NULL, MCC_IR_INSTR_POP, data);
 		append_row(pop_row, data);
-		pop_arg = new_arg_row(pop_row, data);
+		struct mcc_ir_arg *pop_arg = new_arg_row(pop_row, data);
 
 		// Assign it
-		var = arg_from_declaration(pars->declaration, data);
-		assign = new_row(var, pop_arg, MCC_IR_INSTR_ASSIGN, data);
+		struct mcc_ir_arg *var = arg_from_declaration(pars->declaration, data);
+		struct mcc_ir_row *assign = new_row(var, pop_arg, MCC_IR_INSTR_ASSIGN, data);
 		append_row(assign, data);
 		pars = pars->next_parameters;
 	}
