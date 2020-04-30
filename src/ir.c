@@ -30,7 +30,7 @@ struct ir_generation_userdata {
  *    expression_unary_op       :    DONE
  *    expression_variable       :    DONE
  *    expression_array_element  :    DONE
- *    expression_function_call  :    TODO
+ *    expression_function_call  :    DONE
 
  *    literal                   :    DONE
  *    literal_int               :    DONE
