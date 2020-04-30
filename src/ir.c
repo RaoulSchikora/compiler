@@ -776,6 +776,9 @@ void mcc_ir_delete_ir_arg(struct mcc_ir_arg *arg)
 	if (arg->type == MCC_IR_TYPE_FUNC_LABEL) {
 		free(arg->func_label);
 	}
+	if (arg->type == MCC_IR_TYPE_ARR_ELEM) {
+		mcc_ir_delete_ir_arg(arg->index);
+	}
 	free(arg);
 }
 
