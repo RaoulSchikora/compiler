@@ -235,7 +235,7 @@ static struct mcc_ir_arg *generate_ir_expression_func_call(struct mcc_ast_expres
 	generate_ir_arguments(expression->arguments, data);
 
 	struct mcc_ir_arg *arg = mcc_ir_new_arg(expression->function_identifier, data);
-	struct mcc_ir_row *row = new_row(arg, NULL, MCC_IR_INSTR_FUNC_CALL, data);
+	struct mcc_ir_row *row = new_row(arg, NULL, MCC_IR_INSTR_CALL, data);
 	append_row(row, data);
 	return mcc_ir_new_arg(row, data);
 }

@@ -610,7 +610,7 @@ void func_call(CuTest *tc)
 
 	CuAssertPtrNotNull(tc, tmp);
 	CuAssertIntEquals(tc, tmp->row_no, 5);
-	CuAssertIntEquals(tc, tmp->instr, MCC_IR_INSTR_FUNC_CALL);
+	CuAssertIntEquals(tc, tmp->instr, MCC_IR_INSTR_CALL);
 	CuAssertIntEquals(tc, tmp->arg1->type, MCC_IR_TYPE_IDENTIFIER);
 	CuAssertStrEquals(tc, tmp->arg1->ident->identifier_name, "test");
 	CuAssertPtrEquals(tc, NULL, tmp->arg2);
