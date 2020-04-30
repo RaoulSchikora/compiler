@@ -10,7 +10,7 @@ void mcc_ir_print_table_begin(FILE *out)
 	fprintf(out, "--------------------------------------------------------------------------------\n"
 	             " Intermediate representation (TAC)                                             |\n"
 	             "--------------------------------------------------------------------------------\n"
-	             " label     | line no.  | instruction | arg1               | arg2               |\n"
+	             " label      | line no. | instruction | arg1               | arg2               |\n"
 	             "--------------------------------------------------------------------------------\n");
 }
 
@@ -21,7 +21,7 @@ void mcc_ir_print_table_end(FILE *out)
 
 static void print_row(FILE *out, char *label, char *row_no, char *instruction, char *arg1, char *arg2)
 {
-	fprintf(out, " %-10s| %-7s   | %-11s | %-18s | %-18s |\n", label, row_no, instruction, arg1, arg2);
+	fprintf(out, " %-11s| %-7s  | %-11s | %-18s | %-18s |\n", label, row_no, instruction, arg1, arg2);
 }
 
 static char *instr_to_string(enum mcc_ir_instruction instr)
