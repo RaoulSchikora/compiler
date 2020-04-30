@@ -84,6 +84,8 @@ struct mcc_ir_row {
 struct mcc_ir_row *mcc_ir_generate_entry_point(struct mcc_parser_result *result,
                                                struct mcc_symbol_table *table,
                                                enum mcc_parser_entry_point entry_point);
+
+// Returns NULL if something along the genration process failed
 struct mcc_ir_row *mcc_ir_generate(struct mcc_ast_program *ast, struct mcc_symbol_table *table);
 
 //---------------------------------------------------------------------------------------- Cleanup
