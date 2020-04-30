@@ -206,9 +206,7 @@ void mcc_ir_print_ir(FILE *out, struct mcc_ir_row *head)
 	mcc_ir_print_table_begin(out);
 
 	while (head) {
-		// TODO: Remove
-		if (head->instr == MCC_IR_INSTR_FUNC_LABEL && strcmp(head->arg1->func_label, "print") == 0)
-			break;
+		// TODO: Do we print the builtins? Their definitions are only stubs for the semantic checks
 		mcc_ir_print_ir_row(out, head);
 		head = head->next_row;
 	}
