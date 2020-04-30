@@ -34,10 +34,6 @@ For integration testing we try to compile mC programs and compare their output f
 
 # Known Issues
 
-## Parser
-
-- parser leaks memory when empty file is handed as input (just EOF character)
-
 ### Grammar
 
 The grammar contains 12 shift/reduce conflicts.
