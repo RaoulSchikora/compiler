@@ -504,9 +504,6 @@ static void generate_ir_function_definition(struct mcc_ast_function_definition *
 static struct mcc_ir_arg *arg_from_declaration(struct mcc_ast_declaration *decl, struct ir_generation_userdata *data)
 {
 	assert(decl);
-	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
-	if (!arg)
-		return NULL;
 	switch (decl->declaration_type) {
 	case MCC_AST_DECLARATION_TYPE_ARRAY:
 		return new_arg_identifier(decl->array_identifier, data);
