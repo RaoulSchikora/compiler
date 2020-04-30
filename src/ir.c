@@ -761,6 +761,8 @@ struct mcc_ir_row *mcc_ir_generate(struct mcc_ast_program *ast, struct mcc_symbo
 	}
 	struct mcc_ir_row *head = data->head;
 	free(data);
+
+	// Set row numbers for the visual representation
 	number_rows(head);
 	return head;
 }
