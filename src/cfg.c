@@ -41,15 +41,7 @@ static void delete_annotated_ir(struct annotated_ir *head)
 	if (!head)
 		return;
 
-	struct annotated_ir *temp = head;
-	while (head->next) {
-		head = head->next;
-	}
-	while (head->prev) {
-		temp = head->prev;
-		free(head);
-		head = temp;
-	}
+	delete_annotated_ir(head->next);
 	free(head);
 }
 
@@ -86,21 +78,49 @@ static struct annotated_ir *annotate_ir(struct mcc_ir_row *head)
 
 //---------------------------------------------------------------------------------------- Functions: CFG
 
+// Put all basic block leaders into their own BB. Link them to a single linear chain of BBs
+static struct mcc_basic_block *get_linear_bbs(struct annotated_ir *an_ir)
+{
+	struct mcc_basic_block *bb_first = mcc_cfg_new_basic_block(an_ir->row, NULL, NULL, NULL, NULL);
+	if (!bb_first) {
+		return NULL;
+	}
+	struct mcc_basic_block *head = bb_first;
+	an_ir = an_ir->next;
+
+	while (an_ir) {
+		if (an_ir->is_leader) {
+			struct mcc_basic_block *new = mcc_cfg_new_basic_block(an_ir->row, NULL, NULL, NULL, NULL);
+			if (!new) {
+				mcc_delete_cfg(bb_first);
+				return NULL;
+			}
+			head->child_right = new;
+			new->parent_left = head;
+			head = new;
+		}
+		an_ir = an_ir->next;
+	}
+	return bb_first;
+}
+
 struct mcc_basic_block *mcc_cfg_generate(struct mcc_ir_row *ir)
 {
 	UNUSED(ir);
 	struct annotated_ir *an_ir = annotate_ir(ir);
 	if (!an_ir)
 		return NULL;
-	struct mcc_basic_block *head = mcc_cfg_new_basic_block(ir, NULL, NULL, NULL, NULL);
-	if (!head) {
-		delete_annotated_ir(an_ir);
-		return NULL;
+	struct annotated_ir *an_ir_first = an_ir;
+
+	struct mcc_basic_block *linear_bbs = get_linear_bbs(an_ir_first);
+	if (!linear_bbs) {
+		delete_annotated_ir(an_ir_first);
 	}
 
 	// Print IR with leaders
 	mcc_ir_print_table_begin(stdout);
 
+	an_ir = an_ir_first;
 	while (an_ir) {
 		if (an_ir->is_leader) {
 			printf("IS_LEADER:\n");
@@ -109,9 +129,11 @@ struct mcc_basic_block *mcc_cfg_generate(struct mcc_ir_row *ir)
 		an_ir = an_ir->next;
 	}
 	mcc_ir_print_table_end(stdout);
-	delete_annotated_ir(an_ir);
 
-	return head;
+	delete_annotated_ir(an_ir_first);
+	mcc_delete_cfg(linear_bbs);
+
+	return linear_bbs;
 }
 
 void mcc_cfg_print(struct mcc_basic_block *block)
@@ -119,7 +141,8 @@ void mcc_cfg_print(struct mcc_basic_block *block)
 	UNUSED(block);
 }
 
-//---------------------------------------------------------------------------------------- Functions: Set up datastructs
+//---------------------------------------------------------------------------------------- Functions: Set up
+// datastructs
 
 struct mcc_basic_block *mcc_cfg_new_basic_block(struct mcc_ir_row *leader,
                                                 struct mcc_basic_block *child_left,
@@ -128,10 +151,6 @@ struct mcc_basic_block *mcc_cfg_new_basic_block(struct mcc_ir_row *leader,
                                                 struct mcc_basic_block *parent_right)
 {
 	assert(leader);
-	assert(child_right);
-	assert(child_left);
-	assert(parent_left);
-	assert(parent_right);
 	struct mcc_basic_block *block = malloc(sizeof(*block));
 	if (!block)
 		return NULL;
@@ -139,5 +158,16 @@ struct mcc_basic_block *mcc_cfg_new_basic_block(struct mcc_ir_row *leader,
 	block->child_right = child_right;
 	block->parent_left = parent_left;
 	block->parent_right = parent_right;
+	block->leader = leader;
 	return block;
 }
+
+void mcc_delete_cfg(struct mcc_basic_block *head)
+{
+	if (!head)
+		return;
+	mcc_delete_cfg(head->child_left);
+	mcc_delete_cfg(head->child_right);
+	free(head);
+}
+
