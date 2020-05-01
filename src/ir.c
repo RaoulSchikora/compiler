@@ -744,6 +744,9 @@ struct mcc_ir_row *mcc_ir_generate(struct mcc_ast_program *ast, struct mcc_symbo
 	data->current = NULL;
 	data->label_counter = 0;
 
+        // remove all built_ins before creating the IR
+        ast = mcc_ast_remove_built_ins(ast);
+
 	// struct mcc_ast_program *main_func = NULL;
 	while (ast) {
 		// Generate main code last
