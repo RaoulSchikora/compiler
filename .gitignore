@@ -4,6 +4,7 @@
 
 # Build directory 
 builddir/
+build/
 
 # debug directory
 debug/
