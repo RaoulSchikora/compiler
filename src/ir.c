@@ -12,8 +12,6 @@
 #include "mcc/symbol_table.h"
 #include "utils/unused.h"
 
-#define not_zero(x) (x > 0 ? x : 1)
-
 struct ir_generation_userdata {
 	struct mcc_ir_row *head;
 	struct mcc_ir_row *current;
