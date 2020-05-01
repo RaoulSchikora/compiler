@@ -8,6 +8,7 @@
 #include "mcc/ast.h"
 #include "mcc/ast_print.h"
 #include "mcc/ast_visit.h"
+#include "mcc/cfg.h"
 #include "mcc/ir.h"
 #include "mcc/ir_print.h"
 #include "mcc/parser.h"
@@ -112,6 +113,10 @@ int main(int argc, char *argv[])
 	} else {
 		mcc_ir_print_ir(stdout, ir);
 	}
+
+	// ---------------------------------------------------------------------- Annotate IR
+
+	mcc_cfg_generate(ir);
 
 	return EXIT_SUCCESS;
 }
