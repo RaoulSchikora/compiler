@@ -19,3 +19,4 @@ void mcc_ir_print_ir_row(FILE *out, struct mcc_ir_row *row);
 void mcc_ir_print_ir(FILE *out, struct mcc_ir_row *head);
 
 #endif
+

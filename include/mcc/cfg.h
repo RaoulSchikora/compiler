@@ -13,15 +13,11 @@ struct mcc_basic_block {
 	struct mcc_basic_block *parent_right;
 };
 
-struct mcc_cfg {
-	struct mcc_basic_block *head;
-};
-
 //---------------------------------------------------------------------------------------- Functions: CFG
 
-struct mcc_cfg *mcc_cfg_generate(struct mcc_ir_row *ir);
+struct mcc_basic_block *mcc_cfg_generate(struct mcc_ir_row *ir);
 
-void mcc_cfg_print(struct mcc_cfg *cfg);
+void mcc_cfg_print(struct mcc_basic_block *block);
 
 //---------------------------------------------------------------------------------------- Functions: Set up datastructs
 

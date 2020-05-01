@@ -86,12 +86,19 @@ static struct annotated_ir *annotate_ir(struct mcc_ir_row *head)
 
 //---------------------------------------------------------------------------------------- Functions: CFG
 
-struct mcc_cfg *mcc_cfg_generate(struct mcc_ir_row *ir)
+struct mcc_basic_block *mcc_cfg_generate(struct mcc_ir_row *ir)
 {
 	UNUSED(ir);
 	struct annotated_ir *an_ir = annotate_ir(ir);
 	if (!an_ir)
 		return NULL;
+	struct mcc_basic_block *head = mcc_cfg_new_basic_block(ir, NULL, NULL, NULL, NULL);
+	if (!head) {
+		delete_annotated_ir(an_ir);
+		return NULL;
+	}
+
+	// Print IR with leaders
 	mcc_ir_print_table_begin(stdout);
 
 	while (an_ir) {
@@ -102,26 +109,17 @@ struct mcc_cfg *mcc_cfg_generate(struct mcc_ir_row *ir)
 		an_ir = an_ir->next;
 	}
 	mcc_ir_print_table_end(stdout);
-        delete_annotated_ir(an_ir);
-	return NULL;
+	delete_annotated_ir(an_ir);
+
+	return head;
 }
 
-void mcc_cfg_print(struct mcc_cfg *cfg)
+void mcc_cfg_print(struct mcc_basic_block *block)
 {
-	UNUSED(cfg);
+	UNUSED(block);
 }
 
 //---------------------------------------------------------------------------------------- Functions: Set up datastructs
-
-struct mcc_cfg *mcc_cfg_new_cfg(struct mcc_basic_block *head)
-{
-	assert(head);
-	struct mcc_cfg *cfg = malloc(sizeof(*cfg));
-	if (!cfg)
-		return NULL;
-	cfg->head = head;
-	return cfg;
-}
 
 struct mcc_basic_block *mcc_cfg_new_basic_block(struct mcc_ir_row *leader,
                                                 struct mcc_basic_block *child_left,
