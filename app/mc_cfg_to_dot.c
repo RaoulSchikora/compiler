@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
 
 	// ---------------------------------------------------------------------- Get CFG structure
 
-	struct mcc_basic_block *head = mcc_cfg_generate(ir);
+	struct mcc_basic_block *cfg = mcc_cfg_generate(ir);
 
 	// ---------------------------------------------------------------------- Get CFG structure
 
@@ -113,10 +113,10 @@ int main(int argc, char *argv[])
 		if (!out) {
 			return EXIT_FAILURE;
 		}
-		mcc_cfg_print_dot_cfg(out, head);
+		mcc_cfg_print_dot_cfg(out, cfg);
 		fclose(out);
 	} else {
-		mcc_cfg_print_dot_cfg(stdout, head);
+		mcc_cfg_print_dot_cfg(stdout, cfg);
 	}
 
 	return EXIT_SUCCESS;
