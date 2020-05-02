@@ -182,64 +182,31 @@ static struct mcc_basic_block *get_bb_jump_target(struct mcc_ir_row *jump_row, s
 	return NULL;
 }
 
-static struct mcc_basic_block *get_bb_after_jump(struct mcc_ir_row *jump_row, struct mcc_basic_block_chain *bc_head)
-{
-	if (!bc_head)
-		return NULL;
-	struct mcc_basic_block *head = bc_head->head;
-	if (jump_target_is_in_bb(jump_row, head)) {
-		struct mcc_ir_row *last_row = get_last_row(head);
-		if (head->child_left) {
-			if (head->child_left->leader == last_row->next_row) {
-				return head->child_left;
-			}
-		}
-		if (head->child_right) {
-			if (head->child_right->leader == last_row->next_row) {
-				return head->child_right;
-			}
-		}
-		return NULL;
-	}
-	struct mcc_basic_block *next = get_bb_after_jump(jump_row, bc_head->next);
-	if (next)
-		return next;
-	return NULL;
-}
-
-static struct mcc_basic_block *get_wanted_bb(struct mcc_ir_row *wanted_row, struct mcc_basic_block_chain *head)
-{
-	if (!head)
-		return NULL;
-	if (head->head->leader == wanted_row)
-		return head->head;
-	struct mcc_basic_block *next = get_wanted_bb(wanted_row, head->next);
-	if (next)
-		return next;
-	return NULL;
-}
-
-static struct mcc_basic_block *next_bb_from_linear_IR(struct mcc_ir_row *last_row, struct mcc_basic_block_chain *first)
-{
-	struct mcc_ir_row *wanted_row = last_row->next_row;
-	return get_wanted_bb(wanted_row, first);
-}
-
 // Set children for one basic block
-static void set_children(struct mcc_basic_block *head, struct mcc_basic_block_chain *first)
+static void set_children(struct mcc_basic_block_chain *bc_head, struct mcc_basic_block_chain *first)
 {
-	assert(head);
+	assert(bc_head);
 	assert(first);
+	struct mcc_basic_block *head = bc_head->head;
 	struct mcc_ir_row *last_row = get_last_row(head);
 
 	switch (last_row->instr) {
 	case MCC_IR_INSTR_JUMP:
 	case MCC_IR_INSTR_JUMPFALSE:
-		head->child_left = get_bb_after_jump(last_row, first);
+		// After the jump, the next IR line is given from the linear IR
+		if (bc_head->next) {
+			head->child_right = bc_head->next->head;
+		} else {
+			head->child_right = NULL;
+		}
 		head->child_right = get_bb_jump_target(last_row, first);
 		return;
 	default:
-		head->child_right = next_bb_from_linear_IR(last_row, first);
+		if (bc_head->next) {
+			head->child_right = bc_head->next->head;
+		} else {
+			head->child_right = NULL;
+		}
 		return;
 	}
 }
@@ -251,7 +218,7 @@ static void sort_cfg(struct mcc_basic_block_chain *head, struct mcc_basic_block_
 	if (!head)
 		return;
 	sort_cfg(head->next, first);
-	set_children(head->head, first);
+	set_children(head, first);
 }
 
 // Put all basic block leaders into their own BB. Link them to a single linear chain of BBs
