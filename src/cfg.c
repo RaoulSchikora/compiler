@@ -97,7 +97,7 @@ static struct annotated_ir *annotate_ir(struct mcc_ir_row *head)
 //---------------------------------------------------------------------------------------- Functions: CFG
 
 // Truncate IR before the next leader
-static void truncate_ir(struct mcc_ir_row *head)
+static void truncate_ir_in_BB(struct mcc_ir_row *head)
 {
 	assert(head);
 	struct mcc_ir_row *previous = head;
@@ -110,6 +110,157 @@ static void truncate_ir(struct mcc_ir_row *head)
 		previous = head;
 		head = head->next_row;
 	}
+}
+
+// Truncate IR in entire CFG
+static void truncate_ir(struct mcc_basic_block *head)
+{
+	if (!head)
+		return;
+	truncate_ir(head->child_left);
+	truncate_ir(head->child_right);
+	truncate_ir_in_BB(head->leader);
+}
+
+static struct mcc_ir_row *get_last_row(struct mcc_basic_block *head)
+{
+	assert(head);
+	struct mcc_ir_row *ir_head = head->leader;
+	struct mcc_ir_row *previous = ir_head;
+	ir_head = ir_head->next_row;
+	while (ir_head) {
+		if (is_leader(ir_head->instr, previous->instr)) {
+			break;
+		}
+		previous = ir_head;
+		ir_head = ir_head->next_row;
+	}
+	return previous;
+}
+
+static bool row_is_target_label(struct mcc_ir_row *row, unsigned label)
+{
+	assert(row);
+	if (row->instr == MCC_IR_INSTR_LABEL) {
+		if (row->arg1->label == label) {
+			return true;
+		}
+	}
+	return false;
+}
+
+static bool jump_target_is_in_bb(struct mcc_ir_row *jump_row, struct mcc_basic_block *block)
+{
+	struct mcc_ir_row *last = get_last_row(block);
+	struct mcc_ir_row *head = block->leader;
+	int target_label;
+	if (jump_row->instr == MCC_IR_INSTR_JUMP) {
+		target_label = jump_row->arg1->label;
+	} else if (jump_row->instr == MCC_IR_INSTR_JUMPFALSE) {
+		target_label = jump_row->arg2->label;
+	} else {
+		return false;
+	}
+
+	while (head != last->next_row) {
+		if (row_is_target_label(head, target_label))
+			return true;
+		head = head->next_row;
+	}
+
+	return false;
+}
+
+static struct mcc_basic_block *get_bb_jump_target(struct mcc_ir_row *jump_row, struct mcc_basic_block *head)
+{
+	if (!head)
+		return NULL;
+	if (jump_target_is_in_bb(jump_row, head))
+		return head;
+	struct mcc_basic_block *left = get_bb_jump_target(jump_row, head->child_left);
+	struct mcc_basic_block *right = get_bb_jump_target(jump_row, head->child_right);
+	if (left)
+		return left;
+	if (right)
+		return right;
+	return NULL;
+}
+
+static struct mcc_basic_block *get_bb_after_jump(struct mcc_ir_row *jump_row, struct mcc_basic_block *head)
+{
+	if (!head)
+		return NULL;
+	if (jump_target_is_in_bb(jump_row, head)) {
+		struct mcc_ir_row *last_row = get_last_row(head);
+		if (head->child_left) {
+			if (head->child_left->leader == last_row->next_row) {
+				return head->child_left;
+			}
+		}
+		if (head->child_right) {
+			if (head->child_right->leader == last_row->next_row) {
+				return head->child_right;
+			}
+		}
+		return NULL;
+	}
+	struct mcc_basic_block *left = get_bb_after_jump(jump_row, head->child_left);
+	struct mcc_basic_block *right = get_bb_after_jump(jump_row, head->child_right);
+	if (left)
+		return left;
+	if (right)
+		return right;
+	return NULL;
+}
+
+static struct mcc_basic_block *get_wanted_bb(struct mcc_ir_row *wanted_row, struct mcc_basic_block *head)
+{
+	if (!head)
+		return NULL;
+	if (head->leader == wanted_row)
+		return head;
+	struct mcc_basic_block *left = get_wanted_bb(wanted_row, head->child_left);
+	struct mcc_basic_block *right = get_wanted_bb(wanted_row, head->child_right);
+	if (left)
+		return left;
+	if (right)
+		return right;
+	return NULL;
+}
+
+static struct mcc_basic_block *next_bb_from_linear_IR(struct mcc_ir_row *last_row, struct mcc_basic_block *first)
+{
+	struct mcc_ir_row *wanted_row = last_row->next_row;
+	return get_wanted_bb(wanted_row, first);
+}
+
+// Set children for one basic block
+static void set_children(struct mcc_basic_block *head, struct mcc_basic_block *first)
+{
+	assert(head);
+	assert(first);
+	struct mcc_ir_row *last_row = get_last_row(head);
+
+	switch (last_row->instr) {
+	case MCC_IR_INSTR_JUMP:
+	case MCC_IR_INSTR_JUMPFALSE:
+		head->child_left = get_bb_after_jump(last_row, head);
+		head->child_right = get_bb_jump_target(last_row, head);
+		return;
+	default:
+		head->child_right = next_bb_from_linear_IR(last_row, first);
+		return;
+	}
+}
+
+// Transform linear cfg into directed graph
+static void sort_cfg(struct mcc_basic_block *head, struct mcc_basic_block *first)
+{
+	assert(first);
+	if (!head)
+		return;
+	sort_cfg(head->child_right, first);
+	set_children(head, first);
 }
 
 // Put all basic block leaders into their own BB. Link them to a single linear chain of BBs
@@ -130,17 +281,9 @@ static struct mcc_basic_block *get_linear_bbs(struct annotated_ir *an_ir)
 				return NULL;
 			}
 			head->child_right = new;
-			new->parent_left = head;
 			head = new;
 		}
 		an_ir = an_ir->next;
-	}
-
-	// Iterate over BBs and truncate IR at appropriate IR row
-	head = bb_first;
-	while (head) {
-		truncate_ir(head->leader);
-		head = head->child_right;
 	}
 
 	return bb_first;
@@ -161,7 +304,6 @@ struct mcc_basic_block *mcc_cfg_generate(struct mcc_ir_row *ir)
 
 	// Print IR with leaders
 	mcc_ir_print_table_begin(stdout);
-
 	an_ir = an_ir_first;
 	while (an_ir) {
 		if (an_ir->is_leader) {
@@ -172,15 +314,17 @@ struct mcc_basic_block *mcc_cfg_generate(struct mcc_ir_row *ir)
 	}
 	mcc_ir_print_table_end(stdout);
 
+	// Rearrange linear chain into graph
+	struct mcc_basic_block *root = linear_bbs;
+	sort_cfg(root, root);
+
+	// Truncate IR inside the basic blocks to end before next leader
+	truncate_ir(root);
+
+	// Cleanup
 	delete_annotated_ir(an_ir_first);
-	mcc_delete_cfg(linear_bbs);
 
-	return linear_bbs;
-}
-
-void mcc_cfg_print(struct mcc_basic_block *block)
-{
-	UNUSED(block);
+	return root;
 }
 
 //---------------------------------------------------------------------------------------- Functions: Set up
@@ -207,4 +351,13 @@ void mcc_delete_cfg(struct mcc_basic_block *head)
 	mcc_delete_cfg(head->child_left);
 	mcc_delete_cfg(head->child_right);
 	free(head);
+}
+
+void mcc_delete_cfg_and_ir(struct mcc_basic_block *head)
+{
+	if (!head)
+		return;
+	mcc_delete_cfg(head->child_left);
+	mcc_delete_cfg(head->child_right);
+	mcc_ir_delete_ir(head->leader);
 }

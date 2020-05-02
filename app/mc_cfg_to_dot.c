@@ -100,10 +100,9 @@ int main(int argc, char *argv[])
 	}
 	register_cleanup(ir);
 
-	// ---------------------------------------------------------------------- Annotate IR
+	// ---------------------------------------------------------------------- Get CFG structure
 
 	struct mcc_basic_block *head = mcc_cfg_generate(ir);
-	mcc_cfg_print(head);
 
 	return EXIT_SUCCESS;
 }
