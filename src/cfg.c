@@ -192,12 +192,15 @@ static void set_children(struct mcc_basic_block_chain *bc_head, struct mcc_basic
 
 	switch (last_row->instr) {
 	case MCC_IR_INSTR_JUMP:
+		head->child_left = NULL;
+		head->child_right = get_bb_jump_target(last_row, first);
+		return;
 	case MCC_IR_INSTR_JUMPFALSE:
 		// After the jump, the next IR line is given from the linear IR
 		if (bc_head->next) {
-			head->child_right = bc_head->next->head;
+			head->child_left = bc_head->next->head;
 		} else {
-			head->child_right = NULL;
+			head->child_left = NULL;
 		}
 		head->child_right = get_bb_jump_target(last_row, first);
 		return;
