@@ -15,6 +15,8 @@
 
 //---------------------------------------------------------------------------------------- Annotate IR with leaders
 
+// TODO: Delete everything properly. Error handling.
+
 // Annotate IR to determine leaders
 struct annotated_ir {
 	bool is_leader;
@@ -265,14 +267,6 @@ static struct mcc_basic_block_chain *get_linear_bbs(struct annotated_ir *an_ir)
 	return bc_first;
 }
 
-static void delete_blockchain(struct mcc_basic_block_chain *block)
-{
-	if (!block)
-		return;
-	delete_blockchain(block->next);
-	free(block);
-}
-
 struct mcc_basic_block_chain *mcc_cfg_generate_block_chain(struct mcc_ir_row *ir)
 {
 	UNUSED(ir);
@@ -323,6 +317,16 @@ struct mcc_basic_block *mcc_cfg_new_basic_block(struct mcc_ir_row *leader,
 	return block;
 }
 
+void mcc_delete_blockchain_and_ir(struct mcc_basic_block_chain *block)
+{
+	if (!block)
+		return;
+	mcc_delete_blockchain_and_ir(block->next);
+	mcc_ir_delete_ir(block->head->leader);
+	free(block->head);
+	free(block);
+}
+
 void mcc_delete_cfg(struct mcc_basic_block *head)
 {
 	if (!head)
@@ -336,7 +340,7 @@ void mcc_delete_cfg_and_ir(struct mcc_basic_block *head)
 {
 	if (!head)
 		return;
-	mcc_delete_cfg(head->child_left);
-	mcc_delete_cfg(head->child_right);
+	mcc_delete_cfg_and_ir(head->child_left);
+	mcc_delete_cfg_and_ir(head->child_right);
 	mcc_ir_delete_ir(head->leader);
 }

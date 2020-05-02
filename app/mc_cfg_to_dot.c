@@ -99,18 +99,23 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "IR generation failed\n");
 		return EXIT_FAILURE;
 	}
-	register_cleanup(ir);
 
-	// ---------------------------------------------------------------------- Get CFG structure
+	// ---------------------------------------------------------------------- Get CFG
 
 	struct mcc_basic_block_chain *cfg = mcc_cfg_generate_block_chain(ir);
+	if (!cfg) {
+		mcc_ir_delete_ir(ir);
+		return EXIT_FAILURE;
+	}
+	register_cleanup(cfg);
 
-	// ---------------------------------------------------------------------- Get CFG structure
+	// ---------------------------------------------------------------------- Print CFG
 
 	// Print to file or stdout
 	if (command_line->options->write_to_file == true) {
 		FILE *out = fopen(command_line->options->output_file, "a");
 		if (!out) {
+			mcc_ir_delete_ir(ir);
 			return EXIT_FAILURE;
 		}
 		mcc_cfg_print_dot_cfg(out, cfg);

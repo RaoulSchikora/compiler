@@ -11,7 +11,9 @@
 			struct mcc_semantic_check * : mc_cleanup_delete_check, \
 			struct mcc_ir_row * : mc_cleanup_delete_ir, \
 			char* :mc_cleanup_delete_error_buffer, \
-			struct mcc_ast_program* : mc_cleanup_delete_ast\
+			struct mcc_ast_program* : mc_cleanup_delete_ast, \
+                        struct mcc_basic_block*: mc_cleanup_delete_cfg, \
+                        struct mcc_basic_block_chain *: mc_cleanup_delete_block_chain \
 			)
 
 #define register_cleanup(x) on_exit(clean_func(x),x)
@@ -50,5 +52,16 @@ void mc_cleanup_delete_ir(int n, void* data){
 	UNUSED(n);
 	mcc_ir_delete_ir(data);
 }
+
+void mc_cleanup_delete_cfg(int n, void* data){
+        UNUSED(n);
+        mcc_delete_cfg_and_ir(data);
+}
+
+void mc_cleanup_delete_block_chain(int n, void* data){
+        UNUSED(n);
+        mcc_delete_blockchain_and_ir(data);
+}
+
 
 #endif // MC_CLEANUP_INC

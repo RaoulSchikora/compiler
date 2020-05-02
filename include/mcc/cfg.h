@@ -19,8 +19,10 @@ struct mcc_basic_block_chain {
 
 //---------------------------------------------------------------------------------------- Functions: CFG
 
+// Gives the cfg as directed tree
 struct mcc_basic_block *mcc_cfg_generate(struct mcc_ir_row *ir);
 
+// Gives the same cfg wrapped in a linked list, where each element is a basic block
 struct mcc_basic_block_chain *mcc_cfg_generate_block_chain(struct mcc_ir_row *ir);
 
 //---------------------------------------------------------------------------------------- Functions: Set up datastructs
@@ -34,6 +36,9 @@ void mcc_delete_cfg(struct mcc_basic_block *head);
 
 // Delete CFG and contained IR
 void mcc_delete_cfg_and_ir(struct mcc_basic_block *head);
+
+// Delete all basic blocks and contained IR
+void mcc_delete_blockchain_and_ir(struct mcc_basic_block_chain *block);
 
 #endif // MCC_CFG_H
 
