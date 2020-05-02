@@ -204,6 +204,10 @@ static void set_children(struct mcc_basic_block_chain *bc_head, struct mcc_basic
 		}
 		head->child_right = get_bb_jump_target(last_row, first);
 		return;
+	case MCC_IR_INSTR_RETURN:
+		head->child_left = NULL;
+		head->child_right = NULL;
+		return;
 	default:
 		if (bc_head->next) {
 			head->child_right = bc_head->next->head;
