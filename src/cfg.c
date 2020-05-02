@@ -244,8 +244,8 @@ static void set_children(struct mcc_basic_block *head, struct mcc_basic_block *f
 	switch (last_row->instr) {
 	case MCC_IR_INSTR_JUMP:
 	case MCC_IR_INSTR_JUMPFALSE:
-		head->child_left = get_bb_after_jump(last_row, head);
-		head->child_right = get_bb_jump_target(last_row, head);
+		head->child_left = get_bb_after_jump(last_row, first);
+		head->child_right = get_bb_jump_target(last_row, first);
 		return;
 	default:
 		head->child_right = next_bb_from_linear_IR(last_row, first);
