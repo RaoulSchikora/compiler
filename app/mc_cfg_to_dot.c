@@ -9,6 +9,7 @@
 #include "mcc/ast_print.h"
 #include "mcc/ast_visit.h"
 #include "mcc/cfg.h"
+#include "mcc/cfg_print.h"
 #include "mcc/ir.h"
 #include "mcc/ir_print.h"
 #include "mcc/parser.h"
@@ -103,6 +104,20 @@ int main(int argc, char *argv[])
 	// ---------------------------------------------------------------------- Get CFG structure
 
 	struct mcc_basic_block *head = mcc_cfg_generate(ir);
+
+	// ---------------------------------------------------------------------- Get CFG structure
+
+	// Print to file or stdout
+	if (command_line->options->write_to_file == true) {
+		FILE *out = fopen(command_line->options->output_file, "a");
+		if (!out) {
+			return EXIT_FAILURE;
+		}
+		mcc_cfg_print_dot_cfg(out, head);
+		fclose(out);
+	} else {
+		mcc_cfg_print_dot_cfg(stdout, head);
+	}
 
 	return EXIT_SUCCESS;
 }
