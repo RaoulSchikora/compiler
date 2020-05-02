@@ -18,23 +18,27 @@ void mcc_cfg_print_dot_end(FILE *out)
 	fprintf(out, "%s", "}\n");
 }
 
-void mcc_cfg_print_dot_cfg(FILE *out, struct mcc_basic_block *head)
+void mcc_cfg_print_dot_cfg(FILE *out, struct mcc_basic_block_chain *head)
 {
 	mcc_cfg_print_dot_begin(out);
-	mcc_cfg_print_dot_bb(out, head);
+	while (head) {
+
+		mcc_cfg_print_dot_bb(out, head->head);
+		head = head->next;
+	}
 	mcc_cfg_print_dot_end(out);
 }
 
 void mcc_cfg_print_dot_bb(FILE *out, struct mcc_basic_block *block)
 {
-	fprintf(out, "%p [shape=record label=\"{\n", (void *)block);
+	fprintf(out, "\"%p\" [shape=record label=\"{\n", (void *)block);
 	mcc_cfg_print_dot_ir(out, block->leader);
 	fprintf(out, "}\n\"];\n");
 	if (block->child_left) {
-		fprintf(out, "%p -> %p;\n", (void *)block, (void *)block->child_left);
+		fprintf(out, "\"%p\"->\"%p\";\n", (void *)block, (void *)block->child_left);
 	}
 	if (block->child_right) {
-		fprintf(out, "%p -> %p;\n", (void *)block, (void *)block->child_right);
+		fprintf(out, "\"%p\"->\"%p\";\n", (void *)block, (void *)block->child_right);
 	}
 }
 

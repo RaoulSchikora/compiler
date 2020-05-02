@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
 
 	// ---------------------------------------------------------------------- Get CFG structure
 
-	struct mcc_basic_block *cfg = mcc_cfg_generate(ir);
+	struct mcc_basic_block_chain *cfg = mcc_cfg_generate_block_chain(ir);
 
 	// ---------------------------------------------------------------------- Get CFG structure
 
