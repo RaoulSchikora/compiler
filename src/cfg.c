@@ -23,12 +23,6 @@ struct annotated_ir {
 	struct mcc_ir_row *row;
 };
 
-// Intermediate data structure: chain of basic blocks
-struct blockchain {
-	struct mcc_basic_block *head;
-	struct blockchain *next;
-};
-
 static struct annotated_ir *new_annotated_ir(struct mcc_ir_row *row, bool is_leader)
 {
 	assert(row);
@@ -177,7 +171,7 @@ static bool jump_target_is_in_bb(struct mcc_ir_row *jump_row, struct mcc_basic_b
 	return false;
 }
 
-static struct mcc_basic_block *get_bb_jump_target(struct mcc_ir_row *jump_row, struct blockchain *bc_head)
+static struct mcc_basic_block *get_bb_jump_target(struct mcc_ir_row *jump_row, struct mcc_basic_block_chain *bc_head)
 {
 	if (!bc_head)
 		return NULL;
@@ -192,7 +186,7 @@ static struct mcc_basic_block *get_bb_jump_target(struct mcc_ir_row *jump_row, s
 	return NULL;
 }
 
-static struct mcc_basic_block *get_bb_after_jump(struct mcc_ir_row *jump_row, struct blockchain *bc_head)
+static struct mcc_basic_block *get_bb_after_jump(struct mcc_ir_row *jump_row, struct mcc_basic_block_chain *bc_head)
 {
 	if (!bc_head)
 		return NULL;
@@ -217,7 +211,7 @@ static struct mcc_basic_block *get_bb_after_jump(struct mcc_ir_row *jump_row, st
 	return NULL;
 }
 
-static struct mcc_basic_block *get_wanted_bb(struct mcc_ir_row *wanted_row, struct blockchain *head)
+static struct mcc_basic_block *get_wanted_bb(struct mcc_ir_row *wanted_row, struct mcc_basic_block_chain *head)
 {
 	if (!head)
 		return NULL;
@@ -229,14 +223,14 @@ static struct mcc_basic_block *get_wanted_bb(struct mcc_ir_row *wanted_row, stru
 	return NULL;
 }
 
-static struct mcc_basic_block *next_bb_from_linear_IR(struct mcc_ir_row *last_row, struct blockchain *first)
+static struct mcc_basic_block *next_bb_from_linear_IR(struct mcc_ir_row *last_row, struct mcc_basic_block_chain *first)
 {
 	struct mcc_ir_row *wanted_row = last_row->next_row;
 	return get_wanted_bb(wanted_row, first);
 }
 
 // Set children for one basic block
-static void set_children(struct mcc_basic_block *head, struct blockchain *first)
+static void set_children(struct mcc_basic_block *head, struct mcc_basic_block_chain *first)
 {
 	assert(head);
 	assert(first);
@@ -255,7 +249,7 @@ static void set_children(struct mcc_basic_block *head, struct blockchain *first)
 }
 
 // Transform linear cfg into directed graph
-static void sort_cfg(struct blockchain *head, struct blockchain *first)
+static void sort_cfg(struct mcc_basic_block_chain *head, struct mcc_basic_block_chain *first)
 {
 	assert(first);
 	if (!head)
@@ -265,17 +259,17 @@ static void sort_cfg(struct blockchain *head, struct blockchain *first)
 }
 
 // Put all basic block leaders into their own BB. Link them to a single linear chain of BBs
-static struct blockchain *get_linear_bbs(struct annotated_ir *an_ir)
+static struct mcc_basic_block_chain *get_linear_bbs(struct annotated_ir *an_ir)
 {
 	struct mcc_basic_block *bb_first = mcc_cfg_new_basic_block(an_ir->row, NULL, NULL);
 	if (!bb_first) {
 		return NULL;
 	}
-	struct blockchain *bc_head = malloc(sizeof(*bc_head));
+	struct mcc_basic_block_chain *bc_head = malloc(sizeof(*bc_head));
 	if (!bc_head) {
 		return NULL;
 	}
-	struct blockchain *bc_first = bc_head;
+	struct mcc_basic_block_chain *bc_first = bc_head;
 	bc_head->head = bb_first;
 	bc_head->next = NULL;
 	an_ir = an_ir->next;
@@ -286,7 +280,7 @@ static struct blockchain *get_linear_bbs(struct annotated_ir *an_ir)
 			if (!new) {
 				return NULL;
 			}
-			struct blockchain *bc_next = malloc(sizeof(*bc_next));
+			struct mcc_basic_block_chain *bc_next = malloc(sizeof(*bc_next));
 			if (!bc_next) {
 				return NULL;
 			}
@@ -301,13 +295,15 @@ static struct blockchain *get_linear_bbs(struct annotated_ir *an_ir)
 	return bc_first;
 }
 
-static void delete_blockchain(struct blockchain *block){
-    if(!block) return;
-    delete_blockchain(block->next);
-    free(block);
+static void delete_blockchain(struct mcc_basic_block_chain *block)
+{
+	if (!block)
+		return;
+	delete_blockchain(block->next);
+	free(block);
 }
 
-struct mcc_basic_block *mcc_cfg_generate(struct mcc_ir_row *ir)
+struct mcc_basic_block_chain *mcc_cfg_generate_block_chain(struct mcc_ir_row *ir)
 {
 	UNUSED(ir);
 	struct annotated_ir *an_ir = annotate_ir(ir);
@@ -315,26 +311,29 @@ struct mcc_basic_block *mcc_cfg_generate(struct mcc_ir_row *ir)
 		return NULL;
 	struct annotated_ir *an_ir_first = an_ir;
 
-	struct blockchain *linear_bbs = get_linear_bbs(an_ir_first);
+	struct mcc_basic_block_chain *linear_bbs = get_linear_bbs(an_ir_first);
 	if (!linear_bbs) {
 		delete_annotated_ir(an_ir_first);
 		return NULL;
 	}
 
 	// Rearrange linear chain into graph
-	struct blockchain *root = linear_bbs;
+	struct mcc_basic_block_chain *root = linear_bbs;
 	sort_cfg(root, root);
 
 	// Truncate IR inside the basic blocks to end before next leader
 	truncate_ir(root->head);
 
-	struct mcc_basic_block *cfg = root->head;
-
 	// Cleanup
 	delete_annotated_ir(an_ir_first);
-	delete_blockchain(root);
 
-	return cfg;
+	return root;
+}
+
+struct mcc_basic_block *mcc_cfg_generate(struct mcc_ir_row *ir)
+{
+	struct mcc_basic_block_chain *cfg = mcc_cfg_generate_block_chain(ir);
+	return cfg->head;
 }
 
 //---------------------------------------------------------------------------------------- Functions: Set up

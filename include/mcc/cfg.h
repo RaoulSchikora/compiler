@@ -11,9 +11,17 @@ struct mcc_basic_block {
 	struct mcc_basic_block *child_right;
 };
 
+// To simplify visiting all blocks only once
+struct mcc_basic_block_chain {
+	struct mcc_basic_block *head;
+	struct mcc_basic_block_chain *next;
+};
+
 //---------------------------------------------------------------------------------------- Functions: CFG
 
 struct mcc_basic_block *mcc_cfg_generate(struct mcc_ir_row *ir);
+
+struct mcc_basic_block_chain *mcc_cfg_generate_block_chain(struct mcc_ir_row *ir);
 
 //---------------------------------------------------------------------------------------- Functions: Set up datastructs
 
