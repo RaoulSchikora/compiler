@@ -9,8 +9,6 @@ struct mcc_basic_block {
 	struct mcc_ir_row *leader;
 	struct mcc_basic_block *child_left;
 	struct mcc_basic_block *child_right;
-	struct mcc_basic_block *parent_left;
-	struct mcc_basic_block *parent_right;
 };
 
 //---------------------------------------------------------------------------------------- Functions: CFG
