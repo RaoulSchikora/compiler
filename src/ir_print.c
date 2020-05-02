@@ -24,6 +24,12 @@ static void print_row(FILE *out, char *label, char *row_no, char *instruction, c
 	fprintf(out, " %-11s| %-7s  | %-11s | %-18s | %-18s |\n", label, row_no, instruction, arg1, arg2);
 }
 
+static void
+print_row_to_string(size_t length, char *string, char *label, char *row_no, char *instruction, char *arg1, char *arg2)
+{
+	snprintf(string, length, " %-11s| %-7s  | %-11s | %-18s | %-18s  ", label, row_no, instruction, arg1, arg2);
+}
+
 static char *instr_to_string(enum mcc_ir_instruction instr)
 {
 	switch (instr) {
@@ -173,6 +179,36 @@ static void arg_to_string(char *dest, struct mcc_ir_arg *arg)
 	case MCC_IR_TYPE_FUNC_LABEL:
 		strcpy(dest, arg->func_label);
 	};
+}
+char *mcc_ir_print_ir_row_to_string(struct mcc_ir_row *row)
+{
+	if (!row)
+		return NULL;
+	char *ret_string = malloc(sizeof(char) * 81);
+	if (!ret_string)
+		return NULL;
+	char *instr = instr_to_string(row->instr);
+	char arg1[arg_size(row->arg1)];
+	char arg2[arg_size(row->arg2)];
+	char no[length_of_int(row->row_no) + 2];
+	row_no_to_string(no, row->row_no);
+	arg_to_string(arg1, row->arg1);
+	arg_to_string(arg2, row->arg2);
+	char label[arg_size(row->arg1)];
+	switch (row->instr) {
+	case MCC_IR_INSTR_LABEL:
+		strcpy(label, arg1);
+		strcpy(arg1, "");
+		break;
+	case MCC_IR_INSTR_FUNC_LABEL:
+		strcpy(label, arg1);
+		strcpy(arg1, "");
+		break;
+	default:
+		strcpy(label, "");
+	}
+	print_row_to_string(81, ret_string, label, no, instr, arg1, arg2);
+	return ret_string;
 }
 
 void mcc_ir_print_ir_row(FILE *out, struct mcc_ir_row *row)

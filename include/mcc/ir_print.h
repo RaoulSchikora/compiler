@@ -16,7 +16,8 @@ void mcc_ir_print_table_end(FILE *out);
 
 void mcc_ir_print_ir_row(FILE *out, struct mcc_ir_row *row);
 
+char *mcc_ir_print_ir_row_to_string(struct mcc_ir_row *row);
+
 void mcc_ir_print_ir(FILE *out, struct mcc_ir_row *head);
 
 #endif
-
