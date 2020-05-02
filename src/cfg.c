@@ -45,6 +45,26 @@ static void delete_annotated_ir(struct annotated_ir *head)
 	free(head);
 }
 
+static bool is_leader(enum mcc_ir_instruction current, enum mcc_ir_instruction previous)
+{
+	switch (current) {
+	case MCC_IR_INSTR_LABEL:
+	case MCC_IR_INSTR_FUNC_LABEL:
+		return true;
+	default:
+		break;
+	}
+	switch (previous) {
+	case MCC_IR_INSTR_JUMP:
+	case MCC_IR_INSTR_JUMPFALSE:
+	case MCC_IR_INSTR_RETURN:
+		return true;
+	default:
+		break;
+	}
+	return false;
+}
+
 static struct annotated_ir *annotate_ir(struct mcc_ir_row *head)
 {
 	assert(head);
@@ -56,9 +76,7 @@ static struct annotated_ir *annotate_ir(struct mcc_ir_row *head)
 	head = head->next_row;
 
 	while (head) {
-		if (head->instr == MCC_IR_INSTR_LABEL || head->instr == MCC_IR_INSTR_FUNC_LABEL ||
-		    head_an->row->instr == MCC_IR_INSTR_JUMP || head_an->row->instr == MCC_IR_INSTR_JUMPFALSE ||
-		    head_an->row->instr == MCC_IR_INSTR_RETURN) {
+		if (is_leader(head->instr, head_an->row->instr)) {
 			temp = new_annotated_ir(head, true);
 		} else {
 			temp = new_annotated_ir(head, false);
@@ -77,6 +95,22 @@ static struct annotated_ir *annotate_ir(struct mcc_ir_row *head)
 }
 
 //---------------------------------------------------------------------------------------- Functions: CFG
+
+// Truncate IR before the next leader
+static void truncate_ir(struct mcc_ir_row *head)
+{
+	assert(head);
+	struct mcc_ir_row *previous = head;
+	head = head->next_row;
+	while (head) {
+		if (is_leader(head->instr, previous->instr)) {
+			previous->next_row = NULL;
+			head->prev_row = NULL;
+		}
+		previous = head;
+		head = head->next_row;
+	}
+}
 
 // Put all basic block leaders into their own BB. Link them to a single linear chain of BBs
 static struct mcc_basic_block *get_linear_bbs(struct annotated_ir *an_ir)
@@ -101,6 +135,14 @@ static struct mcc_basic_block *get_linear_bbs(struct annotated_ir *an_ir)
 		}
 		an_ir = an_ir->next;
 	}
+
+	// Iterate over BBs and truncate IR at appropriate IR row
+	head = bb_first;
+	while (head) {
+		truncate_ir(head->leader);
+		head = head->child_right;
+	}
+
 	return bb_first;
 }
 
@@ -170,4 +212,3 @@ void mcc_delete_cfg(struct mcc_basic_block *head)
 	mcc_delete_cfg(head->child_right);
 	free(head);
 }
-
