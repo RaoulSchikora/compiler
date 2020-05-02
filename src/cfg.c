@@ -151,7 +151,6 @@ static bool row_is_target_label(struct mcc_ir_row *row, unsigned label)
 
 static bool jump_target_is_in_bb(struct mcc_ir_row *jump_row, struct mcc_basic_block *block)
 {
-	struct mcc_ir_row *last = get_last_row(block);
 	struct mcc_ir_row *head = block->leader;
 	int target_label;
 	if (jump_row->instr == MCC_IR_INSTR_JUMP) {
@@ -162,11 +161,8 @@ static bool jump_target_is_in_bb(struct mcc_ir_row *jump_row, struct mcc_basic_b
 		return false;
 	}
 
-	while (head != last->next_row) {
-		if (row_is_target_label(head, target_label))
-			return true;
-		head = head->next_row;
-	}
+	if (row_is_target_label(head, target_label))
+		return true;
 
 	return false;
 }
