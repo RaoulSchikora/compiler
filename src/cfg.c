@@ -302,17 +302,17 @@ struct mcc_basic_block *mcc_cfg_generate(struct mcc_ir_row *ir)
 		delete_annotated_ir(an_ir_first);
 	}
 
-	// Print IR with leaders
-	mcc_ir_print_table_begin(stdout);
-	an_ir = an_ir_first;
-	while (an_ir) {
-		if (an_ir->is_leader) {
-			printf("IS_LEADER:\n");
-		}
-		mcc_ir_print_ir_row(stdout, an_ir->row);
-		an_ir = an_ir->next;
-	}
-	mcc_ir_print_table_end(stdout);
+        // Print IR with leaders
+        // mcc_ir_print_table_begin(stdout);
+        // an_ir = an_ir_first;
+        // while (an_ir) {
+        //         if (an_ir->is_leader) {
+        //                 printf("IS_LEADER:\n");
+        //         }
+        //         mcc_ir_print_ir_row(stdout, an_ir->row);
+        //         an_ir = an_ir->next;
+        // }
+        // mcc_ir_print_table_end(stdout);
 
 	// Rearrange linear chain into graph
 	struct mcc_basic_block *root = linear_bbs;
