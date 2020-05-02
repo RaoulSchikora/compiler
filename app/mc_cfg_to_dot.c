@@ -8,6 +8,7 @@
 #include "mcc/ast.h"
 #include "mcc/ast_print.h"
 #include "mcc/ast_visit.h"
+#include "mcc/cfg.h"
 #include "mcc/ir.h"
 #include "mcc/ir_print.h"
 #include "mcc/parser.h"
@@ -99,19 +100,10 @@ int main(int argc, char *argv[])
 	}
 	register_cleanup(ir);
 
-	// ---------------------------------------------------------------------- Print IR
+	// ---------------------------------------------------------------------- Annotate IR
 
-	// Print to file or stdout
-	if (command_line->options->write_to_file == true) {
-		FILE *out = fopen(command_line->options->output_file, "a");
-		if (!out) {
-			return EXIT_FAILURE;
-		}
-		mcc_ir_print_ir(out, ir);
-		fclose(out);
-	} else {
-		mcc_ir_print_ir(stdout, ir);
-	}
+	struct mcc_basic_block *head = mcc_cfg_generate(ir);
+	mcc_cfg_print(head);
 
 	return EXIT_SUCCESS;
 }

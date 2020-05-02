@@ -47,7 +47,7 @@ mcc_lib = library('mcc', mcc_src,
 
 # ---------------------------------------------------------------- Applications
 
-mcc_apps = [ 'mcc', 'mc_ast_to_dot','mc_symbol_table','mc_ir']
+mcc_apps = [ 'mcc', 'mc_ast_to_dot','mc_symbol_table','mc_ir','mc_cfg_to_dot']
 
 foreach app : mcc_apps
     executable(app, 'app/' + app + '.c',
