@@ -115,7 +115,7 @@ static void truncate_ir(struct mcc_ir_row *head)
 // Put all basic block leaders into their own BB. Link them to a single linear chain of BBs
 static struct mcc_basic_block *get_linear_bbs(struct annotated_ir *an_ir)
 {
-	struct mcc_basic_block *bb_first = mcc_cfg_new_basic_block(an_ir->row, NULL, NULL, NULL, NULL);
+	struct mcc_basic_block *bb_first = mcc_cfg_new_basic_block(an_ir->row, NULL, NULL);
 	if (!bb_first) {
 		return NULL;
 	}
@@ -124,7 +124,7 @@ static struct mcc_basic_block *get_linear_bbs(struct annotated_ir *an_ir)
 
 	while (an_ir) {
 		if (an_ir->is_leader) {
-			struct mcc_basic_block *new = mcc_cfg_new_basic_block(an_ir->row, NULL, NULL, NULL, NULL);
+			struct mcc_basic_block *new = mcc_cfg_new_basic_block(an_ir->row, NULL, NULL);
 			if (!new) {
 				mcc_delete_cfg(bb_first);
 				return NULL;
@@ -188,9 +188,7 @@ void mcc_cfg_print(struct mcc_basic_block *block)
 
 struct mcc_basic_block *mcc_cfg_new_basic_block(struct mcc_ir_row *leader,
                                                 struct mcc_basic_block *child_left,
-                                                struct mcc_basic_block *child_right,
-                                                struct mcc_basic_block *parent_left,
-                                                struct mcc_basic_block *parent_right)
+                                                struct mcc_basic_block *child_right)
 {
 	assert(leader);
 	struct mcc_basic_block *block = malloc(sizeof(*block));
@@ -198,8 +196,6 @@ struct mcc_basic_block *mcc_cfg_new_basic_block(struct mcc_ir_row *leader,
 		return NULL;
 	block->child_left = child_left;
 	block->child_right = child_right;
-	block->parent_left = parent_left;
-	block->parent_right = parent_right;
 	block->leader = leader;
 	return block;
 }
