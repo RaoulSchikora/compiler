@@ -16,52 +16,109 @@
                         struct mcc_basic_block_chain *: mc_cleanup_delete_block_chain \
 			)
 
+
 #define register_cleanup(x) on_exit(clean_func(x),x)
 
 #define UNUSED(x) (void)(x)
 
+// Below we use preprocessor directives to suppress compiler warnings.
+// This way the provided cleanup mechanism can still be included and used, even if the given header is not used (and
+// thus not included)
 
-// clang-format on
+#ifdef MCC_AST_H
+    void mc_cleanup_delete_error_buffer(int n,void* string){
+            UNUSED(n);
+            free(string);
+    }
+#else
+    void mc_cleanup_delete_error_buffer(int n, void* string){
+        UNUSED(n);
+        UNUSED(string);
+    }
+#endif
 
-void mc_cleanup_delete_error_buffer(int n,void* string){
-	UNUSED(n);
-	free(string);
-}
+#ifdef MCC_SYMBOL_TABLE_H
+    void mc_cleanup_delete_table(int n,void* data){
+            UNUSED(n);
+            mcc_symbol_table_delete_table(data);
+    }
+#else
+    void mc_cleanup_delete_table(int n, void*data){
+        UNUSED(n);
+        UNUSED(data);
+    }
+#endif
 
-void mc_cleanup_delete_table(int n,void* data){
-	UNUSED(n);
-	mcc_symbol_table_delete_table(data);
-}
+#ifdef MC_CL_PARSER_INC
+    void mc_cleanup_delete_cl_parser(int n, void* data){
+            UNUSED(n);
+            mc_cl_parser_delete_command_line_parser(data);
+    }
+#else
+    void mc_cleanup_delete_cl_parser(int n, void* data){
+            UNUSED(n);
+            UNUSED(data);
+    }
+#endif
 
-void mc_cleanup_delete_cl_parser(int n, void* data){
-	UNUSED(n);
-	mc_cl_parser_delete_command_line_parser(data);
-}
-
+#ifdef MCC_PARSER_H
 void mc_cleanup_delete_ast(int n, void* data){
 	UNUSED(n);
 	mcc_ast_delete_program(data);
 }
-
-void mc_cleanup_delete_check(int n, void* data){
+#else
+void mc_cleanup_delete_ast(int n, void* data){
 	UNUSED(n);
-	mcc_semantic_check_delete_single_check(data);
+        UNUSED(data);
 }
+#endif
 
-void mc_cleanup_delete_ir(int n, void* data){
-	UNUSED(n);
-	mcc_ir_delete_ir(data);
-}
 
-void mc_cleanup_delete_cfg(int n, void* data){
+#ifdef PROJECT_SEMANTIC_CHECKS_H
+    void mc_cleanup_delete_check(int n, void* data){
         UNUSED(n);
-        mcc_delete_cfg_and_ir(data);
-}
-
-void mc_cleanup_delete_block_chain(int n, void* data){
+        mcc_semantic_check_delete_single_check(data);
+    }
+#else
+    void mc_cleanup_delete_check(int n, void* data){
         UNUSED(n);
-        mcc_delete_blockchain_and_ir(data);
-}
+        UNUSED(data);
+    }
+#endif
+
+#ifdef MCC_IR_H
+    void mc_cleanup_delete_ir(int n, void* data){
+            UNUSED(n);
+            mcc_ir_delete_ir(data);
+    }
+#else
+    void mc_cleanup_delete_ir(int n, void* data){
+            UNUSED(n);
+            UNUSED(data);
+    }
+#endif
+
+#ifdef MCC_CFG_H
+    void mc_cleanup_delete_cfg(int n, void* data){
+            UNUSED(n);
+            mcc_delete_cfg_and_ir(data);
+    }
+
+    void mc_cleanup_delete_block_chain(int n, void* data){
+            UNUSED(n);
+            mcc_delete_blockchain_and_ir(data);
+    }
+#else
+    void mc_cleanup_delete_cfg(int n, void* data){
+            UNUSED(n);
+            UNUSED(data);
+    }
+
+    void mc_cleanup_delete_block_chain(int n, void* data){
+            UNUSED(n);
+            UNUSED(data);
+    }
+#endif
 
 
 #endif // MC_CLEANUP_INC
