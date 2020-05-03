@@ -6,7 +6,6 @@
 #include <string.h>
 
 #include "mcc/ast.h"
-#include "mcc/ast_print.h"
 #include "mcc/ast_visit.h"
 #include "mcc/ir.h"
 #include "mcc/ir_print.h"
