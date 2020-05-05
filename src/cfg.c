@@ -337,15 +337,6 @@ void mcc_delete_blockchain_and_ir(struct mcc_basic_block_chain *block)
 	free(block);
 }
 
-void mcc_delete_cfg(struct mcc_basic_block *head)
-{
-	if (!head)
-		return;
-	mcc_delete_cfg(head->child_left);
-	mcc_delete_cfg(head->child_right);
-	free(head);
-}
-
 void mcc_delete_cfg_and_ir(struct mcc_basic_block *head)
 {
 	if (!head)
