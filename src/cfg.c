@@ -278,7 +278,6 @@ static void delete_linear_bbs(struct mcc_basic_block_chain *head)
 
 struct mcc_basic_block_chain *mcc_cfg_generate_block_chain(struct mcc_ir_row *ir)
 {
-	UNUSED(ir);
 	struct annotated_ir *an_ir = annotate_ir(ir);
 	if (!an_ir)
 		return NULL;
