@@ -304,8 +304,10 @@ struct mcc_basic_block_chain *mcc_cfg_generate_block_chain(struct mcc_ir_row *ir
 
 struct mcc_basic_block *mcc_cfg_generate(struct mcc_ir_row *ir)
 {
-	struct mcc_basic_block_chain *cfg = mcc_cfg_generate_block_chain(ir);
-	return cfg->head;
+	struct mcc_basic_block_chain *bbs = mcc_cfg_generate_block_chain(ir);
+	struct mcc_basic_block *cfg = bbs->head;
+	delete_linear_bbs(bbs);
+	return cfg;
 }
 
 //---------------------------------------------------------------------------------------- Functions: Set up
