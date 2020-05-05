@@ -267,6 +267,15 @@ static struct mcc_basic_block_chain *get_linear_bbs(struct annotated_ir *an_ir)
 	return bc_first;
 }
 
+static void delete_linear_bbs(struct mcc_basic_block_chain *head)
+{
+	if (!head) {
+		return;
+	}
+	delete_linear_bbs(head->next);
+	free(head);
+}
+
 struct mcc_basic_block_chain *mcc_cfg_generate_block_chain(struct mcc_ir_row *ir)
 {
 	UNUSED(ir);
