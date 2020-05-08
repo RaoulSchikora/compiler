@@ -156,11 +156,11 @@ static void print_usage(enum mc_apps app, const char *usage_string)
 {
         char* prg = get_prg_name(app);
 	
-        printf("usage: %s [OPTIONS] file...\n\n", prg);
+        printf("usage: %s [OPTIONS] <file>...\n\n", prg);
 	printf("%s\n", usage_string);
 	printf("Use '-' as input file to read from stdin.\n\n");
 	printf("OPTIONS:\n");
-	printf("  -h, --help                displays this help message\n");
+	printf("  -h, --help                display this help message\n");
 	if(strcmp(prg,"./mc_symbol_table")==0){
 		printf("  -d, --dot                 print in dot-format\n");
 	}
