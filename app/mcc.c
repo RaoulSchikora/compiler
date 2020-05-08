@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
 
 	switch (command_line->argument_status) {
 	case MC_CL_PARSER_ARGSTAT_STDIN:
-		result = get_ast_from_stdin();
+		result = get_ast_from_stdin(command_line->options->quiet);
 		break;
 	case MC_CL_PARSER_ARGSTAT_FILES:
 		result = get_ast_from_files(command_line);
@@ -57,9 +57,13 @@ int main(int argc, char *argv[])
 
 	if (result.status != MCC_PARSER_STATUS_OK) {
 		if (result.error_buffer) {
-			fprintf(stderr, "%s", result.error_buffer);
+			if (!command_line->options->quiet) {
+				fprintf(stderr, "%s", result.error_buffer);
+			}
 		} else {
-			fprintf(stderr, "Unknown error from parser. Error buffer is NULL.\n");
+			if (!command_line->options->quiet) {
+				fprintf(stderr, "Unknown error from parser. Error buffer is NULL.\n");
+			}
 		}
 		return EXIT_FAILURE;
 	}
@@ -68,7 +72,9 @@ int main(int argc, char *argv[])
 
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&result)->program);
 	if (!table) {
-		fprintf(stderr, "mcc_symbol_table_create: returned NULL pointer\n");
+		if (!command_line->options->quiet) {
+			fprintf(stderr, "mcc_symbol_table_create: returned NULL pointer\n");
+		}
 		return EXIT_FAILURE;
 	}
 	register_cleanup(table);
@@ -77,13 +83,17 @@ int main(int argc, char *argv[])
 
 	struct mcc_semantic_check *semantic_check = mcc_semantic_check_run_all((&result)->program, table);
 	if (!semantic_check) {
-		fprintf(stderr, "library error: mcc_semantic_check_run_all returned with NULL\n");
+		if (!command_line->options->quiet) {
+			fprintf(stderr, "library error: mcc_semantic_check_run_all returned with NULL\n");
+		}
 		return EXIT_FAILURE;
 	}
 	register_cleanup(semantic_check);
 
 	if (semantic_check->error_buffer) {
-		fprintf(stderr, "%s\n", semantic_check->error_buffer);
+		if (!command_line->options->quiet) {
+			fprintf(stderr, "%s\n", semantic_check->error_buffer);
+		}
 		return EXIT_FAILURE;
 	}
 
@@ -91,7 +101,9 @@ int main(int argc, char *argv[])
 
 	struct mcc_ir_row *ir = mcc_ir_generate((&result)->program, table);
 	if (!ir) {
-		fprintf(stderr, "IR generation failed\n");
+		if (!command_line->options->quiet) {
+			fprintf(stderr, "IR generation failed\n");
+		}
 		return EXIT_FAILURE;
 	}
 	register_cleanup(ir);

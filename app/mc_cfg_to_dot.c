@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
 
 	switch (command_line->argument_status) {
 	case MC_CL_PARSER_ARGSTAT_STDIN:
-		result = get_ast_from_stdin();
+		result = get_ast_from_stdin(command_line->options->quiet);
 		break;
 	case MC_CL_PARSER_ARGSTAT_FILES:
 		result = get_ast_from_files(command_line);

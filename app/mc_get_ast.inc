@@ -2,16 +2,16 @@
 #define MC_GET_AST_INC
 
 #include <assert.h>
+#include <errno.h>
 #include <getopt.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <string.h>
-#include <errno.h>
 #include <unistd.h>
 
-#include "mcc/ast.h"
 #include "mc_cl_parser.inc"
+#include "mcc/ast.h"
 
 // Parse file and return the result of the parser
 struct mcc_parser_result parse_file(char *filename);
@@ -19,7 +19,7 @@ struct mcc_parser_result parse_file(char *filename);
 // Parse all given files and return a single AST
 struct mcc_parser_result get_ast_from_files(struct mc_cl_parser_command_line_parser *command_line);
 
-struct mcc_parser_result get_ast_from_stdin();
+struct mcc_parser_result get_ast_from_stdin(bool quiet);
 
 struct mcc_parser_result get_ast_from_files(struct mc_cl_parser_command_line_parser *command_line)
 {
@@ -44,9 +44,10 @@ struct mcc_parser_result get_ast_from_files(struct mc_cl_parser_command_line_par
 	return *(mcc_ast_merge_results(parse_results, command_line->arguments->size));
 }
 
-struct mcc_parser_result get_ast_from_stdin(){
+struct mcc_parser_result get_ast_from_stdin(bool quiet)
+{
 	struct mcc_parser_result result;
-	char* input = mc_cl_parser_stdin_to_string();
+	char *input = mc_cl_parser_stdin_to_string(quiet);
 	if (!input) {
 		// mc_cl_parser_stdin_to_string() prints error message to stderr itself
 		result.status = MCC_PARSER_STATUS_UNABLE_TO_OPEN_STREAM;

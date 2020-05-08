@@ -43,7 +43,7 @@ struct mc_cl_parser_options {
 	char *output_file;
 	bool print_help;
 	bool limited_scope;
-        bool quiet;
+	bool quiet;
 	char *function;
 	bool print_dot;
 	enum mc_cl_parser_mode mode;
@@ -67,7 +67,7 @@ struct mc_cl_parser_command_line_parser *
 mc_cl_parser_parse(int argc, char *argv[], char *usage_string, enum mc_apps app);
 
 // Read from stdin and write into string
-char *mc_cl_parser_stdin_to_string();
+char *mc_cl_parser_stdin_to_string(bool quiet);
 
 // Clean up command line parsing results
 void mc_cl_parser_delete_command_line_parser(struct mc_cl_parser_command_line_parser *command_line);
@@ -78,7 +78,7 @@ static struct mc_cl_parser_options *parse_options(int argc, char *argv[], enum m
 
 static struct mc_cl_parser_program_arguments *parse_arguments(int argc, char *argv[]);
 
-static struct mc_cl_parser_command_line_parser *parse_command_line(int argc, char *argv[],enum mc_apps app);
+static struct mc_cl_parser_command_line_parser *parse_command_line(int argc, char *argv[], enum mc_apps app);
 
 static enum mc_cl_parser_argument_status check_args(struct mc_cl_parser_command_line_parser *command_line);
 
@@ -95,7 +95,9 @@ mc_cl_parser_parse(int argc, char *argv[], char *usage_string, enum mc_apps app)
 
 	// print usage if "-h" or "--help" was specified
 	if (command_line->options->print_help == true) {
-		print_usage(app, usage_string);
+		if (!command_line->options->quiet) {
+			print_usage(app, usage_string);
+		}
 		command_line->argument_status = MC_CL_PARSER_ARGSTAT_PRINT_HELP;
 		return command_line;
 	}
@@ -105,16 +107,20 @@ mc_cl_parser_parse(int argc, char *argv[], char *usage_string, enum mc_apps app)
 
 	// Args were malformed
 	if (command_line->argument_status == MC_CL_PARSER_ARGSTAT_ERROR) {
-		print_usage(app, usage_string);
+		if (!command_line->options->quiet) {
+			print_usage(app, usage_string);
+		}
 		return command_line;
 	}
 
 	if (command_line->argument_status == MC_CL_PARSER_ARGSTAT_FILE_NOT_FOUND) {
-		fprintf(stderr,"-------------------------------------------\n");
-		fprintf(stderr,"File not found, please provide valid input.\n");
-		fprintf(stderr,"-------------------------------------------\n");
-		fprintf(stderr,"\n");
-		print_usage(app, usage_string);
+		if (!command_line->options->quiet) {
+			fprintf(stderr, "-------------------------------------------\n");
+			fprintf(stderr, "File not found, please provide valid input.\n");
+			fprintf(stderr, "-------------------------------------------\n");
+			fprintf(stderr, "\n");
+			print_usage(app, usage_string);
+		}
 		return command_line;
 	}
 
@@ -157,35 +163,38 @@ static void print_usage(enum mc_apps app, const char *usage_string)
 {
 	char *prg = get_prg_name(app);
 
-	fprintf(stderr,"usage: %s [OPTIONS] <file>...\n\n", prg);
-	fprintf(stderr,"%s\n", usage_string);
-	fprintf(stderr,"Use '-' as input file to read from stdin.\n\n");
-	fprintf(stderr,"OPTIONS:\n");
-	fprintf(stderr,"  -h, --help                display this help message\n");
+	fprintf(stderr, "usage: %s [OPTIONS] <file>...\n\n", prg);
+	fprintf(stderr, "%s\n", usage_string);
+	fprintf(stderr, "Use '-' as input file to read from stdin.\n\n");
+	fprintf(stderr, "OPTIONS:\n");
+	fprintf(stderr, "  -h, --help                display this help message\n");
 	if (app == MC_SYMBOL_TABLE) {
-		fprintf(stderr,"  -d, --dot                 print in dot-format\n");
+		fprintf(stderr, "  -d, --dot                 print in dot-format\n");
 	}
 	if (app == MCC) {
 
-		fprintf(stderr,"  -q, --quiet               suppress error output\n");
-		fprintf(stderr,"  -o, --output <out-file>   write the output to <out-file> (defaults to 'a.out')\n");
+		fprintf(stderr, "  -q, --quiet               suppress error output\n");
+		fprintf(stderr, "  -o, --output <out-file>   write the output to <out-file> (defaults to 'a.out')\n");
 	} else {
-		fprintf(stderr,"  -o, --output <out-file>   write the output to <out-file> (defaults to stdout)\n");
+		fprintf(stderr, "  -o, --output <out-file>   write the output to <out-file> (defaults to stdout)\n");
 	}
 	if (app == MC_CFG_TO_DOT) {
-		fprintf(stderr,"  -f, --function <name>     print the CFG of the given function (defaults to 'main')\n");
+		fprintf(stderr,
+		        "  -f, --function <name>     print the CFG of the given function (defaults to 'main')\n");
 	}
 }
 
 // from: https://stackoverflow.com/questions/2496668
-char *mc_cl_parser_stdin_to_string()
+char *mc_cl_parser_stdin_to_string(bool quiet)
 {
 	char buffer[BUF_SIZE];
 	size_t contentSize = 1; // includes NULL
 	/* Preallocate space. */
 	char *content = malloc(sizeof(char) * BUF_SIZE);
 	if (!content) {
-		perror("mc_cl_stdin_to_string:Failed to allocate content");
+		if (!quiet) {
+			perror("mc_cl_stdin_to_string:Failed to allocate content");
+		}
 		return NULL;
 	}
 	content[0] = '\0'; // make null-terminated
@@ -194,7 +203,9 @@ char *mc_cl_parser_stdin_to_string()
 		contentSize += strlen(buffer);
 		content = realloc(content, contentSize);
 		if (!content) {
-			perror("mc_cl_stdin_to_string:Failed to reallocate content");
+			if (!quiet) {
+				perror("mc_cl_stdin_to_string:Failed to reallocate content");
+			}
 			free(old);
 			return NULL;
 		}
@@ -202,7 +213,9 @@ char *mc_cl_parser_stdin_to_string()
 	}
 
 	if (ferror(stdin)) {
-		perror("Error reading from stdin.");
+		if (!quiet) {
+			perror("Error reading from stdin.");
+		}
 		free(content);
 		return NULL;
 	}
@@ -210,7 +223,7 @@ char *mc_cl_parser_stdin_to_string()
 	return content;
 }
 
-static struct mc_cl_parser_options *parse_options(int argc, char *argv[],enum mc_apps app)
+static struct mc_cl_parser_options *parse_options(int argc, char *argv[], enum mc_apps app)
 {
 	struct mc_cl_parser_options *options = malloc(sizeof(*options));
 	if (!options) {
@@ -222,7 +235,7 @@ static struct mc_cl_parser_options *parse_options(int argc, char *argv[],enum mc
 	options->output_file = NULL;
 	options->print_help = false;
 	options->limited_scope = false;
-        options->quiet = false;
+	options->quiet = false;
 	options->function = NULL;
 	options->print_dot = false;
 	options->mode = MC_CL_PARSER_MODE_PROGRAM;
@@ -231,15 +244,13 @@ static struct mc_cl_parser_options *parse_options(int argc, char *argv[],enum mc
 		return options;
 	}
 
-	static struct option long_options[] = {{"help", no_argument, NULL, 'h'},
-	                                       {"output", required_argument, NULL, 'o'},
-	                                       {"function", required_argument, NULL, 'f'},
-	                                       {"dot", no_argument, NULL, 'd'},
-	                                       {"quiet", no_argument, NULL, 'q'},
-	                                       {NULL, 0, NULL, 0}};
+	static struct option long_options[] = {
+	    {"help", no_argument, NULL, 'h'},           {"output", required_argument, NULL, 'o'},
+	    {"function", required_argument, NULL, 'f'}, {"dot", no_argument, NULL, 'd'},
+	    {"quiet", no_argument, NULL, 'q'},          {NULL, 0, NULL, 0}};
 
 	int c;
-	while ((c = getopt_long(argc, argv, "o:hf:td", long_options, NULL)) != -1) {
+	while ((c = getopt_long(argc, argv, "o:hf:tdq", long_options, NULL)) != -1) {
 		switch (c) {
 		case 'o':
 			options->write_to_file = true;
@@ -256,9 +267,9 @@ static struct mc_cl_parser_options *parse_options(int argc, char *argv[],enum mc
 		case 'd':
 			options->print_dot = true;
 			break;
-                case 'q':
-                        options->quiet = true;
-                        break;
+		case 'q':
+			options->quiet = true;
+			break;
 		default:
 			options->print_help = true;
 			break;
@@ -272,10 +283,10 @@ static struct mc_cl_parser_options *parse_options(int argc, char *argv[],enum mc
 		options->limited_scope = false;
 		options->print_help = true;
 	}
-        if (app != MCC && options->quiet){
-                options->quiet = false;
-                options->print_help = true;
-        }
+	if (app != MCC && options->quiet) {
+		options->quiet = false;
+		options->print_help = true;
+	}
 
 	return options;
 }
@@ -313,17 +324,19 @@ static struct mc_cl_parser_program_arguments *parse_arguments(int argc, char *ar
 	return arguments;
 }
 
-static struct mc_cl_parser_command_line_parser *parse_command_line(int argc, char *argv[],enum mc_apps app)
+static struct mc_cl_parser_command_line_parser *parse_command_line(int argc, char *argv[], enum mc_apps app)
 {
 
-	struct mc_cl_parser_options *options = parse_options(argc, argv,app);
+	struct mc_cl_parser_options *options = parse_options(argc, argv, app);
 	if (!options) {
 		return NULL;
 	}
 
 	struct mc_cl_parser_command_line_parser *parser = malloc(sizeof(*parser));
 	if (!parser) {
-		perror("parse_command_line: malloc");
+		if (!options->quiet) {
+			perror("parse_command_line: malloc");
+		}
 		return NULL;
 	}
 
