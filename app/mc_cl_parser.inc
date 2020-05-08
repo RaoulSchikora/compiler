@@ -158,23 +158,23 @@ static void print_usage(enum mc_apps app, const char *usage_string)
 {
 	char *prg = get_prg_name(app);
 
-	printf("usage: %s [OPTIONS] <file>...\n\n", prg);
-	printf("%s\n", usage_string);
-	printf("Use '-' as input file to read from stdin.\n\n");
-	printf("OPTIONS:\n");
-	printf("  -h, --help                display this help message\n");
+	fprintf(stderr,"usage: %s [OPTIONS] <file>...\n\n", prg);
+	fprintf(stderr,"%s\n", usage_string);
+	fprintf(stderr,"Use '-' as input file to read from stdin.\n\n");
+	fprintf(stderr,"OPTIONS:\n");
+	fprintf(stderr,"  -h, --help                display this help message\n");
 	if (app == MC_SYMBOL_TABLE) {
-		printf("  -d, --dot                 print in dot-format\n");
+		fprintf(stderr,"  -d, --dot                 print in dot-format\n");
 	}
 	if (app == MCC) {
 
-		printf("  -q, --quiet               suppress error output\n");
-		printf("  -o, --output <out-file>   write the output to <out-file> (defaults to 'a.out')\n");
+		fprintf(stderr,"  -q, --quiet               suppress error output\n");
+		fprintf(stderr,"  -o, --output <out-file>   write the output to <out-file> (defaults to 'a.out')\n");
 	} else {
-		printf("  -o, --output <out-file>   write the output to <out-file> (defaults to stdout)\n");
+		fprintf(stderr,"  -o, --output <out-file>   write the output to <out-file> (defaults to stdout)\n");
 	}
 	if (app == MC_CFG_TO_DOT) {
-		printf("  -f, --function <name>     print the CFG of the given function (defaults to 'main')\n");
+		fprintf(stderr,"  -f, --function <name>     print the CFG of the given function (defaults to 'main')\n");
 	}
 }
 
