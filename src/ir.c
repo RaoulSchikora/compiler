@@ -717,7 +717,6 @@ static struct mcc_ir_row *new_row(struct mcc_ir_arg *arg1,
 	return row;
 }
 
-// TODO: Only number rows that assign stuff
 static void number_rows(struct mcc_ir_row *head)
 {
 	if (!head)
