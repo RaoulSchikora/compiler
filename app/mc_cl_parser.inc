@@ -74,11 +74,11 @@ void mc_cl_parser_delete_command_line_parser(struct mc_cl_parser_command_line_pa
 
 static void print_usage(enum mc_apps app, const char *usage_string);
 
-static struct mc_cl_parser_options *parse_options(int argc, char *argv[]);
+static struct mc_cl_parser_options *parse_options(int argc, char *argv[], enum mc_apps app);
 
 static struct mc_cl_parser_program_arguments *parse_arguments(int argc, char *argv[]);
 
-static struct mc_cl_parser_command_line_parser *parse_command_line(int argc, char *argv[]);
+static struct mc_cl_parser_command_line_parser *parse_command_line(int argc, char *argv[],enum mc_apps app);
 
 static enum mc_cl_parser_argument_status check_args(struct mc_cl_parser_command_line_parser *command_line);
 
@@ -88,7 +88,7 @@ mc_cl_parser_parse(int argc, char *argv[], char *usage_string, enum mc_apps app)
 	// ------------------------------------------------------------ Parsing and checking command line
 
 	// Get all options and arguments from command line
-	struct mc_cl_parser_command_line_parser *command_line = parse_command_line(argc, argv);
+	struct mc_cl_parser_command_line_parser *command_line = parse_command_line(argc, argv, app);
 	if (command_line == NULL) {
 		mc_cl_parser_delete_command_line_parser(command_line);
 		return NULL;
@@ -211,7 +211,7 @@ char *mc_cl_parser_stdin_to_string()
 	return content;
 }
 
-static struct mc_cl_parser_options *parse_options(int argc, char *argv[])
+static struct mc_cl_parser_options *parse_options(int argc, char *argv[],enum mc_apps app)
 {
 	struct mc_cl_parser_options *options = malloc(sizeof(*options));
 	if (!options) {
@@ -265,11 +265,11 @@ static struct mc_cl_parser_options *parse_options(int argc, char *argv[])
 			break;
 		}
 	}
-	if (strcmp(argv[0], "./mc_symbol_table") != 0 && options->print_dot) {
+	if (app != MC_SYMBOL_TABLE && options->print_dot) {
 		options->print_dot = false;
 		options->print_help = true;
 	}
-	if (strcmp(argv[0], "./mc_cfg_to_dot") != 0 && options->limited_scope) {
+	if (app != MC_CFG_TO_DOT && options->limited_scope) {
 		options->limited_scope = false;
 		options->print_help = true;
 	}
@@ -310,10 +310,10 @@ static struct mc_cl_parser_program_arguments *parse_arguments(int argc, char *ar
 	return arguments;
 }
 
-static struct mc_cl_parser_command_line_parser *parse_command_line(int argc, char *argv[])
+static struct mc_cl_parser_command_line_parser *parse_command_line(int argc, char *argv[],enum mc_apps app)
 {
 
-	struct mc_cl_parser_options *options = parse_options(argc, argv);
+	struct mc_cl_parser_options *options = parse_options(argc, argv,app);
 	if (!options) {
 		return NULL;
 	}
