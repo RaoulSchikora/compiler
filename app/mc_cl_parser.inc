@@ -16,6 +16,14 @@
 
 // ----------------------------------------------------------------------- Data structures
 
+enum mc_apps{
+    MCC,
+    MC_AST_TO_DOT,
+    MC_IR,
+    MC_CFG_TO_DOT,
+    MC_SYMBOL_TABLE,
+};
+
 enum mc_cl_parser_mode {
     MC_CL_PARSER_MODE_FUNCTION,
     MC_CL_PARSER_MODE_PROGRAM,
@@ -54,7 +62,8 @@ struct mc_cl_parser_program_arguments {
 // ----------------------------------------------------------------------- Functions
 
 // Main function. Parses command line and returns struct
-struct mc_cl_parser_command_line_parser* mc_cl_parser_parse (int argc, char *argv[], char* usage_string);
+struct mc_cl_parser_command_line_parser* mc_cl_parser_parse (int argc, char *argv[], char* usage_string, enum mc_apps
+    app);
 
 // Read from stdin and write into string
 char *mc_cl_parser_stdin_to_string();
@@ -62,7 +71,7 @@ char *mc_cl_parser_stdin_to_string();
 // Clean up command line parsing results
 void mc_cl_parser_delete_command_line_parser(struct mc_cl_parser_command_line_parser *command_line);
 
-static void print_usage(const char *prg, const char *usage_string);
+static void print_usage(enum mc_apps app, const char *usage_string);
 
 static struct mc_cl_parser_options *parse_options(int argc, char *argv[]);
 
@@ -72,7 +81,7 @@ static struct mc_cl_parser_command_line_parser *parse_command_line(int argc, cha
 
 static enum mc_cl_parser_argument_status check_args(struct mc_cl_parser_command_line_parser *command_line);
 
-struct mc_cl_parser_command_line_parser *mc_cl_parser_parse(int argc, char *argv[], char *usage_string)
+struct mc_cl_parser_command_line_parser *mc_cl_parser_parse(int argc, char *argv[], char *usage_string, enum mc_apps app)
 {
 	// ------------------------------------------------------------ Parsing and checking command line
 
@@ -85,7 +94,7 @@ struct mc_cl_parser_command_line_parser *mc_cl_parser_parse(int argc, char *argv
 
 	// print usage if "-h" or "--help" was specified
 	if (command_line->options->print_help == true) {
-		print_usage(argv[0], usage_string);
+		print_usage(app, usage_string);
 		command_line->argument_status = MC_CL_PARSER_ARGSTAT_PRINT_HELP;
 		return command_line;
 	}
@@ -95,7 +104,7 @@ struct mc_cl_parser_command_line_parser *mc_cl_parser_parse(int argc, char *argv
 
 	// Args were malformed
 	if (command_line->argument_status == MC_CL_PARSER_ARGSTAT_ERROR) {
-		print_usage(argv[0], usage_string);
+		print_usage(app, usage_string);
 		return command_line;
 	}
 
@@ -104,7 +113,7 @@ struct mc_cl_parser_command_line_parser *mc_cl_parser_parse(int argc, char *argv
 		printf("File not found, please provide valid input.\n");
 		printf("-------------------------------------------\n");
 		printf("\n");
-		print_usage(argv[0], usage_string);
+		print_usage(app, usage_string);
 		return command_line;
 	}
 
@@ -125,9 +134,29 @@ void mc_cl_parser_delete_command_line_parser(struct mc_cl_parser_command_line_pa
 	free(command_line);
 }
 
-static void print_usage(const char *prg, const char *usage_string)
+char* get_prg_name(enum mc_apps app){
+    switch(app){
+        case MCC:
+            return "mcc";
+        case MC_AST_TO_DOT:
+            return "mc_ast_to_dot";
+        case MC_CFG_TO_DOT:
+            return "mc_cfg_to_dot";
+        case MC_IR:
+            return "mc_ir";
+        case MC_SYMBOL_TABLE:
+            return "mc_symbol_table";
+        default:
+            return "program";
+    }
+}
+
+
+static void print_usage(enum mc_apps app, const char *usage_string)
 {
-	printf("usage: %s [OPTIONS] file...\n\n", prg);
+        char* prg = get_prg_name(app);
+	
+        printf("usage: %s [OPTIONS] file...\n\n", prg);
 	printf("%s\n", usage_string);
 	printf("Use '-' as input file to read from stdin.\n\n");
 	printf("OPTIONS:\n");
