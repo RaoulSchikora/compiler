@@ -161,16 +161,16 @@ static void print_usage(enum mc_apps app, const char *usage_string)
 	printf("Use '-' as input file to read from stdin.\n\n");
 	printf("OPTIONS:\n");
 	printf("  -h, --help                display this help message\n");
-	if(strcmp(prg,"./mc_symbol_table")==0){
+        if(app == MC_SYMBOL_TABLE){
 		printf("  -d, --dot                 print in dot-format\n");
 	}
-	if(strcmp(prg, "./mcc")==0){
+        if(app == MCC){
 		printf("  -o, --output <out-file>   write the output to <out-file> (defaults to 'a.out')\n");
 	} else {
 		printf("  -o, --output <out-file>   write the output to <out-file> (defaults to stdout)\n");
 	}
-	if(strcmp(prg,"./mc_cfg_to_dot")==0){
-		printf("  -f, --function            print the CFG of the given function (defaults to 'main')\n");
+        if(app == MC_CFG_TO_DOT){
+		printf("  -f, --function <name>     print the CFG of the given function (defaults to 'main')\n");
 	}
 }
 
