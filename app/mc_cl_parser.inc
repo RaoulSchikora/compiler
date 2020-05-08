@@ -90,7 +90,6 @@ mc_cl_parser_parse(int argc, char *argv[], char *usage_string, enum mc_apps app)
 	// Get all options and arguments from command line
 	struct mc_cl_parser_command_line_parser *command_line = parse_command_line(argc, argv, app);
 	if (command_line == NULL) {
-		mc_cl_parser_delete_command_line_parser(command_line);
 		return NULL;
 	}
 
