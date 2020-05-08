@@ -273,6 +273,10 @@ static struct mc_cl_parser_options *parse_options(int argc, char *argv[],enum mc
 		options->limited_scope = false;
 		options->print_help = true;
 	}
+        if (app != MCC && options->quiet){
+                options->quiet = false;
+                options->print_help = true;
+        }
 
 	return options;
 }
