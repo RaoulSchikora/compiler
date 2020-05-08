@@ -707,6 +707,154 @@ static void number_rows(struct mcc_ir_row *head)
 	} while (head);
 }
 
+// --------------------------------------------------------------------------------------- Variable shadowing
+
+// struct for user data concerning variable shadowing
+struct renaming_userdata {
+	struct ir_generation_userdata *ir_data;
+	int num;
+	struct mcc_ast_identifier *ident;
+};
+
+// TODO use an existing function to get length of int
+static int get_length(int num)
+{
+	if (num == 0)
+		return 1;
+	return floor(log10(num)) + 1;
+}
+
+static void rename_row(struct mcc_symbol_table_row *row, struct renaming_userdata *data)
+{
+	assert(row);
+	assert(data);
+
+	size_t size = 3 + get_length(data->num);
+	row->name = (char *)realloc(row->name, size);
+	if (!row->name) {
+		data->ir_data->has_failed = true;
+		return;
+	}
+	snprintf(row->name, size, "_r%d", data->num);
+}
+
+static void rename_ident(struct mcc_ast_identifier *ident, struct renaming_userdata *data)
+{
+	assert(ident);
+	assert(data);
+
+	size_t size = 3 + get_length(data->num);
+	ident->identifier_name = (char *)realloc(ident->identifier_name, size);
+	if (!ident->identifier_name) {
+		data->ir_data->has_failed = true;
+		return;
+	}
+	snprintf(ident->identifier_name, size, "_r%d", data->num);
+}
+
+static void cb_rename_ident(struct mcc_ast_identifier *ident, void *data)
+{
+	assert(ident);
+	assert(data);
+	struct renaming_userdata *re_data = data;
+	if (strcmp(ident->identifier_name, re_data->ident->identifier_name) == 0) {
+		rename_ident(ident, re_data);
+	}
+}
+
+// Setup an AST Visitor for visiting declarations
+static struct mcc_ast_visitor rename_ident_visitor(struct renaming_userdata *data)
+{
+	return (struct mcc_ast_visitor){
+	    .traversal = MCC_AST_VISIT_DEPTH_FIRST,
+	    .order = MCC_AST_VISIT_PRE_ORDER,
+
+	    .userdata = data,
+
+	    .identifier = cb_rename_ident,
+	};
+}
+
+// callback of the renaming visitor. Checks if compound statement is a declaration, if so checks in symbol table if it
+// shadows a variable. If it does, all variables in the subtree of that compound statment become renamed
+static void cb_renaming(struct mcc_ast_compound_statement *comp_stmt, void *data)
+{
+	assert(data);
+	assert(comp_stmt);
+	struct renaming_userdata *re_data = data;
+	if (re_data->ir_data->has_failed)
+		return;
+	if (comp_stmt->statement->type != MCC_AST_STATEMENT_TYPE_DECLARATION)
+		return;
+	struct mcc_ast_declaration *decl = comp_stmt->statement->declaration;
+	struct mcc_symbol_table_row *row = decl->row;
+	struct mcc_symbol_table_row *prev = NULL;
+	// get previous row in symbol table
+	if (row->prev_row) {
+		prev = row->prev_row;
+	} else if (row->scope->parent_row) {
+		if (row->scope->parent_row->row_structure == MCC_SYMBOL_TABLE_ROW_STRUCTURE_FUNCTION) {
+			return;
+		} else {
+			prev = row->scope->parent_row;
+		}
+	}
+	// get identifier of declaration
+	struct mcc_ast_identifier *ident = NULL;
+	switch (decl->declaration_type) {
+	case MCC_AST_DECLARATION_TYPE_VARIABLE:
+		ident = decl->variable_identifier;
+		break;
+	case MCC_AST_DECLARATION_TYPE_ARRAY:
+		ident = decl->array_identifier;
+		break;
+	}
+	// check if a row with same name exists upwards in the symbol table, if yes rename
+	prev = mcc_symbol_table_check_upwards_for_declaration(ident->identifier_name, prev);
+	if (prev) {
+		re_data->ident = ident;
+		if (comp_stmt->next_compound_statement) {
+			struct mcc_ast_visitor visitor = rename_ident_visitor(data);
+			mcc_ast_visit(comp_stmt->next_compound_statement, &visitor);
+		}
+		rename_ident(ident, re_data);
+		rename_row(row, re_data);
+		re_data->num += 1;
+	}
+}
+
+// Setup an AST Visitor for visiting declarations
+static struct mcc_ast_visitor renaming_visitor(struct renaming_userdata *data)
+{
+	return (struct mcc_ast_visitor){
+	    .traversal = MCC_AST_VISIT_DEPTH_FIRST,
+	    .order = MCC_AST_VISIT_POST_ORDER,
+
+	    .userdata = data,
+
+	    .compound_statement = cb_renaming,
+	};
+}
+
+static void rename_shadowed_vars(struct mcc_ast_program *ast, struct ir_generation_userdata *ir_data)
+{
+	assert(ast);
+	assert(ir_data);
+	if (ir_data->has_failed)
+		return;
+
+	struct renaming_userdata *re_data = malloc(sizeof(*re_data));
+	if (!re_data) {
+		ir_data->has_failed = true;
+		return;
+	}
+	re_data->ir_data = ir_data;
+	re_data->num = 0;
+	struct mcc_ast_visitor visitor = renaming_visitor(re_data);
+	mcc_ast_visit(ast, &visitor);
+	free(re_data);
+}
+
 struct mcc_ir_row *mcc_ir_generate(struct mcc_ast_program *ast, struct mcc_symbol_table *table)
 {
 	UNUSED(ast);
@@ -722,6 +870,7 @@ struct mcc_ir_row *mcc_ir_generate(struct mcc_ast_program *ast, struct mcc_symbo
 
 	// remove all built_ins before creating the IR
 	ast = mcc_ast_remove_built_ins(ast);
+	rename_shadowed_vars(ast, data);
 
 	// struct mcc_ast_program *main_func = NULL;
 	while (ast) {

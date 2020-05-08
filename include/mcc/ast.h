@@ -177,6 +177,7 @@ struct mcc_ast_declaration {
 			struct mcc_ast_identifier *array_identifier;
 		};
 	};
+	struct mcc_symbol_table_row *row;
 };
 
 struct mcc_ast_declaration *mcc_ast_new_variable_declaration(enum mcc_ast_types, struct mcc_ast_identifier *identifier);
