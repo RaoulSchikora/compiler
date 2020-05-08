@@ -717,14 +717,46 @@ static struct mcc_ir_row *new_row(struct mcc_ir_arg *arg1,
 	return row;
 }
 
+// TODO: Only number rows that assign stuff
 static void number_rows(struct mcc_ir_row *head)
 {
 	if (!head)
 		return;
 	int i = 0;
 	do {
-		head->row_no = i;
-		i = i + 1;
+		switch (head->instr) {
+		case MCC_IR_INSTR_AND:
+		case MCC_IR_INSTR_OR:
+		case MCC_IR_INSTR_PLUS:
+		case MCC_IR_INSTR_DIVIDE:
+		case MCC_IR_INSTR_MINUS:
+		case MCC_IR_INSTR_NEGATIV:
+		case MCC_IR_INSTR_MODULO:
+		case MCC_IR_INSTR_GREATER:
+		case MCC_IR_INSTR_MULTIPLY:
+		case MCC_IR_INSTR_SMALLER:
+		case MCC_IR_INSTR_SMALLEREQ:
+		case MCC_IR_INSTR_GREATEREQ:
+		case MCC_IR_INSTR_EQUALS:
+		case MCC_IR_INSTR_NOTEQUALS:
+		case MCC_IR_INSTR_NOT:
+		case MCC_IR_INSTR_CALL:
+		case MCC_IR_INSTR_POP:
+
+			head->row_no = i;
+			i = i + 1;
+			break;
+		case MCC_IR_INSTR_ARRAY:
+		case MCC_IR_INSTR_ASSIGN:
+		case MCC_IR_INSTR_PUSH:
+		case MCC_IR_INSTR_RETURN:
+		case MCC_IR_INSTR_JUMP:
+		case MCC_IR_INSTR_JUMPFALSE:
+		case MCC_IR_INSTR_LABEL:
+		case MCC_IR_INSTR_FUNC_LABEL:
+		case MCC_IR_INSTR_UNKNOWN:
+			break;
+		}
 		head = head->next_row;
 	} while (head);
 }
@@ -741,9 +773,9 @@ struct mcc_ir_row *mcc_ir_generate(struct mcc_ast_program *ast, struct mcc_symbo
 	data->has_failed = false;
 	data->current = NULL;
 	data->label_counter = 0;
- 
-        // remove all built_ins before creating the IR
-        ast = mcc_ast_remove_built_ins(ast);
+
+	// remove all built_ins before creating the IR
+	ast = mcc_ast_remove_built_ins(ast);
 
 	// struct mcc_ast_program *main_func = NULL;
 	while (ast) {
