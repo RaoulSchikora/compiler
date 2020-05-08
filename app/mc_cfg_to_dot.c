@@ -26,9 +26,8 @@ int main(int argc, char *argv[])
 	// ---------------------------------------------------------------------- Parsing and checking command line
 
 	// Get all options and arguments from command line
-	char *usage_string = "Utility for viewing the generated intermediate representation. Errors are "
-	                     "reported on invalid inputs.\n";
-
+	char *usage_string = "Utility for printing a control flow graph in the DOT format. The output\n"
+	                     "can be visualised using graphviz. Errors are reported on invalid inputs.\n";
 	struct mc_cl_parser_command_line_parser *command_line =
 	    mc_cl_parser_parse(argc, argv, usage_string, MC_CFG_TO_DOT);
 	register_cleanup(command_line);
