@@ -19,51 +19,6 @@ struct ir_generation_userdata {
 	unsigned label_counter;
 };
 
-/* TODO:
-
- *    expression                :    DONE (Just update when other expression functions are added)
- *    expression_literal        :    DONE
- *    expression_binary_op      :    DONE
- *    expression_parenth        :    DONE
- *    expression_unary_op       :    DONE
- *    expression_variable       :    DONE
- *    expression_array_element  :    DONE
- *    expression_function_call  :    DONE
-
- *    literal                   :    DONE
- *    literal_int               :    DONE
- *    literal_float             :    DONE
- *    literal_bool              :    DONE
- *    literal_string            :    DONE
-
- *    statement                 :    DONE (Just update when other statement functions are added)
- *    statement_if_stmt         :    DONE
- *    statement_if_else_stmt    :    DONE
- *    statement_expression_stmt :    DONE
- *    statement_while           :    DONE
- *    statement_assignment      :    DONE
- *    statement_declaration     :    DONE
- *    statement_return          :    DONE
- *    statement_compound_stmt   :    DONE
-
- *    compound_statement        :    DONE
- *    program                   :    TODO: Generate return statements for void functions
- *    function_definition       :    Need to handle passed arrays
- *    parameters                :    DONE
- *    arguments                 :    DONE
-
- *    assignment                :
- *    variable_assignment       :    DONE
- *    array_assignment          :    DONE
- *    declaration               :    DONE
- *    variable_declaration      :    Not needed!
- *    array_declaration         :    DONE
-
- *    type                      :    Not needed?
- *    identifier                :    Not needed?
-
-*/
-
 //------------------------------------------------------------------------------ Forward declarations: IR datastructures
 
 static struct mcc_ir_arg *arg_from_declaration(struct mcc_ast_declaration *decl, struct ir_generation_userdata *data);
