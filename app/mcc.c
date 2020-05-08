@@ -111,7 +111,6 @@ int main(int argc, char *argv[])
 	}
 
 	// TODO:
-	// - create three-address code
 	// - output assembly code
 	// - invoke backend compiler
 
