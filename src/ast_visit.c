@@ -5,12 +5,12 @@
 #define visit(node, callback, visitor) \
 	if (callback) { \
 		(callback)(node, (visitor)->userdata); \
-	} \
+	}
 
 #define visit_if(cond, node, callback, visitor) \
 	if (cond) { \
 		visit(node, callback, visitor); \
-	} \
+	}
 
 #define visit_if_pre_order(node, callback, visitor) \
 	visit_if((visitor)->order == MCC_AST_VISIT_PRE_ORDER, node, callback, visitor)
@@ -147,7 +147,7 @@ void mcc_ast_visit_compound_statement(struct mcc_ast_compound_statement *compoun
 	if (compound_statement->has_next_statement) {
 		mcc_ast_visit(compound_statement->next_compound_statement, visitor);
 	}
-	visit_if_post_order(compound_statement->statement, visitor->statement, visitor);
+	visit_if_post_order(compound_statement, visitor->compound_statement, visitor);
 }
 
 void mcc_ast_visit_literal(struct mcc_ast_literal *literal, struct mcc_ast_visitor *visitor)
@@ -161,7 +161,6 @@ void mcc_ast_visit_literal(struct mcc_ast_literal *literal, struct mcc_ast_visit
 	case MCC_AST_LITERAL_TYPE_INT:
 		visit(literal, visitor->literal_int, visitor);
 		break;
-
 	case MCC_AST_LITERAL_TYPE_FLOAT:
 		visit(literal, visitor->literal_float, visitor);
 		break;

@@ -132,13 +132,6 @@ static char *instr_to_string(enum mcc_ir_instruction instr)
 	}
 }
 
-static int length_of_int(int num)
-{
-	if (num == 0)
-		return 1;
-	return floor(log10(num));
-}
-
 static int arg_size(struct mcc_ir_arg *arg)
 {
 	if (!arg)
