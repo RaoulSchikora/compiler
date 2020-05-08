@@ -745,15 +745,7 @@ static void number_rows(struct mcc_ir_row *head)
 			head->row_no = i;
 			i = i + 1;
 			break;
-		case MCC_IR_INSTR_ARRAY:
-		case MCC_IR_INSTR_ASSIGN:
-		case MCC_IR_INSTR_PUSH:
-		case MCC_IR_INSTR_RETURN:
-		case MCC_IR_INSTR_JUMP:
-		case MCC_IR_INSTR_JUMPFALSE:
-		case MCC_IR_INSTR_LABEL:
-		case MCC_IR_INSTR_FUNC_LABEL:
-		case MCC_IR_INSTR_UNKNOWN:
+		default:
 			break;
 		}
 		head = head->next_row;
