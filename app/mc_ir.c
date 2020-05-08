@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 	// ---------------------------------------------------------------------- Parsing and checking command line
 
 	// Get all options and arguments from command line
-	char *usage_string = "Utility for viewing the generated intermediate representation. Errors are "
+	char *usage_string = "Utility for viewing the generated intermediate representation. \nErrors are "
 	                     "reported on invalid inputs.\n";
 
 	struct mc_cl_parser_command_line_parser *command_line = mc_cl_parser_parse(argc, argv, usage_string, MC_IR);
