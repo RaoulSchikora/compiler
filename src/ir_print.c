@@ -9,19 +9,70 @@ void mcc_ir_print_table_begin(FILE *out)
 
 	fprintf(out, "--------------------------------------------------------------------------------\n"
 	             " Intermediate representation (TAC)                                             |\n"
-	             "--------------------------------------------------------------------------------\n"
-	             " label      | line no. | instruction | arg1               | arg2               |\n"
 	             "--------------------------------------------------------------------------------\n");
 }
 
 void mcc_ir_print_table_end(FILE *out)
 {
-	fprintf(out, "--------------------------------------------------------------------------------\n");
+	fprintf(out, "\n");
 }
 
-static void print_row(FILE *out, char *label, char *row_no, char *instruction, char *arg1, char *arg2)
+static void print_row(
+    FILE *out, char *label, char *row_no, char *instruction, char *arg1, char *arg2, enum mcc_ir_instruction instr)
 {
-	fprintf(out, " %-11s| %-7s  | %-11s | %-18s | %-18s |\n", label, row_no, instruction, arg1, arg2);
+	switch (instr) {
+	// not inline, 2 args
+	case MCC_IR_INSTR_FUNC_LABEL:
+		fprintf(out, "\n");
+		fprintf(out, "%-7s%s %s %s\n", label, instruction, arg1, arg2);
+		break;
+	case MCC_IR_INSTR_LABEL:
+		fprintf(out, "%6s %s %s %s\n", label, instruction, arg1, arg2);
+		break;
+	case MCC_IR_INSTR_JUMPFALSE:
+	case MCC_IR_INSTR_JUMP:
+	case MCC_IR_INSTR_PUSH:
+		fprintf(out, "%-7s%s %s %s\n", label, instruction, arg1, arg2);
+		break;
+	// no inline, 1 arg
+	case MCC_IR_INSTR_RETURN:
+		fprintf(out, "%-7s%s %s %s\n", label, instruction, arg1, arg2);
+		break;
+	// Inline instructions
+	case MCC_IR_INSTR_ASSIGN:
+		fprintf(out, "%-7s%s %s %s\n", label, arg1, instruction, arg2);
+		break;
+	case MCC_IR_INSTR_POP:
+		fprintf(out, "%-7s%s %s\n", label, instruction, row_no);
+		break;
+	case MCC_IR_INSTR_CALL:
+		fprintf(out, "%-7s%s = %s %s\n", label, row_no, instruction, arg1);
+		break;
+	case MCC_IR_INSTR_ARRAY:
+		fprintf(out, "%-7s%s = %s [%s]\n", label, arg1, instruction, arg2);
+		break;
+	case MCC_IR_INSTR_AND:
+	case MCC_IR_INSTR_EQUALS:
+	case MCC_IR_INSTR_SMALLER:
+	case MCC_IR_INSTR_GREATER:
+	case MCC_IR_INSTR_GREATEREQ:
+	case MCC_IR_INSTR_NOTEQUALS:
+	case MCC_IR_INSTR_SMALLEREQ:
+	case MCC_IR_INSTR_PLUS:
+	case MCC_IR_INSTR_OR:
+	case MCC_IR_INSTR_MINUS:
+	case MCC_IR_INSTR_DIVIDE:
+	case MCC_IR_INSTR_MULTIPLY:
+	case MCC_IR_INSTR_NEGATIV:
+	case MCC_IR_INSTR_MODULO:
+		fprintf(out, "%-7s%s = %s %s %s\n", label, row_no, arg1, instruction, arg2);
+		break;
+	case MCC_IR_INSTR_NOT:
+		fprintf(out, "%-7s%s = %s %s\n", label, row_no, instruction, arg1);
+		break;
+	case MCC_IR_INSTR_UNKNOWN:
+		break;
+	}
 }
 
 static void
@@ -34,55 +85,54 @@ static char *instr_to_string(enum mcc_ir_instruction instr)
 {
 	switch (instr) {
 	case MCC_IR_INSTR_ASSIGN:
-		return "assign";
+		return "=";
 	case MCC_IR_INSTR_JUMP:
 		return "jump";
-	case MCC_IR_INSTR_FUNC_LABEL:
-		return "funclabel";
 	case MCC_IR_INSTR_JUMPFALSE:
 		return "jumpfalse";
 	case MCC_IR_INSTR_CALL:
 		return "call";
 	case MCC_IR_INSTR_AND:
-		return "and";
+		return "&&";
 	case MCC_IR_INSTR_ARRAY:
 		return "array";
 	case MCC_IR_INSTR_DIVIDE:
-		return "divide";
+		return "/";
 	case MCC_IR_INSTR_EQUALS:
-		return "equals";
+		return "==";
 	case MCC_IR_INSTR_NOTEQUALS:
-		return "not equal";
+		return "!=";
 	case MCC_IR_INSTR_SMALLER:
-		return "smaller";
+		return "<";
 	case MCC_IR_INSTR_GREATER:
-		return "greater";
+		return ">";
 	case MCC_IR_INSTR_SMALLEREQ:
-		return "smaller eq";
+		return "<=";
 	case MCC_IR_INSTR_GREATEREQ:
-		return "greater eq";
+		return ">=";
 	case MCC_IR_INSTR_MINUS:
-		return "minus";
+		return "-";
 	case MCC_IR_INSTR_MODULO:
-		return "modulo";
+		return "%";
 	case MCC_IR_INSTR_MULTIPLY:
-		return "multiply";
+		return "*";
 	case MCC_IR_INSTR_OR:
-		return "or";
+		return "||";
 	case MCC_IR_INSTR_PLUS:
-		return "plus";
+		return "+";
 	case MCC_IR_INSTR_POP:
 		return "pop";
 	case MCC_IR_INSTR_PUSH:
 		return "push";
-	case MCC_IR_INSTR_LABEL:
-		return "label";
 	case MCC_IR_INSTR_NEGATIV:
-		return "negativ";
+		return "-";
 	case MCC_IR_INSTR_NOT:
-		return "not";
+		return "!";
 	case MCC_IR_INSTR_RETURN:
 		return "return";
+	case MCC_IR_INSTR_FUNC_LABEL:
+	case MCC_IR_INSTR_LABEL:
+		return "";
 	default:
 		return "unknown";
 	}
@@ -102,7 +152,7 @@ static int arg_size(struct mcc_ir_arg *arg)
 
 	switch (arg->type) {
 	case MCC_IR_TYPE_ROW:
-		return length_of_int(arg->row->row_no) + 2;
+		return length_of_int(arg->row->row_no) + 1;
 	case MCC_IR_TYPE_LIT_INT:
 		return length_of_int((int)arg->lit_int) + 1;
 	case MCC_IR_TYPE_LIT_FLOAT:
@@ -126,7 +176,7 @@ static int arg_size(struct mcc_ir_arg *arg)
 
 static void row_no_to_string(char *dest, int no)
 {
-	sprintf(dest, "(%d)", no);
+	sprintf(dest, "t%d", no);
 }
 
 static void bool_to_string(char *dest, bool b)
@@ -177,9 +227,11 @@ static void arg_to_string(char *dest, struct mcc_ir_arg *arg)
 		sprintf(dest, "%s[%s]", arg->arr_ident->identifier_name, index);
 		return;
 	case MCC_IR_TYPE_FUNC_LABEL:
-		strcpy(dest, arg->func_label);
+		sprintf(dest, "%s", arg->func_label);
 	};
 }
+
+// Basically a duplicate of mcc_ir_print_ir_row
 char *mcc_ir_print_ir_row_to_string(struct mcc_ir_row *row)
 {
 	if (!row)
@@ -233,7 +285,7 @@ void mcc_ir_print_ir_row(FILE *out, struct mcc_ir_row *row)
 	default:
 		strcpy(label, "");
 	}
-	print_row(out, label, no, instr, arg1, arg2);
+	print_row(out, label, no, instr, arg1, arg2, row->instr);
 }
 
 void mcc_ir_print_ir(FILE *out, struct mcc_ir_row *head)
