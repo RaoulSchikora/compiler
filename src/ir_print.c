@@ -7,9 +7,9 @@
 void mcc_ir_print_table_begin(FILE *out)
 {
 
-	fprintf(out, "--------------------------------------------------------------------------------\n"
-	             " Intermediate representation (TAC)                                             |\n"
-	             "--------------------------------------------------------------------------------\n");
+	fprintf(out, "----------------------------------------\n"
+	             " Intermediate representation (TAC)     |\n"
+	             "----------------------------------------\n");
 }
 
 void mcc_ir_print_table_end(FILE *out)
@@ -21,20 +21,16 @@ static void print_row(
     FILE *out, char *label, char *row_no, char *instruction, char *arg1, char *arg2, enum mcc_ir_instruction instr)
 {
 	switch (instr) {
-	// not inline, 2 args
+	case MCC_IR_INSTR_LABEL:
+		fprintf(out, "%6s %s %s %s\n", label, instruction, arg1, arg2);
+		break;
 	case MCC_IR_INSTR_FUNC_LABEL:
 		fprintf(out, "\n");
 		fprintf(out, "%-7s%s %s %s\n", label, instruction, arg1, arg2);
 		break;
-	case MCC_IR_INSTR_LABEL:
-		fprintf(out, "%6s %s %s %s\n", label, instruction, arg1, arg2);
-		break;
 	case MCC_IR_INSTR_JUMPFALSE:
 	case MCC_IR_INSTR_JUMP:
 	case MCC_IR_INSTR_PUSH:
-		fprintf(out, "%-7s%s %s %s\n", label, instruction, arg1, arg2);
-		break;
-	// no inline, 1 arg
 	case MCC_IR_INSTR_RETURN:
 		fprintf(out, "%-7s%s %s %s\n", label, instruction, arg1, arg2);
 		break;
@@ -44,9 +40,6 @@ static void print_row(
 		break;
 	case MCC_IR_INSTR_POP:
 		fprintf(out, "%-7s%s %s\n", label, instruction, row_no);
-		break;
-	case MCC_IR_INSTR_CALL:
-		fprintf(out, "%-7s%s = %s %s\n", label, row_no, instruction, arg1);
 		break;
 	case MCC_IR_INSTR_ARRAY:
 		fprintf(out, "%-7s%s = %s [%s]\n", label, arg1, instruction, arg2);
@@ -68,6 +61,7 @@ static void print_row(
 		fprintf(out, "%-7s%s = %s %s %s\n", label, row_no, arg1, instruction, arg2);
 		break;
 	case MCC_IR_INSTR_NOT:
+	case MCC_IR_INSTR_CALL:
 		fprintf(out, "%-7s%s = %s %s\n", label, row_no, instruction, arg1);
 		break;
 	case MCC_IR_INSTR_UNKNOWN:
