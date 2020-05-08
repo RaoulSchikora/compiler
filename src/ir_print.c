@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define TERMINAL_LINE_LENGTH 120
+
 void mcc_ir_print_table_begin(FILE *out)
 {
 
@@ -17,32 +19,32 @@ void mcc_ir_print_table_end(FILE *out)
 	fprintf(out, "\n");
 }
 
-static void print_row(
-    FILE *out, char *label, char *row_no, char *instruction, char *arg1, char *arg2, enum mcc_ir_instruction instr)
+static void row_to_string(
+    char *out, char *label, char *row_no, char *instruction, char *arg1, char *arg2, enum mcc_ir_instruction instr)
 {
 	switch (instr) {
 	case MCC_IR_INSTR_LABEL:
-		fprintf(out, "%6s %s %s %s\n", label, instruction, arg1, arg2);
+		snprintf(out, TERMINAL_LINE_LENGTH, "%6s %s %s %s\n", label, instruction, arg1, arg2);
 		break;
 	case MCC_IR_INSTR_FUNC_LABEL:
-		fprintf(out, "\n");
-		fprintf(out, "%-7s%s %s %s\n", label, instruction, arg1, arg2);
+		snprintf(out, TERMINAL_LINE_LENGTH, "\n");
+		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s %s %s\n", label, instruction, arg1, arg2);
 		break;
 	case MCC_IR_INSTR_JUMPFALSE:
 	case MCC_IR_INSTR_JUMP:
 	case MCC_IR_INSTR_PUSH:
 	case MCC_IR_INSTR_RETURN:
-		fprintf(out, "%-7s%s %s %s\n", label, instruction, arg1, arg2);
+		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s %s %s\n", label, instruction, arg1, arg2);
 		break;
 	// Inline instructions
 	case MCC_IR_INSTR_ASSIGN:
-		fprintf(out, "%-7s%s %s %s\n", label, arg1, instruction, arg2);
+		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s %s %s\n", label, arg1, instruction, arg2);
 		break;
 	case MCC_IR_INSTR_POP:
-		fprintf(out, "%-7s%s %s\n", label, instruction, row_no);
+		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s %s\n", label, instruction, row_no);
 		break;
 	case MCC_IR_INSTR_ARRAY:
-		fprintf(out, "%-7s%s = %s [%s]\n", label, arg1, instruction, arg2);
+		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s = %s [%s]\n", label, arg1, instruction, arg2);
 		break;
 	case MCC_IR_INSTR_AND:
 	case MCC_IR_INSTR_EQUALS:
@@ -58,21 +60,15 @@ static void print_row(
 	case MCC_IR_INSTR_MULTIPLY:
 	case MCC_IR_INSTR_NEGATIV:
 	case MCC_IR_INSTR_MODULO:
-		fprintf(out, "%-7s%s = %s %s %s\n", label, row_no, arg1, instruction, arg2);
+		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s = %s %s %s\n", label, row_no, arg1, instruction, arg2);
 		break;
 	case MCC_IR_INSTR_NOT:
 	case MCC_IR_INSTR_CALL:
-		fprintf(out, "%-7s%s = %s %s\n", label, row_no, instruction, arg1);
+		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s = %s %s\n", label, row_no, instruction, arg1);
 		break;
 	case MCC_IR_INSTR_UNKNOWN:
 		break;
 	}
-}
-
-static void
-print_row_to_string(size_t length, char *string, char *label, char *row_no, char *instruction, char *arg1, char *arg2)
-{
-	snprintf(string, length, " %-11s| %-7s  | %-11s | %-18s | %-18s  ", label, row_no, instruction, arg1, arg2);
 }
 
 static char *instr_to_string(enum mcc_ir_instruction instr)
@@ -218,14 +214,8 @@ static void arg_to_string(char *dest, struct mcc_ir_arg *arg)
 	};
 }
 
-// Basically a duplicate of mcc_ir_print_ir_row
-char *mcc_ir_print_ir_row_to_string(struct mcc_ir_row *row)
+static void get_row_string(struct mcc_ir_row *row, char *row_string)
 {
-	if (!row)
-		return NULL;
-	char *ret_string = malloc(sizeof(char) * 81);
-	if (!ret_string)
-		return NULL;
 	char *instr = instr_to_string(row->instr);
 	char arg1[arg_size(row->arg1)];
 	char arg2[arg_size(row->arg2)];
@@ -246,33 +236,23 @@ char *mcc_ir_print_ir_row_to_string(struct mcc_ir_row *row)
 	default:
 		strcpy(label, "");
 	}
-	print_row_to_string(81, ret_string, label, no, instr, arg1, arg2);
-	return ret_string;
+	row_to_string(row_string, label, no, instr, arg1, arg2, row->instr);
 }
 
 void mcc_ir_print_ir_row(FILE *out, struct mcc_ir_row *row)
 {
-	char *instr = instr_to_string(row->instr);
-	char arg1[arg_size(row->arg1)];
-	char arg2[arg_size(row->arg2)];
-	char no[length_of_int(row->row_no) + 2];
-	row_no_to_string(no, row->row_no);
-	arg_to_string(arg1, row->arg1);
-	arg_to_string(arg2, row->arg2);
-	char label[arg_size(row->arg1)];
-	switch (row->instr) {
-	case MCC_IR_INSTR_LABEL:
-		strcpy(label, arg1);
-		strcpy(arg1, "");
-		break;
-	case MCC_IR_INSTR_FUNC_LABEL:
-		strcpy(label, arg1);
-		strcpy(arg1, "");
-		break;
-	default:
-		strcpy(label, "");
-	}
-	print_row(out, label, no, instr, arg1, arg2, row->instr);
+	char row_string[TERMINAL_LINE_LENGTH];
+	get_row_string(row, row_string);
+	fprintf(out, "%s", row_string);
+}
+
+char *mcc_ir_print_ir_row_to_string(struct mcc_ir_row *row)
+{
+	char *ret_string = malloc(sizeof(char) * TERMINAL_LINE_LENGTH);
+	if (!ret_string)
+		return NULL;
+	get_row_string(row, ret_string);
+	return ret_string;
 }
 
 void mcc_ir_print_ir(FILE *out, struct mcc_ir_row *head)
