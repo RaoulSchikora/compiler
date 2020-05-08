@@ -110,10 +110,10 @@ mc_cl_parser_parse(int argc, char *argv[], char *usage_string, enum mc_apps app)
 	}
 
 	if (command_line->argument_status == MC_CL_PARSER_ARGSTAT_FILE_NOT_FOUND) {
-		printf("-------------------------------------------\n");
-		printf("File not found, please provide valid input.\n");
-		printf("-------------------------------------------\n");
-		printf("\n");
+		fprintf(stderr,"-------------------------------------------\n");
+		fprintf(stderr,"File not found, please provide valid input.\n");
+		fprintf(stderr,"-------------------------------------------\n");
+		fprintf(stderr,"\n");
 		print_usage(app, usage_string);
 		return command_line;
 	}
