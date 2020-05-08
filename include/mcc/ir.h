@@ -6,6 +6,8 @@
 #include "mcc/ast.h"
 #include "mcc/symbol_table.h"
 
+int length_of_int(int num);
+
 //---------------------------------------------------------------------------------------- Data structure: IR
 
 enum mcc_ir_instruction {

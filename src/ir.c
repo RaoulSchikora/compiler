@@ -19,6 +19,13 @@ struct ir_generation_userdata {
 	unsigned label_counter;
 };
 
+int length_of_int(int num)
+{
+	if (num == 0)
+		return 1;
+	return floor(log10(num)) + 1;
+}
+
 //------------------------------------------------------------------------------ Forward declarations: IR datastructures
 
 static struct mcc_ir_arg *arg_from_declaration(struct mcc_ast_declaration *decl, struct ir_generation_userdata *data);
@@ -716,20 +723,12 @@ struct renaming_userdata {
 	struct mcc_ast_identifier *ident;
 };
 
-// TODO use an existing function to get length of int
-static int get_length(int num)
-{
-	if (num == 0)
-		return 1;
-	return floor(log10(num)) + 1;
-}
-
 static void rename_row(struct mcc_symbol_table_row *row, struct renaming_userdata *data)
 {
 	assert(row);
 	assert(data);
 
-	size_t size = 3 + get_length(data->num);
+	size_t size = 3 + length_of_int(data->num);
 	row->name = (char *)realloc(row->name, size);
 	if (!row->name) {
 		data->ir_data->has_failed = true;
@@ -743,7 +742,7 @@ static void rename_ident(struct mcc_ast_identifier *ident, struct renaming_userd
 	assert(ident);
 	assert(data);
 
-	size_t size = 3 + get_length(data->num);
+	size_t size = 3 + length_of_int(data->num);
 	ident->identifier_name = (char *)realloc(ident->identifier_name, size);
 	if (!ident->identifier_name) {
 		data->ir_data->has_failed = true;
