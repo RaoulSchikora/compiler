@@ -12,7 +12,8 @@
 			struct mcc_ir_row * : mc_cleanup_delete_ir, \
 			char* :mc_cleanup_delete_error_buffer, \
 			struct mcc_ast_program* : mc_cleanup_delete_ast, \
-                        struct mcc_basic_block*: mc_cleanup_delete_cfg \
+                        struct mcc_basic_block*: mc_cleanup_delete_cfg, \
+			struct mcc_asm *: mc_cleanup_delete_asm \
 			)
 
 
@@ -109,5 +110,16 @@ void mc_cleanup_delete_ast(int n, void* data){
     }
 #endif
 
+#ifdef MCC_ASM_H
+    void mc_cleanup_delete_asm(int n, void* data){
+            UNUSED(n);
+            mcc_asm_delete_asm(data);
+    }
+#else
+    void mc_cleanup_delete_asm(int n, void* data){
+            UNUSED(n);
+            UNUSED(data);
+    }
+#endif
 
 #endif // MC_CLEANUP_INC

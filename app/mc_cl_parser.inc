@@ -18,6 +18,7 @@
 
 enum mc_apps {
 	MCC,
+	MC_ASM,
 	MC_AST_TO_DOT,
 	MC_IR,
 	MC_CFG_TO_DOT,
@@ -154,6 +155,8 @@ char *get_prg_name(enum mc_apps app)
 		return "mc_ir";
 	case MC_SYMBOL_TABLE:
 		return "mc_symbol_table";
+	case MC_ASM:
+		return "mc_asm";
 	default:
 		return "program";
 	}

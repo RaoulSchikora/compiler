@@ -35,6 +35,8 @@ mcc_src = [ 'src/ast.c',
 	    'src/ir_print.c',
             'src/cfg.c',
             'src/cfg_print.c',
+	    'src/asm.c',
+	    'src/asm_print.c',
             lgen.process('src/scanner.l'),
             pgen.process('src/parser.y'),
             'src/symbol_table.c',
@@ -48,7 +50,7 @@ mcc_lib = library('mcc', mcc_src,
 
 # ---------------------------------------------------------------- Applications
 
-mcc_apps = [ 'mcc', 'mc_ast_to_dot','mc_symbol_table','mc_ir','mc_cfg_to_dot']
+mcc_apps = [ 'mcc', 'mc_ast_to_dot','mc_symbol_table','mc_ir','mc_cfg_to_dot','mc_asm']
 
 foreach app : mcc_apps
     executable(app, 'app/' + app + '.c',
