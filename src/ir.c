@@ -783,7 +783,7 @@ static void cb_renaming(struct mcc_ast_compound_statement *comp_stmt, void *data
 	struct renaming_userdata *re_data = data;
 	if (re_data->ir_data->has_failed)
 		return;
-	if (comp_stmt->statement->type != MCC_AST_STATEMENT_TYPE_DECLARATION)
+	if (comp_stmt->is_empty || comp_stmt->statement->type != MCC_AST_STATEMENT_TYPE_DECLARATION)
 		return;
 	struct mcc_ast_declaration *decl = comp_stmt->statement->declaration;
 	struct mcc_symbol_table_row *row = decl->row;
