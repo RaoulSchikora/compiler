@@ -1,3 +1,9 @@
+// Intermediate Representation (IR)
+//
+// This module provides infrastructure for the Intermediate Representation. 
+// It is implemented as Three Address Code in the form of triples. The result of an instruction that takes two or less 
+// arguments is assigned to one variable (either temporary of from the original code). 
+
 #ifndef MCC_IR_H
 #define MCC_IR_H
 
@@ -83,6 +89,7 @@ struct mcc_ir_row {
 
 //---------------------------------------------------------------------------------------- Generate IR datastructures
 
+// TODO: Brauchen wir die wirklich?
 struct mcc_ir_row *mcc_ir_generate_entry_point(struct mcc_parser_result *result,
                                                struct mcc_symbol_table *table,
                                                enum mcc_parser_entry_point entry_point);

@@ -1,3 +1,8 @@
+// Semantic Checks
+//
+// Here, infrastructure for the semantic checks is provided.
+// Semantic checks can be run individually or composed in a single function.
+
 #ifndef PROJECT_SEMANTIC_CHECKS_H
 #define PROJECT_SEMANTIC_CHECKS_H
 
@@ -18,7 +23,7 @@ enum mcc_semantic_check_error_code {
 	MCC_SEMANTIC_CHECK_ERROR_OK,
 	MCC_SEMANTIC_CHECK_ERROR_MALLOC_FAILED,
 	MCC_SEMANTIC_CHECK_ERROR_SNPRINTF_FAILED,
-    MCC_SEMANTIC_CHECK_ERROR_UNKNOWN,
+	MCC_SEMANTIC_CHECK_ERROR_UNKNOWN,
 };
 
 struct mcc_semantic_check {

@@ -62,3 +62,4 @@ struct mcc_parser_result mcc_parse_file(FILE *input,enum mcc_parser_entry_point 
 void mcc_ast_delete_result(struct mcc_parser_result *result);
 
 #endif // MCC_PARSER_H
+

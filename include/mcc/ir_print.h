@@ -1,7 +1,7 @@
 // IR Print Infrastructure
 //
-// This module provides basic printing infrastructure for the AST data
-// structure. The DOT printer enables easy visualisation of an AST.
+// This module provides basic printing infrastructure for the IR data
+// structure. The DOT printer enables easy visualisation of the IR
 
 #ifndef MCC_IR_PRINT_H
 #define MCC_IR_PRINT_H
