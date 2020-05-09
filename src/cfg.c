@@ -15,8 +15,6 @@
 
 //---------------------------------------------------------------------------------------- Annotate IR with leaders
 
-// TODO: Delete everything properly. Error handling.
-
 // Annotate IR to determine leaders
 struct annotated_ir {
 	bool is_leader;
