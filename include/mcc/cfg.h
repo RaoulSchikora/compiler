@@ -34,7 +34,7 @@ struct mcc_basic_block *mcc_cfg_generate(struct mcc_ir_row *ir);
 struct mcc_basic_block_chain *mcc_cfg_generate_block_chain(struct mcc_ir_row *ir);
 
 // Restrict the CFG to just one function. Makes use of the linked list wrapper
-struct mcc_basic_block_chain* mcc_cfg_limit_to_function(char *function_identifier, struct mcc_basic_block_chain *cfg);
+struct mcc_basic_block_chain *mcc_cfg_limit_to_function(char *function_identifier, struct mcc_basic_block_chain *cfg);
 
 //---------------------------------------------------------------------------------------- Functions: Set up datastructs
 
