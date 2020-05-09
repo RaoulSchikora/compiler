@@ -164,134 +164,134 @@ int start_token;
 
 %%
 
-toplevel	    	: START_UNIT unit_test
+toplevel            : START_UNIT unit_test
                     | START_PROG program
-                    	{result->entry_point = MCC_PARSER_ENTRY_POINT_PROGRAM; result->program = $2;			}
+                      {result->entry_point = MCC_PARSER_ENTRY_POINT_PROGRAM; result->program = $2; }
                     ;
 
 unit_test           : expression
-						{ result->entry_point = MCC_PARSER_ENTRY_POINT_EXPRESSION; result->expression = $1;		}
+                      { result->entry_point = MCC_PARSER_ENTRY_POINT_EXPRESSION; result->expression = $1; }
                     | declaration
-                    	{ result->entry_point = MCC_PARSER_ENTRY_POINT_DECLARATION; result->declaration = $1;	}
+                      { result->entry_point = MCC_PARSER_ENTRY_POINT_DECLARATION; result->declaration = $1; }
                     | assignment
-                    	{ result->entry_point = MCC_PARSER_ENTRY_POINT_ASSIGNMENT; result->assignment = $1;		}
+                      { result->entry_point = MCC_PARSER_ENTRY_POINT_ASSIGNMENT; result->assignment = $1; }
                     | statement
-                    	{ result->entry_point = MCC_PARSER_ENTRY_POINT_STATEMENT; result->statement = $1;		}
+                      { result->entry_point = MCC_PARSER_ENTRY_POINT_STATEMENT; result->statement = $1; }
                     | compound_statement
-                    	{ result->entry_point =
-                    		MCC_PARSER_ENTRY_POINT_COMPOUND_STATEMENT; result->compound_statement = $1;			}
+                      { result->entry_point =
+                        MCC_PARSER_ENTRY_POINT_COMPOUND_STATEMENT; result->compound_statement = $1; }
                     | function_def
-                    	{ result->entry_point =
-                    		MCC_PARSER_ENTRY_POINT_FUNCTION_DEFINITION; result->function_definition = $1;		}
+                      { result->entry_point =
+                        MCC_PARSER_ENTRY_POINT_FUNCTION_DEFINITION; result->function_definition = $1; }
                     | parameters
-                    	{ result->entry_point = MCC_PARSER_ENTRY_POINT_PARAMETERS; result->parameters = $1; 	}
+                      { result->entry_point = MCC_PARSER_ENTRY_POINT_PARAMETERS; result->parameters = $1; }
                     | arguments
-                    	{ result->entry_point = MCC_PARSER_ENTRY_POINT_ARGUMENTS; result->arguments = $1; 		}
+                      { result->entry_point = MCC_PARSER_ENTRY_POINT_ARGUMENTS; result->arguments = $1; }
                     | program
-                    	{ result->entry_point = MCC_PARSER_ENTRY_POINT_PROGRAM; result->program = $1; 			}
+                      { result->entry_point = MCC_PARSER_ENTRY_POINT_PROGRAM; result->program = $1; }
                     ;
 
-expression          : literal { $$ = mcc_ast_new_expression_literal($1);							loc($$, @1 ,@1);}
+expression          : literal { $$ = mcc_ast_new_expression_literal($1);                           loc($$, @1 ,@1); }
                     | expression PLUS expression
-                    	{ $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_ADD, $1, $3);     loc($$, @1, @3);}
+                      { $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_ADD, $1, $3);      loc($$, @1, @3); }
                     | expression MINUS expression
-                    	{ $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_SUB, $1, $3);     loc($$, @1, @3);}
+                      { $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_SUB, $1, $3);      loc($$, @1, @3); }
                     | expression ASTER expression
-                    	{ $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_MUL, $1, $3);     loc($$, @1, @3);}
+                      { $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_MUL, $1, $3);      loc($$, @1, @3); }
                     | expression SLASH expression
-                    	{ $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_DIV, $1, $3);     loc($$, @1, @3);}
+                      { $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_DIV, $1, $3);      loc($$, @1, @3); }
                     | expression LT_SIGN expression
-                    	{ $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_SMALLER, $1, $3); loc($$, @1, @3);}
+                      { $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_SMALLER, $1, $3);  loc($$, @1, @3); }
                     | expression GT_SIGN expression
-                    	{ $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_GREATER, $1, $3); loc($$, @1, @3);}
+                      { $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_GREATER, $1, $3);  loc($$, @1, @3); }
                     | expression LT_EQ_SIGN expression
-                    	{ $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_SMALLEREQ,$1,$3); loc($$, @1, @3);}
+                      { $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_SMALLEREQ,$1,$3);  loc($$, @1, @3); }
                     | expression GT_EQ_SIGN expression
-                    	{ $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_GREATEREQ,$1,$3); loc($$, @1, @3);}
+                      { $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_GREATEREQ,$1,$3);  loc($$, @1, @3); }
                     | expression ANDAND expression
-                    	{ $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_CONJ, $1, $3);    loc($$, @1, @3);}
+                      { $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_CONJ, $1, $3);     loc($$, @1, @3); }
                     | expression OROR expression
-                    	{ $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_DISJ, $1, $3);    loc($$, @1, @3);}
+                      { $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_DISJ, $1, $3);     loc($$, @1, @3); }
                     | expression EQEQ expression
-                    	{ $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_EQUAL, $1, $3);   loc($$, @1, @3);}
+                      { $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_EQUAL, $1, $3);    loc($$, @1, @3); }
                     | expression EXKLA_EQ expression
-                    	{ $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_NOTEQUAL,$1,$3);  loc($$, @1, @3);}
-                    | LPARENTH expression RPARENTH { $$ = mcc_ast_new_expression_parenth($2);       loc($$, @1, @3);}
+                      { $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_NOTEQUAL,$1,$3);   loc($$, @1, @3); }
+                    | LPARENTH expression RPARENTH { $$ = mcc_ast_new_expression_parenth($2);      loc($$, @1, @3); }
                     | MINUS expression
-                    	{ $$ = mcc_ast_new_expression_unary_op(MCC_AST_UNARY_OP_NEGATIV, $2);	    loc($$, @1, @2);}
+                      { $$ = mcc_ast_new_expression_unary_op(MCC_AST_UNARY_OP_NEGATIV, $2);        loc($$, @1, @2); }
                     | EXKLA expression
-                    	{ $$ = mcc_ast_new_expression_unary_op(MCC_AST_UNARY_OP_NOT, $2);           loc($$, @1, @2);}
-                    | identifier { $$ = mcc_ast_new_expression_variable($1); 			    		loc($$, @1, @1);}
+                      { $$ = mcc_ast_new_expression_unary_op(MCC_AST_UNARY_OP_NOT, $2);            loc($$, @1, @2); }
+                    | identifier { $$ = mcc_ast_new_expression_variable($1);                       loc($$, @1, @1); }
                     | identifier SQUARE_OPEN expression SQUARE_CLOSE
-                    	{ $$ = mcc_ast_new_expression_array_element($1,$3);                         loc($$, @1, @4);}
+                      { $$ = mcc_ast_new_expression_array_element($1,$3);                          loc($$, @1, @4); }
                     | identifier LPARENTH arguments RPARENTH
-                    	{ $$ = mcc_ast_new_expression_function_call($1, $3);						loc($$, @1, @4);}
+                      { $$ = mcc_ast_new_expression_function_call($1, $3);                         loc($$, @1, @4); }
                     ;
 
-arguments           : expression { $$ = mcc_ast_new_arguments(false, $1, NULL); 		    		loc($$, @1, @1);}
-                    | expression COMMA arguments { $$ = mcc_ast_new_arguments(false, $1, $3); 	    loc($$, @1, @3);}
+arguments           : expression { $$ = mcc_ast_new_arguments(false, $1, NULL);                    loc($$, @1, @1); }
+                    | expression COMMA arguments { $$ = mcc_ast_new_arguments(false, $1, $3);      loc($$, @1, @3); }
                     | %empty { $$ = mcc_ast_new_arguments(true, NULL, NULL); }
                     ;
 
 
-assignment 	    	: identifier EQ expression { $$ = mcc_ast_new_variable_assignment ($1, $3);     loc($$, @1, @3);}
+assignment          : identifier EQ expression { $$ = mcc_ast_new_variable_assignment ($1, $3);    loc($$, @1, @3); }
                     | identifier SQUARE_OPEN expression SQUARE_CLOSE EQ expression
-                    	{ $$ = mcc_ast_new_array_assignment ($1, $3, $6); 			    			loc($$, @1, @6);}
+                      { $$ = mcc_ast_new_array_assignment ($1, $3, $6);                            loc($$, @1, @6); }
                     ;
 
-declaration         : TYPE identifier { $$ = mcc_ast_new_variable_declaration($1,$2); 		    	loc($$, @1, @2);}
+declaration         : TYPE identifier { $$ = mcc_ast_new_variable_declaration($1,$2);              loc($$, @1, @2); }
                     | TYPE SQUARE_OPEN INT_LITERAL SQUARE_CLOSE identifier
-                    	{ $$ = mcc_ast_new_array_declaration($1, mcc_ast_new_literal_int($3), $5);  loc($$, @1, @5);}
+                      { $$ = mcc_ast_new_array_declaration($1, mcc_ast_new_literal_int($3), $5);   loc($$, @1, @5); }
                     ;
 
-identifier 			: IDENTIFIER {$$ = mcc_ast_new_identifier($1); 									loc($$,@1,@1);}
-					;
+identifier          : IDENTIFIER {$$ = mcc_ast_new_identifier($1);                                 loc($$, @1, @1); }
+                    ;
 
 statement           : IF LPARENTH expression RPARENTH statement %prec NOT_ELSE
-						{ $$ = mcc_ast_new_statement_if_stmt( $3, $5); 	    			    		loc($$, @1, @5);}
+                      { $$ = mcc_ast_new_statement_if_stmt( $3, $5);                               loc($$, @1, @5); }
                     | IF LPARENTH expression RPARENTH statement ELSE statement
-                    	{ $$ = mcc_ast_new_statement_if_else_stmt( $3, $5, $7);                     loc($$, @1, @7);}
-                    | expression SEMICOLON 	  { $$ = mcc_ast_new_statement_expression( $1);     	loc($$, @1, @2);}
+                      { $$ = mcc_ast_new_statement_if_else_stmt( $3, $5, $7);                      loc($$, @1, @7); }
+                    | expression SEMICOLON { $$ = mcc_ast_new_statement_expression( $1);           loc($$, @1, @2); }
                     | WHILE LPARENTH expression RPARENTH statement
-                    	{ $$ = mcc_ast_new_statement_while( $3, $5); 	    			    		loc($$, @1, @5);}
-                    | assignment SEMICOLON { $$ = mcc_ast_new_statement_assignment($1);	    	    loc($$, @1, @2);}
-                    | declaration SEMICOLON { $$ = mcc_ast_new_statement_declaration($1);	    	loc($$, @1, @2);}
-                    | RETURN SEMICOLON { $$ = mcc_ast_new_statement_return(true, NULL);  	    	loc($$, @1, @2);}
-                    | RETURN expression SEMICOLON { $$ = mcc_ast_new_statement_return(false, $2);   loc($$, @1, @3);}
-                    | compound_statement { $$ = mcc_ast_new_statement_compound_stmt($1);   	    	loc($$, @1, @1);}
+                      { $$ = mcc_ast_new_statement_while( $3, $5);                                 loc($$, @1, @5); }
+                    | assignment SEMICOLON { $$ = mcc_ast_new_statement_assignment($1);            loc($$, @1, @2); }
+                    | declaration SEMICOLON { $$ = mcc_ast_new_statement_declaration($1);          loc($$, @1, @2); }
+                    | RETURN SEMICOLON { $$ = mcc_ast_new_statement_return(true, NULL);            loc($$, @1, @2); }
+                    | RETURN expression SEMICOLON { $$ = mcc_ast_new_statement_return(false, $2);  loc($$, @1, @3); }
+                    | compound_statement { $$ = mcc_ast_new_statement_compound_stmt($1);           loc($$, @1, @1); }
                     ;
 
-statements          : statement statements { $$ = mcc_ast_new_compound_stmt(false, $1, $2); 	    loc($$, @1, @2);}
-                    | statement            { $$ = mcc_ast_new_compound_stmt(false, $1, NULL);  	    loc($$, @1, @1);}
+statements          : statement statements { $$ = mcc_ast_new_compound_stmt(false, $1, $2);        loc($$, @1, @2); }
+                    | statement            { $$ = mcc_ast_new_compound_stmt(false, $1, NULL);      loc($$, @1, @1); }
                     ;
 
 
-compound_statement  :   CURL_OPEN statements CURL_CLOSE { $$ = $2; 				    				loc($$, @1, @3);}
-                    |   CURL_OPEN CURL_CLOSE { $$ = mcc_ast_new_compound_stmt(true,NULL,NULL);      loc($$, @1, @2);}
+compound_statement  : CURL_OPEN statements CURL_CLOSE { $$ = $2;                                   loc($$, @1, @3); }
+                    | CURL_OPEN CURL_CLOSE { $$ = mcc_ast_new_compound_stmt(true,NULL,NULL);       loc($$, @1, @2); }
                     ;
 
-literal             : INT_LITERAL    { $$ = mcc_ast_new_literal_int($1);   			    			loc($$, @1, @1);}
-                    | FLOAT_LITERAL  { $$ = mcc_ast_new_literal_float($1); 			    			loc($$, @1, @1);}
-                    | BOOL_LITERAL   { $$ = mcc_ast_new_literal_bool($1);  			    			loc($$, @1, @1);}
-                    | STRING_LITERAL { $$ = mcc_ast_new_literal_string($1); free($1); 		    	loc($$, @1, @1);}
+literal             : INT_LITERAL    { $$ = mcc_ast_new_literal_int($1);                           loc($$, @1, @1); }
+                    | FLOAT_LITERAL  { $$ = mcc_ast_new_literal_float($1);                         loc($$, @1, @1); }
+                    | BOOL_LITERAL   { $$ = mcc_ast_new_literal_bool($1);                          loc($$, @1, @1); }
+                    | STRING_LITERAL { $$ = mcc_ast_new_literal_string($1); free($1);              loc($$, @1, @1); }
                     ;
 
-parameters          : declaration    { $$ = mcc_ast_new_parameters(false, $1, NULL ); 		    	loc($$, @1, @1);}
-                    | declaration COMMA parameters   { $$ = mcc_ast_new_parameters(false, $1, $3 ); loc($$, @1, @3);}
+parameters          : declaration    { $$ = mcc_ast_new_parameters(false, $1, NULL );              loc($$, @1, @1); }
+                    | declaration COMMA parameters   { $$ = mcc_ast_new_parameters(false, $1, $3 );loc($$, @1, @3); }
                     | %empty { $$ = mcc_ast_new_parameters(true, NULL, NULL); }
                     ;
 
 function_def        : VOID identifier LPARENTH parameters RPARENTH compound_statement
-						{ $$ = mcc_ast_new_void_function_def($2, $4, $6);   						loc($$, @1, @6);}
+                      { $$ = mcc_ast_new_void_function_def($2, $4, $6);                            loc($$, @1, @6); }
                     | TYPE identifier LPARENTH parameters RPARENTH compound_statement
-                    	{ $$ = mcc_ast_new_type_function_def($1, $2,$4,$6); 						loc($$, @1, @6);}
+                      { $$ = mcc_ast_new_type_function_def($1, $2,$4,$6);                          loc($$, @1, @6); }
                     ;
 
-function_defs       :   function_def function_defs  { $$ = mcc_ast_new_program($1, $2); 	    	loc($$, @1, @2);}
-                    |   function_def                { $$ = mcc_ast_new_program($1, NULL); 	    	loc($$, @1, @1);}
+function_defs       : function_def function_defs  { $$ = mcc_ast_new_program($1, $2);              loc($$, @1, @2); }
+                    | function_def                { $$ = mcc_ast_new_program($1, NULL);            loc($$, @1, @1); }
                     ;
 
-program             :  function_defs { $$ = $1; 						    						loc($$, @1, @1);}
+program             : function_defs { $$ = $1;                                                     loc($$, @1, @1); }
                     ;
 
 %%
@@ -444,3 +444,4 @@ void mcc_parser_error(struct MCC_PARSER_LTYPE *yylloc,
 	UNUSED(scanner);
 	UNUSED(result);
 }
+
