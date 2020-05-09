@@ -774,9 +774,9 @@ static struct mcc_ast_visitor rename_ident_visitor(struct renaming_userdata *dat
 	};
 }
 
-// callback of the renaming visitor. Checks if compound statement is a declaration, if so checks in symbol table if it
-// shadows a variable. If it does, all variables in the subtree of that compound statment become renamed
-static void cb_renaming(struct mcc_ast_compound_statement *comp_stmt, void *data)
+// callback of the modifying visitor. Checks if compound statement is a declaration, if so checks in symbol table if it
+// shadows a variable. If it does, all variables in the subtree of that compound statement become renamed
+static void cb_variable_shadowing(struct mcc_ast_compound_statement *comp_stmt, void *data)
 {
 	assert(data);
 	assert(comp_stmt);
@@ -822,8 +822,63 @@ static void cb_renaming(struct mcc_ast_compound_statement *comp_stmt, void *data
 	}
 }
 
-// Setup an AST Visitor for visiting declarations
-static struct mcc_ast_visitor renaming_visitor(struct renaming_userdata *data)
+// --------------------------------------------------------------------------------------- append empty return
+
+static void append_empty_return(struct mcc_ast_compound_statement *comp_stmt, struct renaming_userdata *re_data)
+{
+	assert(comp_stmt);
+	assert(re_data);
+	if (re_data->ir_data->has_failed) {
+		return;
+	}
+	struct mcc_ast_statement *stmt = malloc(sizeof(*stmt));
+	if (!stmt) {
+		re_data->ir_data->has_failed = true;
+		return;
+	}
+	stmt->type = MCC_AST_STATEMENT_TYPE_RETURN;
+	stmt->is_empty_return = true;
+	stmt->return_value = NULL;
+	struct mcc_ast_compound_statement *new_comp_stmt = malloc(sizeof(*new_comp_stmt));
+	if (!new_comp_stmt) {
+		re_data->ir_data->has_failed = true;
+		return;
+	}
+	new_comp_stmt->statement = stmt;
+	new_comp_stmt->is_empty = false;
+	new_comp_stmt->has_next_statement = false;
+	new_comp_stmt->next_compound_statement = NULL;
+	comp_stmt->has_next_statement = true;
+	comp_stmt->next_compound_statement = new_comp_stmt;
+}
+
+// callback to add an empty return statement to void functions where no empty return statement is present at the end of
+// an execution path.
+static void cb_add_return(struct mcc_ast_function_definition *def, void *data)
+{
+	assert(def);
+	assert(data);
+	struct renaming_userdata *re_data = data;
+	if (re_data->ir_data->has_failed)
+		return;
+
+	struct mcc_ast_compound_statement *comp_stmt = def->compound_stmt;
+	struct mcc_ast_compound_statement *prev_stmt = comp_stmt;
+	do {
+		if (!comp_stmt->is_empty && comp_stmt->statement->type == MCC_AST_STATEMENT_TYPE_RETURN) {
+			return;
+		}
+		prev_stmt = comp_stmt;
+		comp_stmt = comp_stmt->next_compound_statement;
+	} while (comp_stmt);
+	append_empty_return(prev_stmt, data);
+}
+
+// --------------------------------------------------------------------------------------- generate IR
+
+// Setup an AST Visitor for visiting compound statements with a statement of type declaration to ensure variable
+// shadowing and visit function definitions to add returns in void functions where needed
+static struct mcc_ast_visitor modifying_visitor(struct renaming_userdata *data)
 {
 	return (struct mcc_ast_visitor){
 	    .traversal = MCC_AST_VISIT_DEPTH_FIRST,
@@ -831,11 +886,12 @@ static struct mcc_ast_visitor renaming_visitor(struct renaming_userdata *data)
 
 	    .userdata = data,
 
-	    .compound_statement = cb_renaming,
+	    .compound_statement = cb_variable_shadowing,
+	    .function_definition = cb_add_return,
 	};
 }
 
-static void rename_shadowed_vars(struct mcc_ast_program *ast, struct ir_generation_userdata *ir_data)
+static void modify_ast(struct mcc_ast_program *ast, struct ir_generation_userdata *ir_data)
 {
 	assert(ast);
 	assert(ir_data);
@@ -849,7 +905,7 @@ static void rename_shadowed_vars(struct mcc_ast_program *ast, struct ir_generati
 	}
 	re_data->ir_data = ir_data;
 	re_data->num = 0;
-	struct mcc_ast_visitor visitor = renaming_visitor(re_data);
+	struct mcc_ast_visitor visitor = modifying_visitor(re_data);
 	mcc_ast_visit(ast, &visitor);
 	free(re_data);
 }
@@ -869,7 +925,7 @@ struct mcc_ir_row *mcc_ir_generate(struct mcc_ast_program *ast, struct mcc_symbo
 
 	// remove all built_ins before creating the IR
 	ast = mcc_ast_remove_built_ins(ast);
-	rename_shadowed_vars(ast, data);
+	modify_ast(ast, data);
 
 	// struct mcc_ast_program *main_func = NULL;
 	while (ast) {
