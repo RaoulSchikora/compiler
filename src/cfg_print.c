@@ -18,12 +18,12 @@ void mcc_cfg_print_dot_end(FILE *out)
 	fprintf(out, "%s", "}\n");
 }
 
-void mcc_cfg_print_dot_cfg(FILE *out, struct mcc_basic_block_chain *head)
+void mcc_cfg_print_dot_cfg(FILE *out, struct mcc_basic_block *head)
 {
 	mcc_cfg_print_dot_begin(out);
 	while (head) {
 
-		mcc_cfg_print_dot_bb(out, head->head);
+		mcc_cfg_print_dot_bb(out, head);
 		head = head->next;
 	}
 	mcc_cfg_print_dot_end(out);

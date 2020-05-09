@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
 
 	// ---------------------------------------------------------------------- Get CFG
 
-	struct mcc_basic_block_chain *cfg = mcc_cfg_generate_block_chain(ir);
+	struct mcc_basic_block *cfg = mcc_cfg_generate(ir);
 	if (!cfg) {
 		mcc_ir_delete_ir(ir);
 		fprintf(stderr, "CFG generation failed.\n");

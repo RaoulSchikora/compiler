@@ -12,8 +12,7 @@
 			struct mcc_ir_row * : mc_cleanup_delete_ir, \
 			char* :mc_cleanup_delete_error_buffer, \
 			struct mcc_ast_program* : mc_cleanup_delete_ast, \
-                        struct mcc_basic_block*: mc_cleanup_delete_cfg, \
-                        struct mcc_basic_block_chain *: mc_cleanup_delete_block_chain \
+                        struct mcc_basic_block*: mc_cleanup_delete_cfg \
 			)
 
 
@@ -103,18 +102,8 @@ void mc_cleanup_delete_ast(int n, void* data){
             UNUSED(n);
             mcc_delete_cfg_and_ir(data);
     }
-
-    void mc_cleanup_delete_block_chain(int n, void* data){
-            UNUSED(n);
-            mcc_delete_blockchain_and_ir(data);
-    }
 #else
     void mc_cleanup_delete_cfg(int n, void* data){
-            UNUSED(n);
-            UNUSED(data);
-    }
-
-    void mc_cleanup_delete_block_chain(int n, void* data){
             UNUSED(n);
             UNUSED(data);
     }
