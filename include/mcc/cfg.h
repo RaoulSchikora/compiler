@@ -1,3 +1,11 @@
+// Control Flow Graph (CFG)
+//
+// Here we define the CFG data structure.
+// It corresponds to a directed graph. Obtaining a CFG means obtaining the basic block that is at the root of the graph.
+// However, due to the construct of while-Loops that graph is not always acyclic.
+// Thus we wrap the CFG data structure itself in a linked list that allows easy traversal, where every node is visisted
+// only once.
+
 #ifndef MCC_CFG_H
 #define MCC_CFG_H
 
