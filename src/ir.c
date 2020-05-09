@@ -822,6 +822,8 @@ static void cb_variable_shadowing(struct mcc_ast_compound_statement *comp_stmt, 
 	}
 }
 
+// --------------------------------------------------------------------------------------- append empty return
+
 static void append_empty_return(struct mcc_ast_compound_statement *comp_stmt, struct renaming_userdata *re_data)
 {
 	assert(comp_stmt);
@@ -871,6 +873,8 @@ static void cb_add_return(struct mcc_ast_function_definition *def, void *data)
 	} while (comp_stmt);
 	append_empty_return(prev_stmt, data);
 }
+
+// --------------------------------------------------------------------------------------- generate IR
 
 // Setup an AST Visitor for visiting compound statements with a statement of type declaration to ensure variable
 // shadowing and visit function definitions to add returns in void functions where needed
