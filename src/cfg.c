@@ -310,6 +310,67 @@ struct mcc_basic_block *mcc_cfg_generate(struct mcc_ir_row *ir)
 	return cfg;
 }
 
+static void remove_all_bbs_above(struct mcc_basic_block_chain *first, struct mcc_basic_block_chain *head)
+{
+	assert(first);
+	assert(head);
+	if (first == head) {
+		return;
+	}
+	struct mcc_basic_block_chain *previous = first;
+	while (previous) {
+		if (previous->next == head) {
+			previous->next = NULL;
+			mcc_delete_blockchain_and_ir(first);
+			return;
+		}
+		previous = previous->next;
+	}
+}
+
+static void remove_cfg_after_next_function_label(struct mcc_basic_block_chain *head)
+{
+	assert(head);
+	struct mcc_basic_block_chain *previous = head;
+	head = previous->next;
+	while (head) {
+		if (head->head->leader->arg1) {
+			if (head->head->leader->arg1->type == MCC_IR_TYPE_FUNC_LABEL) {
+				previous->next = NULL;
+				mcc_delete_blockchain_and_ir(head);
+				break;
+			}
+		}
+		previous = previous->next;
+		head = head->next;
+	}
+}
+
+struct mcc_basic_block_chain *mcc_cfg_limit_to_function(char *function_identifier, struct mcc_basic_block_chain *cfg)
+{
+	assert(function_identifier);
+	assert(cfg);
+	struct mcc_basic_block_chain *first = cfg;
+	while (cfg) {
+		if (cfg->head->leader->arg1) {
+			if (cfg->head->leader->arg1->type == MCC_IR_TYPE_FUNC_LABEL) {
+				// Right function
+				if (strcmp(cfg->head->leader->arg1->func_label, function_identifier) == 0) {
+					remove_all_bbs_above(first, cfg);
+					remove_cfg_after_next_function_label(cfg);
+					break;
+				}
+			}
+		}
+		cfg = cfg->next;
+	}
+	if (!cfg) {
+		mcc_delete_blockchain_and_ir(first);
+		return NULL;
+	}
+	return cfg;
+}
+
 //---------------------------------------------------------------------------------------- Functions: Set up
 // datastructs
 

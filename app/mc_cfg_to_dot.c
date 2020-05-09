@@ -103,7 +103,20 @@ int main(int argc, char *argv[])
 	struct mcc_basic_block_chain *cfg = mcc_cfg_generate_block_chain(ir);
 	if (!cfg) {
 		mcc_ir_delete_ir(ir);
+		fprintf(stderr, "CFG generation failed.\n");
 		return EXIT_FAILURE;
+	}
+	if (command_line->options->limited_scope) {
+		cfg = mcc_cfg_limit_to_function(command_line->options->function, cfg);
+		if (!cfg) {
+			fprintf(stderr, "Specified function does not exist.\n");
+			return EXIT_FAILURE;
+		}
+	} else {
+		cfg = mcc_cfg_limit_to_function("main", cfg);
+		if (!cfg) {
+			fprintf(stderr, "Limiting CFG to main function failed.\n");
+		}
 	}
 	register_cleanup(cfg);
 
