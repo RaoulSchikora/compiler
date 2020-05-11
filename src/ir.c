@@ -925,7 +925,13 @@ struct mcc_ir_row *mcc_ir_generate(struct mcc_ast_program *ast, struct mcc_symbo
 
 	// remove all built_ins before creating the IR
 	ast = mcc_ast_remove_built_ins(ast);
+
+	// Add return statements for void functions and enforce variable shadowing
 	modify_ast(ast, data);
+	if (data->has_failed) {
+		free(data);
+		return NULL;
+	}
 
 	// struct mcc_ast_program *main_func = NULL;
 	while (ast) {
