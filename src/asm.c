@@ -175,6 +175,7 @@ void mcc_asm_delete_function(struct mcc_asm_function *function)
 	if (!function)
 		return;
 	mcc_asm_delete_all_assembly_lines(function->head);
+	free(function->label);
 	free(function);
 }
 
@@ -201,10 +202,146 @@ void mcc_asm_delete_operand(struct mcc_asm_operand *operand)
 	free(operand);
 }
 
+//---------------------------------------------------------------------------------------- Functions: Dummy ASM line
+
+static struct mcc_asm_assembly_line *get_dummy_line()
+{
+	struct mcc_asm_assembly_line *line = mcc_asm_new_assembly_line(MCC_ASM_PUSHL, NULL, NULL, NULL);
+	return line;
+}
+
 //---------------------------------------------------------------------------------------- Functions: ASM generation
+
+static struct mcc_ir_row *last_line_of_function(struct mcc_ir_row *ir)
+{
+	assert(ir->instr == MCC_IR_INSTR_FUNC_LABEL);
+	assert(ir);
+	struct mcc_ir_row *next = ir->next_row;
+	while (next) {
+		if (next->instr == MCC_IR_INSTR_FUNC_LABEL) {
+			return ir;
+		}
+		ir = ir->next_row;
+		next = next->next_row;
+	}
+	return ir;
+}
+
+static struct mcc_asm_assembly_line *last_asm_line(struct mcc_asm_assembly_line *head)
+{
+	assert(head);
+	while (head->next) {
+		head = head->next;
+	}
+	return head;
+}
+
+static struct mcc_asm_assembly_line *generate_function_prolog()
+{
+	struct mcc_asm_operand *ebp = mcc_asm_new_register_operand(MCC_ASM_EBP);
+	struct mcc_asm_operand *esp = mcc_asm_new_register_operand(MCC_ASM_ESP);
+	struct mcc_asm_assembly_line *push_ebp = mcc_asm_new_assembly_line(MCC_ASM_PUSHL, ebp, NULL, NULL);
+	struct mcc_asm_assembly_line *mov_ebp_esp = mcc_asm_new_assembly_line(MCC_ASM_MOVL, esp, ebp, NULL);
+	if (!ebp || !esp || !push_ebp || !mov_ebp_esp) {
+		mcc_asm_delete_operand(ebp);
+		mcc_asm_delete_operand(esp);
+		mcc_asm_delete_assembly_line(push_ebp);
+		mcc_asm_delete_assembly_line(mov_ebp_esp);
+		return NULL;
+	}
+	push_ebp->next = mov_ebp_esp;
+	return push_ebp;
+}
+
+static struct mcc_asm_assembly_line *generate_function_body(struct mcc_asm_function *function, struct mcc_ir_row *ir)
+{
+	assert(function);
+	assert(ir);
+	assert(ir->instr == MCC_IR_INSTR_FUNC_LABEL);
+	// TODO: Implement correctly
+	return get_dummy_line();
+}
+
+static struct mcc_asm_assembly_line *generate_function_args(struct mcc_asm_function *function, struct mcc_ir_row *ir)
+{
+	assert(function);
+	assert(ir);
+	assert(ir->instr == MCC_IR_INSTR_FUNC_LABEL);
+	// TODO: Implement correctly
+	return get_dummy_line();
+}
+
+static struct mcc_asm_assembly_line *generate_function_epilog()
+{
+	struct mcc_asm_assembly_line *leave = mcc_asm_new_assembly_line(MCC_ASM_LEAVE, NULL, NULL, NULL);
+	struct mcc_asm_assembly_line *ret = mcc_asm_new_assembly_line(MCC_ASM_RET, NULL, NULL, NULL);
+	if (!leave || !ret) {
+		mcc_asm_delete_assembly_line(leave);
+		mcc_asm_delete_assembly_line(ret);
+		return NULL;
+	}
+	leave->next = ret;
+	return leave;
+}
+
+static void compose_function_asm(struct mcc_asm_function *function,
+                                 struct mcc_asm_assembly_line *prolog,
+                                 struct mcc_asm_assembly_line *args,
+                                 struct mcc_asm_assembly_line *body,
+                                 struct mcc_asm_assembly_line *epilog)
+{
+	assert(prolog);
+	assert(body);
+	assert(epilog);
+	assert(function);
+	function->head = prolog;
+	prolog = last_asm_line(prolog);
+	prolog->next = args;
+	args = last_asm_line(args);
+	args->next = body;
+	body = last_asm_line(body);
+	body->next = epilog;
+}
+
+struct mcc_asm_function *mcc_asm_generate_function(struct mcc_ir_row *ir)
+{
+	assert(ir->instr == MCC_IR_INSTR_FUNC_LABEL);
+	assert(ir);
+	assert(ir->arg1->type == MCC_IR_TYPE_FUNC_LABEL);
+
+	char *label = strdup(ir->arg1->func_label);
+	if (!label)
+		return NULL;
+	struct mcc_asm_function *function = mcc_asm_new_function(label, NULL, NULL);
+	struct mcc_asm_assembly_line *prolog = generate_function_prolog();
+	struct mcc_asm_assembly_line *args = generate_function_args(function, ir);
+	struct mcc_asm_assembly_line *body = generate_function_body(function, ir);
+	struct mcc_asm_assembly_line *epilog = generate_function_epilog();
+	if (!function || !prolog || !body || !args || !epilog) {
+		mcc_asm_delete_function(function);
+		mcc_asm_delete_all_assembly_lines(prolog);
+		mcc_asm_delete_all_assembly_lines(args);
+		mcc_asm_delete_all_assembly_lines(body);
+		mcc_asm_delete_all_assembly_lines(epilog);
+		return NULL;
+	}
+	compose_function_asm(function, prolog, args, body, epilog);
+	return function;
+}
 
 struct mcc_asm *mcc_asm_generate(struct mcc_ir_row *ir)
 {
-	UNUSED(ir);
-	return NULL;
+	struct mcc_asm *assembly = mcc_asm_new_asm(NULL, NULL);
+	struct mcc_asm_function *function = mcc_asm_generate_function(ir);
+	struct mcc_asm_text_section *text_section = mcc_asm_new_text_section(NULL);
+	if (!assembly || !function || !text_section) {
+		mcc_asm_delete_asm(assembly);
+		mcc_asm_delete_function(function);
+		mcc_asm_delete_text_section(text_section);
+		return NULL;
+	}
+	text_section->function = function;
+	assembly->text_section = text_section;
+	assembly->data_section = NULL;
+	return assembly;
 }

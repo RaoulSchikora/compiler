@@ -137,4 +137,6 @@ void mcc_asm_delete_operand(struct mcc_asm_operand *operand);
 
 struct mcc_asm *mcc_asm_generate(struct mcc_ir_row *ir);
 
+struct mcc_asm_function *mcc_asm_generate_function(struct mcc_ir_row *ir);
+
 #endif // MCC_ASM_H
