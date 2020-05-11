@@ -126,11 +126,9 @@ static void asm_print_func(FILE *out, struct mcc_asm_function *func)
 {
 	fprintf(out, "%s:\n", func->label);
 	struct mcc_asm_assembly_line *line = func->head;
-	int i = 0;
 	while (line) {
 		asm_print_line(out, line);
 		line = line->next;
-		i += 1;
 	}
 }
 
@@ -138,8 +136,11 @@ static void asm_print_text_sec(FILE *out, struct mcc_asm_text_section *text)
 {
 	fprintf(out, ".text\n\n");
 	fprintf(out, "        .globl %s\n", text->function->label);
-	asm_print_func(out, text->function);
-	// TODO print nexts
+	struct mcc_asm_function *func = text->function;
+	while(func){
+		asm_print_func(out, func);
+		func = func->next;
+	}
 }
 
 void mcc_asm_print_asm(FILE *out, struct mcc_asm *head)
