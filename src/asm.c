@@ -306,11 +306,13 @@ static struct mcc_asm_assembly_line *last_asm_line(struct mcc_asm_assembly_line 
 static struct mcc_asm_assembly_line *generate_function_prolog()
 {
 	struct mcc_asm_operand *ebp = mcc_asm_new_register_operand(MCC_ASM_EBP);
+	struct mcc_asm_operand *ebp_2 = mcc_asm_new_register_operand(MCC_ASM_EBP);
 	struct mcc_asm_operand *esp = mcc_asm_new_register_operand(MCC_ASM_ESP);
 	struct mcc_asm_assembly_line *push_ebp = mcc_asm_new_assembly_line(MCC_ASM_PUSHL, ebp, NULL, NULL);
-	struct mcc_asm_assembly_line *mov_ebp_esp = mcc_asm_new_assembly_line(MCC_ASM_MOVL, esp, ebp, NULL);
-	if (!ebp || !esp || !push_ebp || !mov_ebp_esp) {
+	struct mcc_asm_assembly_line *mov_ebp_esp = mcc_asm_new_assembly_line(MCC_ASM_MOVL, esp, ebp_2, NULL);
+	if (!ebp || !esp || !push_ebp || !ebp_2 || !mov_ebp_esp) {
 		mcc_asm_delete_operand(ebp);
+		mcc_asm_delete_operand(ebp_2);
 		mcc_asm_delete_operand(esp);
 		mcc_asm_delete_assembly_line(push_ebp);
 		mcc_asm_delete_assembly_line(mov_ebp_esp);
