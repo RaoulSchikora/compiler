@@ -77,8 +77,10 @@ mcc_asm_new_function(char *label, struct mcc_asm_assembly_line *head, struct mcc
 	return new;
 }
 
-struct mcc_asm_assembly_line *
-mcc_asm_new_assembly_line(enum mcc_asm_opcode opcode, struct mcc_asm_operand *first, struct mcc_asm_operand *second)
+struct mcc_asm_assembly_line *mcc_asm_new_assembly_line(enum mcc_asm_opcode opcode,
+                                                        struct mcc_asm_operand *first,
+                                                        struct mcc_asm_operand *second,
+                                                        struct mcc_asm_assembly_line *next)
 {
 	struct mcc_asm_assembly_line *new = malloc(sizeof(*new));
 	if (!new)
@@ -86,6 +88,7 @@ mcc_asm_new_assembly_line(enum mcc_asm_opcode opcode, struct mcc_asm_operand *fi
 	new->opcode = opcode;
 	new->first = first;
 	new->second = second;
+	new->next = next;
 	return new;
 }
 

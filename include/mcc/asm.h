@@ -53,6 +53,7 @@ struct mcc_asm_assembly_line {
 	enum mcc_asm_opcode opcode;
 	struct mcc_asm_operand *first;
 	struct mcc_asm_operand *second;
+	struct mcc_asm_assembly_line *next;
 };
 
 enum mcc_asm_operand_type {
@@ -96,8 +97,10 @@ mcc_asm_new_db_declaration(char *identifier, char *db_value, struct mcc_asm_decl
 struct mcc_asm_function *
 mcc_asm_new_function(char *label, struct mcc_asm_assembly_line *head, struct mcc_asm_function *next);
 
-struct mcc_asm_assembly_line *
-mcc_asm_new_assembly_line(enum mcc_asm_opcode opcode, struct mcc_asm_operand *first, struct mcc_asm_operand *second);
+struct mcc_asm_assembly_line *mcc_asm_new_assembly_line(enum mcc_asm_opcode opcode,
+                                                        struct mcc_asm_operand *first,
+                                                        struct mcc_asm_operand *second,
+                                                        struct mcc_asm_assembly_line *next);
 
 struct mcc_asm_operand *mcc_asm_new_literal_operand(int literal);
 
