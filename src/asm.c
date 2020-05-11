@@ -122,15 +122,89 @@ struct mcc_asm_operand *mcc_asm_new_data_operand(struct mcc_asm_declaration *dec
 	return new;
 }
 
+//------------------------------------------------------------------------------------ Functions: Delete data structures
+
+void mcc_asm_delete_asm(struct mcc_asm *head)
+{
+	if (!head)
+		return;
+	mcc_asm_delete_text_section(head->text_section);
+	mcc_asm_delete_data_section(head->data_section);
+	free(head);
+}
+void mcc_asm_delete_text_section(struct mcc_asm_text_section *text_section)
+{
+	if (!text_section)
+		return;
+	mcc_asm_delete_all_functions(text_section->function);
+	free(text_section);
+}
+void mcc_asm_delete_data_section(struct mcc_asm_data_section *data_section)
+{
+	if (!data_section)
+		return;
+	mcc_asm_delete_all_declarations(data_section->head);
+	free(data_section);
+}
+
+void mcc_asm_delete_all_declarations(struct mcc_asm_declaration *decl)
+{
+	if (!decl)
+		return;
+	mcc_asm_delete_all_declarations(decl->next);
+	mcc_asm_delete_declaration(decl);
+}
+
+void mcc_asm_delete_declaration(struct mcc_asm_declaration *decl)
+{
+	if (!decl)
+		return;
+	free(decl);
+}
+
+void mcc_asm_delete_all_functions(struct mcc_asm_function *function)
+{
+	if (!function)
+		return;
+	mcc_asm_delete_all_functions(function->next);
+	mcc_asm_delete_function(function);
+}
+
+void mcc_asm_delete_function(struct mcc_asm_function *function)
+{
+	if (!function)
+		return;
+	mcc_asm_delete_all_assembly_lines(function->head);
+	free(function);
+}
+
+void mcc_asm_delete_all_assembly_lines(struct mcc_asm_assembly_line *line)
+{
+	if (!line)
+		return;
+	mcc_asm_delete_all_assembly_lines(line->next);
+	mcc_asm_delete_assembly_line(line);
+}
+
+void mcc_asm_delete_assembly_line(struct mcc_asm_assembly_line *line)
+{
+	if (!line)
+		return;
+	mcc_asm_delete_operand(line->first);
+	mcc_asm_delete_operand(line->second);
+	free(line);
+}
+void mcc_asm_delete_operand(struct mcc_asm_operand *operand)
+{
+	if (!operand)
+		return;
+	free(operand);
+}
+
 //---------------------------------------------------------------------------------------- Functions: ASM generation
 
 struct mcc_asm *mcc_asm_generate(struct mcc_ir_row *ir)
 {
 	UNUSED(ir);
 	return NULL;
-}
-
-void mcc_asm_delete_asm(struct mcc_asm *head)
-{
-	UNUSED(head);
 }
