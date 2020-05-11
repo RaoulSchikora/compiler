@@ -47,6 +47,7 @@ struct mcc_asm_function {
 enum mcc_asm_opcode {
 	MCC_ASM_MOVL,
 	MCC_ASM_PUSHL,
+	MCC_ASM_POPL,
 };
 
 struct mcc_asm_assembly_line {
