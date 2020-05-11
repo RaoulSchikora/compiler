@@ -47,12 +47,16 @@ struct mcc_asm_function {
 enum mcc_asm_opcode {
 	MCC_ASM_MOVL,
 	MCC_ASM_PUSHL,
+	MCC_ASM_SUBL,
+	MCC_ASM_LEAVE,
+	MCC_ASM_RETURN,
 };
 
 struct mcc_asm_assembly_line {
 	enum mcc_asm_opcode opcode;
 	struct mcc_asm_operand *first;
 	struct mcc_asm_operand *second;
+	struct mcc_asm_assembly_line *next;
 };
 
 enum mcc_asm_operand_type {

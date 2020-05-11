@@ -101,12 +101,12 @@ int main(int argc, char *argv[])
 
 	// ---------------------------------------------------------------------- Generate ASM
 
-	struct mcc_asm *asm = mcc_asm_generate(ir);
-	if (!asm) {
+	struct mcc_asm *code = mcc_asm_generate(ir);
+	if (!code) {
 		fprintf(stderr, "Assembly code generation failed\n");
 		return EXIT_FAILURE;
 	}
-	register_cleanup(asm);
+	register_cleanup(code);
 
 	// ---------------------------------------------------------------------- Print ASM
 
@@ -116,10 +116,10 @@ int main(int argc, char *argv[])
 		if (!out) {
 			return EXIT_FAILURE;
 		}
-		mcc_asm_print_dot_asm(out, asm);
+		mcc_asm_print_asm(out, code);
 		fclose(out);
 	} else {
-		mcc_asm_print_dot_asm(stdout, asm);
+		mcc_asm_print_asm(stdout, code);
 	}
 
 	return EXIT_SUCCESS;
