@@ -169,6 +169,8 @@ void mcc_asm_print_asm(FILE *out, struct mcc_asm *head)
 {
 	asm_print_begin(out);
 	asm_print_text_sec(out, head->text_section);
-	asm_print_data_sec(out, head->data_section);
+	if(head->data_section){
+		asm_print_data_sec(out, head->data_section);
+	}
 	asm_print_end(out);
 }
