@@ -48,6 +48,8 @@ enum mcc_asm_opcode {
 	MCC_ASM_MOVL,
 	MCC_ASM_PUSHL,
 	MCC_ASM_POPL,
+	MCC_ASM_LEAVE,
+	MCC_ASM_RET,
 };
 
 struct mcc_asm_assembly_line {
