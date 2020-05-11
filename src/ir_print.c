@@ -27,9 +27,6 @@ static void row_to_string(
 		snprintf(out, TERMINAL_LINE_LENGTH, "%6s %s %s %s\n", label, instruction, arg1, arg2);
 		break;
 	case MCC_IR_INSTR_FUNC_LABEL:
-		snprintf(out, TERMINAL_LINE_LENGTH, "\n");
-		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s %s %s\n", label, instruction, arg1, arg2);
-		break;
 	case MCC_IR_INSTR_JUMPFALSE:
 	case MCC_IR_INSTR_JUMP:
 	case MCC_IR_INSTR_PUSH:
