@@ -47,8 +47,9 @@ struct mcc_asm_function {
 enum mcc_asm_opcode {
 	MCC_ASM_MOVL,
 	MCC_ASM_PUSHL,
-	MCC_ASM_SUBL,
+	MCC_ASM_POPL,
 	MCC_ASM_LEAVE,
+	MCC_ASM_SUBL,
 	MCC_ASM_RETURN,
 };
 
@@ -136,5 +137,7 @@ void mcc_asm_delete_operand(struct mcc_asm_operand *operand);
 //---------------------------------------------------------------------------------------- Functions: ASM generation
 
 struct mcc_asm *mcc_asm_generate(struct mcc_ir_row *ir);
+
+struct mcc_asm_function *mcc_asm_generate_function(struct mcc_ir_row *ir);
 
 #endif // MCC_ASM_H
