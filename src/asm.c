@@ -9,13 +9,14 @@
 #include "mcc/ir.h"
 #include "utils/unused.h"
 
+// ----------------------------------------------------------------------- fake asm
+// TODO: delete when asm kann be generated
 struct mcc_asm *generate_fake()
 {
 	struct mcc_asm *mcc_asm = malloc(sizeof(*mcc_asm));
 	struct mcc_asm_text_section *text = malloc(sizeof(*text));
-	struct mcc_asm_data_section *data = malloc(sizeof(*data));
 	mcc_asm->text_section = text;
-	mcc_asm->data_section = data;
+	mcc_asm->data_section = NULL;
 	struct mcc_asm_function *func = malloc(sizeof(*func));
 	text->function = func;
 	func->label = (char*)malloc(7 * sizeof(char));
@@ -75,6 +76,199 @@ struct mcc_asm *generate_fake()
 	line6->next = NULL;
 	return mcc_asm;
 }
+//---------------------------------------------------------------------------------------- Functions: Data structures
+
+struct mcc_asm *mcc_asm_new_asm(struct mcc_asm_data_section *data, struct mcc_asm_text_section *text)
+{
+	struct mcc_asm *new = malloc(sizeof(*new));
+	if (!new)
+		return NULL;
+	new->data_section = data;
+	new->text_section = text;
+	return new;
+}
+
+struct mcc_asm_data_section *mcc_asm_new_data_section(struct mcc_asm_declaration *head)
+{
+	struct mcc_asm_data_section *new = malloc(sizeof(*new));
+	if (!new)
+		return NULL;
+	new->head = head;
+	return new;
+}
+
+struct mcc_asm_text_section *mcc_asm_new_text_section(struct mcc_asm_function *function)
+{
+	struct mcc_asm_text_section *new = malloc(sizeof(*new));
+	if (!new)
+		return NULL;
+	new->function = function;
+	return new;
+}
+
+struct mcc_asm_declaration *
+mcc_asm_new_float_declaration(char *identifier, float float_value, struct mcc_asm_declaration *next)
+{
+	struct mcc_asm_declaration *new = malloc(sizeof(*new));
+	if (!new)
+		return NULL;
+	new->identifier = identifier;
+	new->float_value = float_value;
+	new->next = next;
+	new->type = MCC_ASM_DECLARATION_TYPE_FLOAT;
+	return new;
+}
+
+struct mcc_asm_declaration *
+mcc_asm_new_db_declaration(char *identifier, char *db_value, struct mcc_asm_declaration *next)
+{
+	struct mcc_asm_declaration *new = malloc(sizeof(*new));
+	if (!new)
+		return NULL;
+	new->identifier = identifier;
+	new->db_value = db_value;
+	new->next = next;
+	new->type = MCC_ASM_DECLARATION_TYPE_DB;
+	return new;
+}
+
+struct mcc_asm_function *
+mcc_asm_new_function(char *label, struct mcc_asm_assembly_line *head, struct mcc_asm_function *next)
+{
+	struct mcc_asm_function *new = malloc(sizeof(*new));
+	if (!new)
+		return NULL;
+	new->head = head;
+	new->label = label;
+	new->next = next;
+	return new;
+}
+
+struct mcc_asm_assembly_line *mcc_asm_new_assembly_line(enum mcc_asm_opcode opcode,
+                                                        struct mcc_asm_operand *first,
+                                                        struct mcc_asm_operand *second,
+                                                        struct mcc_asm_assembly_line *next)
+{
+	struct mcc_asm_assembly_line *new = malloc(sizeof(*new));
+	if (!new)
+		return NULL;
+	new->opcode = opcode;
+	new->first = first;
+	new->second = second;
+	new->next = next;
+	return new;
+}
+
+struct mcc_asm_operand *mcc_asm_new_literal_operand(int literal)
+{
+	struct mcc_asm_operand *new = malloc(sizeof(*new));
+	if (!new)
+		return NULL;
+	new->type = MCC_ASM_OPERAND_LITERAL;
+	new->literal = literal;
+	return new;
+}
+
+struct mcc_asm_operand *mcc_asm_new_register_operand(enum mcc_asm_register reg)
+{
+	struct mcc_asm_operand *new = malloc(sizeof(*new));
+	if (!new)
+		return NULL;
+	new->type = MCC_ASM_OPERAND_REGISTER;
+	new->reg = reg;
+	return new;
+}
+
+struct mcc_asm_operand *mcc_asm_new_data_operand(struct mcc_asm_declaration *decl)
+{
+	struct mcc_asm_operand *new = malloc(sizeof(*new));
+	if (!new)
+		return NULL;
+	new->type = MCC_ASM_OPERAND_DATA;
+	new->decl = decl;
+	return new;
+}
+
+//------------------------------------------------------------------------------------ Functions: Delete data structures
+
+void mcc_asm_delete_asm(struct mcc_asm *head)
+{
+	if (!head)
+		return;
+	mcc_asm_delete_text_section(head->text_section);
+	mcc_asm_delete_data_section(head->data_section);
+	free(head);
+}
+void mcc_asm_delete_text_section(struct mcc_asm_text_section *text_section)
+{
+	if (!text_section)
+		return;
+	mcc_asm_delete_all_functions(text_section->function);
+	free(text_section);
+}
+void mcc_asm_delete_data_section(struct mcc_asm_data_section *data_section)
+{
+	if (!data_section)
+		return;
+	mcc_asm_delete_all_declarations(data_section->head);
+	free(data_section);
+}
+
+void mcc_asm_delete_all_declarations(struct mcc_asm_declaration *decl)
+{
+	if (!decl)
+		return;
+	mcc_asm_delete_all_declarations(decl->next);
+	mcc_asm_delete_declaration(decl);
+}
+
+void mcc_asm_delete_declaration(struct mcc_asm_declaration *decl)
+{
+	if (!decl)
+		return;
+	free(decl);
+}
+
+void mcc_asm_delete_all_functions(struct mcc_asm_function *function)
+{
+	if (!function)
+		return;
+	mcc_asm_delete_all_functions(function->next);
+	mcc_asm_delete_function(function);
+}
+
+void mcc_asm_delete_function(struct mcc_asm_function *function)
+{
+	if (!function)
+		return;
+	mcc_asm_delete_all_assembly_lines(function->head);
+	free(function);
+}
+
+void mcc_asm_delete_all_assembly_lines(struct mcc_asm_assembly_line *line)
+{
+	if (!line)
+		return;
+	mcc_asm_delete_all_assembly_lines(line->next);
+	mcc_asm_delete_assembly_line(line);
+}
+
+void mcc_asm_delete_assembly_line(struct mcc_asm_assembly_line *line)
+{
+	if (!line)
+		return;
+	mcc_asm_delete_operand(line->first);
+	mcc_asm_delete_operand(line->second);
+	free(line);
+}
+void mcc_asm_delete_operand(struct mcc_asm_operand *operand)
+{
+	if (!operand)
+		return;
+	free(operand);
+}
+
+//---------------------------------------------------------------------------------------- Functions: ASM generation
 
 struct mcc_asm *mcc_asm_generate(struct mcc_ir_row *ir)
 {
@@ -83,7 +277,3 @@ struct mcc_asm *mcc_asm_generate(struct mcc_ir_row *ir)
 	return code;
 }
 
-void mcc_asm_delete_asm(struct mcc_asm *head)
-{
-	UNUSED(head);
-}

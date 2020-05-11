@@ -924,20 +924,18 @@ struct mcc_ir_row *mcc_ir_generate(struct mcc_ast_program *ast, struct mcc_symbo
 
 	// remove all built_ins before creating the IR
 	ast = mcc_ast_remove_built_ins(ast);
-	modify_ast(ast, data);
 
-	// struct mcc_ast_program *main_func = NULL;
+	// Add return statements for void functions and enforce variable shadowing
+	modify_ast(ast, data);
+	if (data->has_failed) {
+		free(data);
+		return NULL;
+	}
+
 	while (ast) {
-		// Generate main code last
-		// if (strcmp(ast->function->identifier->identifier_name, "main") == 0) {
-		//         main_func = ast;
-		//         ast = ast->next_function;
-		//         continue;
-		// }
 		generate_ir_program(ast, data);
 		ast = ast->next_function;
 	}
-	// generate_ir_program(main_func, data);
 
 	if (data->has_failed) {
 		mcc_ir_delete_ir(data->head);
@@ -947,7 +945,7 @@ struct mcc_ir_row *mcc_ir_generate(struct mcc_ast_program *ast, struct mcc_symbo
 	struct mcc_ir_row *head = data->head;
 	free(data);
 
-	// Set row numbers for the visual representation
+	// Set row numbers (used for naming temporaries in IR) for the visual representation
 	number_rows(head);
 	return head;
 }
