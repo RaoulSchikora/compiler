@@ -16,7 +16,9 @@ struct mcc_asm *generate_fake()
 	struct mcc_asm *mcc_asm = malloc(sizeof(*mcc_asm));
 	struct mcc_asm_text_section *text = malloc(sizeof(*text));
 	mcc_asm->text_section = text;
-	mcc_asm->data_section = NULL;
+	struct mcc_asm_declaration *decl = mcc_asm_new_float_declaration("a392", 3.4234, NULL);
+	struct mcc_asm_data_section *data = mcc_asm_new_data_section(decl);
+	mcc_asm->data_section = data;
 	struct mcc_asm_function *func = malloc(sizeof(*func));
 	text->function = func;
 	func->label = (char*)malloc(7 * sizeof(char));
