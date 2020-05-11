@@ -10,7 +10,7 @@
 #include "utils/unused.h"
 
 // ----------------------------------------------------------------------- fake asm
-// TODO: delete when asm kann be generated
+// TODO: delete when asm can be generated
 struct mcc_asm *generate_fake()
 {
 	struct mcc_asm *mcc_asm = malloc(sizeof(*mcc_asm));
