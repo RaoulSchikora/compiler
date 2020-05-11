@@ -49,7 +49,8 @@ enum mcc_asm_opcode {
 	MCC_ASM_PUSHL,
 	MCC_ASM_POPL,
 	MCC_ASM_LEAVE,
-	MCC_ASM_RET,
+	MCC_ASM_SUBL,
+	MCC_ASM_RETURN,
 };
 
 struct mcc_asm_assembly_line {

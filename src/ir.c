@@ -692,7 +692,6 @@ static void number_rows(struct mcc_ir_row *head)
 		case MCC_IR_INSTR_DIVIDE:
 		case MCC_IR_INSTR_MINUS:
 		case MCC_IR_INSTR_NEGATIV:
-		case MCC_IR_INSTR_MODULO:
 		case MCC_IR_INSTR_GREATER:
 		case MCC_IR_INSTR_MULTIPLY:
 		case MCC_IR_INSTR_SMALLER:

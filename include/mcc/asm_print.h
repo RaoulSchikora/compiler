@@ -9,10 +9,6 @@
 
 //---------------------------------------------------------------------------------------- Functions: Print ASM
 
-void mcc_asm_print_dot_begin(FILE *out);
-
-void mcc_asm_print_dot_end(FILE *out);
-
-void mcc_asm_print_dot_asm(FILE *out, struct mcc_asm *head);
+void mcc_asm_print_asm(FILE *out, struct mcc_asm *head);
 
 #endif // MCC_ASM_PRINT_H

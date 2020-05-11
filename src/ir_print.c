@@ -56,7 +56,6 @@ static void row_to_string(
 	case MCC_IR_INSTR_DIVIDE:
 	case MCC_IR_INSTR_MULTIPLY:
 	case MCC_IR_INSTR_NEGATIV:
-	case MCC_IR_INSTR_MODULO:
 		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s = %s %s %s\n", label, row_no, arg1, instruction, arg2);
 		break;
 	case MCC_IR_INSTR_NOT:
@@ -99,8 +98,6 @@ static char *instr_to_string(enum mcc_ir_instruction instr)
 		return ">=";
 	case MCC_IR_INSTR_MINUS:
 		return "-";
-	case MCC_IR_INSTR_MODULO:
-		return "%";
 	case MCC_IR_INSTR_MULTIPLY:
 		return "*";
 	case MCC_IR_INSTR_OR:
