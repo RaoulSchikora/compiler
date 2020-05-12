@@ -400,18 +400,42 @@ struct mcc_asm_function *mcc_asm_generate_function(struct mcc_ir_row *ir)
 	return function;
 }
 
+static struct mcc_ir_row *find_next_function(struct mcc_ir_row *ir)
+{
+	assert(ir);
+	ir = ir->next_row;
+	while (ir && ir->instr != MCC_IR_INSTR_FUNC_LABEL) {
+		ir = ir->next_row;
+	}
+	return ir;
+}
+
 struct mcc_asm *mcc_asm_generate(struct mcc_ir_row *ir)
 {
 	struct mcc_asm *assembly = mcc_asm_new_asm(NULL, NULL);
-	struct mcc_asm_function *function = mcc_asm_generate_function(ir);
+	struct mcc_asm_function *first_function = mcc_asm_generate_function(ir);
 	struct mcc_asm_text_section *text_section = mcc_asm_new_text_section(NULL);
-	if (!assembly || !function || !text_section) {
+	if (!assembly || !first_function || !text_section) {
 		mcc_asm_delete_asm(assembly);
-		mcc_asm_delete_function(function);
+		mcc_asm_delete_function(first_function);
 		mcc_asm_delete_text_section(text_section);
 		return NULL;
 	}
-	text_section->function = function;
+	struct mcc_asm_function *latest_function = first_function;
+	ir = find_next_function(ir);
+	while (ir) {
+		struct mcc_asm_function *new_function = mcc_asm_generate_function(ir);
+		if (!new_function) {
+			mcc_asm_delete_asm(assembly);
+			mcc_asm_delete_all_functions(first_function);
+			mcc_asm_delete_text_section(text_section);
+			return NULL;
+		}
+		latest_function->next = new_function;
+		latest_function = new_function;
+		ir = find_next_function(ir);
+	}
+	text_section->function = first_function;
 	assembly->text_section = text_section;
 	assembly->data_section = NULL;
 	return assembly;
