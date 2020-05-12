@@ -130,14 +130,13 @@ static void asm_print_func(FILE *out, struct mcc_asm_function *func)
 static void asm_print_decl(FILE *out, struct mcc_asm_declaration *decl)
 {
 	fprintf(out, "%s:\n", decl->identifier);
-	switch (decl->type)
-	{
+	switch (decl->type) {
 	case MCC_ASM_DECLARATION_TYPE_FLOAT:
 		fprintf(out, "       .float %f\n", decl->float_value);
 		break;
 	case MCC_ASM_DECLARATION_TYPE_DB:
 		fprintf(out, "db %s", decl->db_value);
-	
+
 	default:
 		break;
 	}
@@ -154,10 +153,10 @@ static void asm_print_text_sec(FILE *out, struct mcc_asm_text_section *text)
 }
 
 static void asm_print_data_sec(FILE *out, struct mcc_asm_data_section *data)
-{	
+{
 	fprintf(out, "\n.data\n");
 	struct mcc_asm_declaration *decl = data->head;
-	while(decl){
+	while (decl) {
 		asm_print_decl(out, decl);
 		decl = decl->next;
 	}
@@ -167,7 +166,7 @@ void mcc_asm_print_asm(FILE *out, struct mcc_asm *head)
 {
 	asm_print_begin(out);
 	asm_print_text_sec(out, head->text_section);
-	if(head->data_section){
+	if (head->data_section) {
 		asm_print_data_sec(out, head->data_section);
 	}
 	asm_print_end(out);
