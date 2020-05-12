@@ -57,11 +57,9 @@ static char *register_to_string(enum mcc_asm_register reg)
 		return "%esp";
 	case MCC_ASM_EBP:
 		return "%ebp";
-
 	default:
 		return "unknown register";
 	}
-	return "error";
 }
 
 static char *op_to_string(char *dest, struct mcc_asm_operand *op)
