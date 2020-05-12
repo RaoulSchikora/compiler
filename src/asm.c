@@ -333,13 +333,42 @@ static struct mcc_asm_assembly_line *generate_function_body(struct mcc_asm_funct
 	return get_dummy_line();
 }
 
+static size_t get_stack_frame_size(struct mcc_ir_row *ir)
+{
+	assert(ir);
+	assert(ir->instr == MCC_IR_INSTR_FUNC_LABEL);
+	ir = ir->next_row;
+	size_t frame_size = 0;
+	while (ir) {
+		if (ir->instr == MCC_IR_INSTR_POP) {
+			frame_size += 4;
+		} else {
+			break;
+		}
+		// Each pop is followed by an assignment
+		ir = ir->next_row->next_row;
+	}
+	return frame_size;
+}
+
 static struct mcc_asm_assembly_line *generate_function_args(struct mcc_asm_function *function, struct mcc_ir_row *ir)
 {
 	assert(function);
 	assert(ir);
 	assert(ir->instr == MCC_IR_INSTR_FUNC_LABEL);
-	// TODO: Implement correctly
-	return get_dummy_line();
+	size_t frame_size = get_stack_frame_size(ir);
+	struct mcc_asm_operand *esp = mcc_asm_new_register_operand(MCC_ASM_ESP);
+	struct mcc_asm_operand *size_literal = mcc_asm_new_literal_operand(frame_size);
+	struct mcc_asm_assembly_line *sub_size_esp = mcc_asm_new_assembly_line(MCC_ASM_SUBL, NULL, NULL, NULL);
+	if (!esp || !size_literal || !sub_size_esp) {
+		mcc_asm_delete_assembly_line(sub_size_esp);
+		mcc_asm_delete_operand(esp);
+		mcc_asm_delete_operand(size_literal);
+		return NULL;
+	}
+	sub_size_esp->first = size_literal;
+	sub_size_esp->second = esp;
+	return sub_size_esp;
 }
 
 static struct mcc_asm_assembly_line *generate_function_epilog()
