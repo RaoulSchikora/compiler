@@ -21,7 +21,7 @@ struct mcc_asm *generate_fake()
 	mcc_asm->data_section = data;
 	struct mcc_asm_function *func = malloc(sizeof(*func));
 	text->function = func;
-	func->label = (char*)malloc(7 * sizeof(char));
+	func->label = (char *)malloc(7 * sizeof(char));
 	snprintf(func->label, 6, "main");
 	func->next = NULL;
 	struct mcc_asm_assembly_line *line1 = malloc(sizeof(*line1));
@@ -333,6 +333,7 @@ static struct mcc_asm_assembly_line *generate_function_body(struct mcc_asm_funct
 	return get_dummy_line();
 }
 
+// TODO: Implement float,bool and arrays
 static size_t get_stack_frame_size(struct mcc_ir_row *ir)
 {
 	assert(ir);
@@ -469,4 +470,3 @@ struct mcc_asm *mcc_asm_generate(struct mcc_ir_row *ir)
 	assembly->data_section = NULL;
 	return assembly;
 }
-
