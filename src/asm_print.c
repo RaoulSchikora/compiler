@@ -94,7 +94,7 @@ static int length_of_op(struct mcc_asm_operand *op)
 	case MCC_ASM_OPERAND_DATA:
 		break;
 	case MCC_ASM_OPERAND_LITERAL:
-		return length_of_int(op->literal);
+		return length_of_int(op->literal) + 1;
 
 	default:
 		return 0;
