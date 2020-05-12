@@ -62,19 +62,19 @@ static char *register_to_string(enum mcc_asm_register reg)
 	}
 }
 
-static char *op_to_string(char *dest, struct mcc_asm_operand *op)
+static char *op_to_string(char *dest, int len, struct mcc_asm_operand *op)
 {
 	if (!op) {
 		return NULL;
 	}
 	switch (op->type) {
 	case MCC_ASM_OPERAND_REGISTER:
-		sprintf(dest, "%s", register_to_string(op->reg));
+		snprintf(dest, len, "%s", register_to_string(op->reg));
 		break;
 	case MCC_ASM_OPERAND_DATA:
 		break;
 	case MCC_ASM_OPERAND_LITERAL:
-		sprintf(dest, "$%d", op->literal);
+		snprintf(dest, len, "$%d", op->literal);
 		break;
 
 	default:
@@ -104,13 +104,15 @@ static int length_of_op(struct mcc_asm_operand *op)
 
 static void asm_print_line(FILE *out, struct mcc_asm_assembly_line *line)
 {
-	char op1[length_of_op(line->first)];
-	char op2[length_of_op(line->second)];
+	int len1 = length_of_op(line->first) + 1;
+	int len2 = length_of_op(line->second) + 1;
+	char op1[len1];
+	char op2[len2];
 	if (line->first && line->second) {
-		fprintf(out, "        %-7s %s, %s\n", opcode_to_string(line->opcode), op_to_string(op1, line->first),
-		        op_to_string(op2, line->second));
+		fprintf(out, "        %-7s %s, %s\n", opcode_to_string(line->opcode),
+		        op_to_string(op1, len1, line->first), op_to_string(op2, len2, line->second));
 	} else if (line->first) {
-		fprintf(out, "        %-7s %s\n", opcode_to_string(line->opcode), op_to_string(op1, line->first));
+		fprintf(out, "        %-7s %s\n", opcode_to_string(line->opcode), op_to_string(op1, len1, line->first));
 	} else {
 		fprintf(out, "        %-7s\n", opcode_to_string(line->opcode));
 	}
