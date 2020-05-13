@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- [Meson](http://mesonbuild.com/) in a recent version (`0.44.0`)
+- [Meson](http://mesonbuild.com/) in version `0.47.0` or higher
   (you may want to install it via `pip3 install --user meson`)
 - [Ninja](https://ninja-build.org/)
 - `time`, typically located at `/usr/bin/time`, do not confuse this with the Bash built-in

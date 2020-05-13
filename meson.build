@@ -2,7 +2,7 @@ project('mcc', 'c',
     default_options: [ 'buildtype=release',
                        'c_std=c11',
                        'warning_level=3' ],
-    meson_version: '>=0.44.0'
+    meson_version: '>=0.47.0'
 )
 
 # ------------------------------------------------------------------ Generators
@@ -47,6 +47,10 @@ mcc_lib = library('mcc', mcc_src,
                   c_args: '-D_POSIX_C_SOURCE=200809L',
 		  link_args: '-lm',
                   include_directories: [mcc_inc, include_directories('src')])
+
+mc_builtins = configure_file(input : 'resources/mc_builtins.c',
+			     output : 'mc_builtins.c',
+			     copy : true)
 
 # ---------------------------------------------------------------- Applications
 
