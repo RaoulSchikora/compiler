@@ -33,6 +33,8 @@ static char *opcode_to_string(enum mcc_asm_opcode op)
 		return "subl";
 	case MCC_ASM_LEAVE:
 		return "leave";
+	case MCC_ASM_CALL:
+		return "calll";
 	case MCC_ASM_RETURN:
 		return "ret";
 
@@ -76,7 +78,9 @@ static char *op_to_string(char *dest, int len, struct mcc_asm_operand *op)
 	case MCC_ASM_OPERAND_LITERAL:
 		snprintf(dest, len, "$%d", op->literal);
 		break;
-
+	case MCC_ASM_OPERAND_FUNCTION:
+		snprintf(dest, len, "%s", op->func_name);
+		break;
 	default:
 		return "unknown operand";
 	}
@@ -95,7 +99,8 @@ static int length_of_op(struct mcc_asm_operand *op)
 		break;
 	case MCC_ASM_OPERAND_LITERAL:
 		return length_of_int(op->literal) + 1;
-
+	case MCC_ASM_OPERAND_FUNCTION:
+		return strlen(op->func_name) + 1;
 	default:
 		return 0;
 	}

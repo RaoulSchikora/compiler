@@ -51,6 +51,7 @@ enum mcc_asm_opcode {
 	MCC_ASM_LEAVE,
 	MCC_ASM_SUBL,
 	MCC_ASM_RETURN,
+	MCC_ASM_CALL,
 };
 
 struct mcc_asm_assembly_line {
@@ -64,6 +65,7 @@ enum mcc_asm_operand_type {
 	MCC_ASM_OPERAND_REGISTER,
 	MCC_ASM_OPERAND_DATA,
 	MCC_ASM_OPERAND_LITERAL,
+	MCC_ASM_OPERAND_FUNCTION,
 };
 
 enum mcc_asm_register {
@@ -81,6 +83,7 @@ struct mcc_asm_operand {
 		int literal;
 		enum mcc_asm_register reg;
 		struct mcc_asm_declaration *decl;
+		char* func_name;
 	};
 };
 

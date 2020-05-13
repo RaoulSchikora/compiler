@@ -91,7 +91,15 @@ struct mcc_asm_assembly_line *mcc_asm_new_assembly_line(enum mcc_asm_opcode opco
 	new->next = next;
 	return new;
 }
-
+struct mcc_asm_operand *mcc_asm_new_function_operand(char *function_name)
+{
+	struct mcc_asm_operand *new = malloc(sizeof(*new));
+	if (!new)
+		return NULL;
+	new->type = MCC_ASM_OPERAND_FUNCTION;
+	new->func_name = function_name;
+	return new;
+}
 struct mcc_asm_operand *mcc_asm_new_literal_operand(int literal)
 {
 	struct mcc_asm_operand *new = malloc(sizeof(*new));
@@ -202,14 +210,6 @@ void mcc_asm_delete_operand(struct mcc_asm_operand *operand)
 	free(operand);
 }
 
-//---------------------------------------------------------------------------------------- Functions: Dummy ASM line
-
-static struct mcc_asm_assembly_line *get_dummy_line()
-{
-	struct mcc_asm_assembly_line *line = mcc_asm_new_assembly_line(MCC_ASM_PUSHL, NULL, NULL, NULL);
-	return line;
-}
-
 //---------------------------------------------------------------------------------------- Functions: ASM generation
 
 static struct mcc_ir_row *last_line_of_function(struct mcc_ir_row *ir)
@@ -260,8 +260,16 @@ static struct mcc_asm_assembly_line *generate_function_body(struct mcc_asm_funct
 	assert(function);
 	assert(ir);
 	assert(ir->instr == MCC_IR_INSTR_FUNC_LABEL);
+	struct mcc_asm_operand *print_nl = mcc_asm_new_function_operand("print_nl");
+	struct mcc_asm_assembly_line *call = mcc_asm_new_assembly_line(MCC_ASM_CALL, NULL, NULL, NULL);
+	if (!print_nl || !call) {
+		mcc_asm_delete_assembly_line(call);
+		mcc_asm_delete_operand(print_nl);
+		return NULL;
+	}
+	call->first = print_nl;
 	// TODO: Implement correctly
-	return get_dummy_line();
+	return call;
 }
 
 // TODO: Implement float,bool and arrays
