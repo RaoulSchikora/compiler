@@ -35,8 +35,9 @@ int main(int argc, char *argv[])
 
 	// Check if command line parser returned any errors or if "-h" was passed. If so, help was already printed,
 	// return.
-	if (!command_line || command_line->options->print_help ||
-	    command_line->argument_status == MC_CL_PARSER_ARGSTAT_ERROR ||
+	if (!command_line)
+		return EXIT_FAILURE;
+	if (command_line->options->print_help || command_line->argument_status == MC_CL_PARSER_ARGSTAT_ERROR ||
 	    command_line->argument_status == MC_CL_PARSER_ARGSTAT_FILE_NOT_FOUND) {
 		return EXIT_FAILURE;
 	}
