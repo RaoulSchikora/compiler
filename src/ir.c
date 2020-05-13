@@ -979,6 +979,8 @@ void mcc_ir_delete_ir_row(struct mcc_ir_row *row)
 
 void mcc_ir_delete_ir(struct mcc_ir_row *head)
 {
+	if (!head)
+		return;
 	struct mcc_ir_row *temp = NULL;
 	while (head->next_row) {
 		head = head->next_row;
