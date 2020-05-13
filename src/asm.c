@@ -352,12 +352,15 @@ struct mcc_asm_function *mcc_asm_generate_function(struct mcc_ir_row *ir)
 	if (!label)
 		return NULL;
 	struct mcc_asm_function *function = mcc_asm_new_function(label, NULL, NULL);
+	if (!function) {
+		mcc_asm_delete_function(function);
+		return NULL;
+	}
 	struct mcc_asm_assembly_line *prolog = generate_function_prolog();
 	struct mcc_asm_assembly_line *args = generate_function_args(function, ir);
 	struct mcc_asm_assembly_line *body = generate_function_body(function, ir);
 	struct mcc_asm_assembly_line *epilog = generate_function_epilog();
-	if (!function || !prolog || !body || !args || !epilog) {
-		mcc_asm_delete_function(function);
+	if (!prolog || !body || !args || !epilog) {
 		mcc_asm_delete_all_assembly_lines(prolog);
 		mcc_asm_delete_all_assembly_lines(args);
 		mcc_asm_delete_all_assembly_lines(body);
