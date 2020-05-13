@@ -10,7 +10,7 @@
 			struct mc_cl_parser_command_line_parser * : mc_cleanup_delete_cl_parser, \
 			struct mcc_semantic_check * : mc_cleanup_delete_check, \
 			struct mcc_ir_row * : mc_cleanup_delete_ir, \
-			char* :mc_cleanup_delete_error_buffer, \
+			char* :mc_cleanup_delete_string, \
 			struct mcc_ast_program* : mc_cleanup_delete_ast, \
                         struct mcc_basic_block*: mc_cleanup_delete_cfg, \
 			struct mcc_asm *: mc_cleanup_delete_asm \
@@ -26,12 +26,12 @@
 // thus not included)
 
 #ifdef MCC_AST_H
-    void mc_cleanup_delete_error_buffer(int n,void* string){
+    void mc_cleanup_delete_string(int n,void* string){
             UNUSED(n);
             free(string);
     }
 #else
-    void mc_cleanup_delete_error_buffer(int n, void* string){
+    void mc_cleanup_delete_string(int n, void* string){
         UNUSED(n);
         UNUSED(string);
     }
