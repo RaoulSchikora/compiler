@@ -161,6 +161,7 @@ bool assemble_and_link(char *binary_filename)
 {
 	// Create string of command
 	char *cc = NULL;
+	char builtins[] = "mc_builtins.c ";
 	char gcc[] = "gcc";
 	char *env_cc = getenv("MCC_BACKEND");
 	if (!env_cc) {
@@ -168,9 +169,9 @@ bool assemble_and_link(char *binary_filename)
 	} else {
 		cc = env_cc;
 	}
-	int length = strlen(cc) + strlen(" -m32 -o ") + strlen(binary_filename) + strlen(" a.s ");
+	int length = strlen(cc) + strlen(" -m32 -o ") + strlen(binary_filename) + strlen(" a.s ") + strlen(builtins);
 	char callstring[length];
-	snprintf(callstring, length, "%s -m32 -o %s a.s", cc, binary_filename);
+	snprintf(callstring, length, "%s -m32 -o %s a.s %s", cc, binary_filename, builtins);
 
 	// Call backend compiler
 	system(callstring);
