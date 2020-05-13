@@ -129,6 +129,8 @@ int start_token;
 %left ASTER SLASH
 %precedence NOT_ELSE
 %precedence ELSE
+%precedence EX_MINUS
+%precedence EX_EXKL
 
 %type <struct mcc_ast_expression *> expression
 %type <struct mcc_ast_literal *> literal
@@ -217,9 +219,9 @@ expression          : literal { $$ = mcc_ast_new_expression_literal($1);        
                     | expression EXKLA_EQ expression
                       { $$ = mcc_ast_new_expression_binary_op(MCC_AST_BINARY_OP_NOTEQUAL,$1,$3);   loc($$, @1, @3); }
                     | LPARENTH expression RPARENTH { $$ = mcc_ast_new_expression_parenth($2);      loc($$, @1, @3); }
-                    | MINUS expression
+                    | MINUS expression %prec EX_MINUS
                       { $$ = mcc_ast_new_expression_unary_op(MCC_AST_UNARY_OP_NEGATIV, $2);        loc($$, @1, @2); }
-                    | EXKLA expression
+                    | EXKLA expression %prec EX_EXKL
                       { $$ = mcc_ast_new_expression_unary_op(MCC_AST_UNARY_OP_NOT, $2);            loc($$, @1, @2); }
                     | identifier { $$ = mcc_ast_new_expression_variable($1);                       loc($$, @1, @1); }
                     | identifier SQUARE_OPEN expression SQUARE_CLOSE
