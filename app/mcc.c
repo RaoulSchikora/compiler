@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "mcc/asm.h"
+#include "mcc/asm_print.h"
 #include "mcc/ast.h"
 #include "mcc/ast_visit.h"
 #include "mcc/ir.h"
@@ -17,6 +19,8 @@
 
 // register datastructures with register_cleanup and they will be deleted on exit
 #include "mc_cleanup.inc"
+
+bool assemble_and_link(char *binary_filename);
 
 int main(int argc, char *argv[])
 {
@@ -108,23 +112,70 @@ int main(int argc, char *argv[])
 	}
 	register_cleanup(ir);
 
-	// ---------------------------------------------------------------------- Print results
+	// ---------------------------------------------------------------------- Generate Assembly
 
-	// Print to file or stdout
-	if (command_line->options->write_to_file == true) {
-		FILE *out = fopen(command_line->options->output_file, "a");
-		if (!out) {
-			return EXIT_FAILURE;
+	struct mcc_asm *code = mcc_asm_generate(ir);
+	if (!code) {
+		if (!command_line->options->quiet) {
+			fprintf(stderr, "Assembly code generation failed\n");
 		}
-		fprintf(out, "Teststring for integration testing\n");
-		fclose(out);
+		return EXIT_FAILURE;
+	}
+	register_cleanup(code);
+
+	// ---------------------------------------------------------------------- Save assembly to file
+
+	// Print assembly to file
+	FILE *assembly_out = fopen("a.s", "w+");
+	if (!assembly_out) {
+		if (!command_line->options->quiet) {
+			fprintf(stderr, "Failed to open file a.s for writing.\n");
+		}
+		return EXIT_FAILURE;
+	}
+	mcc_asm_print_asm(assembly_out, code);
+	fclose(assembly_out);
+
+	// ---------------------------------------------------------------------- Call gcc to assemble and link
+
+	bool success = true;
+	if (command_line->options->write_to_file) {
+		success = assemble_and_link(command_line->options->output_file);
 	} else {
-		fprintf(stdout, "Teststring for integration testing\n");
+		success = assemble_and_link("a.out");
+	}
+	if (!success) {
+		if (!command_line->options->quiet) {
+			fprintf(stderr, "Backend compiler failed.\n");
+		}
+		return EXIT_FAILURE;
 	}
 
-	// TODO:
-	// - output assembly code
-	// - invoke backend compiler
+	// ---------------------------------------------------------------------- Print results
 
 	return EXIT_SUCCESS;
+}
+
+bool assemble_and_link(char *binary_filename)
+{
+	// Create string of command
+	char *cc = NULL;
+	char gcc[] = "gcc";
+	char *env_cc = getenv("MCC_BACKEND");
+	if (!env_cc) {
+		cc = gcc;
+	} else {
+		cc = env_cc;
+	}
+	int length = strlen(cc) + strlen(" -m32 -o ") + strlen(binary_filename) + strlen(" a.s ");
+	char callstring[length];
+	snprintf(callstring, length, "%s -m32 -o %s a.s", cc, binary_filename);
+
+	// Call backend compiler
+	system(callstring);
+
+	// TODO:
+	// system() replaces the current process with exec and has a complicated return status definition with some
+	// macros available. We need to implement a mechanism to check wether the compilation was successfull.
+	return true;
 }
