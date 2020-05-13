@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "mcc/asm.h"
 #include "mcc/ast.h"
 #include "mcc/ir.h"
 #include "mcc/semantic_checks.h"
@@ -21,6 +22,38 @@ void test1(CuTest *tc)
 	CuAssertIntEquals(tc, checks->status, MCC_SEMANTIC_CHECK_OK);
 	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program, table);
 	CuAssertPtrNotNull(tc, ir);
+
+	struct mcc_asm *code = mcc_asm_generate(ir);
+	// asm
+	CuAssertPtrNotNull(tc, code);
+
+	// sections
+	CuAssertPtrEquals(tc, NULL, code->data_section);
+	CuAssertPtrNotNull(tc, code->text_section);
+
+	// "main"
+	CuAssertPtrNotNull(tc, code->text_section->function);
+	CuAssertPtrNotNull(tc, code->text_section->function->label);
+	CuAssertStrEquals(tc, code->text_section->function->label, "main");
+	CuAssertPtrEquals(tc, NULL, code->text_section->function->next);
+
+	// First line
+	CuAssertPtrNotNull(tc, code->text_section->function->head);
+	CuAssertPtrNotNull(tc, code->text_section->function->head->first);
+	CuAssertPtrEquals(tc, NULL, code->text_section->function->head->second);
+	CuAssertIntEquals(tc, code->text_section->function->head->opcode, MCC_ASM_PUSHL);
+	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, code->text_section->function->head->first->type);
+	CuAssertIntEquals(tc, MCC_ASM_EBP, code->text_section->function->head->first->reg);
+
+	// Second line
+	CuAssertIntEquals(tc, code->text_section->function->head->next->opcode, MCC_ASM_MOVL);
+	CuAssertPtrNotNull(tc, code->text_section->function->head->next->first);
+	CuAssertPtrNotNull(tc, code->text_section->function->head->next->second);
+	CuAssertIntEquals(tc, code->text_section->function->head->next->opcode, MCC_ASM_MOVL);
+	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, code->text_section->function->head->next->first->type);
+	CuAssertIntEquals(tc, MCC_ASM_ESP, code->text_section->function->head->next->first->reg);
+	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, code->text_section->function->head->next->second->type);
+	CuAssertIntEquals(tc, MCC_ASM_EBP, code->text_section->function->head->next->second->reg);
 }
 
 void test2(CuTest *tc)
@@ -35,6 +68,10 @@ void test2(CuTest *tc)
 	CuAssertIntEquals(tc, checks->status, MCC_SEMANTIC_CHECK_OK);
 	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program, table);
 	CuAssertPtrNotNull(tc, ir);
+
+	struct mcc_asm *code = mcc_asm_generate(ir);
+	CuAssertPtrNotNull(tc, code);
+	// TODO: tests
 }
 
 // clang-format off
