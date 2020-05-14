@@ -125,7 +125,7 @@ static void asm_print_line(FILE *out, struct mcc_asm_assembly_line *line)
 
 static void asm_print_func(FILE *out, struct mcc_asm_function *func)
 {
-	fprintf(out, "        .globl %s\n", func->label);
+	fprintf(out, "\n        .globl %s\n", func->label);
 	fprintf(out, "%s:\n", func->label);
 	struct mcc_asm_assembly_line *line = func->head;
 	while (line) {
@@ -151,7 +151,7 @@ static void asm_print_decl(FILE *out, struct mcc_asm_declaration *decl)
 
 static void asm_print_text_sec(FILE *out, struct mcc_asm_text_section *text)
 {
-	fprintf(out, ".text\n\n");
+	fprintf(out, ".text\n");
 	struct mcc_asm_function *func = text->function;
 	while (func) {
 		asm_print_func(out, func);
