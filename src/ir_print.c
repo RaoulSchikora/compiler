@@ -55,10 +55,12 @@ static void row_to_string(
 	case MCC_IR_INSTR_MINUS:
 	case MCC_IR_INSTR_DIVIDE:
 	case MCC_IR_INSTR_MULTIPLY:
-	case MCC_IR_INSTR_NEGATIV:
 		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s = %s %s %s\n", label, row_no, arg1, instruction, arg2);
 		break;
+	case MCC_IR_INSTR_NEGATIV:
 	case MCC_IR_INSTR_NOT:
+		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s = %s%s %s\n", label, row_no, instruction, arg1, arg2);
+		break;
 	case MCC_IR_INSTR_CALL:
 		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s = %s %s\n", label, row_no, instruction, arg1);
 		break;
@@ -251,7 +253,6 @@ char *mcc_ir_print_ir_row_to_string(struct mcc_ir_row *row)
 
 void mcc_ir_print_ir(FILE *out, struct mcc_ir_row *head)
 {
-
 	mcc_ir_print_table_begin(out);
 
 	while (head) {
