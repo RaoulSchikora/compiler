@@ -59,7 +59,7 @@ static void row_to_string(
 		break;
 	case MCC_IR_INSTR_NEGATIV:
 	case MCC_IR_INSTR_NOT:
-		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s = %s%s %s\n", label, row_no, instruction, arg1, arg2);
+		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s = %s%s\n", label, row_no, instruction, arg1);
 		break;
 	case MCC_IR_INSTR_CALL:
 		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s = %s %s\n", label, row_no, instruction, arg1);
@@ -184,7 +184,7 @@ static void arg_to_string(char *dest, struct mcc_ir_arg *arg)
 		row_no_to_string(dest, arg->row->row_no);
 		return;
 	case MCC_IR_TYPE_LIT_INT:
-		sprintf(dest, "%ld", arg->lit_int);
+		sprintf(dest, "%ld", arg->lit_int); 
 		return;
 	case MCC_IR_TYPE_LIT_FLOAT:
 		sprintf(dest, "%f", arg->lit_float);
