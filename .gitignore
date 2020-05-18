@@ -26,8 +26,8 @@ scripts/integration_tests/*
 # VS Code config
 .vscode
 
-# Compilation database for autocompletion
-compile_commands.json
+# Configuration files
+*.json
 
 # Cland for autocompletion
 .clangd/
