@@ -272,7 +272,6 @@ static struct mcc_asm_assembly_line *generate_function_body(struct mcc_asm_funct
 	return call;
 }
 
-// TODO write tests that cover this function
 static bool assignment_needs_local_space(struct mcc_ir_row *first, struct mcc_ir_row *ir)
 {
 	assert(first);

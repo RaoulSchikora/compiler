@@ -56,10 +56,11 @@ void test1(CuTest *tc)
 	CuAssertIntEquals(tc, MCC_ASM_EBP, code->text_section->function->head->next->second->reg);
 }
 
-void test2(CuTest *tc)
+void stack_frame_size(CuTest *tc)
 {
 	// Define test input and create IR
-	const char input[] = "int main(){return 42;}";
+	const char input[] =
+	    "int main(){int a; a = 1; int b; b = 1; while (a < 10) { a = a +1;  b = b -1;}  return b;}";
 	struct mcc_parser_result parser_result;
 	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
@@ -71,14 +72,18 @@ void test2(CuTest *tc)
 
 	struct mcc_asm *code = mcc_asm_generate(ir);
 	CuAssertPtrNotNull(tc, code);
-	// TODO: tests
+	CuAssertIntEquals(tc, MCC_ASM_SUBL, code->text_section->function->head->next->next->opcode);
+	CuAssertIntEquals(tc, MCC_ASM_OPERAND_LITERAL, code->text_section->function->head->next->next->first->type);
+	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, code->text_section->function->head->next->next->second->type);
+	CuAssertIntEquals(tc, MCC_ASM_ESP, code->text_section->function->head->next->next->second->reg);
+	CuAssertIntEquals(tc, 8, code->text_section->function->head->next->next->first->literal);
 }
 
 // clang-format off
 
 #define TESTS \
 	TEST(test1) \
-	TEST(test2)
+	TEST(stack_frame_size)
 
 // clang-format on
 
