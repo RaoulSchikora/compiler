@@ -315,8 +315,9 @@ static size_t get_stack_frame_size(struct mcc_ir_row *ir)
 		if (assignment_needs_local_space(first, ir)) {
 			frame_size += 4;
 			ir = ir->next_row;
+		} else {
+			ir = ir->next_row;
 		}
-		ir = ir->next_row;
 	}
 	return frame_size;
 }
