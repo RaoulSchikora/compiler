@@ -272,21 +272,52 @@ static struct mcc_asm_assembly_line *generate_function_body(struct mcc_asm_funct
 	return call;
 }
 
+// TODO write tests that cover this function
+static bool assignment_needs_local_space(struct mcc_ir_row *first, struct mcc_ir_row *ir)
+{
+	assert(first);
+	assert(ir);
+	assert(ir->instr == MCC_IR_INSTR_ASSIGN);
+	assert(ir->arg1);
+	assert(ir->arg1->ident);
+	char *id_name = ir->arg1->ident->identifier_name;
+	struct mcc_ir_row *head = first;
+	while (head != ir) {
+		if (head->instr != MCC_IR_INSTR_ASSIGN) {
+			head = head->next_row;
+			continue;
+		}
+		if (strcmp(head->arg1->ident->identifier_name, id_name) == 0) {
+			return false;
+		}
+		head = head->next_row;
+	}
+	return true;
+}
+
 // TODO: Implement float,bool and arrays
 static size_t get_stack_frame_size(struct mcc_ir_row *ir)
 {
 	assert(ir);
 	assert(ir->instr == MCC_IR_INSTR_FUNC_LABEL);
+	struct mcc_ir_row *last_row = last_line_of_function(ir);
+	struct mcc_ir_row *first = ir;
 	ir = ir->next_row;
 	size_t frame_size = 0;
-	while (ir) {
-		if (ir->instr == MCC_IR_INSTR_POP) {
-			frame_size += 4;
-		} else {
-			break;
+	while (ir && (ir != last_row)) {
+		if (ir->instr != MCC_IR_INSTR_ASSIGN) {
+			ir = ir->next_row;
+			continue;
 		}
-		// Each pop is followed by an assignment
-		ir = ir->next_row->next_row;
+		if (ir->arg1->type != MCC_IR_TYPE_IDENTIFIER) {
+			ir = ir->next_row;
+			continue;
+		}
+		if (assignment_needs_local_space(first, ir)) {
+			frame_size += 4;
+			ir = ir->next_row;
+		}
+		ir = ir->next_row;
 	}
 	return frame_size;
 }
