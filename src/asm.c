@@ -272,14 +272,24 @@ static struct mcc_asm_assembly_line *generate_function_body(struct mcc_asm_funct
 	return call;
 }
 
-static bool assignment_needs_local_space(struct mcc_ir_row *first, struct mcc_ir_row *ir)
+static bool variable_needs_local_space(struct mcc_ir_row *first, struct mcc_ir_row *ir)
 {
 	assert(first);
 	assert(ir);
-	assert(ir->instr == MCC_IR_INSTR_ASSIGN);
-	assert(ir->arg1);
-	assert(ir->arg1->ident);
+	switch (ir->instr) {
+	case MCC_IR_INSTR_ASSIGN:
+		if (ir->arg1->type == MCC_IR_TYPE_ARR_ELEM) {
+			return false;
+		}
+		break;
+	case MCC_IR_INSTR_ARRAY:
+		return true;
+	default:
+		return false;
+	}
+
 	char *id_name = ir->arg1->ident->identifier_name;
+
 	struct mcc_ir_row *head = first;
 	while (head != ir) {
 		if (head->instr != MCC_IR_INSTR_ASSIGN) {
@@ -294,26 +304,47 @@ static bool assignment_needs_local_space(struct mcc_ir_row *first, struct mcc_ir
 	return true;
 }
 
-// TODO: Implement float,bool and arrays
+static size_t get_var_size(struct mcc_ir_row *ir)
+{
+	assert(ir);
+	assert(ir->instr == MCC_IR_INSTR_ASSIGN || ir->instr == MCC_IR_INSTR_ARRAY);
+
+	if (ir->instr == MCC_IR_INSTR_ASSIGN) {
+		switch (ir->arg2->type) {
+		case MCC_IR_TYPE_LIT_INT:
+			return 4;
+		// TODO
+		case MCC_IR_TYPE_LIT_FLOAT:
+			return 4;
+		case MCC_IR_TYPE_LIT_BOOL:
+			return 4;
+		// TODO
+		case MCC_IR_TYPE_IDENTIFIER:
+			return 4;
+		default:
+			return 0;
+		}
+	} else {
+		// instr = MCC_IR_INSTR_ARRAY
+		return (ir->arg2->lit_int) * 4;
+	}
+}
+
+// TODO: Implement float,bool and string
 static size_t get_stack_frame_size(struct mcc_ir_row *ir)
 {
 	assert(ir);
 	assert(ir->instr == MCC_IR_INSTR_FUNC_LABEL);
 	struct mcc_ir_row *last_row = last_line_of_function(ir);
 	struct mcc_ir_row *first = ir;
-	ir = ir->next_row;
 	size_t frame_size = 0;
+
+	// First line is function label
+	ir = ir->next_row;
+
 	while (ir && (ir != last_row)) {
-		if (ir->instr != MCC_IR_INSTR_ASSIGN) {
-			ir = ir->next_row;
-			continue;
-		}
-		if (ir->arg1->type != MCC_IR_TYPE_IDENTIFIER) {
-			ir = ir->next_row;
-			continue;
-		}
-		if (assignment_needs_local_space(first, ir)) {
-			frame_size += 4;
+		if (variable_needs_local_space(first, ir)) {
+			frame_size += get_var_size(ir);
 			ir = ir->next_row;
 		} else {
 			ir = ir->next_row;
