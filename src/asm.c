@@ -282,8 +282,6 @@ static bool variable_needs_local_space(struct mcc_ir_row *first, struct mcc_ir_r
 			return false;
 		}
 		break;
-	case MCC_IR_INSTR_ARRAY:
-		return true;
 	default:
 		return false;
 	}
@@ -304,29 +302,19 @@ static bool variable_needs_local_space(struct mcc_ir_row *first, struct mcc_ir_r
 	return true;
 }
 
+// TODO: Implement missing cases in switch
 static size_t get_var_size(struct mcc_ir_row *ir)
 {
 	assert(ir);
-	assert(ir->instr == MCC_IR_INSTR_ASSIGN || ir->instr == MCC_IR_INSTR_ARRAY);
+	assert(ir->instr == MCC_IR_INSTR_ASSIGN);
 
-	if (ir->instr == MCC_IR_INSTR_ASSIGN) {
-		switch (ir->arg2->type) {
-		case MCC_IR_TYPE_LIT_INT:
-			return 4;
-		// TODO
-		case MCC_IR_TYPE_LIT_FLOAT:
-			return 4;
-		case MCC_IR_TYPE_LIT_BOOL:
-			return 4;
-		// TODO
-		case MCC_IR_TYPE_IDENTIFIER:
-			return 4;
-		default:
-			return 0;
-		}
-	} else {
-		// instr = MCC_IR_INSTR_ARRAY
-		return (ir->arg2->lit_int) * 4;
+	switch (ir->arg2->type) {
+	case MCC_IR_TYPE_LIT_INT:
+		return 4;
+	case MCC_IR_TYPE_IDENTIFIER:
+		return 4;
+	default:
+		return 0;
 	}
 }
 

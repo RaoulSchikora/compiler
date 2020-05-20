@@ -98,7 +98,7 @@ void stack_frame_size_array(CuTest *tc)
 	CuAssertIntEquals(tc, MCC_ASM_OPERAND_LITERAL, code->text_section->function->head->next->next->first->type);
 	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, code->text_section->function->head->next->next->second->type);
 	CuAssertIntEquals(tc, MCC_ASM_ESP, code->text_section->function->head->next->next->second->reg);
-	CuAssertIntEquals(tc, 43 * 4, code->text_section->function->head->next->next->first->literal);
+	CuAssertIntEquals(tc, 4, code->text_section->function->head->next->next->first->literal);
 }
 
 // clang-format off
