@@ -439,33 +439,53 @@ static struct mcc_ir_row *find_next_function(struct mcc_ir_row *ir)
 	return ir;
 }
 
-struct mcc_asm *mcc_asm_generate(struct mcc_ir_row *ir)
+static bool generate_text_section(struct mcc_asm_text_section *text_section, struct mcc_ir_row *ir)
 {
-	struct mcc_asm *assembly = mcc_asm_new_asm(NULL, NULL);
 	struct mcc_asm_function *first_function = mcc_asm_generate_function(ir);
-	struct mcc_asm_text_section *text_section = mcc_asm_new_text_section(NULL);
-	if (!assembly || !first_function || !text_section) {
-		mcc_asm_delete_asm(assembly);
-		mcc_asm_delete_function(first_function);
-		mcc_asm_delete_text_section(text_section);
-		return NULL;
-	}
+	if (!first_function)
+		return false;
 	struct mcc_asm_function *latest_function = first_function;
 	ir = find_next_function(ir);
 	while (ir) {
 		struct mcc_asm_function *new_function = mcc_asm_generate_function(ir);
 		if (!new_function) {
-			mcc_asm_delete_asm(assembly);
 			mcc_asm_delete_all_functions(first_function);
-			mcc_asm_delete_text_section(text_section);
-			return NULL;
+			return false;
 		}
 		latest_function->next = new_function;
 		latest_function = new_function;
 		ir = find_next_function(ir);
 	}
 	text_section->function = first_function;
+	return true;
+}
+
+static bool generate_data_section(struct mcc_asm_data_section *data_section, struct mcc_ir_row *ir)
+{
+	UNUSED(data_section);
+	UNUSED(ir);
+	return true;
+}
+
+struct mcc_asm *mcc_asm_generate(struct mcc_ir_row *ir)
+{
+	struct mcc_asm *assembly = mcc_asm_new_asm(NULL, NULL);
+	struct mcc_asm_text_section *text_section = mcc_asm_new_text_section(NULL);
+	struct mcc_asm_data_section *data_section = mcc_asm_new_data_section(NULL);
+	if (!assembly || !text_section || !data_section) {
+		mcc_asm_delete_asm(assembly);
+		mcc_asm_delete_text_section(text_section);
+		mcc_asm_delete_data_section(data_section);
+		return NULL;
+	}
+	assembly->data_section = data_section;
 	assembly->text_section = text_section;
-	assembly->data_section = NULL;
+
+	bool text_section_generated = generate_text_section(assembly->text_section, ir);
+	bool data_section_generated = generate_data_section(assembly->data_section, ir);
+	if (!text_section_generated || !data_section_generated) {
+		mcc_asm_delete_asm(assembly);
+	}
+
 	return assembly;
 }
