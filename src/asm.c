@@ -65,6 +65,18 @@ mcc_asm_new_db_declaration(char *identifier, char *db_value, struct mcc_asm_decl
 	return new;
 }
 
+struct mcc_asm_declaration *mcc_asm_new_array_declaration(char *identifier, int size, struct mcc_asm_declaration *next)
+{
+	struct mcc_asm_declaration *new = malloc(sizeof(*new));
+	if (!new)
+		return NULL;
+	new->identifier = identifier;
+	new->array_size = size;
+	new->next = next;
+	new->type = MCC_ASM_DECLARATION_TYPE_ARRAY;
+	return new;
+}
+
 struct mcc_asm_function *
 mcc_asm_new_function(char *label, struct mcc_asm_assembly_line *head, struct mcc_asm_function *next)
 {
@@ -460,10 +472,42 @@ static bool generate_text_section(struct mcc_asm_text_section *text_section, str
 	return true;
 }
 
+static bool allocate_arrays(struct mcc_asm_data_section *data_section, struct mcc_ir_row *ir)
+{
+	assert(data_section);
+	assert(ir);
+
+	bool first = true;
+	struct mcc_asm_declaration *decl_head;
+	while (ir) {
+		if (ir->instr == MCC_IR_INSTR_ARRAY) {
+			struct mcc_asm_declaration *decl = mcc_asm_new_array_declaration(
+			    ir->arg1->arr_ident->identifier_name, ir->arg2->lit_int, NULL);
+
+			if (!decl) {
+				mcc_asm_delete_all_declarations(data_section->head);
+				return false;
+			}
+			if (first) {
+				data_section->head = decl;
+				decl_head = data_section->head;
+				first = false;
+			} else {
+				decl_head->next = decl;
+				decl_head = decl;
+			}
+		}
+		ir = ir->next_row;
+	}
+	return true;
+}
+
 static bool generate_data_section(struct mcc_asm_data_section *data_section, struct mcc_ir_row *ir)
 {
-	UNUSED(data_section);
-	UNUSED(ir);
+	bool arrays_allocated = allocate_arrays(data_section, ir);
+	if (!arrays_allocated) {
+		return false;
+	}
 	return true;
 }
 
