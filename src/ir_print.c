@@ -40,8 +40,17 @@ static void row_to_string(
 	case MCC_IR_INSTR_POP:
 		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s %s\n", label, instruction, row_no);
 		break;
-	case MCC_IR_INSTR_ARRAY:
-		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s = %s [%s]\n", label, arg1, instruction, arg2);
+	case MCC_IR_INSTR_ARRAY_INT:
+		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s = %s [%s] int\n", label, arg1, instruction, arg2);
+		break;
+	case MCC_IR_INSTR_ARRAY_FLOAT:
+		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s = %s [%s] float\n", label, arg1, instruction, arg2);
+		break;
+	case MCC_IR_INSTR_ARRAY_BOOL:
+		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s = %s [%s] bool\n", label, arg1, instruction, arg2);
+		break;
+	case MCC_IR_INSTR_ARRAY_STRING:
+		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s = %s [%s] string\n", label, arg1, instruction, arg2);
 		break;
 	case MCC_IR_INSTR_AND:
 	case MCC_IR_INSTR_EQUALS:
@@ -82,7 +91,11 @@ static char *instr_to_string(enum mcc_ir_instruction instr)
 		return "call";
 	case MCC_IR_INSTR_AND:
 		return "&&";
-	case MCC_IR_INSTR_ARRAY:
+	case MCC_IR_INSTR_ARRAY_INT:
+	case MCC_IR_INSTR_ARRAY_BOOL:
+	case MCC_IR_INSTR_ARRAY_STRING:
+	case MCC_IR_INSTR_ARRAY_FLOAT:
+		// fall-through
 		return "array";
 	case MCC_IR_INSTR_DIVIDE:
 		return "/";
@@ -184,7 +197,7 @@ static void arg_to_string(char *dest, struct mcc_ir_arg *arg)
 		row_no_to_string(dest, arg->row->row_no);
 		return;
 	case MCC_IR_TYPE_LIT_INT:
-		sprintf(dest, "%ld", arg->lit_int); 
+		sprintf(dest, "%ld", arg->lit_int);
 		return;
 	case MCC_IR_TYPE_LIT_FLOAT:
 		sprintf(dest, "%f", arg->lit_float);

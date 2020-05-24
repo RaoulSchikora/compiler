@@ -65,6 +65,7 @@ mcc_asm_new_db_declaration(char *identifier, char *db_value, struct mcc_asm_decl
 	return new;
 }
 
+// TODO: Hand type of array to this function and deal with it accordingly
 struct mcc_asm_declaration *mcc_asm_new_array_declaration(char *identifier, int size, struct mcc_asm_declaration *next)
 {
 	struct mcc_asm_declaration *new = malloc(sizeof(*new));
@@ -480,7 +481,8 @@ static bool allocate_arrays(struct mcc_asm_data_section *data_section, struct mc
 	bool first = true;
 	struct mcc_asm_declaration *decl_head;
 	while (ir) {
-		if (ir->instr == MCC_IR_INSTR_ARRAY) {
+		if (ir->instr == MCC_IR_INSTR_ARRAY_INT || ir->instr == MCC_IR_INSTR_ARRAY_BOOL ||
+		    ir->instr == MCC_IR_INSTR_ARRAY_FLOAT || ir->instr == MCC_IR_INSTR_ARRAY_STRING) {
 			struct mcc_asm_declaration *decl = mcc_asm_new_array_declaration(
 			    ir->arg1->arr_ident->identifier_name, ir->arg2->lit_int, NULL);
 

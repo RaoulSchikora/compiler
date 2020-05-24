@@ -1,8 +1,8 @@
 // Intermediate Representation (IR)
 //
-// This module provides infrastructure for the Intermediate Representation. 
-// It is implemented as Three Address Code in the form of triples. The result of an instruction that takes two or less 
-// arguments is assigned to one variable (either temporary of from the original code). 
+// This module provides infrastructure for the Intermediate Representation.
+// It is implemented as Three Address Code in the form of triples. The result of an instruction that takes two or less
+// arguments is assigned to one variable (either temporary of from the original code).
 
 #ifndef MCC_IR_H
 #define MCC_IR_H
@@ -38,7 +38,10 @@ enum mcc_ir_instruction {
 	MCC_IR_INSTR_AND,
 	MCC_IR_INSTR_OR,
 	MCC_IR_INSTR_RETURN,
-	MCC_IR_INSTR_ARRAY,
+	MCC_IR_INSTR_ARRAY_INT,
+	MCC_IR_INSTR_ARRAY_FLOAT,
+	MCC_IR_INSTR_ARRAY_BOOL,
+	MCC_IR_INSTR_ARRAY_STRING,
 	MCC_IR_INSTR_NEGATIV,
 	MCC_IR_INSTR_NOT,
 	MCC_IR_INSTR_UNKNOWN
