@@ -369,11 +369,19 @@ static void generate_ir_declaration(struct mcc_ast_declaration *decl, struct ir_
 {
 	assert(decl);
 	assert(data);
+	// Only arrays need an extra IR line for declaration
 	if (data->has_failed || decl->declaration_type == MCC_AST_DECLARATION_TYPE_VARIABLE)
 		return;
 
 	struct mcc_ir_arg *arg1 = mcc_ir_new_arg(decl->array_identifier, data);
 	struct mcc_ir_arg *arg2 = generate_arg_lit(decl->array_size, data);
+	if (!arg1 || !arg2) {
+		mcc_ir_delete_ir_arg(arg1);
+		mcc_ir_delete_ir_arg(arg2);
+		data->has_failed = true;
+		return;
+	}
+
 	struct mcc_ir_row *row = new_row(arg1, arg2, MCC_IR_INSTR_ARRAY, data);
 	append_row(row, data);
 }
