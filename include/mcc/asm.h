@@ -44,6 +44,7 @@ struct mcc_asm_function {
 	char *label;
 	struct mcc_asm_assembly_line *head;
 	struct mcc_asm_function *next;
+	int ebp_offset;
 };
 
 enum mcc_asm_opcode {
@@ -87,6 +88,7 @@ struct mcc_asm_operand {
 		struct mcc_asm_declaration *decl;
 		char *func_name;
 	};
+	int offset;
 };
 
 //------------------------------------------------------------------------------------ Functions: Create data structures
@@ -115,7 +117,7 @@ struct mcc_asm_assembly_line *mcc_asm_new_assembly_line(enum mcc_asm_opcode opco
 
 struct mcc_asm_operand *mcc_asm_new_literal_operand(int literal);
 
-struct mcc_asm_operand *mcc_asm_new_register_operand(enum mcc_asm_register reg);
+struct mcc_asm_operand *mcc_asm_new_register_operand(enum mcc_asm_register reg, int offset);
 
 struct mcc_asm_operand *mcc_asm_new_data_operand(struct mcc_asm_declaration *decl);
 

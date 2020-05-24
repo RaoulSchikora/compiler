@@ -9,6 +9,10 @@
 #include "mcc/ir.h"
 #include "utils/unused.h"
 
+//---------------------------------------------------------------------------------------- Forward declarations
+
+static size_t get_stack_frame_size(struct mcc_ir_row *ir);
+
 //---------------------------------------------------------------------------------------- Functions: Data structures
 
 struct mcc_asm *mcc_asm_new_asm(struct mcc_asm_data_section *data, struct mcc_asm_text_section *text)
@@ -86,6 +90,7 @@ mcc_asm_new_function(char *label, struct mcc_asm_assembly_line *head, struct mcc
 	new->head = head;
 	new->label = label;
 	new->next = next;
+	new->ebp_offset = 0;
 	return new;
 }
 
@@ -110,6 +115,7 @@ struct mcc_asm_operand *mcc_asm_new_function_operand(char *function_name)
 		return NULL;
 	new->type = MCC_ASM_OPERAND_FUNCTION;
 	new->func_name = function_name;
+	new->offset = 0;
 	return new;
 }
 struct mcc_asm_operand *mcc_asm_new_literal_operand(int literal)
@@ -119,16 +125,18 @@ struct mcc_asm_operand *mcc_asm_new_literal_operand(int literal)
 		return NULL;
 	new->type = MCC_ASM_OPERAND_LITERAL;
 	new->literal = literal;
+	new->offset = 0;
 	return new;
 }
 
-struct mcc_asm_operand *mcc_asm_new_register_operand(enum mcc_asm_register reg)
+struct mcc_asm_operand *mcc_asm_new_register_operand(enum mcc_asm_register reg, int offset)
 {
 	struct mcc_asm_operand *new = malloc(sizeof(*new));
 	if (!new)
 		return NULL;
 	new->type = MCC_ASM_OPERAND_REGISTER;
 	new->reg = reg;
+	new->offset = offset;
 	return new;
 }
 
@@ -139,6 +147,7 @@ struct mcc_asm_operand *mcc_asm_new_data_operand(struct mcc_asm_declaration *dec
 		return NULL;
 	new->type = MCC_ASM_OPERAND_DATA;
 	new->decl = decl;
+	new->offset = 0;
 	return new;
 }
 
@@ -248,11 +257,25 @@ static struct mcc_asm_assembly_line *last_asm_line(struct mcc_asm_assembly_line 
 	return head;
 }
 
+static void func_append(struct mcc_asm_function *func, struct mcc_asm_assembly_line *line)
+{
+	assert(line);
+	assert(func);
+
+	if (!func->head) {
+		func->head = line;
+		return;
+	}
+	struct mcc_asm_assembly_line *tail = last_asm_line(func->head);
+	tail->next = line;
+	return;
+}
+
 static struct mcc_asm_assembly_line *generate_function_prolog()
 {
-	struct mcc_asm_operand *ebp = mcc_asm_new_register_operand(MCC_ASM_EBP);
-	struct mcc_asm_operand *ebp_2 = mcc_asm_new_register_operand(MCC_ASM_EBP);
-	struct mcc_asm_operand *esp = mcc_asm_new_register_operand(MCC_ASM_ESP);
+	struct mcc_asm_operand *ebp = mcc_asm_new_register_operand(MCC_ASM_EBP, 0);
+	struct mcc_asm_operand *ebp_2 = mcc_asm_new_register_operand(MCC_ASM_EBP, 0);
+	struct mcc_asm_operand *esp = mcc_asm_new_register_operand(MCC_ASM_ESP, 0);
 	struct mcc_asm_assembly_line *push_ebp = mcc_asm_new_assembly_line(MCC_ASM_PUSHL, ebp, NULL, NULL);
 	struct mcc_asm_assembly_line *mov_ebp_esp = mcc_asm_new_assembly_line(MCC_ASM_MOVL, esp, ebp_2, NULL);
 	if (!ebp || !esp || !push_ebp || !ebp_2 || !mov_ebp_esp) {
@@ -265,6 +288,90 @@ static struct mcc_asm_assembly_line *generate_function_prolog()
 	}
 	push_ebp->next = mov_ebp_esp;
 	return push_ebp;
+}
+
+static struct mcc_asm_assembly_line *generate_instr_plus(struct mcc_asm_function *function, struct mcc_ir_row *ir)
+{
+	assert(function);
+	assert(ir);
+}
+
+static struct mcc_asm_assembly_line *generate_instr_assign(struct mcc_asm_function *function, struct mcc_ir_row *ir)
+{
+	assert(function);
+	assert(ir);
+
+	struct mcc_asm_operand *first = mcc_asm_new_literal_operand(ir->arg2->lit_int);
+	struct mcc_asm_operand *second = mcc_asm_new_register_operand(MCC_ASM_EBP, function->ebp_offset);
+	struct mcc_asm_assembly_line *line = mcc_asm_new_assembly_line(MCC_ASM_MOVL, first, second, NULL);
+
+	return line;
+}
+
+static struct mcc_asm_assembly_line *generate_ir_row(struct mcc_asm_function *function, struct mcc_ir_row *ir)
+{
+	assert(function);
+	assert(ir);
+
+	struct mcc_asm_assembly_line *line = NULL;
+
+	switch (ir->instr) {
+	case MCC_IR_INSTR_ASSIGN:
+		function->ebp_offset -= 4;
+		line = generate_instr_assign(function, ir);
+		break;
+	case MCC_IR_INSTR_LABEL:
+		break;
+	case MCC_IR_INSTR_FUNC_LABEL:
+		return NULL;
+	case MCC_IR_INSTR_JUMP:
+		break;
+	case MCC_IR_INSTR_CALL:
+		break;
+	case MCC_IR_INSTR_JUMPFALSE:
+		break;
+	case MCC_IR_INSTR_PUSH:
+		break;
+	case MCC_IR_INSTR_POP:
+		break;
+	case MCC_IR_INSTR_PLUS:
+		// line = generate_instr_plus(function, ir);
+		break;
+	case MCC_IR_INSTR_MINUS:
+		break;
+	case MCC_IR_INSTR_MULTIPLY:
+		break;
+	case MCC_IR_INSTR_DIVIDE:
+		break;
+	case MCC_IR_INSTR_EQUALS:
+		break;
+	case MCC_IR_INSTR_NOTEQUALS:
+		break;
+	case MCC_IR_INSTR_SMALLER:
+		break;
+	case MCC_IR_INSTR_GREATER:
+		break;
+	case MCC_IR_INSTR_SMALLEREQ:
+		break;
+	case MCC_IR_INSTR_GREATEREQ:
+		break;
+	case MCC_IR_INSTR_AND:
+		break;
+	case MCC_IR_INSTR_OR:
+		break;
+	case MCC_IR_INSTR_RETURN:
+		break;
+	case MCC_IR_INSTR_ARRAY:
+		break;
+	case MCC_IR_INSTR_NEGATIV:
+		break;
+	case MCC_IR_INSTR_NOT:
+		break;
+	case MCC_IR_INSTR_UNKNOWN:
+		break;
+	}
+
+	return line;
 }
 
 static struct mcc_asm_assembly_line *generate_function_body(struct mcc_asm_function *function, struct mcc_ir_row *ir)
@@ -281,7 +388,28 @@ static struct mcc_asm_assembly_line *generate_function_body(struct mcc_asm_funct
 	}
 	call->first = print_nl;
 	// TODO: Implement correctly
-	return call;
+
+	ir = ir->next_row;
+	struct mcc_asm_assembly_line *line = NULL;
+	while (ir && ir->instr != MCC_IR_INSTR_FUNC_LABEL) {
+		if (ir->instr == MCC_IR_INSTR_ASSIGN) {
+			// TODO delete 'if'
+			line = generate_ir_row(function, ir);
+			if (!line) {
+				mcc_asm_delete_assembly_line(call);
+				mcc_asm_delete_operand(print_nl);
+				return NULL;
+			}
+			func_append(function, line);
+		}
+		ir = ir->next_row;
+	}
+	// TODO: Implement correctly
+	if (!function->head){
+		return call;
+	}
+	// TODO: end
+	return function->head;
 }
 
 static bool variable_needs_local_space(struct mcc_ir_row *first, struct mcc_ir_row *ir)
@@ -318,13 +446,14 @@ static bool variable_needs_local_space(struct mcc_ir_row *first, struct mcc_ir_r
 static size_t get_var_size(struct mcc_ir_row *ir)
 {
 	assert(ir);
-	assert(ir->instr == MCC_IR_INSTR_ASSIGN);
 
 	switch (ir->arg2->type) {
 	case MCC_IR_TYPE_LIT_INT:
 		return 4;
 	case MCC_IR_TYPE_IDENTIFIER:
 		return 4;
+	case MCC_IR_TYPE_ROW:
+		return get_var_size(ir->arg2->row);
 	default:
 		return 0;
 	}
@@ -359,7 +488,7 @@ static struct mcc_asm_assembly_line *generate_function_args(struct mcc_asm_funct
 	assert(ir);
 	assert(ir->instr == MCC_IR_INSTR_FUNC_LABEL);
 	size_t frame_size = get_stack_frame_size(ir);
-	struct mcc_asm_operand *esp = mcc_asm_new_register_operand(MCC_ASM_ESP);
+	struct mcc_asm_operand *esp = mcc_asm_new_register_operand(MCC_ASM_ESP, 0);
 	struct mcc_asm_operand *size_literal = mcc_asm_new_literal_operand(frame_size);
 	struct mcc_asm_assembly_line *sub_size_esp = mcc_asm_new_assembly_line(MCC_ASM_SUBL, NULL, NULL, NULL);
 	if (!esp || !size_literal || !sub_size_esp) {

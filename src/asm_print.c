@@ -44,7 +44,7 @@ static char *opcode_to_string(enum mcc_asm_opcode op)
 	return "error";
 }
 
-static char *register_to_string(enum mcc_asm_register reg)
+static char *register_name_to_string(enum mcc_asm_register reg)
 {
 	switch (reg) {
 	case MCC_ASM_EAX:
@@ -64,6 +64,16 @@ static char *register_to_string(enum mcc_asm_register reg)
 	}
 }
 
+static void register_to_string(char *dest, int len, enum mcc_asm_register reg, int offset)
+{
+	if (offset == 0){
+		snprintf(dest, len, "%s", register_name_to_string(reg));
+	}
+	if (offset != 0){
+		snprintf(dest, len + length_of_int(offset) + 2, "%d(%s)", offset, register_name_to_string(reg));
+	}
+}
+
 static char *op_to_string(char *dest, int len, struct mcc_asm_operand *op)
 {
 	if (!op) {
@@ -71,7 +81,8 @@ static char *op_to_string(char *dest, int len, struct mcc_asm_operand *op)
 	}
 	switch (op->type) {
 	case MCC_ASM_OPERAND_REGISTER:
-		snprintf(dest, len, "%s", register_to_string(op->reg));
+		register_to_string(dest, len, op->reg, op->offset);
+		// snprintf(dest, len, "%s", register_to_string(op->reg));
 		break;
 	case MCC_ASM_OPERAND_DATA:
 		break;
