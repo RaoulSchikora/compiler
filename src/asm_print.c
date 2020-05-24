@@ -82,7 +82,6 @@ static char *op_to_string(char *dest, int len, struct mcc_asm_operand *op)
 	switch (op->type) {
 	case MCC_ASM_OPERAND_REGISTER:
 		register_to_string(dest, len, op->reg, op->offset);
-		// snprintf(dest, len, "%s", register_to_string(op->reg));
 		break;
 	case MCC_ASM_OPERAND_DATA:
 		break;

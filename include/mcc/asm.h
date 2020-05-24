@@ -40,11 +40,18 @@ struct mcc_asm_declaration {
 	struct mcc_asm_declaration *next;
 };
 
+struct mcc_asm_pos_list {
+	int pos;
+	struct mcc_ast_identifier *ident;
+	struct mcc_asm_pos_list *next_pos;
+};
+
 struct mcc_asm_function {
 	char *label;
 	struct mcc_asm_assembly_line *head;
 	struct mcc_asm_function *next;
 	int ebp_offset;
+	struct mcc_asm_pos_list *pos_list;
 };
 
 enum mcc_asm_opcode {
@@ -121,6 +128,8 @@ struct mcc_asm_operand *mcc_asm_new_register_operand(enum mcc_asm_register reg, 
 
 struct mcc_asm_operand *mcc_asm_new_data_operand(struct mcc_asm_declaration *decl);
 
+struct mcc_asm_pos_list *mcc_asm_new_pos_list(struct mcc_ast_identifier *ident, int offset);
+
 //------------------------------------------------------------------------------------ Functions: Delete data structures
 
 void mcc_asm_delete_asm(struct mcc_asm *head);
@@ -142,6 +151,8 @@ void mcc_asm_delete_all_assembly_lines(struct mcc_asm_assembly_line *line);
 void mcc_asm_delete_assembly_line(struct mcc_asm_assembly_line *line);
 
 void mcc_asm_delete_operand(struct mcc_asm_operand *operand);
+
+void mcc_asm_delete_pos_list(struct mcc_asm_pos_list *list);
 
 //---------------------------------------------------------------------------------------- Functions: ASM generation
 

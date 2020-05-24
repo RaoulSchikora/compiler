@@ -54,6 +54,11 @@ void test1(CuTest *tc)
 	CuAssertIntEquals(tc, MCC_ASM_ESP, code->text_section->function->head->next->first->reg);
 	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, code->text_section->function->head->next->second->type);
 	CuAssertIntEquals(tc, MCC_ASM_EBP, code->text_section->function->head->next->second->reg);
+
+	mcc_ir_delete_ir(ir);
+	mcc_ast_delete(parser_result.program);
+	mcc_symbol_table_delete_table(table);
+	mcc_asm_delete_asm(code);
 }
 
 void stack_frame_size_int(CuTest *tc)
@@ -77,6 +82,11 @@ void stack_frame_size_int(CuTest *tc)
 	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, code->text_section->function->head->next->next->second->type);
 	CuAssertIntEquals(tc, MCC_ASM_ESP, code->text_section->function->head->next->next->second->reg);
 	CuAssertIntEquals(tc, 8, code->text_section->function->head->next->next->first->literal);
+
+	mcc_ir_delete_ir(ir);
+	mcc_ast_delete(parser_result.program);
+	mcc_symbol_table_delete_table(table);
+	mcc_asm_delete_asm(code);
 }
 
 void stack_frame_size_array(CuTest *tc)
@@ -99,6 +109,11 @@ void stack_frame_size_array(CuTest *tc)
 	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, code->text_section->function->head->next->next->second->type);
 	CuAssertIntEquals(tc, MCC_ASM_ESP, code->text_section->function->head->next->next->second->reg);
 	CuAssertIntEquals(tc, 4, code->text_section->function->head->next->next->first->literal);
+
+	mcc_ir_delete_ir(ir);
+	mcc_ast_delete(parser_result.program);
+	mcc_symbol_table_delete_table(table);
+	mcc_asm_delete_asm(code);
 }
 
 // TODO: Add float,bool arrays
@@ -132,6 +147,11 @@ void array_declaration(CuTest *tc)
 	CuAssertIntEquals(tc, 42, code->data_section->head->next->array_size);
 	CuAssertStrEquals(tc, "c", code->data_section->head->next->identifier);
 	CuAssertIntEquals(tc, MCC_ASM_DECLARATION_TYPE_ARRAY, code->data_section->head->next->type);
+
+	mcc_ir_delete_ir(ir);
+	mcc_ast_delete(parser_result.program);
+	mcc_symbol_table_delete_table(table);
+	mcc_asm_delete_asm(code);
 }
 
 // clang-format off

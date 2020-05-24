@@ -91,6 +91,7 @@ mcc_asm_new_function(char *label, struct mcc_asm_assembly_line *head, struct mcc
 	new->label = label;
 	new->next = next;
 	new->ebp_offset = 0;
+	new->pos_list = NULL;
 	return new;
 }
 
@@ -151,6 +152,17 @@ struct mcc_asm_operand *mcc_asm_new_data_operand(struct mcc_asm_declaration *dec
 	return new;
 }
 
+struct mcc_asm_pos_list *mcc_asm_new_pos_list(struct mcc_ast_identifier *ident, int offset)
+{
+	struct mcc_asm_pos_list *new = malloc(sizeof(*new));
+	if (!new)
+		return NULL;
+	new->ident = ident;
+	new->pos = offset;
+	new->next_pos = NULL;
+	return new;
+}
+
 //------------------------------------------------------------------------------------ Functions: Delete data structures
 
 void mcc_asm_delete_asm(struct mcc_asm *head)
@@ -204,6 +216,7 @@ void mcc_asm_delete_function(struct mcc_asm_function *function)
 	if (!function)
 		return;
 	mcc_asm_delete_all_assembly_lines(function->head);
+	mcc_asm_delete_pos_list(function->pos_list);
 	free(function->label);
 	free(function);
 }
@@ -224,6 +237,7 @@ void mcc_asm_delete_assembly_line(struct mcc_asm_assembly_line *line)
 	mcc_asm_delete_operand(line->second);
 	free(line);
 }
+
 void mcc_asm_delete_operand(struct mcc_asm_operand *operand)
 {
 	if (!operand)
@@ -231,7 +245,58 @@ void mcc_asm_delete_operand(struct mcc_asm_operand *operand)
 	free(operand);
 }
 
+void mcc_asm_delete_pos_list(struct mcc_asm_pos_list *list)
+{
+	if (!list)
+		return;
+	mcc_asm_delete_pos_list(list->next_pos);
+	free(list);
+}
+
 //---------------------------------------------------------------------------------------- Functions: ASM generation
+
+static void append_pos(struct mcc_asm_pos_list *first, struct mcc_asm_pos_list *new)
+{
+	assert(new);
+	assert(first);
+
+	while (first->next_pos) {
+		first = first->next_pos;
+	}
+	first->next_pos = new;
+}
+
+static void append_ident(struct mcc_asm_function *func, struct mcc_ast_identifier *ident)
+{
+	assert(ident);
+	assert(func);
+
+	struct mcc_asm_pos_list *new = mcc_asm_new_pos_list(ident, func->ebp_offset);
+	if (!new) {
+		return;
+	}
+	if(func->pos_list){
+		append_pos(func->pos_list, new);
+	} else {
+		func->pos_list = new;
+	}
+}
+
+static struct mcc_asm_pos_list *get_pos(struct mcc_asm_pos_list *list, struct mcc_ast_identifier *ident)
+{
+	assert(ident);
+	if (!list){
+		return NULL;
+	}
+
+	do {
+		if (strcmp(list->ident->identifier_name, ident->identifier_name) == 0) {
+			return list;
+		}
+		list = list->next_pos;
+	} while (list);
+	return NULL;
+}
 
 static struct mcc_ir_row *last_line_of_function(struct mcc_ir_row *ir)
 {
@@ -301,8 +366,24 @@ static struct mcc_asm_assembly_line *generate_instr_assign(struct mcc_asm_functi
 	assert(function);
 	assert(ir);
 
-	struct mcc_asm_operand *first = mcc_asm_new_literal_operand(ir->arg2->lit_int);
-	struct mcc_asm_operand *second = mcc_asm_new_register_operand(MCC_ASM_EBP, function->ebp_offset);
+	int offset;
+	struct mcc_asm_pos_list *pos = get_pos(function->pos_list, ir->arg1->ident);
+	if (!pos){
+		append_ident(function, ir->arg1->ident);
+		offset = function->ebp_offset;
+	} else {
+		offset = pos->pos;
+	}
+
+	// TODO implement correctly
+	struct mcc_asm_operand *first = NULL;
+	if(ir->arg2->type == MCC_IR_TYPE_LIT_INT){
+		first = mcc_asm_new_literal_operand(ir->arg2->lit_int);
+	} else {
+		first = mcc_asm_new_literal_operand((long)9999999);
+	} 
+	// ----
+	struct mcc_asm_operand *second = mcc_asm_new_register_operand(MCC_ASM_EBP, offset);
 	struct mcc_asm_assembly_line *line = mcc_asm_new_assembly_line(MCC_ASM_MOVL, first, second, NULL);
 
 	return line;
@@ -405,10 +486,11 @@ static struct mcc_asm_assembly_line *generate_function_body(struct mcc_asm_funct
 		ir = ir->next_row;
 	}
 	// TODO: Implement correctly
-	if (!function->head){
+	if (!function->head) {
 		return call;
 	}
 	// TODO: end
+	mcc_asm_delete_assembly_line(call);
 	return function->head;
 }
 
