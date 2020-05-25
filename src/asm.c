@@ -403,12 +403,6 @@ static struct mcc_asm_assembly_line *generate_function_prolog()
 	return push_ebp;
 }
 
-static struct mcc_asm_assembly_line *generate_instr_plus(struct mcc_asm_function *function, struct mcc_ir_row *ir)
-{
-	assert(function);
-	assert(ir);
-}
-
 static struct mcc_asm_assembly_line *generate_instr_assign(struct mcc_asm_function *function, struct mcc_ir_row *ir)
 {
 	assert(function);
@@ -433,7 +427,6 @@ static struct mcc_asm_assembly_line *generate_instr_assign(struct mcc_asm_functi
 		if(pos){
 			offset1 = pos->pos;
 		}
-		// int offset1 = pos->pos;
 		first = mcc_asm_new_register_operand(MCC_ASM_EBP, offset1);
 	} else {
 		first = mcc_asm_new_literal_operand((long)9999999);
