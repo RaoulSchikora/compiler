@@ -455,7 +455,9 @@ static enum mcc_asm_opcode get_opcode(struct mcc_ir_row *ir)
 	case MCC_IR_INSTR_MINUS:
 		return MCC_ASM_SUBL;
 	case MCC_IR_INSTR_MULTIPLY:
-		return MCC_ASM_IMUL;
+		return MCC_ASM_IMULL;
+	case MCC_IR_INSTR_DIVIDE:
+		return MCC_ASM_IDIVL;
 	
 	default:
 		return MCC_ASM_ADDL;
@@ -490,15 +492,26 @@ static struct mcc_asm_assembly_line *generate_binary_op(struct mcc_asm_function 
 
 	append_row(function, ir);
 
-	struct mcc_asm_operand *fst = operand_from_arg(function, ir->arg1);
-	struct mcc_asm_operand *snd = operand_from_arg(function, ir->arg2);
-	struct mcc_asm_operand *eax1 = mcc_asm_new_register_operand(MCC_ASM_EAX, 0);
-	struct mcc_asm_operand *eax2 = mcc_asm_new_register_operand(MCC_ASM_EAX, 0);
 	struct mcc_asm_operand *eax3 = mcc_asm_new_register_operand(MCC_ASM_EAX, 0);
 	struct mcc_asm_operand *ebp = mcc_asm_new_register_operand(MCC_ASM_EBP, function->ebp_offset);
-	struct mcc_asm_assembly_line *trd_line = mcc_asm_new_assembly_line(MCC_ASM_MOVL, eax3, ebp, NULL);
+	struct mcc_asm_assembly_line *lst_line = mcc_asm_new_assembly_line(MCC_ASM_MOVL, eax3, ebp, NULL);
+
 	enum mcc_asm_opcode opcode = get_opcode(ir);
-	struct mcc_asm_assembly_line *snd_line = mcc_asm_new_assembly_line(opcode, snd, eax2, trd_line);
+	struct mcc_asm_operand *reg = NULL;
+	struct mcc_asm_operand *snd = operand_from_arg(function, ir->arg2);
+	struct mcc_asm_assembly_line *snd_line = NULL;
+	if(opcode == MCC_ASM_IDIVL){
+		reg = mcc_asm_new_register_operand(MCC_ASM_EBX, 0);
+		struct mcc_asm_operand *ebx = mcc_asm_new_register_operand(MCC_ASM_EBX, 0);
+		struct mcc_asm_assembly_line *trd_line = mcc_asm_new_assembly_line(opcode, ebx, NULL, lst_line);
+		snd_line = mcc_asm_new_assembly_line(MCC_ASM_MOVL, snd, reg, trd_line);
+	} else {
+		reg = mcc_asm_new_register_operand(MCC_ASM_EAX, 0);
+		snd_line = mcc_asm_new_assembly_line(opcode, snd, reg, lst_line);
+	}
+
+	struct mcc_asm_operand *fst = operand_from_arg(function, ir->arg1);
+	struct mcc_asm_operand *eax1 = mcc_asm_new_register_operand(MCC_ASM_EAX, 0);
 	struct mcc_asm_assembly_line *fst_line = mcc_asm_new_assembly_line(MCC_ASM_MOVL, fst, eax1, snd_line);
 	return fst_line;
 }
