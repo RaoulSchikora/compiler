@@ -498,6 +498,11 @@ static bool variable_needs_local_space(struct mcc_ir_row *first, struct mcc_ir_r
 {
 	assert(first);
 	assert(ir);
+
+	if(is_binary_instr(ir)){
+		return true;
+	}
+
 	switch (ir->instr) {
 	case MCC_IR_INSTR_ASSIGN:
 		if (ir->arg1->type == MCC_IR_TYPE_ARR_ELEM) {

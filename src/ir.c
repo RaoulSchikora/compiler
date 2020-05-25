@@ -28,6 +28,30 @@ int length_of_int(int num)
 	return floor(log10(num)) + 1;
 }
 
+bool is_binary_instr(struct mcc_ir_row *row)
+{
+	assert(row);
+
+	switch (row->instr)
+	{
+	case MCC_IR_INSTR_PLUS:
+	case MCC_IR_INSTR_MINUS:
+	case MCC_IR_INSTR_MULTIPLY:
+	case MCC_IR_INSTR_DIVIDE:
+	case MCC_IR_INSTR_EQUALS:
+	case MCC_IR_INSTR_NOTEQUALS:
+	case MCC_IR_INSTR_SMALLER:
+	case MCC_IR_INSTR_GREATER:
+	case MCC_IR_INSTR_SMALLEREQ:
+	case MCC_IR_INSTR_GREATEREQ:
+	case MCC_IR_INSTR_AND:
+	case MCC_IR_INSTR_OR:
+		return true;
+	default:
+		return false;
+	}
+}
+
 //------------------------------------------------------------------------------ Forward declarations: IR datastructures
 
 static struct mcc_ir_arg *arg_from_declaration(struct mcc_ast_declaration *decl, struct ir_generation_userdata *data);

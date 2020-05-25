@@ -81,7 +81,7 @@ void stack_frame_size_int(CuTest *tc)
 	CuAssertIntEquals(tc, MCC_ASM_OPERAND_LITERAL, code->text_section->function->head->next->next->first->type);
 	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, code->text_section->function->head->next->next->second->type);
 	CuAssertIntEquals(tc, MCC_ASM_ESP, code->text_section->function->head->next->next->second->reg);
-	CuAssertIntEquals(tc, 8, code->text_section->function->head->next->next->first->literal);
+	CuAssertIntEquals(tc, 20, code->text_section->function->head->next->next->first->literal);
 
 	mcc_ir_delete_ir(ir);
 	mcc_ast_delete(parser_result.program);
