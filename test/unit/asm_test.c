@@ -224,6 +224,60 @@ void addition_lit(CuTest *tc)
 	mcc_asm_delete_asm(code);
 }
 
+void div_int(CuTest *tc)
+{
+	// Define test input and create IR
+	const char input[] = "int main(){ int a; a = 17; a = a / 3; return a;}";
+	struct mcc_parser_result parser_result;
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
+	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+	struct mcc_semantic_check *checks = mcc_semantic_check_run_all((&parser_result)->program, table);
+	CuAssertIntEquals(tc, checks->status, MCC_SEMANTIC_CHECK_OK);
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program, table);
+	CuAssertPtrNotNull(tc, ir);
+
+	struct mcc_asm *code = mcc_asm_generate(ir);
+	CuAssertPtrNotNull(tc, code);
+	struct mcc_asm_assembly_line *line = code->text_section->function->head->next->next->next->next;
+
+	CuAssertIntEquals(tc, MCC_ASM_MOVL, line->opcode);
+	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, line->first->type);
+	CuAssertIntEquals(tc, MCC_ASM_EBP, line->first->reg);
+	CuAssertIntEquals(tc, -4, line->first->offset);
+	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, line->second->type);
+	CuAssertIntEquals(tc, MCC_ASM_EAX, line->second->reg);
+
+	line = line->next;
+
+	CuAssertIntEquals(tc, MCC_ASM_MOVL, line->opcode);
+	CuAssertIntEquals(tc, MCC_ASM_OPERAND_LITERAL, line->first->type);
+	CuAssertIntEquals(tc, 3, line->first->literal);
+	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, line->second->type);
+	CuAssertIntEquals(tc, MCC_ASM_EBX, line->second->reg);
+
+	line = line->next;
+
+	CuAssertIntEquals(tc, MCC_ASM_IDIVL, line->opcode);
+	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, line->first->type);
+	CuAssertIntEquals(tc, MCC_ASM_EBX, line->first->reg);
+	CuAssertPtrEquals(tc, NULL, line->second);
+
+	line = line->next;
+
+	CuAssertIntEquals(tc, MCC_ASM_MOVL, line->opcode);
+	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, line->first->type);
+	CuAssertIntEquals(tc, MCC_ASM_EAX, line->first->reg);
+	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, line->second->type);
+	CuAssertIntEquals(tc, MCC_ASM_EBP, line->second->reg);
+	CuAssertIntEquals(tc, -8, line->second->offset);
+
+	mcc_ir_delete_ir(ir);
+	mcc_ast_delete(parser_result.program);
+	mcc_symbol_table_delete_table(table);
+	mcc_asm_delete_asm(code);
+}
+
 // clang-format off
 
 #define TESTS \
@@ -231,7 +285,8 @@ void addition_lit(CuTest *tc)
 	TEST(stack_frame_size_int) \
 	TEST(stack_frame_size_array) \
 	TEST(array_declaration) \
-	TEST(addition_lit)
+	TEST(addition_lit) \
+	TEST(div_int)
 
 // clang-format on
 
