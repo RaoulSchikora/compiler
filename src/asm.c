@@ -418,9 +418,12 @@ static struct mcc_asm_assembly_line *generate_instr_assign(struct mcc_asm_functi
 	}
 
 	// TODO implement correctly
+	struct mcc_asm_assembly_line *line = NULL;
+	struct mcc_asm_operand *second = mcc_asm_new_register_operand(MCC_ASM_EBP, offset2);
 	struct mcc_asm_operand *first = NULL;
 	if(ir->arg2->type == MCC_IR_TYPE_LIT_INT){
 		first = mcc_asm_new_literal_operand(ir->arg2->lit_int);
+		line = mcc_asm_new_assembly_line(MCC_ASM_MOVL, first, second, NULL);
 	} else if (ir->arg2->type == MCC_IR_TYPE_ROW) {
 		struct mcc_asm_pos_list *pos = get_pos_row(function->pos_list, ir->arg2->row);
 		int offset1 = 0;
@@ -428,12 +431,15 @@ static struct mcc_asm_assembly_line *generate_instr_assign(struct mcc_asm_functi
 			offset1 = pos->pos;
 		}
 		first = mcc_asm_new_register_operand(MCC_ASM_EBP, offset1);
+		struct mcc_asm_operand *eax1 = mcc_asm_new_register_operand(MCC_ASM_EAX, 0);
+		struct mcc_asm_operand *eax2 = mcc_asm_new_register_operand(MCC_ASM_EAX, 0);
+		struct mcc_asm_assembly_line *snd_line = mcc_asm_new_assembly_line(MCC_ASM_MOVL, eax2, second, NULL);
+		line = mcc_asm_new_assembly_line(MCC_ASM_MOVL, first, eax1, snd_line);
 	} else {
 		first = mcc_asm_new_literal_operand((long)9999999);
+		line = mcc_asm_new_assembly_line(MCC_ASM_MOVL, first, second, NULL);
 	} 
 	// ----
-	struct mcc_asm_operand *second = mcc_asm_new_register_operand(MCC_ASM_EBP, offset2);
-	struct mcc_asm_assembly_line *line = mcc_asm_new_assembly_line(MCC_ASM_MOVL, first, second, NULL);
 
 	return line;
 }
