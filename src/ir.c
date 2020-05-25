@@ -395,12 +395,46 @@ static void generate_ir_declaration(struct mcc_ast_declaration *decl, struct ir_
 {
 	assert(decl);
 	assert(data);
+	// Only arrays need an extra IR line for declaration
 	if (data->has_failed || decl->declaration_type == MCC_AST_DECLARATION_TYPE_VARIABLE)
 		return;
 
 	struct mcc_ir_arg *arg1 = mcc_ir_new_arg(decl->array_identifier, data);
 	struct mcc_ir_arg *arg2 = generate_arg_lit(decl->array_size, data);
-	struct mcc_ir_row *row = new_row(arg1, arg2, MCC_IR_INSTR_ARRAY, data);
+	if (!arg1 || !arg2) {
+		mcc_ir_delete_ir_arg(arg1);
+		mcc_ir_delete_ir_arg(arg2);
+		data->has_failed = true;
+		return;
+	}
+
+	struct mcc_ir_row *row;
+	switch (decl->array_type->type_value) {
+	case INT:
+		row = new_row(arg1, arg2, MCC_IR_INSTR_ARRAY_INT, data);
+		break;
+	case FLOAT:
+		row = new_row(arg1, arg2, MCC_IR_INSTR_ARRAY_FLOAT, data);
+		break;
+	case STRING:
+		row = new_row(arg1, arg2, MCC_IR_INSTR_ARRAY_STRING, data);
+		break;
+	case BOOL:
+		row = new_row(arg1, arg2, MCC_IR_INSTR_ARRAY_BOOL, data);
+		break;
+	case VOID:
+		mcc_ir_delete_ir_arg(arg1);
+		mcc_ir_delete_ir_arg(arg2);
+		data->has_failed = true;
+		return;
+	}
+	if (!row) {
+		mcc_ir_delete_ir_arg(arg1);
+		mcc_ir_delete_ir_arg(arg2);
+		data->has_failed = true;
+		return;
+	}
+
 	append_row(row, data);
 }
 

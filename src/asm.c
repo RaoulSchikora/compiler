@@ -69,7 +69,10 @@ mcc_asm_new_db_declaration(char *identifier, char *db_value, struct mcc_asm_decl
 	return new;
 }
 
-struct mcc_asm_declaration *mcc_asm_new_array_declaration(char *identifier, int size, struct mcc_asm_declaration *next)
+struct mcc_asm_declaration *mcc_asm_new_array_declaration(char *identifier,
+                                                          int size,
+                                                          enum mcc_asm_declaration_type type,
+                                                          struct mcc_asm_declaration *next)
 {
 	struct mcc_asm_declaration *new = malloc(sizeof(*new));
 	if (!new)
@@ -77,7 +80,7 @@ struct mcc_asm_declaration *mcc_asm_new_array_declaration(char *identifier, int 
 	new->identifier = identifier;
 	new->array_size = size;
 	new->next = next;
-	new->type = MCC_ASM_DECLARATION_TYPE_ARRAY;
+	new->type = type;
 	return new;
 }
 
@@ -442,7 +445,13 @@ static struct mcc_asm_assembly_line *generate_ir_row(struct mcc_asm_function *fu
 		break;
 	case MCC_IR_INSTR_RETURN:
 		break;
-	case MCC_IR_INSTR_ARRAY:
+	case MCC_IR_INSTR_ARRAY_INT:
+		break;
+	case MCC_IR_INSTR_ARRAY_FLOAT:
+		break;
+	case MCC_IR_INSTR_ARRAY_BOOL:
+		break;
+	case MCC_IR_INSTR_ARRAY_STRING:
 		break;
 	case MCC_IR_INSTR_NEGATIV:
 		break;
@@ -688,6 +697,23 @@ static bool generate_text_section(struct mcc_asm_text_section *text_section, str
 	return true;
 }
 
+static enum mcc_asm_declaration_type get_array_type(enum mcc_ir_instruction instr)
+{
+	switch (instr) {
+	case MCC_IR_INSTR_ARRAY_BOOL:
+		return MCC_ASM_DECLARATION_TYPE_ARRAY_BOOL;
+	case MCC_IR_INSTR_ARRAY_FLOAT:
+		return MCC_ASM_DECLARATION_TYPE_ARRAY_FLOAT;
+	case MCC_IR_INSTR_ARRAY_INT:
+		return MCC_ASM_DECLARATION_TYPE_ARRAY_INT;
+	case MCC_IR_INSTR_ARRAY_STRING:
+		return MCC_ASM_DECLARATION_TYPE_ARRAY_STRING;
+	default:
+		// Not reachable case, included to prevent compiler warning
+		return MCC_ASM_DECLARATION_TYPE_DB;
+	}
+}
+
 static bool allocate_arrays(struct mcc_asm_data_section *data_section, struct mcc_ir_row *ir)
 {
 	assert(data_section);
@@ -696,9 +722,11 @@ static bool allocate_arrays(struct mcc_asm_data_section *data_section, struct mc
 	bool first = true;
 	struct mcc_asm_declaration *decl_head;
 	while (ir) {
-		if (ir->instr == MCC_IR_INSTR_ARRAY) {
+		if (ir->instr == MCC_IR_INSTR_ARRAY_INT || ir->instr == MCC_IR_INSTR_ARRAY_BOOL ||
+		    ir->instr == MCC_IR_INSTR_ARRAY_FLOAT || ir->instr == MCC_IR_INSTR_ARRAY_STRING) {
+			enum mcc_asm_declaration_type array_type = get_array_type(ir->instr);
 			struct mcc_asm_declaration *decl = mcc_asm_new_array_declaration(
-			    ir->arg1->arr_ident->identifier_name, ir->arg2->lit_int, NULL);
+			    ir->arg1->arr_ident->identifier_name, ir->arg2->lit_int, array_type, NULL);
 
 			if (!decl) {
 				mcc_asm_delete_all_declarations(data_section->head);

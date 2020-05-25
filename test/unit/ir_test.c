@@ -155,7 +155,7 @@ void expression_arr(CuTest *tc)
 	struct mcc_ir_row *ir_head = mcc_ir_generate((&parser_result)->program, table);
 	struct mcc_ir_row *ir = ir_head->next_row;
 
-	CuAssertIntEquals(tc, ir->instr, MCC_IR_INSTR_ARRAY);
+	CuAssertIntEquals(tc, ir->instr, MCC_IR_INSTR_ARRAY_INT);
 	CuAssertPtrNotNull(tc, ir->arg1);
 	CuAssertIntEquals(tc, ir->arg1->type, MCC_IR_TYPE_IDENTIFIER);
 	CuAssertStrEquals(tc, ir->arg1->arr_ident->identifier_name, "arr");

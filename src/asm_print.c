@@ -144,6 +144,7 @@ static void asm_print_func(FILE *out, struct mcc_asm_function *func)
 	}
 }
 
+// TODO: Allocate space for string, bool and float arrays
 static void asm_print_decl(FILE *out, struct mcc_asm_declaration *decl)
 {
 	fprintf(out, "%s:\n", decl->identifier);
@@ -154,7 +155,7 @@ static void asm_print_decl(FILE *out, struct mcc_asm_declaration *decl)
 	case MCC_ASM_DECLARATION_TYPE_DB:
 		fprintf(out, "db %s", decl->db_value);
 		break;
-	case MCC_ASM_DECLARATION_TYPE_ARRAY:
+	case MCC_ASM_DECLARATION_TYPE_ARRAY_INT:
 		fprintf(out, "       .fill %d\n", decl->array_size);
 		break;
 	default:
