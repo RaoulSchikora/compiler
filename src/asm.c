@@ -516,6 +516,17 @@ static struct mcc_asm_assembly_line *generate_binary_op(struct mcc_asm_function 
 	return fst_line;
 }
 
+static struct mcc_asm_assembly_line *generate_unary_op(struct mcc_asm_function *function, struct mcc_ir_row *ir)
+{
+	assert(function);
+	assert(ir);
+
+	append_row(function, ir);
+
+	// TODO implement
+	return mcc_asm_new_assembly_line(MCC_ASM_MOVL, NULL, NULL, NULL);
+}
+
 static struct mcc_asm_assembly_line *generate_ir_row(struct mcc_asm_function *function, struct mcc_ir_row *ir)
 {
 	assert(function);
@@ -568,8 +579,9 @@ static struct mcc_asm_assembly_line *generate_ir_row(struct mcc_asm_function *fu
 	case MCC_IR_INSTR_ARRAY_STRING:
 		break;
 	case MCC_IR_INSTR_NEGATIV:
-		break;
 	case MCC_IR_INSTR_NOT:
+		function->ebp_offset -= 4;
+		line = generate_unary_op(function, ir);
 		break;
 	case MCC_IR_INSTR_UNKNOWN:
 		break;
@@ -658,6 +670,10 @@ static bool variable_needs_local_space(struct mcc_ir_row *first, struct mcc_ir_r
 static size_t get_var_size(struct mcc_ir_row *ir)
 {
 	assert(ir);
+
+	if(!ir->arg2){
+		return 0;
+	}
 
 	switch (ir->arg2->type) {
 	case MCC_IR_TYPE_LIT_INT:
