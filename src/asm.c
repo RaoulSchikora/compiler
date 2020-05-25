@@ -155,12 +155,25 @@ struct mcc_asm_operand *mcc_asm_new_data_operand(struct mcc_asm_declaration *dec
 	return new;
 }
 
-struct mcc_asm_pos_list *mcc_asm_new_pos_list(struct mcc_ast_identifier *ident, int offset)
+struct mcc_asm_pos_list *mcc_asm_new_pos_ident(struct mcc_ast_identifier *ident, int offset)
 {
 	struct mcc_asm_pos_list *new = malloc(sizeof(*new));
 	if (!new)
 		return NULL;
+	new->type = MCC_ASM_POS_IDENT;
 	new->ident = ident;
+	new->pos = offset;
+	new->next_pos = NULL;
+	return new;
+}
+
+struct mcc_asm_pos_list *mcc_asm_new_pos_row(struct mcc_ir_row *row, int offset)
+{
+	struct mcc_asm_pos_list *new = malloc(sizeof(*new));
+	if (!new)
+		return NULL;
+	new->type = MCC_ASM_POS_ROW;
+	new->row = row;
 	new->pos = offset;
 	new->next_pos = NULL;
 	return new;
@@ -269,12 +282,12 @@ static void append_pos(struct mcc_asm_pos_list *first, struct mcc_asm_pos_list *
 	first->next_pos = new;
 }
 
-static void append_ident(struct mcc_asm_function *func, struct mcc_ast_identifier *ident)
+static void append_row(struct mcc_asm_function *func, struct mcc_ir_row *row)
 {
-	assert(ident);
+	assert(row);
 	assert(func);
 
-	struct mcc_asm_pos_list *new = mcc_asm_new_pos_list(ident, func->ebp_offset);
+	struct mcc_asm_pos_list *new = mcc_asm_new_pos_row(row, func->ebp_offset);
 	if (!new) {
 		return;
 	}
@@ -285,7 +298,39 @@ static void append_ident(struct mcc_asm_function *func, struct mcc_ast_identifie
 	}
 }
 
-static struct mcc_asm_pos_list *get_pos(struct mcc_asm_pos_list *list, struct mcc_ast_identifier *ident)
+static void append_ident(struct mcc_asm_function *func, struct mcc_ast_identifier *ident)
+{
+	assert(ident);
+	assert(func);
+
+	struct mcc_asm_pos_list *new = mcc_asm_new_pos_ident(ident, func->ebp_offset);
+	if (!new) {
+		return;
+	}
+	if(func->pos_list){
+		append_pos(func->pos_list, new);
+	} else {
+		func->pos_list = new;
+	}
+}
+
+static struct mcc_asm_pos_list *get_pos_row(struct mcc_asm_pos_list *list, struct mcc_ir_row *row)
+{
+	assert(row);
+	if (!list){
+		return NULL;
+	}
+
+	do {
+		if (list->type == MCC_ASM_POS_ROW && list->row->row_no == row->row_no) {
+			return list;
+		}
+		list = list->next_pos;
+	} while (list);
+	return NULL;
+}
+
+static struct mcc_asm_pos_list *get_pos_ident(struct mcc_asm_pos_list *list, struct mcc_ast_identifier *ident)
 {
 	assert(ident);
 	if (!list){
@@ -370,7 +415,7 @@ static struct mcc_asm_assembly_line *generate_instr_assign(struct mcc_asm_functi
 	assert(ir);
 
 	int offset;
-	struct mcc_asm_pos_list *pos = get_pos(function->pos_list, ir->arg1->ident);
+	struct mcc_asm_pos_list *pos = get_pos_ident(function->pos_list, ir->arg1->ident);
 	if (!pos){
 		append_ident(function, ir->arg1->ident);
 		offset = function->ebp_offset;
@@ -390,6 +435,65 @@ static struct mcc_asm_assembly_line *generate_instr_assign(struct mcc_asm_functi
 	struct mcc_asm_assembly_line *line = mcc_asm_new_assembly_line(MCC_ASM_MOVL, first, second, NULL);
 
 	return line;
+}
+
+static enum mcc_asm_opcode get_opcode(struct mcc_ir_row *ir)
+{
+	assert(ir);
+
+	switch (ir->instr)
+	{
+	case MCC_IR_INSTR_PLUS:
+		return MCC_ASM_ADDL;
+	case MCC_IR_INSTR_MINUS:
+		return MCC_ASM_SUBL;
+	
+	default:
+		return MCC_ASM_ADDL;
+	}
+}
+
+static struct mcc_asm_assembly_line *generate_binary_op(struct mcc_asm_function *function, struct mcc_ir_row *ir)
+{
+	assert(function);
+	assert(ir);
+
+	int offset;
+	struct mcc_asm_operand *first = NULL;
+	if(ir->arg1->type == MCC_IR_TYPE_LIT_INT){
+		first = mcc_asm_new_literal_operand(ir->arg1->lit_int);
+	} else if (ir->arg1->type == MCC_IR_TYPE_ROW){
+		struct mcc_asm_pos_list *pos = get_pos_row(function->pos_list, ir->arg1->row);
+		if(!pos){
+			append_row(function, ir);
+			offset = function->ebp_offset;
+		} else {
+			offset = pos->pos;
+		}
+		first = mcc_asm_new_register_operand(MCC_ASM_EBP, offset);		
+	}
+	struct mcc_asm_operand *second = NULL;
+	if(ir->arg2->type == MCC_IR_TYPE_LIT_INT){
+		second = mcc_asm_new_literal_operand(ir->arg2->lit_int);
+	} else if (ir->arg2->type == MCC_IR_TYPE_ROW){
+		struct mcc_asm_pos_list *pos = get_pos_row(function->pos_list, ir->arg2->row);
+		if(!pos){
+			append_row(function, ir);
+			offset = function->ebp_offset;
+		} else {
+			offset = pos->pos;
+		}
+		second = mcc_asm_new_register_operand(MCC_ASM_EBP, offset);		
+	}
+	struct mcc_asm_operand *eax1 = mcc_asm_new_register_operand(MCC_ASM_EAX, 0);
+	struct mcc_asm_operand *eax2 = mcc_asm_new_register_operand(MCC_ASM_EAX, 0);
+	struct mcc_asm_operand *eax3 = mcc_asm_new_register_operand(MCC_ASM_EAX, 0);
+	struct mcc_asm_operand *ebp = mcc_asm_new_register_operand(MCC_ASM_EBP, function->ebp_offset);
+	struct mcc_asm_assembly_line *third_line = mcc_asm_new_assembly_line(MCC_ASM_MOVL, eax3, ebp, NULL);
+	enum mcc_asm_opcode opcode = get_opcode(ir);
+	struct mcc_asm_assembly_line *second_line = mcc_asm_new_assembly_line(opcode, second, eax2, third_line);
+	struct mcc_asm_assembly_line *first_line = mcc_asm_new_assembly_line(MCC_ASM_MOVL, first, eax1, second_line);
+	return first_line;
 }
 
 static struct mcc_asm_assembly_line *generate_ir_row(struct mcc_asm_function *function, struct mcc_ir_row *ir)
@@ -419,29 +523,19 @@ static struct mcc_asm_assembly_line *generate_ir_row(struct mcc_asm_function *fu
 	case MCC_IR_INSTR_POP:
 		break;
 	case MCC_IR_INSTR_PLUS:
-		// line = generate_instr_plus(function, ir);
-		break;
 	case MCC_IR_INSTR_MINUS:
-		break;
 	case MCC_IR_INSTR_MULTIPLY:
-		break;
 	case MCC_IR_INSTR_DIVIDE:
-		break;
 	case MCC_IR_INSTR_EQUALS:
-		break;
 	case MCC_IR_INSTR_NOTEQUALS:
-		break;
 	case MCC_IR_INSTR_SMALLER:
-		break;
 	case MCC_IR_INSTR_GREATER:
-		break;
 	case MCC_IR_INSTR_SMALLEREQ:
-		break;
 	case MCC_IR_INSTR_GREATEREQ:
-		break;
 	case MCC_IR_INSTR_AND:
-		break;
 	case MCC_IR_INSTR_OR:
+		function->ebp_offset -= 4;
+		line = generate_binary_op(function, ir);
 		break;
 	case MCC_IR_INSTR_RETURN:
 		break;
@@ -458,6 +552,8 @@ static struct mcc_asm_assembly_line *generate_ir_row(struct mcc_asm_function *fu
 	case MCC_IR_INSTR_NOT:
 		break;
 	case MCC_IR_INSTR_UNKNOWN:
+		break;
+	default:
 		break;
 	}
 
@@ -482,7 +578,7 @@ static struct mcc_asm_assembly_line *generate_function_body(struct mcc_asm_funct
 	ir = ir->next_row;
 	struct mcc_asm_assembly_line *line = NULL;
 	while (ir && ir->instr != MCC_IR_INSTR_FUNC_LABEL) {
-		if (ir->instr == MCC_IR_INSTR_ASSIGN) {
+		if (ir->instr == MCC_IR_INSTR_ASSIGN || is_binary_instr(ir)) {
 			// TODO delete 'if'
 			line = generate_ir_row(function, ir);
 			if (!line) {
@@ -498,8 +594,8 @@ static struct mcc_asm_assembly_line *generate_function_body(struct mcc_asm_funct
 	if (!function->head) {
 		return call;
 	}
-	// TODO: end
 	mcc_asm_delete_assembly_line(call);
+	// TODO: end
 	return function->head;
 }
 

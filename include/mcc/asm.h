@@ -43,9 +43,18 @@ struct mcc_asm_declaration {
 	struct mcc_asm_declaration *next;
 };
 
+enum mcc_asm_pos_type {
+	MCC_ASM_POS_IDENT,
+	MCC_ASM_POS_ROW,
+};
+
 struct mcc_asm_pos_list {
+	enum mcc_asm_pos_type type;
 	int pos;
-	struct mcc_ast_identifier *ident;
+	union{
+		struct mcc_ast_identifier *ident;
+		struct mcc_ir_row *row;
+	};
 	struct mcc_asm_pos_list *next_pos;
 };
 
@@ -62,6 +71,7 @@ enum mcc_asm_opcode {
 	MCC_ASM_PUSHL,
 	MCC_ASM_POPL,
 	MCC_ASM_LEAVE,
+	MCC_ASM_ADDL,
 	MCC_ASM_SUBL,
 	MCC_ASM_RETURN,
 	MCC_ASM_CALL,
