@@ -68,10 +68,10 @@ static char *register_name_to_string(enum mcc_asm_register reg)
 
 static void register_to_string(char *dest, int len, enum mcc_asm_register reg, int offset)
 {
-	if (offset == 0){
+	if (offset == 0) {
 		snprintf(dest, len, "%s", register_name_to_string(reg));
 	}
-	if (offset != 0){
+	if (offset != 0) {
 		snprintf(dest, len + length_of_int(offset) + 2, "%d(%s)", offset, register_name_to_string(reg));
 	}
 }
@@ -146,7 +146,7 @@ static void asm_print_func(FILE *out, struct mcc_asm_function *func)
 	}
 }
 
-// TODO: Allocate space for string, bool and float arrays
+// TODO: Allocate space for string and float arrays
 static void asm_print_decl(FILE *out, struct mcc_asm_declaration *decl)
 {
 	fprintf(out, "%s:\n", decl->identifier);
@@ -158,6 +158,7 @@ static void asm_print_decl(FILE *out, struct mcc_asm_declaration *decl)
 		fprintf(out, "db %s", decl->db_value);
 		break;
 	case MCC_ASM_DECLARATION_TYPE_ARRAY_INT:
+	case MCC_ASM_DECLARATION_TYPE_ARRAY_BOOL:
 		fprintf(out, "       .fill %d\n", decl->array_size);
 		break;
 	default:
