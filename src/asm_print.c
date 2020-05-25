@@ -33,6 +33,8 @@ static char *opcode_to_string(enum mcc_asm_opcode op)
 		return "addl";
 	case MCC_ASM_SUBL:
 		return "subl";
+	case MCC_ASM_IMUL:
+		return "imul";
 	case MCC_ASM_LEAVE:
 		return "leave";
 	case MCC_ASM_CALL:

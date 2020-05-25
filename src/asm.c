@@ -448,6 +448,8 @@ static enum mcc_asm_opcode get_opcode(struct mcc_ir_row *ir)
 		return MCC_ASM_ADDL;
 	case MCC_IR_INSTR_MINUS:
 		return MCC_ASM_SUBL;
+	case MCC_IR_INSTR_MULTIPLY:
+		return MCC_ASM_IMUL;
 	
 	default:
 		return MCC_ASM_ADDL;
@@ -468,7 +470,11 @@ static struct mcc_asm_assembly_line *generate_binary_op(struct mcc_asm_function 
 	} else if (ir->arg1->type == MCC_IR_TYPE_ROW){
 		struct mcc_asm_pos_list *pos = get_pos_row(function->pos_list, ir->arg1->row);
 		offset = pos->pos;
-		first = mcc_asm_new_register_operand(MCC_ASM_EBP, offset);		
+		first = mcc_asm_new_register_operand(MCC_ASM_EBP, offset);
+	} else if(ir->arg1->type == MCC_IR_TYPE_IDENTIFIER){
+		struct mcc_asm_pos_list *pos = get_pos_ident(function->pos_list, ir->arg1->ident);
+		offset = pos->pos;
+		first = mcc_asm_new_register_operand(MCC_ASM_EBP, offset);
 	}
 	struct mcc_asm_operand *second = NULL;
 	if(ir->arg2->type == MCC_IR_TYPE_LIT_INT){
@@ -477,6 +483,10 @@ static struct mcc_asm_assembly_line *generate_binary_op(struct mcc_asm_function 
 		struct mcc_asm_pos_list *pos = get_pos_row(function->pos_list, ir->arg2->row);
 		offset = pos->pos;
 		second = mcc_asm_new_register_operand(MCC_ASM_EBP, offset);		
+	} else if(ir->arg2->type == MCC_IR_TYPE_IDENTIFIER){
+		struct mcc_asm_pos_list *pos = get_pos_ident(function->pos_list, ir->arg2->ident);
+		offset = pos->pos;
+		first = mcc_asm_new_register_operand(MCC_ASM_EBP, offset);
 	}
 	struct mcc_asm_operand *eax1 = mcc_asm_new_register_operand(MCC_ASM_EAX, 0);
 	struct mcc_asm_operand *eax2 = mcc_asm_new_register_operand(MCC_ASM_EAX, 0);

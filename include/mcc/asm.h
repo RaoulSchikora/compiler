@@ -73,6 +73,7 @@ enum mcc_asm_opcode {
 	MCC_ASM_LEAVE,
 	MCC_ASM_ADDL,
 	MCC_ASM_SUBL,
+	MCC_ASM_IMUL,
 	MCC_ASM_RETURN,
 	MCC_ASM_CALL,
 };
