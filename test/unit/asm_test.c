@@ -207,6 +207,14 @@ void addition_lit(CuTest *tc)
 	CuAssertIntEquals(tc, MCC_ASM_EBP, line->first->reg);
 	CuAssertIntEquals(tc, -4, line->first->offset);
 	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, line->second->type);
+	CuAssertIntEquals(tc, MCC_ASM_EAX, line->second->reg);
+
+	line = line->next;
+
+	CuAssertIntEquals(tc, MCC_ASM_MOVL, line->opcode);
+	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, line->first->type);
+	CuAssertIntEquals(tc, MCC_ASM_EAX, line->first->reg);
+	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, line->second->type);
 	CuAssertIntEquals(tc, MCC_ASM_EBP, line->second->reg);
 	CuAssertIntEquals(tc, -8, line->second->offset);
 
