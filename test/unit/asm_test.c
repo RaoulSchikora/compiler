@@ -154,13 +154,76 @@ void array_declaration(CuTest *tc)
 	mcc_asm_delete_asm(code);
 }
 
+void addition_lit(CuTest *tc)
+{
+	// Define test input and create IR
+	const char input[] = "int main(){ int a; a = 1 + 2; return a;}";
+	struct mcc_parser_result parser_result;
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
+	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+	struct mcc_semantic_check *checks = mcc_semantic_check_run_all((&parser_result)->program, table);
+	CuAssertIntEquals(tc, checks->status, MCC_SEMANTIC_CHECK_OK);
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program, table);
+	CuAssertPtrNotNull(tc, ir);
+
+	struct mcc_asm *code = mcc_asm_generate(ir);
+	CuAssertPtrNotNull(tc, code);
+	CuAssertIntEquals(tc, MCC_ASM_SUBL, code->text_section->function->head->next->next->opcode);
+	CuAssertIntEquals(tc, MCC_ASM_OPERAND_LITERAL, code->text_section->function->head->next->next->first->type);
+	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, code->text_section->function->head->next->next->second->type);
+	CuAssertIntEquals(tc, MCC_ASM_ESP, code->text_section->function->head->next->next->second->reg);
+	CuAssertIntEquals(tc, 8, code->text_section->function->head->next->next->first->literal);
+
+	struct mcc_asm_assembly_line *line = code->text_section->function->head->next->next->next;
+
+	CuAssertIntEquals(tc, MCC_ASM_MOVL, line->opcode);
+	CuAssertIntEquals(tc, MCC_ASM_OPERAND_LITERAL, line->first->type);
+	CuAssertIntEquals(tc, 1, line->first->literal);
+	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, line->second->type);
+	CuAssertIntEquals(tc, MCC_ASM_EAX, line->second->reg);
+
+	line = line->next;
+
+	CuAssertIntEquals(tc, MCC_ASM_ADDL, line->opcode);
+	CuAssertIntEquals(tc, MCC_ASM_OPERAND_LITERAL, line->first->type);
+	CuAssertIntEquals(tc, 2, line->first->literal);
+	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, line->second->type);
+	CuAssertIntEquals(tc, MCC_ASM_EAX, line->second->reg);
+
+	line = line->next;
+
+	CuAssertIntEquals(tc, MCC_ASM_MOVL, line->opcode);
+	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, line->first->type);
+	CuAssertIntEquals(tc, MCC_ASM_EAX, line->first->reg);
+	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, line->second->type);
+	CuAssertIntEquals(tc, MCC_ASM_EBP, line->second->reg);
+	CuAssertIntEquals(tc, -4, line->second->offset);
+
+	line = line->next;
+
+	CuAssertIntEquals(tc, MCC_ASM_MOVL, line->opcode);
+	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, line->first->type);
+	CuAssertIntEquals(tc, MCC_ASM_EBP, line->first->reg);
+	CuAssertIntEquals(tc, -4, line->first->offset);
+	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, line->second->type);
+	CuAssertIntEquals(tc, MCC_ASM_EBP, line->second->reg);
+	CuAssertIntEquals(tc, -8, line->second->offset);
+
+	mcc_ir_delete_ir(ir);
+	mcc_ast_delete(parser_result.program);
+	mcc_symbol_table_delete_table(table);
+	mcc_asm_delete_asm(code);
+}
+
 // clang-format off
 
 #define TESTS \
 	TEST(test1) \
 	TEST(stack_frame_size_int) \
 	TEST(stack_frame_size_array) \
-	TEST(array_declaration)
+	TEST(array_declaration) \
+	TEST(addition_lit)
 
 // clang-format on
 

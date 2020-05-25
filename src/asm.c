@@ -414,24 +414,32 @@ static struct mcc_asm_assembly_line *generate_instr_assign(struct mcc_asm_functi
 	assert(function);
 	assert(ir);
 
-	int offset;
+	int offset2;
 	struct mcc_asm_pos_list *pos = get_pos_ident(function->pos_list, ir->arg1->ident);
 	if (!pos){
 		append_ident(function, ir->arg1->ident);
-		offset = function->ebp_offset;
+		offset2 = function->ebp_offset;
 	} else {
-		offset = pos->pos;
+		offset2 = pos->pos;
 	}
 
 	// TODO implement correctly
 	struct mcc_asm_operand *first = NULL;
 	if(ir->arg2->type == MCC_IR_TYPE_LIT_INT){
 		first = mcc_asm_new_literal_operand(ir->arg2->lit_int);
+	} else if (ir->arg2->type == MCC_IR_TYPE_ROW) {
+		struct mcc_asm_pos_list *pos = get_pos_row(function->pos_list, ir->arg2->row);
+		int offset1 = 0;
+		if(pos){
+			offset1 = pos->pos;
+		}
+		// int offset1 = pos->pos;
+		first = mcc_asm_new_register_operand(MCC_ASM_EBP, offset1);
 	} else {
 		first = mcc_asm_new_literal_operand((long)9999999);
 	} 
 	// ----
-	struct mcc_asm_operand *second = mcc_asm_new_register_operand(MCC_ASM_EBP, offset);
+	struct mcc_asm_operand *second = mcc_asm_new_register_operand(MCC_ASM_EBP, offset2);
 	struct mcc_asm_assembly_line *line = mcc_asm_new_assembly_line(MCC_ASM_MOVL, first, second, NULL);
 
 	return line;
@@ -458,18 +466,15 @@ static struct mcc_asm_assembly_line *generate_binary_op(struct mcc_asm_function 
 	assert(function);
 	assert(ir);
 
+	append_row(function, ir);
+
 	int offset;
 	struct mcc_asm_operand *first = NULL;
 	if(ir->arg1->type == MCC_IR_TYPE_LIT_INT){
 		first = mcc_asm_new_literal_operand(ir->arg1->lit_int);
 	} else if (ir->arg1->type == MCC_IR_TYPE_ROW){
 		struct mcc_asm_pos_list *pos = get_pos_row(function->pos_list, ir->arg1->row);
-		if(!pos){
-			append_row(function, ir);
-			offset = function->ebp_offset;
-		} else {
-			offset = pos->pos;
-		}
+		offset = pos->pos;
 		first = mcc_asm_new_register_operand(MCC_ASM_EBP, offset);		
 	}
 	struct mcc_asm_operand *second = NULL;
@@ -477,12 +482,7 @@ static struct mcc_asm_assembly_line *generate_binary_op(struct mcc_asm_function 
 		second = mcc_asm_new_literal_operand(ir->arg2->lit_int);
 	} else if (ir->arg2->type == MCC_IR_TYPE_ROW){
 		struct mcc_asm_pos_list *pos = get_pos_row(function->pos_list, ir->arg2->row);
-		if(!pos){
-			append_row(function, ir);
-			offset = function->ebp_offset;
-		} else {
-			offset = pos->pos;
-		}
+		offset = pos->pos;
 		second = mcc_asm_new_register_operand(MCC_ASM_EBP, offset);		
 	}
 	struct mcc_asm_operand *eax1 = mcc_asm_new_register_operand(MCC_ASM_EAX, 0);
