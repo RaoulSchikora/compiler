@@ -591,11 +591,8 @@ static struct mcc_asm_assembly_line *generate_ir_row(struct mcc_asm_function *fu
 	return line;
 }
 
-static struct mcc_asm_assembly_line *generate_function_body(struct mcc_asm_function *function, struct mcc_ir_row *ir)
+static struct mcc_asm_assembly_line *get_fake_asm_line()
 {
-	assert(function);
-	assert(ir);
-	assert(ir->instr == MCC_IR_INSTR_FUNC_LABEL);
 	struct mcc_asm_operand *print_nl = mcc_asm_new_function_operand("print_nl");
 	struct mcc_asm_assembly_line *call = mcc_asm_new_assembly_line(MCC_ASM_CALL, NULL, NULL, NULL);
 	if (!print_nl || !call) {
@@ -604,8 +601,15 @@ static struct mcc_asm_assembly_line *generate_function_body(struct mcc_asm_funct
 		return NULL;
 	}
 	call->first = print_nl;
-	// TODO: Implement correctly
+	return call;
+}
 
+static struct mcc_asm_assembly_line *generate_function_body(struct mcc_asm_function *function, struct mcc_ir_row *ir)
+{
+	assert(function);
+	assert(ir);
+	assert(ir->instr == MCC_IR_INSTR_FUNC_LABEL);
+	// TODO: Implement correctly
 	ir = ir->next_row;
 	struct mcc_asm_assembly_line *line = NULL;
 	while (ir && ir->instr != MCC_IR_INSTR_FUNC_LABEL) {
@@ -613,20 +617,18 @@ static struct mcc_asm_assembly_line *generate_function_body(struct mcc_asm_funct
 			// TODO delete 'if'
 			line = generate_ir_row(function, ir);
 			if (!line) {
-				mcc_asm_delete_assembly_line(call);
-				mcc_asm_delete_operand(print_nl);
 				return NULL;
 			}
 			func_append(function, line);
 		}
 		ir = ir->next_row;
 	}
+
 	// TODO: Implement correctly
-	if (!function->head) {
-		return call;
-	}
-	mcc_asm_delete_assembly_line(call);
-	// TODO: end
+	if (!function->head)
+		return get_fake_asm_line();
+
+	// TODO: Simply return the first line of the block of asm code you created. The merging will happen later.
 	return function->head;
 }
 
