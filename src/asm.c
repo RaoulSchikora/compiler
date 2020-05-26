@@ -604,27 +604,29 @@ static struct mcc_asm_assembly_line *get_fake_asm_line()
 	return call;
 }
 
+// TODO: Implement correctly
 static struct mcc_asm_assembly_line *generate_function_body(struct mcc_asm_function *function, struct mcc_ir_row *ir)
 {
 	assert(function);
 	assert(ir);
 	assert(ir->instr == MCC_IR_INSTR_FUNC_LABEL);
-	// TODO: Implement correctly
+
 	ir = ir->next_row;
 	struct mcc_asm_assembly_line *line = NULL;
+
+	// Iterate up to next function
 	while (ir && ir->instr != MCC_IR_INSTR_FUNC_LABEL) {
-		if (ir->instr == MCC_IR_INSTR_ASSIGN || is_binary_instr(ir)) {
-			// TODO delete 'if'
-			line = generate_ir_row(function, ir);
-			if (!line) {
-				return NULL;
-			}
+
+		// TODO: When finalizing, line musn't return NULL. It now returns NULL if the corresponding
+		// IR line isn't implemented yet
+		line = generate_ir_row(function, ir);
+		if (line)
 			func_append(function, line);
-		}
+
 		ir = ir->next_row;
 	}
 
-	// TODO: Implement correctly
+	// TODO: Exchange function->head for first asm line
 	if (!function->head)
 		return get_fake_asm_line();
 
