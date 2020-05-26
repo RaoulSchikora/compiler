@@ -56,6 +56,7 @@ void test1(CuTest *tc)
 	CuAssertIntEquals(tc, MCC_ASM_EBP, code->text_section->function->head->next->second->reg);
 
 	mcc_ir_delete_ir(ir);
+	mcc_semantic_check_delete_single_check(checks);
 	mcc_ast_delete(parser_result.program);
 	mcc_symbol_table_delete_table(table);
 	mcc_asm_delete_asm(code);
@@ -84,6 +85,7 @@ void stack_frame_size_int(CuTest *tc)
 	CuAssertIntEquals(tc, 20, code->text_section->function->head->next->next->first->literal);
 
 	mcc_ir_delete_ir(ir);
+	mcc_semantic_check_delete_single_check(checks);
 	mcc_ast_delete(parser_result.program);
 	mcc_symbol_table_delete_table(table);
 	mcc_asm_delete_asm(code);
@@ -111,6 +113,7 @@ void stack_frame_size_array(CuTest *tc)
 	CuAssertIntEquals(tc, 4, code->text_section->function->head->next->next->first->literal);
 
 	mcc_ir_delete_ir(ir);
+	mcc_semantic_check_delete_single_check(checks);
 	mcc_ast_delete(parser_result.program);
 	mcc_symbol_table_delete_table(table);
 	mcc_asm_delete_asm(code);
@@ -149,6 +152,7 @@ void array_declaration(CuTest *tc)
 	CuAssertIntEquals(tc, MCC_ASM_DECLARATION_TYPE_ARRAY_STRING, code->data_section->head->next->type);
 
 	mcc_ir_delete_ir(ir);
+	mcc_semantic_check_delete_single_check(checks);
 	mcc_ast_delete(parser_result.program);
 	mcc_symbol_table_delete_table(table);
 	mcc_asm_delete_asm(code);
@@ -219,6 +223,7 @@ void addition_lit(CuTest *tc)
 	CuAssertIntEquals(tc, -8, line->second->offset);
 
 	mcc_ir_delete_ir(ir);
+	mcc_semantic_check_delete_single_check(checks);
 	mcc_ast_delete(parser_result.program);
 	mcc_symbol_table_delete_table(table);
 	mcc_asm_delete_asm(code);
@@ -273,6 +278,7 @@ void div_int(CuTest *tc)
 	CuAssertIntEquals(tc, -8, line->second->offset);
 
 	mcc_ir_delete_ir(ir);
+	mcc_semantic_check_delete_single_check(checks);
 	mcc_ast_delete(parser_result.program);
 	mcc_symbol_table_delete_table(table);
 	mcc_asm_delete_asm(code);
