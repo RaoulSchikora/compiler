@@ -584,8 +584,6 @@ static struct mcc_asm_assembly_line *generate_ir_row(struct mcc_asm_function *fu
 		break;
 	case MCC_IR_INSTR_UNKNOWN:
 		break;
-	default:
-		break;
 	}
 
 	return line;
