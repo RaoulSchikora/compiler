@@ -291,7 +291,7 @@ static void append_row(struct mcc_asm_function *func, struct mcc_ir_row *row)
 	if (!new) {
 		return;
 	}
-	if(func->pos_list){
+	if (func->pos_list) {
 		append_pos(func->pos_list, new);
 	} else {
 		func->pos_list = new;
@@ -307,7 +307,7 @@ static void append_ident(struct mcc_asm_function *func, struct mcc_ast_identifie
 	if (!new) {
 		return;
 	}
-	if(func->pos_list){
+	if (func->pos_list) {
 		append_pos(func->pos_list, new);
 	} else {
 		func->pos_list = new;
@@ -317,7 +317,7 @@ static void append_ident(struct mcc_asm_function *func, struct mcc_ast_identifie
 static struct mcc_asm_pos_list *get_pos_row(struct mcc_asm_pos_list *list, struct mcc_ir_row *row)
 {
 	assert(row);
-	if (!list){
+	if (!list) {
 		return NULL;
 	}
 
@@ -333,7 +333,7 @@ static struct mcc_asm_pos_list *get_pos_row(struct mcc_asm_pos_list *list, struc
 static struct mcc_asm_pos_list *get_pos_ident(struct mcc_asm_pos_list *list, struct mcc_ast_identifier *ident)
 {
 	assert(ident);
-	if (!list){
+	if (!list) {
 		return NULL;
 	}
 
@@ -410,7 +410,7 @@ static struct mcc_asm_assembly_line *generate_instr_assign(struct mcc_asm_functi
 
 	int offset2;
 	struct mcc_asm_pos_list *pos = get_pos_ident(function->pos_list, ir->arg1->ident);
-	if (!pos){
+	if (!pos) {
 		append_ident(function, ir->arg1->ident);
 		offset2 = function->ebp_offset;
 	} else {
@@ -421,13 +421,13 @@ static struct mcc_asm_assembly_line *generate_instr_assign(struct mcc_asm_functi
 	struct mcc_asm_assembly_line *line = NULL;
 	struct mcc_asm_operand *second = mcc_asm_new_register_operand(MCC_ASM_EBP, offset2);
 	struct mcc_asm_operand *first = NULL;
-	if(ir->arg2->type == MCC_IR_TYPE_LIT_INT){
+	if (ir->arg2->type == MCC_IR_TYPE_LIT_INT) {
 		first = mcc_asm_new_literal_operand(ir->arg2->lit_int);
 		line = mcc_asm_new_assembly_line(MCC_ASM_MOVL, first, second, NULL);
 	} else if (ir->arg2->type == MCC_IR_TYPE_ROW) {
 		struct mcc_asm_pos_list *pos = get_pos_row(function->pos_list, ir->arg2->row);
 		int offset1 = 0;
-		if(pos){
+		if (pos) {
 			offset1 = pos->pos;
 		}
 		first = mcc_asm_new_register_operand(MCC_ASM_EBP, offset1);
@@ -438,7 +438,7 @@ static struct mcc_asm_assembly_line *generate_instr_assign(struct mcc_asm_functi
 	} else {
 		first = mcc_asm_new_literal_operand((long)9999999);
 		line = mcc_asm_new_assembly_line(MCC_ASM_MOVL, first, second, NULL);
-	} 
+	}
 	// ----
 
 	return line;
@@ -448,8 +448,7 @@ static enum mcc_asm_opcode get_opcode(struct mcc_ir_row *ir)
 {
 	assert(ir);
 
-	switch (ir->instr)
-	{
+	switch (ir->instr) {
 	case MCC_IR_INSTR_PLUS:
 		return MCC_ASM_ADDL;
 	case MCC_IR_INSTR_MINUS:
@@ -458,7 +457,7 @@ static enum mcc_asm_opcode get_opcode(struct mcc_ir_row *ir)
 		return MCC_ASM_IMULL;
 	case MCC_IR_INSTR_DIVIDE:
 		return MCC_ASM_IDIVL;
-	
+
 	default:
 		return MCC_ASM_ADDL;
 	}
@@ -471,13 +470,13 @@ static struct mcc_asm_operand *operand_from_arg(struct mcc_asm_function *functio
 
 	int offset;
 	struct mcc_asm_operand *operand = NULL;
-	if(arg->type == MCC_IR_TYPE_LIT_INT){
+	if (arg->type == MCC_IR_TYPE_LIT_INT) {
 		operand = mcc_asm_new_literal_operand(arg->lit_int);
-	} else if (arg->type == MCC_IR_TYPE_ROW){
+	} else if (arg->type == MCC_IR_TYPE_ROW) {
 		struct mcc_asm_pos_list *pos = get_pos_row(function->pos_list, arg->row);
 		offset = pos->pos;
 		operand = mcc_asm_new_register_operand(MCC_ASM_EBP, offset);
-	} else if(arg->type == MCC_IR_TYPE_IDENTIFIER){
+	} else if (arg->type == MCC_IR_TYPE_IDENTIFIER) {
 		struct mcc_asm_pos_list *pos = get_pos_ident(function->pos_list, arg->ident);
 		offset = pos->pos;
 		operand = mcc_asm_new_register_operand(MCC_ASM_EBP, offset);
@@ -500,7 +499,7 @@ static struct mcc_asm_assembly_line *generate_binary_op(struct mcc_asm_function 
 	struct mcc_asm_operand *reg = NULL;
 	struct mcc_asm_operand *snd = operand_from_arg(function, ir->arg2);
 	struct mcc_asm_assembly_line *snd_line = NULL;
-	if(opcode == MCC_ASM_IDIVL){
+	if (opcode == MCC_ASM_IDIVL) {
 		reg = mcc_asm_new_register_operand(MCC_ASM_EBX, 0);
 		struct mcc_asm_operand *ebx = mcc_asm_new_register_operand(MCC_ASM_EBX, 0);
 		struct mcc_asm_assembly_line *trd_line = mcc_asm_new_assembly_line(opcode, ebx, NULL, lst_line);
@@ -636,7 +635,7 @@ static bool variable_needs_local_space(struct mcc_ir_row *first, struct mcc_ir_r
 	assert(first);
 	assert(ir);
 
-	if(is_binary_instr(ir)){
+	if (is_binary_instr(ir)) {
 		return true;
 	}
 
@@ -671,7 +670,7 @@ static size_t get_var_size(struct mcc_ir_row *ir)
 {
 	assert(ir);
 
-	if(!ir->arg2){
+	if (!ir->arg2) {
 		return 0;
 	}
 
@@ -829,6 +828,7 @@ static bool generate_text_section(struct mcc_asm_text_section *text_section, str
 	return true;
 }
 
+// TODO: Currently unused, but kept for future use
 static enum mcc_asm_declaration_type get_array_type(enum mcc_ir_instruction instr)
 {
 	switch (instr) {
@@ -846,44 +846,8 @@ static enum mcc_asm_declaration_type get_array_type(enum mcc_ir_instruction inst
 	}
 }
 
-static bool allocate_arrays(struct mcc_asm_data_section *data_section, struct mcc_ir_row *ir)
+static bool generate_data_section()
 {
-	assert(data_section);
-	assert(ir);
-
-	bool first = true;
-	struct mcc_asm_declaration *decl_head;
-	while (ir) {
-		if (ir->instr == MCC_IR_INSTR_ARRAY_INT || ir->instr == MCC_IR_INSTR_ARRAY_BOOL ||
-		    ir->instr == MCC_IR_INSTR_ARRAY_FLOAT || ir->instr == MCC_IR_INSTR_ARRAY_STRING) {
-			enum mcc_asm_declaration_type array_type = get_array_type(ir->instr);
-			struct mcc_asm_declaration *decl = mcc_asm_new_array_declaration(
-			    ir->arg1->arr_ident->identifier_name, ir->arg2->lit_int, array_type, NULL);
-
-			if (!decl) {
-				mcc_asm_delete_all_declarations(data_section->head);
-				return false;
-			}
-			if (first) {
-				data_section->head = decl;
-				decl_head = data_section->head;
-				first = false;
-			} else {
-				decl_head->next = decl;
-				decl_head = decl;
-			}
-		}
-		ir = ir->next_row;
-	}
-	return true;
-}
-
-static bool generate_data_section(struct mcc_asm_data_section *data_section, struct mcc_ir_row *ir)
-{
-	bool arrays_allocated = allocate_arrays(data_section, ir);
-	if (!arrays_allocated) {
-		return false;
-	}
 	return true;
 }
 
