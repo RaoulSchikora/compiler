@@ -569,12 +569,10 @@ static struct mcc_asm_assembly_line *generate_ir_row(struct mcc_asm_function *fu
 		break;
 	case MCC_IR_INSTR_RETURN:
 		break;
+	// In these cases nothing needs to happen
 	case MCC_IR_INSTR_ARRAY_INT:
-		break;
 	case MCC_IR_INSTR_ARRAY_FLOAT:
-		break;
 	case MCC_IR_INSTR_ARRAY_BOOL:
-		break;
 	case MCC_IR_INSTR_ARRAY_STRING:
 		break;
 	case MCC_IR_INSTR_NEGATIV:
