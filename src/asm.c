@@ -866,7 +866,7 @@ struct mcc_asm *mcc_asm_generate(struct mcc_ir_row *ir)
 	assembly->text_section = text_section;
 
 	bool text_section_generated = generate_text_section(assembly->text_section, ir);
-	bool data_section_generated = generate_data_section(assembly->data_section, ir);
+	bool data_section_generated = generate_data_section();
 	if (!text_section_generated || !data_section_generated) {
 		mcc_asm_delete_asm(assembly);
 	}
