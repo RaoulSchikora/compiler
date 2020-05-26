@@ -630,6 +630,7 @@ static struct mcc_asm_assembly_line *generate_function_body(struct mcc_asm_funct
 	return function->head;
 }
 
+// TODO: This needs to be extended for arrays
 static bool variable_needs_local_space(struct mcc_ir_row *first, struct mcc_ir_row *ir)
 {
 	assert(first);
@@ -686,7 +687,7 @@ static size_t get_var_size(struct mcc_ir_row *ir)
 	}
 }
 
-// TODO: Implement float,bool and string
+// TODO: Implement float,bool and string, and now arrays too
 static size_t get_stack_frame_size(struct mcc_ir_row *ir)
 {
 	assert(ir);
