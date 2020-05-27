@@ -65,7 +65,7 @@ endforeach
 
 # ----------------------------------------------------------------------- Tests
 
-mcc_tests = [ 'parser_test', 'symbol_table_test', 'semantic_checks_test','ir_test', 'asm_test' ]
+mcc_tests = [ 'parser_test', 'symbol_table_test', 'semantic_checks_test','ir_test', 'asm_test', 'stack_size_test']
 
 cutest_inc = include_directories('vendor/cutest')
 
