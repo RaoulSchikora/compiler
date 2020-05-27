@@ -14,6 +14,7 @@ struct mcc_annotated_ir *mcc_new_annotated_ir(struct mcc_ir_row *row, int stack_
 		return NULL;
 	// Hold stack size of current IR line. If line is func label, holds stack size of that function
 	ir->stack_size = stack_size;
+	ir->stack_position = 0;
 	ir->row = row;
 	ir->next = NULL;
 	ir->prev = NULL;
@@ -287,6 +288,7 @@ static struct mcc_annotated_ir *add_stack_sizes(struct mcc_ir_row *ir)
 	struct mcc_annotated_ir *head = mcc_new_annotated_ir(ir, 0);
 	struct mcc_annotated_ir *first = head;
 	struct mcc_annotated_ir *new;
+	ir = ir->next_row;
 
 	while (ir) {
 		int size = get_stack_frame_size(ir);
@@ -311,7 +313,7 @@ static int get_frame_size_of_function(struct mcc_annotated_ir *head)
 	assert(head);
 	assert(head->row->instr == MCC_IR_INSTR_FUNC_LABEL);
 
-	int frame_size;
+	int frame_size = 0;
 	struct mcc_ir_row *last = last_line_of_function(head->row);
 	while (head->row != last) {
 		frame_size = frame_size + head->stack_size;
@@ -320,18 +322,82 @@ static int get_frame_size_of_function(struct mcc_annotated_ir *head)
 	return frame_size;
 }
 
+static int get_array_base_size(struct mcc_ir_row *ir)
+{
+	assert(ir);
+	switch (ir->instr) {
+	case MCC_IR_INSTR_ARRAY_BOOL:
+		return STACK_SIZE_BOOL;
+	case MCC_IR_INSTR_ARRAY_FLOAT:
+		return STACK_SIZE_FLOAT;
+	case MCC_IR_INSTR_ARRAY_INT:
+		return STACK_SIZE_INT;
+	case MCC_IR_INSTR_ARRAY_STRING:
+		return STACK_SIZE_STRING;
+	default:
+		return 0;
+	}
+}
+
+static int get_array_element_location(struct mcc_annotated_ir *an_ir)
+{
+	assert(an_ir);
+	struct mcc_annotated_ir *head = an_ir;
+	struct mcc_annotated_ir *first = head;
+	while (first) {
+		if (first->prev->row->instr == MCC_IR_INSTR_FUNC_LABEL) {
+			first = first->prev;
+			break;
+		}
+		first = first->prev;
+	}
+	head = first;
+	while (head) {
+		if (head->row->instr == MCC_IR_INSTR_ARRAY_BOOL || head->row->instr == MCC_IR_INSTR_ARRAY_FLOAT ||
+		    head->row->instr == MCC_IR_INSTR_ARRAY_INT || head->row->instr == MCC_IR_INSTR_ARRAY_STRING) {
+			if (strcmp(head->row->arg1->ident->identifier_name,
+			           an_ir->row->arg1->arr_ident->identifier_name) == 0) {
+				int array_pos = head->stack_position;
+				int element_pos = array_pos - an_ir->row->arg1->index->lit_int * get_array_base_size(head->row);
+				return element_pos;
+			}
+		}
+		head = head->next;
+	}
+	return 0;
+}
+
+// Add positions for references of already declared variables and access to array elements TODO
 static void add_stack_positions(struct mcc_annotated_ir *head)
 {
 	assert(head);
 	assert(head->row->instr == MCC_IR_INSTR_FUNC_LABEL);
 
 	head->stack_size = get_frame_size_of_function(head);
+	head = head->next;
 	int current_position = 0;
 
 	while (head) {
 		if (head->row->instr == MCC_IR_INSTR_FUNC_LABEL) {
 			head->stack_size = get_frame_size_of_function(head);
 			current_position = 0;
+			head = head->next;
+			continue;
+		}
+		// Array elements
+		if (head->row->instr == MCC_IR_INSTR_ASSIGN) {
+			if (head->row->arg1->type == MCC_IR_TYPE_ARR_ELEM) {
+				head->stack_position = get_array_element_location(head);
+				head = head->next;
+				continue;
+			}
+		}
+		// Arrays
+		if (head->row->instr == MCC_IR_INSTR_ARRAY_BOOL || head->row->instr == MCC_IR_INSTR_ARRAY_FLOAT ||
+		    head->row->instr == MCC_IR_INSTR_ARRAY_INT || head->row->instr == MCC_IR_INSTR_ARRAY_STRING) {
+			current_position = current_position - get_array_base_size(head->row);
+			head->stack_position = current_position;
+			current_position = current_position - head->stack_size + get_array_base_size(head->row);
 			head = head->next;
 			continue;
 		}
