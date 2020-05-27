@@ -31,6 +31,9 @@ void delete_annotated_ir(struct annotated_ir *head)
 // --------------------------------------------------------------------------------------- Forward declarations
 
 static struct mcc_ir_row *first_line_of_function(struct mcc_ir_row *ir);
+static int get_temporary_size(struct mcc_ir_row *ir);
+static struct mcc_ir_row *last_line_of_function(struct mcc_ir_row *ir);
+static int argument_size(struct mcc_ir_arg *arg, struct mcc_ir_row *ir);
 
 // --------------------------------------------------------------------------------------- Calc stack size and position
 
@@ -61,12 +64,31 @@ static bool assignment_is_first_occurence(struct mcc_ir_row *first, struct mcc_i
 	return true;
 }
 
+// Finds first occurence of variable (not array element) in a function
+static struct mcc_ir_row *find_first_occurence(char *identifier, struct mcc_ir_row *ir)
+{
+	struct mcc_ir_row *first = first_line_of_function(ir);
+	ir = first;
+	struct mcc_ir_row *last = last_line_of_function(ir);
+	while (ir && (ir != last)) {
+		if (ir->instr == MCC_IR_INSTR_ASSIGN) {
+			if (strcmp(identifier, ir->arg1->ident->identifier_name) == 0) {
+				return ir;
+			}
+		}
+		ir = ir->next_row;
+	}
+
+	return NULL;
+}
+
 // This function returns the size of an argument in the IR line.
 // Since semantic consistency is guaranteed, we can infer the required size of an IR line
 // by knowing the size of one of its arguments
-static size_t argument_size(struct mcc_ir_arg *arg)
+static int argument_size(struct mcc_ir_arg *arg, struct mcc_ir_row *ir)
 {
 	assert(arg);
+	struct mcc_ir_row *ref = NULL;
 
 	switch (arg->type) {
 	// Not on the stack
@@ -80,21 +102,23 @@ static size_t argument_size(struct mcc_ir_arg *arg)
 	// TODO: Bool = 4 bytes?
 	case MCC_IR_TYPE_LIT_BOOL:
 		return 4;
-	// TODO: "a = b" -> Find b and get its size
+	// TODO: Referencing earlier reserved variable -> get its size
 	case MCC_IR_TYPE_IDENTIFIER:
-		return 0;
+		ref = find_first_occurence(arg->ident->identifier_name, ir);
+		if (!ref)
+			return 0;
+		return argument_size(ir->arg2, ir);
 	// TODO: Find out size of the array element
 	case MCC_IR_TYPE_ARR_ELEM:
 		return 0;
-	// TODO:"a = t1" -> Find out size of temporary
 	case MCC_IR_TYPE_ROW:
-		return 0;
+		return get_temporary_size(arg->row);
 	default:
 		return 0;
 	}
 }
 
-static size_t get_var_size(struct mcc_ir_row *ir)
+static int get_var_size(struct mcc_ir_row *ir)
 {
 	assert(ir);
 	assert(ir->instr == MCC_IR_INSTR_ASSIGN);
@@ -105,7 +129,7 @@ static size_t get_var_size(struct mcc_ir_row *ir)
 		return 0;
 	}
 	// "a = x" -> find size of x
-	return argument_size(ir->arg2);
+	return argument_size(ir->arg2,ir);
 }
 
 static struct mcc_ir_row *first_line_of_function(struct mcc_ir_row *ir)
@@ -140,15 +164,15 @@ static struct mcc_ir_row *last_line_of_function(struct mcc_ir_row *ir)
 }
 
 // Done
-static size_t get_temporary_size(struct mcc_ir_row *ir)
+static int get_temporary_size(struct mcc_ir_row *ir)
 {
 	assert(ir);
 	assert(ir->arg1);
-	return argument_size(ir->arg1);
+	return argument_size(ir->arg1, ir);
 }
 
 // TODO
-static size_t get_array_size(struct mcc_ir_row *ir)
+static int get_array_size(struct mcc_ir_row *ir)
 {
 	assert(ir);
 	assert(ir->instr == MCC_IR_INSTR_ARRAY_BOOL || MCC_ASM_DECLARATION_TYPE_ARRAY_FLOAT ||
@@ -165,14 +189,14 @@ static size_t get_array_size(struct mcc_ir_row *ir)
 		return 4 * (ir->arg2->lit_int);
 	// Not on the stack? TODO
 	case MCC_IR_INSTR_ARRAY_STRING:
-		break;
+		return 0;
 	// Unreached, as per assertion
 	default:
 		return 0;
 	}
 }
 
-static size_t get_stack_frame_size(struct mcc_ir_row *ir)
+static int get_stack_frame_size(struct mcc_ir_row *ir)
 {
 	assert(ir);
 
@@ -242,7 +266,7 @@ static struct annotated_ir *add_stack_sizes(struct mcc_ir_row *ir)
 	struct annotated_ir *new;
 
 	while (ir) {
-		size_t size = get_stack_frame_size(ir);
+		int size = get_stack_frame_size(ir);
 		new = new_annotated_ir(ir, size);
 		if (!new) {
 			delete_annotated_ir(first);
@@ -259,11 +283,34 @@ static struct annotated_ir *add_stack_sizes(struct mcc_ir_row *ir)
 	return first;
 }
 
-// TODO
-static bool add_stack_positions(struct annotated_ir *an_head)
+static int get_frame_size_of_function(struct annotated_ir *head)
 {
-	assert(an_head);
-	return true;
+	assert(head);
+	assert(head->row->instr == MCC_IR_INSTR_FUNC_LABEL);
+
+	int frame_size;
+	struct mcc_ir_row *last = last_line_of_function(head->row);
+	while (head->row != last) {
+		frame_size = frame_size + head->stack_size;
+		head = head->next;
+	}
+	return frame_size;
+}
+
+static void add_stack_positions(struct annotated_ir *head)
+{
+	assert(head);
+	assert(head->row->instr == MCC_IR_INSTR_FUNC_LABEL);
+
+	struct mcc_ir_row *last = last_line_of_function(head->row);
+	int current_position = 0;
+
+	while (head->row != last) {
+		current_position = current_position - head->stack_size;
+		head->stack_position = current_position;
+		head = head->next;
+	}
+	assert(head);
 }
 
 struct annotated_ir *annotate_ir(struct mcc_ir_row *ir)
@@ -275,10 +322,6 @@ struct annotated_ir *annotate_ir(struct mcc_ir_row *ir)
 	struct annotated_ir *an_head = add_stack_sizes(ir);
 	if (!an_head)
 		return NULL;
-	bool successfull = add_stack_positions(an_head);
-	if (!successfull) {
-		delete_annotated_ir(an_head);
-		return NULL;
-	}
+	add_stack_positions(an_head);
 	return an_head;
 }
