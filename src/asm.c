@@ -491,24 +491,24 @@ static struct mcc_asm_line *generate_instr_assign(struct mcc_asm_function *func,
 	}
 
 	// TODO implement correctly
-	struct mcc_asm_line *fst_line = NULL;
+	struct mcc_asm_line *line1 = NULL;
 	if (ir->arg2->type == MCC_IR_TYPE_LIT_INT || ir->arg2->type == MCC_IR_TYPE_LIT_BOOL) {
-		fst_line = mcc_asm_new_line(MCC_ASM_MOVL, arg_to_op(func, ir->arg2), ebp(offset2), NULL);
+		line1 = mcc_asm_new_line(MCC_ASM_MOVL, arg_to_op(func, ir->arg2), ebp(offset2), NULL);
 	} else if (ir->arg2->type == MCC_IR_TYPE_ROW) {
 		struct mcc_asm_pos_list *pos = get_pos_row(func->pos_list, ir->arg2->row);
 		int offset1 = 0;
 		if (pos) {
 			offset1 = pos->pos;
 		}
-		struct mcc_asm_line *snd_line = mcc_asm_new_line(MCC_ASM_MOVL, eax(), ebp(offset2), NULL);
-		fst_line = mcc_asm_new_line(MCC_ASM_MOVL, ebp(offset1), eax(), snd_line);
+		struct mcc_asm_line *line2 = mcc_asm_new_line(MCC_ASM_MOVL, eax(), ebp(offset2), NULL);
+		line1 = mcc_asm_new_line(MCC_ASM_MOVL, ebp(offset1), eax(), line2);
 	} else {
-		fst_line =
+		line1 =
 		    mcc_asm_new_line(MCC_ASM_MOVL, mcc_asm_new_literal_operand((int)9999999), ebp(offset2), NULL);
 	}
 	// ----
 
-	return fst_line;
+	return line1;
 }
 
 static struct mcc_asm_line *
@@ -520,21 +520,20 @@ generate_arithm_op(struct mcc_asm_function *func, struct mcc_ir_row *ir, enum mc
 	func->ebp_offset -= 4;
 	append_row(func, ir);
 
-	struct mcc_asm_line *lst_line = mcc_asm_new_line(MCC_ASM_MOVL, eax(), ebp(func->ebp_offset), NULL);
+	struct mcc_asm_line *line4 = mcc_asm_new_line(MCC_ASM_MOVL, eax(), ebp(func->ebp_offset), NULL);
 
-	struct mcc_asm_line *snd_line = NULL;
+	struct mcc_asm_line *line2 = NULL;
 	if (opcode == MCC_ASM_IDIVL) {
-		struct mcc_asm_line *trd_line = mcc_asm_new_line(opcode, ebx(), NULL, lst_line);
-		// clear EDX
-		struct mcc_asm_line *line2a = mcc_asm_new_line(MCC_ASM_XORL, edx(), edx(), trd_line);
-		// end clear EDX
-		snd_line = mcc_asm_new_line(MCC_ASM_MOVL, arg_to_op(func, ir->arg2), ebx(), line2a);
+		struct mcc_asm_line *line3 = mcc_asm_new_line(opcode, ebx(), NULL, line4);
+		// line to clear EDX
+		struct mcc_asm_line *line2a = mcc_asm_new_line(MCC_ASM_XORL, edx(), edx(), line3);
+		line2 = mcc_asm_new_line(MCC_ASM_MOVL, arg_to_op(func, ir->arg2), ebx(), line2a);
 	} else {
-		snd_line = mcc_asm_new_line(opcode, arg_to_op(func, ir->arg2), eax(), lst_line);
+		line2 = mcc_asm_new_line(opcode, arg_to_op(func, ir->arg2), eax(), line4);
 	}
 
-	struct mcc_asm_line *fst_line = mcc_asm_new_line(MCC_ASM_MOVL, arg_to_op(func, ir->arg1), eax(), snd_line);
-	return fst_line;
+	struct mcc_asm_line *line1 = mcc_asm_new_line(MCC_ASM_MOVL, arg_to_op(func, ir->arg1), eax(), line2);
+	return line1;
 }
 
 static struct mcc_asm_line *
@@ -545,17 +544,18 @@ generate_unary_neg(struct mcc_asm_function *func, struct mcc_ir_row *ir, enum mc
 
 	append_row(func, ir);
 
-	struct mcc_asm_line *last = mcc_asm_new_line(MCC_ASM_MOVL, eax(), ebp(func->ebp_offset), NULL);
+	struct mcc_asm_line *line3 = mcc_asm_new_line(MCC_ASM_MOVL, eax(), ebp(func->ebp_offset), NULL);
 
-	struct mcc_asm_line *snd = NULL;
+	struct mcc_asm_line *line2 = NULL;
 	if (opcode == MCC_ASM_XORL) {
-		struct mcc_asm_operand *one = mcc_asm_new_literal_operand((int)1);
-		snd = mcc_asm_new_line(MCC_ASM_XORL, one, eax(), last);
+		struct mcc_asm_operand *lit_1 = mcc_asm_new_literal_operand((int)1);
+		line2 = mcc_asm_new_line(MCC_ASM_XORL, lit_1, eax(), line3);
 	} else {
-		snd = mcc_asm_new_line(opcode, eax(), NULL, last);
+		line2 = mcc_asm_new_line(opcode, eax(), NULL, line3);
 	}
 
-	return mcc_asm_new_line(MCC_ASM_MOVL, arg_to_op(func, ir->arg1), eax(), snd);
+	struct mcc_asm_line *line1 = mcc_asm_new_line(MCC_ASM_MOVL, arg_to_op(func, ir->arg1), eax(), line2);
+	return line1;
 }
 
 static struct mcc_asm_line *
@@ -566,34 +566,33 @@ generate_cmp_op(struct mcc_asm_function *func, struct mcc_ir_row *ir, enum mcc_a
 
 	func->ebp_offset -= 4;
 	append_row(func, ir);
-	struct mcc_asm_line *fst_line = NULL;
+	struct mcc_asm_line *line1 = NULL;
 
 	// 4. movl eax -x(ebp)
-	struct mcc_asm_line *lst_line = mcc_asm_new_line(MCC_ASM_MOVL, eax(), ebp(func->ebp_offset), NULL);
+	struct mcc_asm_line *line4 = mcc_asm_new_line(MCC_ASM_MOVL, eax(), ebp(func->ebp_offset), NULL);
 	// 3. movcc dl eax
-	struct mcc_asm_line *trd_line = mcc_asm_new_line(MCC_ASM_MOVZBL, dl(), eax(), lst_line);
+	struct mcc_asm_line *line3 = mcc_asm_new_line(MCC_ASM_MOVZBL, dl(), eax(), line4);
 	// 2. setcc dl
-	struct mcc_asm_line *snd_line = mcc_asm_new_line(opcode, dl(), NULL, trd_line);
+	struct mcc_asm_line *line2 = mcc_asm_new_line(opcode, dl(), NULL, line3);
 
 	if ((ir->arg1->type == MCC_IR_TYPE_ROW || ir->arg1->type == MCC_IR_TYPE_IDENTIFIER) &&
 	    (ir->arg2->type == MCC_IR_TYPE_ROW || ir->arg2->type == MCC_IR_TYPE_IDENTIFIER)) {
 		// 1b. cmp eax and arg2
-		struct mcc_asm_line *line1b = mcc_asm_new_line(MCC_ASM_CMPL, get_pos(func, ir->arg2), eax(), snd_line);
+		struct mcc_asm_line *line1b = mcc_asm_new_line(MCC_ASM_CMPL, get_pos(func, ir->arg2), eax(), line2);
 		// 1a. move arg1 in eax
-		fst_line = mcc_asm_new_line(MCC_ASM_MOVL, get_pos(func, ir->arg1), eax(), line1b);
+		line1 = mcc_asm_new_line(MCC_ASM_MOVL, get_pos(func, ir->arg1), eax(), line1b);
 
 	} else if (ir->arg1->type == MCC_IR_TYPE_ROW || ir->arg1->type == MCC_IR_TYPE_IDENTIFIER) {
 		// 1. cmp arg1 arg2
-		fst_line = mcc_asm_new_line(MCC_ASM_CMPL, arg_to_op(func, ir->arg2), get_pos(func, ir->arg1), snd_line);
+		line1 = mcc_asm_new_line(MCC_ASM_CMPL, arg_to_op(func, ir->arg2), get_pos(func, ir->arg1), line2);
 	} else {
 		// 1b. cmp arg1 arg2
-		struct mcc_asm_line *line_1b =
-		    mcc_asm_new_line(MCC_ASM_CMPL, arg_to_op(func, ir->arg2), eax(), snd_line);
+		struct mcc_asm_line *line1b = mcc_asm_new_line(MCC_ASM_CMPL, arg_to_op(func, ir->arg2), eax(), line2);
 		// 1.a mov lit eax
-		fst_line = mcc_asm_new_line(MCC_ASM_MOVL, arg_to_op(func, ir->arg1), eax(), line_1b);
+		line1 = mcc_asm_new_line(MCC_ASM_MOVL, arg_to_op(func, ir->arg1), eax(), line1b);
 	}
 
-	return fst_line;
+	return line1;
 }
 
 static struct mcc_asm_line *generate_ir_row(struct mcc_asm_function *function, struct mcc_ir_row *ir)
