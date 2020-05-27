@@ -85,6 +85,7 @@ enum mcc_asm_opcode {
 	MCC_ASM_SETGE,
 	MCC_ASM_RETURN,
 	MCC_ASM_CALL,
+	MCC_ASM_XOR,
 };
 
 struct mcc_asm_assembly_line {

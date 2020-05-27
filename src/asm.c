@@ -506,7 +506,12 @@ generate_arithm_op(struct mcc_asm_function *function, struct mcc_ir_row *ir, enu
 		reg = mcc_asm_new_register_operand(MCC_ASM_EBX, 0);
 		struct mcc_asm_operand *ebx = mcc_asm_new_register_operand(MCC_ASM_EBX, 0);
 		struct mcc_asm_assembly_line *trd_line = mcc_asm_new_assembly_line(opcode, ebx, NULL, lst_line);
-		snd_line = mcc_asm_new_assembly_line(MCC_ASM_MOVL, snd, reg, trd_line);
+		// clear EAX
+		struct mcc_asm_operand *edx1 = mcc_asm_new_register_operand(MCC_ASM_EDX, 0);
+		struct mcc_asm_operand *edx2 = mcc_asm_new_register_operand(MCC_ASM_EDX, 0);
+		struct mcc_asm_assembly_line *line2a = mcc_asm_new_assembly_line(MCC_ASM_XOR, edx1, edx2, trd_line);
+		// end clear EAX
+		snd_line = mcc_asm_new_assembly_line(MCC_ASM_MOVL, snd, reg, line2a);
 	} else {
 		reg = mcc_asm_new_register_operand(MCC_ASM_EAX, 0);
 		snd_line = mcc_asm_new_assembly_line(opcode, snd, reg, lst_line);
@@ -651,12 +656,10 @@ static struct mcc_asm_assembly_line *generate_ir_row(struct mcc_asm_function *fu
 		break;
 	case MCC_IR_INSTR_RETURN:
 		break;
+	// In these cases nothing needs to happen
 	case MCC_IR_INSTR_ARRAY_INT:
-		break;
 	case MCC_IR_INSTR_ARRAY_FLOAT:
-		break;
 	case MCC_IR_INSTR_ARRAY_BOOL:
-		break;
 	case MCC_IR_INSTR_ARRAY_STRING:
 		break;
 	case MCC_IR_INSTR_NEGATIV:
@@ -666,18 +669,13 @@ static struct mcc_asm_assembly_line *generate_ir_row(struct mcc_asm_function *fu
 		break;
 	case MCC_IR_INSTR_UNKNOWN:
 		break;
-	default:
-		break;
 	}
 
 	return line;
 }
 
-static struct mcc_asm_assembly_line *generate_function_body(struct mcc_asm_function *function, struct mcc_ir_row *ir)
+static struct mcc_asm_assembly_line *get_fake_asm_line()
 {
-	assert(function);
-	assert(ir);
-	assert(ir->instr == MCC_IR_INSTR_FUNC_LABEL);
 	struct mcc_asm_operand *print_nl = mcc_asm_new_function_operand("print_nl");
 	struct mcc_asm_assembly_line *call = mcc_asm_new_assembly_line(MCC_ASM_CALL, NULL, NULL, NULL);
 	if (!print_nl || !call) {
@@ -686,36 +684,45 @@ static struct mcc_asm_assembly_line *generate_function_body(struct mcc_asm_funct
 		return NULL;
 	}
 	call->first = print_nl;
-	// TODO: Implement correctly
+	return call;
+}
+
+// TODO: Implement correctly
+static struct mcc_asm_assembly_line *generate_function_body(struct mcc_asm_function *function, struct mcc_ir_row *ir)
+{
+	assert(function);
+	assert(ir);
+	assert(ir->instr == MCC_IR_INSTR_FUNC_LABEL);
 
 	ir = ir->next_row;
 	struct mcc_asm_assembly_line *line = NULL;
+
+	// Iterate up to next function
 	while (ir && ir->instr != MCC_IR_INSTR_FUNC_LABEL) {
-		if (ir->instr == MCC_IR_INSTR_ASSIGN || is_binary_instr(ir)) {
-			// TODO delete 'if'
-			line = generate_ir_row(function, ir);
-			if (!line) {
-				mcc_asm_delete_assembly_line(call);
-				mcc_asm_delete_operand(print_nl);
-				return NULL;
-			}
+
+		// TODO: When finalizing, line musn't return NULL. It now returns NULL if the corresponding
+		// IR line isn't implemented yet
+		line = generate_ir_row(function, ir);
+		if (line)
 			func_append(function, line);
-		}
+
 		ir = ir->next_row;
 	}
-	// TODO: Implement correctly
-	if (!function->head) {
-		return call;
-	}
-	mcc_asm_delete_assembly_line(call);
-	// TODO: end
+
+	// TODO: Exchange function->head for first asm line
+	if (!function->head)
+		return get_fake_asm_line();
+
+	// TODO: Simply return the first line of the block of asm code you created. The merging will happen later.
 	return function->head;
 }
 
-static bool variable_needs_local_space(struct mcc_ir_row *first, struct mcc_ir_row *ir)
+// Works for assignments of type "a = 1", not for temporaries
+static bool assignment_is_first_occurence(struct mcc_ir_row *first, struct mcc_ir_row *ir)
 {
 	assert(first);
 	assert(ir);
+	assert(ir->instr == MCC_IR_INSTR_ASSIGN);
 
 	if (is_binary_instr(ir)) {
 		return true;
@@ -730,9 +737,12 @@ static bool variable_needs_local_space(struct mcc_ir_row *first, struct mcc_ir_r
 	default:
 		return false;
 	}
+	// Arrays are allocated when they're declared
+	if (ir->arg1->type == MCC_IR_TYPE_ARR_ELEM) {
+		return false;
+	}
 
 	char *id_name = ir->arg1->ident->identifier_name;
-
 	struct mcc_ir_row *head = first;
 	while (head != ir) {
 		if (head->instr != MCC_IR_INSTR_ASSIGN) {
@@ -747,8 +757,8 @@ static bool variable_needs_local_space(struct mcc_ir_row *first, struct mcc_ir_r
 	return true;
 }
 
-// TODO: Implement missing cases in switch
-static size_t get_var_size(struct mcc_ir_row *ir)
+// TODO: I think this function just works by accident (there are a lot of implicit assumptions)
+static size_t assignment_size(struct mcc_ir_row *ir)
 {
 	assert(ir);
 
@@ -762,13 +772,35 @@ static size_t get_var_size(struct mcc_ir_row *ir)
 	case MCC_IR_TYPE_IDENTIFIER:
 		return 4;
 	case MCC_IR_TYPE_ROW:
-		return get_var_size(ir->arg2->row);
+		return assignment_size(ir->arg2->row);
 	default:
 		return 0;
 	}
 }
 
-// TODO: Implement float,bool and string
+// TODO: Extend for float, bool, string, arrays
+// Currently supports assignments to variables and temporaries
+static size_t get_var_size(struct mcc_ir_row *first, struct mcc_ir_row *ir)
+{
+	assert(ir);
+	assert(first);
+
+	// TODO: Handle arrays
+	switch (ir->instr) {
+	case MCC_IR_INSTR_ASSIGN:
+		if (!assignment_is_first_occurence(first, ir)) {
+			return 0;
+		}
+		return assignment_size(ir);
+		break;
+	default:
+		if (!is_binary_instr(ir))
+			return 0;
+		return assignment_size(ir);
+	}
+}
+
+// TODO: Implement float,bool and string, and now arrays too
 static size_t get_stack_frame_size(struct mcc_ir_row *ir)
 {
 	assert(ir);
@@ -781,12 +813,8 @@ static size_t get_stack_frame_size(struct mcc_ir_row *ir)
 	ir = ir->next_row;
 
 	while (ir && (ir != last_row)) {
-		if (variable_needs_local_space(first, ir)) {
-			frame_size += get_var_size(ir);
-			ir = ir->next_row;
-		} else {
-			ir = ir->next_row;
-		}
+		frame_size += get_var_size(first, ir);
+		ir = ir->next_row;
 	}
 	return frame_size;
 }
@@ -910,6 +938,7 @@ static bool generate_text_section(struct mcc_asm_text_section *text_section, str
 	return true;
 }
 
+// TODO: Currently unused, but kept for future use
 static enum mcc_asm_declaration_type get_array_type(enum mcc_ir_instruction instr)
 {
 	switch (instr) {
@@ -927,44 +956,8 @@ static enum mcc_asm_declaration_type get_array_type(enum mcc_ir_instruction inst
 	}
 }
 
-static bool allocate_arrays(struct mcc_asm_data_section *data_section, struct mcc_ir_row *ir)
+static bool generate_data_section()
 {
-	assert(data_section);
-	assert(ir);
-
-	bool first = true;
-	struct mcc_asm_declaration *decl_head;
-	while (ir) {
-		if (ir->instr == MCC_IR_INSTR_ARRAY_INT || ir->instr == MCC_IR_INSTR_ARRAY_BOOL ||
-		    ir->instr == MCC_IR_INSTR_ARRAY_FLOAT || ir->instr == MCC_IR_INSTR_ARRAY_STRING) {
-			enum mcc_asm_declaration_type array_type = get_array_type(ir->instr);
-			struct mcc_asm_declaration *decl = mcc_asm_new_array_declaration(
-			    ir->arg1->arr_ident->identifier_name, ir->arg2->lit_int, array_type, NULL);
-
-			if (!decl) {
-				mcc_asm_delete_all_declarations(data_section->head);
-				return false;
-			}
-			if (first) {
-				data_section->head = decl;
-				decl_head = data_section->head;
-				first = false;
-			} else {
-				decl_head->next = decl;
-				decl_head = decl;
-			}
-		}
-		ir = ir->next_row;
-	}
-	return true;
-}
-
-static bool generate_data_section(struct mcc_asm_data_section *data_section, struct mcc_ir_row *ir)
-{
-	bool arrays_allocated = allocate_arrays(data_section, ir);
-	if (!arrays_allocated) {
-		return false;
-	}
 	return true;
 }
 
@@ -983,7 +976,7 @@ struct mcc_asm *mcc_asm_generate(struct mcc_ir_row *ir)
 	assembly->text_section = text_section;
 
 	bool text_section_generated = generate_text_section(assembly->text_section, ir);
-	bool data_section_generated = generate_data_section(assembly->data_section, ir);
+	bool data_section_generated = generate_data_section();
 	if (!text_section_generated || !data_section_generated) {
 		mcc_asm_delete_asm(assembly);
 	}
