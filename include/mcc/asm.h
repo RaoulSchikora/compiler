@@ -51,7 +51,7 @@ enum mcc_asm_pos_type {
 struct mcc_asm_pos_list {
 	enum mcc_asm_pos_type type;
 	int pos;
-	union{
+	union {
 		struct mcc_ast_identifier *ident;
 		struct mcc_ir_row *row;
 	};
@@ -83,9 +83,12 @@ enum mcc_asm_opcode {
 	MCC_ASM_SETG,
 	MCC_ASM_SETLE,
 	MCC_ASM_SETGE,
+	MCC_ASM_AND,
+	MCC_ASM_OR,
 	MCC_ASM_RETURN,
 	MCC_ASM_CALL,
-	MCC_ASM_XOR,
+	MCC_ASM_XORL,
+	MCC_ASM_NEGL,
 };
 
 struct mcc_asm_assembly_line {

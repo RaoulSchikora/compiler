@@ -53,12 +53,18 @@ static char *opcode_to_string(enum mcc_asm_opcode op)
 		return "setle";
 	case MCC_ASM_SETGE:
 		return "setge";
+	case MCC_ASM_AND:
+		return "and";
+	case MCC_ASM_OR:
+		return "or";
 	case MCC_ASM_LEAVE:
 		return "leave";
 	case MCC_ASM_CALL:
 		return "calll";
-	case MCC_ASM_XOR:
+	case MCC_ASM_XORL:
 		return "xorl";
+	case MCC_ASM_NEGL:
+		return "negl";
 	case MCC_ASM_RETURN:
 		return "ret";
 

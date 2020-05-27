@@ -196,7 +196,7 @@ void div_int(CuTest *tc)
 
 	line = line->next;
 
-	CuAssertIntEquals(tc, MCC_ASM_XOR, line->opcode);
+	CuAssertIntEquals(tc, MCC_ASM_XORL, line->opcode);
 	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, line->first->type);
 	CuAssertIntEquals(tc, MCC_ASM_EDX, line->first->reg);
 	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, line->second->type);
