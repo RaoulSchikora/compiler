@@ -630,28 +630,19 @@ static struct mcc_asm_assembly_line *generate_function_body(struct mcc_asm_funct
 	return function->head;
 }
 
-// TODO: This needs to be extended for arrays
-static bool variable_needs_local_space(struct mcc_ir_row *first, struct mcc_ir_row *ir)
+// Works for assignments of type "a = 1", not for temporaries
+static bool assignment_is_first_occurence(struct mcc_ir_row *first, struct mcc_ir_row *ir)
 {
 	assert(first);
 	assert(ir);
+	assert(ir->instr == MCC_IR_INSTR_ASSIGN);
 
-	if (is_binary_instr(ir)) {
-		return true;
-	}
-
-	switch (ir->instr) {
-	case MCC_IR_INSTR_ASSIGN:
-		if (ir->arg1->type == MCC_IR_TYPE_ARR_ELEM) {
-			return false;
-		}
-		break;
-	default:
+	// Arrays are allocated when they're declared
+	if (ir->arg1->type == MCC_IR_TYPE_ARR_ELEM) {
 		return false;
 	}
 
 	char *id_name = ir->arg1->ident->identifier_name;
-
 	struct mcc_ir_row *head = first;
 	while (head != ir) {
 		if (head->instr != MCC_IR_INSTR_ASSIGN) {
@@ -666,14 +657,10 @@ static bool variable_needs_local_space(struct mcc_ir_row *first, struct mcc_ir_r
 	return true;
 }
 
-// TODO: Implement missing cases in switch
-static size_t get_var_size(struct mcc_ir_row *ir)
+// TODO: I think this function just works by accident (there are a lot of implicit assumptions)
+static size_t assignment_size(struct mcc_ir_row *ir)
 {
 	assert(ir);
-
-	if (!ir->arg2) {
-		return 0;
-	}
 
 	switch (ir->arg2->type) {
 	case MCC_IR_TYPE_LIT_INT:
@@ -681,9 +668,31 @@ static size_t get_var_size(struct mcc_ir_row *ir)
 	case MCC_IR_TYPE_IDENTIFIER:
 		return 4;
 	case MCC_IR_TYPE_ROW:
-		return get_var_size(ir->arg2->row);
+		return assignment_size(ir->arg2->row);
 	default:
 		return 0;
+	}
+}
+
+// TODO: Extend for float, bool, string, arrays
+// Currently supports assignments to variables and temporaries
+static size_t get_var_size(struct mcc_ir_row *first, struct mcc_ir_row *ir)
+{
+	assert(ir);
+	assert(first);
+
+	// TODO: Handle arrays
+	switch (ir->instr) {
+	case MCC_IR_INSTR_ASSIGN:
+		if (!assignment_is_first_occurence(first, ir)) {
+			return 0;
+		}
+		return assignment_size(ir);
+		break;
+	default:
+		if (!is_binary_instr(ir))
+			return 0;
+		return assignment_size(ir);
 	}
 }
 
@@ -700,12 +709,8 @@ static size_t get_stack_frame_size(struct mcc_ir_row *ir)
 	ir = ir->next_row;
 
 	while (ir && (ir != last_row)) {
-		if (variable_needs_local_space(first, ir)) {
-			frame_size += get_var_size(ir);
-			ir = ir->next_row;
-		} else {
-			ir = ir->next_row;
-		}
+		frame_size += get_var_size(first, ir);
+		ir = ir->next_row;
 	}
 	return frame_size;
 }
