@@ -8,23 +8,29 @@
 
 #include "mcc/ir.h"
 
+// TODO
+#define STACK_SIZE_BOOL 4
+#define STACK_SIZE_FLOAT 4
+#define STACK_SIZE_STRING 0
+#define STACK_SIZE_INT 4
+
 // TODO: Name prefixing for public functions
 
 // --------------------------------------------------------------------------------------- Data structure
 
 // Annotate IR to determine stack size of each IR line
-struct annotated_ir {
+struct mcc_annotated_ir {
 	int stack_size;
 	int stack_position;
-	struct annotated_ir *next;
-	struct annotated_ir *prev;
+	struct mcc_annotated_ir *next;
+	struct mcc_annotated_ir *prev;
 	struct mcc_ir_row *row;
 };
 
-struct annotated_ir *new_annotated_ir(struct mcc_ir_row *row, int stack_size);
+struct mcc_annotated_ir *mcc_new_annotated_ir(struct mcc_ir_row *row, int stack_size);
 
-void delete_annotated_ir(struct annotated_ir *head);
+void mcc_delete_annotated_ir(struct mcc_annotated_ir *head);
 
-struct annotated_ir *annotate_ir(struct mcc_ir_row *ir);
+struct mcc_annotated_ir *mcc_annotate_ir(struct mcc_ir_row *ir);
 
 #endif
