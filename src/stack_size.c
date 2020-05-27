@@ -358,7 +358,8 @@ static int get_array_element_location(struct mcc_annotated_ir *an_ir)
 			if (strcmp(head->row->arg1->ident->identifier_name,
 			           an_ir->row->arg1->arr_ident->identifier_name) == 0) {
 				int array_pos = head->stack_position;
-				int element_pos = array_pos - an_ir->row->arg1->index->lit_int * get_array_base_size(head->row);
+				int element_pos =
+				    array_pos - an_ir->row->arg1->index->lit_int * get_array_base_size(head->row);
 				return element_pos;
 			}
 		}
@@ -367,7 +368,7 @@ static int get_array_element_location(struct mcc_annotated_ir *an_ir)
 	return 0;
 }
 
-// Add positions for references of already declared variables and access to array elements TODO
+// Add positions for references of already declared variables TODO
 static void add_stack_positions(struct mcc_annotated_ir *head)
 {
 	assert(head);
