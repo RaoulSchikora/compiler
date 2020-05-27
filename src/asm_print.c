@@ -149,7 +149,7 @@ static int length_of_op(struct mcc_asm_operand *op)
 	return 0;
 }
 
-static void asm_print_line(FILE *out, struct mcc_asm_assembly_line *line)
+static void asm_print_line(FILE *out, struct mcc_asm_line *line)
 {
 	int len1 = length_of_op(line->first) + 1;
 	int len2 = length_of_op(line->second) + 1;
@@ -169,7 +169,7 @@ static void asm_print_func(FILE *out, struct mcc_asm_function *func)
 {
 	fprintf(out, "\n        .globl %s\n", func->label);
 	fprintf(out, "%s:\n", func->label);
-	struct mcc_asm_assembly_line *line = func->head;
+	struct mcc_asm_line *line = func->head;
 	while (line) {
 		asm_print_line(out, line);
 		line = line->next;
