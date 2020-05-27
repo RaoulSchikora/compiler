@@ -509,11 +509,11 @@ generate_arithm_op(struct mcc_asm_function *function, struct mcc_ir_row *ir, enu
 		reg = mcc_asm_new_register_operand(MCC_ASM_EBX, 0);
 		struct mcc_asm_operand *ebx = mcc_asm_new_register_operand(MCC_ASM_EBX, 0);
 		struct mcc_asm_assembly_line *trd_line = mcc_asm_new_assembly_line(opcode, ebx, NULL, lst_line);
-		// clear EAX
+		// clear EDX
 		struct mcc_asm_operand *edx1 = mcc_asm_new_register_operand(MCC_ASM_EDX, 0);
 		struct mcc_asm_operand *edx2 = mcc_asm_new_register_operand(MCC_ASM_EDX, 0);
 		struct mcc_asm_assembly_line *line2a = mcc_asm_new_assembly_line(MCC_ASM_XORL, edx1, edx2, trd_line);
-		// end clear EAX
+		// end clear EDX
 		snd_line = mcc_asm_new_assembly_line(MCC_ASM_MOVL, snd, reg, line2a);
 	} else {
 		reg = mcc_asm_new_register_operand(MCC_ASM_EAX, 0);
@@ -789,6 +789,8 @@ static size_t assignment_size(struct mcc_ir_row *ir)
 
 	switch (ir->arg2->type) {
 	case MCC_IR_TYPE_LIT_INT:
+		return 4;
+	case MCC_IR_TYPE_LIT_BOOL:
 		return 4;
 	case MCC_IR_TYPE_IDENTIFIER:
 		return 4;
