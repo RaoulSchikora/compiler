@@ -438,25 +438,6 @@ static void func_append(struct mcc_asm_function *func, struct mcc_asm_line *line
 	return;
 }
 
-static struct mcc_asm_line *generate_function_prolog()
-{
-	struct mcc_asm_operand *ebp = mcc_asm_new_register_operand(MCC_ASM_EBP, 0);
-	struct mcc_asm_operand *ebp_2 = mcc_asm_new_register_operand(MCC_ASM_EBP, 0);
-	struct mcc_asm_operand *esp = mcc_asm_new_register_operand(MCC_ASM_ESP, 0);
-	struct mcc_asm_line *push_ebp = mcc_asm_new_line(MCC_ASM_PUSHL, ebp, NULL, NULL);
-	struct mcc_asm_line *mov_ebp_esp = mcc_asm_new_line(MCC_ASM_MOVL, esp, ebp_2, NULL);
-	if (!ebp || !esp || !push_ebp || !ebp_2 || !mov_ebp_esp) {
-		mcc_asm_delete_operand(ebp);
-		mcc_asm_delete_operand(ebp_2);
-		mcc_asm_delete_operand(esp);
-		mcc_asm_delete_line(push_ebp);
-		mcc_asm_delete_line(mov_ebp_esp);
-		return NULL;
-	}
-	push_ebp->next = mov_ebp_esp;
-	return push_ebp;
-}
-
 static struct mcc_asm_operand *arg_to_op(struct mcc_asm_function *func, struct mcc_ir_arg *arg)
 {
 	assert(func);
@@ -877,6 +858,25 @@ static void compose_function_asm(struct mcc_asm_function *function,
 	}
 	body = last_asm_line(body);
 	body->next = epilog;
+}
+
+static struct mcc_asm_line *generate_function_prolog()
+{
+	struct mcc_asm_operand *ebp = mcc_asm_new_register_operand(MCC_ASM_EBP, 0);
+	struct mcc_asm_operand *ebp_2 = mcc_asm_new_register_operand(MCC_ASM_EBP, 0);
+	struct mcc_asm_operand *esp = mcc_asm_new_register_operand(MCC_ASM_ESP, 0);
+	struct mcc_asm_line *push_ebp = mcc_asm_new_line(MCC_ASM_PUSHL, ebp, NULL, NULL);
+	struct mcc_asm_line *mov_ebp_esp = mcc_asm_new_line(MCC_ASM_MOVL, esp, ebp_2, NULL);
+	if (!ebp || !esp || !push_ebp || !ebp_2 || !mov_ebp_esp) {
+		mcc_asm_delete_operand(ebp);
+		mcc_asm_delete_operand(ebp_2);
+		mcc_asm_delete_operand(esp);
+		mcc_asm_delete_line(push_ebp);
+		mcc_asm_delete_line(mov_ebp_esp);
+		return NULL;
+	}
+	push_ebp->next = mov_ebp_esp;
+	return push_ebp;
 }
 
 struct mcc_asm_function *mcc_asm_generate_function(struct mcc_ir_row *ir)
