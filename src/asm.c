@@ -291,7 +291,7 @@ static void append_row(struct mcc_asm_function *func, struct mcc_ir_row *row)
 	if (!new) {
 		return;
 	}
-	if(func->pos_list){
+	if (func->pos_list) {
 		append_pos(func->pos_list, new);
 	} else {
 		func->pos_list = new;
@@ -307,7 +307,7 @@ static void append_ident(struct mcc_asm_function *func, struct mcc_ast_identifie
 	if (!new) {
 		return;
 	}
-	if(func->pos_list){
+	if (func->pos_list) {
 		append_pos(func->pos_list, new);
 	} else {
 		func->pos_list = new;
@@ -317,7 +317,7 @@ static void append_ident(struct mcc_asm_function *func, struct mcc_ast_identifie
 static struct mcc_asm_pos_list *get_pos_row(struct mcc_asm_pos_list *list, struct mcc_ir_row *row)
 {
 	assert(row);
-	if (!list){
+	if (!list) {
 		return NULL;
 	}
 
@@ -333,7 +333,7 @@ static struct mcc_asm_pos_list *get_pos_row(struct mcc_asm_pos_list *list, struc
 static struct mcc_asm_pos_list *get_pos_ident(struct mcc_asm_pos_list *list, struct mcc_ast_identifier *ident)
 {
 	assert(ident);
-	if (!list){
+	if (!list) {
 		return NULL;
 	}
 
@@ -344,6 +344,25 @@ static struct mcc_asm_pos_list *get_pos_ident(struct mcc_asm_pos_list *list, str
 		list = list->next_pos;
 	} while (list);
 	return NULL;
+}
+
+static struct mcc_asm_operand *get_pos(struct mcc_asm_pos_list *list, struct mcc_ir_arg *arg)
+{
+	assert(list);
+	assert(arg->type == MCC_IR_TYPE_IDENTIFIER || arg->type == MCC_IR_TYPE_ROW);
+
+	struct mcc_asm_pos_list *pos = NULL;
+
+	if(arg->type == MCC_IR_TYPE_IDENTIFIER){
+		pos = get_pos_ident(list, arg->ident);
+	} else {
+		pos = get_pos_row(list, arg->row);
+	}
+
+	if(!pos){
+		return NULL;
+	}
+	return mcc_asm_new_register_operand(MCC_ASM_EBP, pos->pos);
 }
 
 static struct mcc_ir_row *last_line_of_function(struct mcc_ir_row *ir)
@@ -408,9 +427,11 @@ static struct mcc_asm_assembly_line *generate_instr_assign(struct mcc_asm_functi
 	assert(function);
 	assert(ir);
 
+	function->ebp_offset -= 4;
+
 	int offset2;
 	struct mcc_asm_pos_list *pos = get_pos_ident(function->pos_list, ir->arg1->ident);
-	if (!pos){
+	if (!pos) {
 		append_ident(function, ir->arg1->ident);
 		offset2 = function->ebp_offset;
 	} else {
@@ -421,13 +442,13 @@ static struct mcc_asm_assembly_line *generate_instr_assign(struct mcc_asm_functi
 	struct mcc_asm_assembly_line *line = NULL;
 	struct mcc_asm_operand *second = mcc_asm_new_register_operand(MCC_ASM_EBP, offset2);
 	struct mcc_asm_operand *first = NULL;
-	if(ir->arg2->type == MCC_IR_TYPE_LIT_INT){
+	if (ir->arg2->type == MCC_IR_TYPE_LIT_INT) {
 		first = mcc_asm_new_literal_operand(ir->arg2->lit_int);
 		line = mcc_asm_new_assembly_line(MCC_ASM_MOVL, first, second, NULL);
 	} else if (ir->arg2->type == MCC_IR_TYPE_ROW) {
 		struct mcc_asm_pos_list *pos = get_pos_row(function->pos_list, ir->arg2->row);
 		int offset1 = 0;
-		if(pos){
+		if (pos) {
 			offset1 = pos->pos;
 		}
 		first = mcc_asm_new_register_operand(MCC_ASM_EBP, offset1);
@@ -438,30 +459,10 @@ static struct mcc_asm_assembly_line *generate_instr_assign(struct mcc_asm_functi
 	} else {
 		first = mcc_asm_new_literal_operand((long)9999999);
 		line = mcc_asm_new_assembly_line(MCC_ASM_MOVL, first, second, NULL);
-	} 
+	}
 	// ----
 
 	return line;
-}
-
-static enum mcc_asm_opcode get_opcode(struct mcc_ir_row *ir)
-{
-	assert(ir);
-
-	switch (ir->instr)
-	{
-	case MCC_IR_INSTR_PLUS:
-		return MCC_ASM_ADDL;
-	case MCC_IR_INSTR_MINUS:
-		return MCC_ASM_SUBL;
-	case MCC_IR_INSTR_MULTIPLY:
-		return MCC_ASM_IMULL;
-	case MCC_IR_INSTR_DIVIDE:
-		return MCC_ASM_IDIVL;
-	
-	default:
-		return MCC_ASM_ADDL;
-	}
 }
 
 static struct mcc_asm_operand *operand_from_arg(struct mcc_asm_function *function, struct mcc_ir_arg *arg)
@@ -471,13 +472,13 @@ static struct mcc_asm_operand *operand_from_arg(struct mcc_asm_function *functio
 
 	int offset;
 	struct mcc_asm_operand *operand = NULL;
-	if(arg->type == MCC_IR_TYPE_LIT_INT){
+	if (arg->type == MCC_IR_TYPE_LIT_INT) {
 		operand = mcc_asm_new_literal_operand(arg->lit_int);
-	} else if (arg->type == MCC_IR_TYPE_ROW){
+	} else if (arg->type == MCC_IR_TYPE_ROW) {
 		struct mcc_asm_pos_list *pos = get_pos_row(function->pos_list, arg->row);
 		offset = pos->pos;
 		operand = mcc_asm_new_register_operand(MCC_ASM_EBP, offset);
-	} else if(arg->type == MCC_IR_TYPE_IDENTIFIER){
+	} else if (arg->type == MCC_IR_TYPE_IDENTIFIER) {
 		struct mcc_asm_pos_list *pos = get_pos_ident(function->pos_list, arg->ident);
 		offset = pos->pos;
 		operand = mcc_asm_new_register_operand(MCC_ASM_EBP, offset);
@@ -485,22 +486,23 @@ static struct mcc_asm_operand *operand_from_arg(struct mcc_asm_function *functio
 	return operand;
 }
 
-static struct mcc_asm_assembly_line *generate_binary_op(struct mcc_asm_function *function, struct mcc_ir_row *ir)
+static struct mcc_asm_assembly_line *
+generate_arithm_op(struct mcc_asm_function *function, struct mcc_ir_row *ir, enum mcc_asm_opcode opcode)
 {
 	assert(function);
 	assert(ir);
 
+	function->ebp_offset -= 4;
 	append_row(function, ir);
 
 	struct mcc_asm_operand *eax3 = mcc_asm_new_register_operand(MCC_ASM_EAX, 0);
 	struct mcc_asm_operand *ebp = mcc_asm_new_register_operand(MCC_ASM_EBP, function->ebp_offset);
 	struct mcc_asm_assembly_line *lst_line = mcc_asm_new_assembly_line(MCC_ASM_MOVL, eax3, ebp, NULL);
 
-	enum mcc_asm_opcode opcode = get_opcode(ir);
 	struct mcc_asm_operand *reg = NULL;
 	struct mcc_asm_operand *snd = operand_from_arg(function, ir->arg2);
 	struct mcc_asm_assembly_line *snd_line = NULL;
-	if(opcode == MCC_ASM_IDIVL){
+	if (opcode == MCC_ASM_IDIVL) {
 		reg = mcc_asm_new_register_operand(MCC_ASM_EBX, 0);
 		struct mcc_asm_operand *ebx = mcc_asm_new_register_operand(MCC_ASM_EBX, 0);
 		struct mcc_asm_assembly_line *trd_line = mcc_asm_new_assembly_line(opcode, ebx, NULL, lst_line);
@@ -527,6 +529,69 @@ static struct mcc_asm_assembly_line *generate_unary_op(struct mcc_asm_function *
 	return mcc_asm_new_assembly_line(MCC_ASM_MOVL, NULL, NULL, NULL);
 }
 
+static struct mcc_asm_assembly_line *generate_cmp_op(struct mcc_asm_function *function, struct mcc_ir_row *ir, enum mcc_asm_opcode opcode)
+{
+	assert(function);
+	assert(ir);
+
+	function->ebp_offset -= 4;
+	append_row(function, ir);
+	struct mcc_asm_assembly_line *fst_line = NULL;
+
+	// 4. movl eax -x(ebp)
+	struct mcc_asm_operand *eax4 = mcc_asm_new_register_operand(MCC_ASM_EAX, 0);
+	struct mcc_asm_operand *ebp4 = mcc_asm_new_register_operand(MCC_ASM_EBP, function->ebp_offset);
+	struct mcc_asm_assembly_line *lst_line = mcc_asm_new_assembly_line(MCC_ASM_MOVL, eax4, ebp4, NULL);
+	// 3. movcc dl eax
+	struct mcc_asm_operand *dl3 = mcc_asm_new_register_operand(MCC_ASM_DL, 0);
+	struct mcc_asm_operand *eax3 = mcc_asm_new_register_operand(MCC_ASM_EAX, 0);
+	struct mcc_asm_assembly_line *trd_line = mcc_asm_new_assembly_line(MCC_ASM_MOVZBL, dl3, eax3, lst_line);
+	// 2. setcc dl
+	struct mcc_asm_operand *dl2 = mcc_asm_new_register_operand(MCC_ASM_DL, 0);
+	struct mcc_asm_assembly_line *snd_line = mcc_asm_new_assembly_line(opcode, dl2, NULL, trd_line);
+
+	if ((ir->arg1->type == MCC_IR_TYPE_ROW || ir->arg1->type == MCC_IR_TYPE_IDENTIFIER) 
+				&& (ir->arg2->type == MCC_IR_TYPE_ROW || ir->arg2->type == MCC_IR_TYPE_IDENTIFIER)) {
+		// 1b. cmp eax and arg2
+		struct mcc_asm_operand *ebp2 = get_pos(function->pos_list, ir->arg2);
+		struct mcc_asm_operand *eax2 = mcc_asm_new_register_operand(MCC_ASM_EAX, 0);
+		struct mcc_asm_assembly_line *line1b = mcc_asm_new_assembly_line(MCC_ASM_CMPL, ebp2, eax2, snd_line);
+		// 1a. move arg1 in eax
+		struct mcc_asm_operand *ebp1 = get_pos(function->pos_list, ir->arg1);
+		struct mcc_asm_operand *eax1 = mcc_asm_new_register_operand(MCC_ASM_EAX, 0);
+		fst_line = mcc_asm_new_assembly_line(MCC_ASM_MOVL, ebp1, eax1, line1b);
+
+	} else if (ir->arg1->type == MCC_IR_TYPE_ROW || ir->arg1->type == MCC_IR_TYPE_IDENTIFIER) {
+		// 1. cmp arg1 arg2
+		struct mcc_asm_operand *ebp = get_pos(function->pos_list, ir->arg1);
+		struct mcc_asm_operand *lit = NULL;
+		if(ir->arg2->type == MCC_IR_TYPE_LIT_INT){
+			lit = mcc_asm_new_literal_operand(ir->arg2->lit_int);
+		}
+		fst_line = mcc_asm_new_assembly_line(MCC_ASM_CMPL, lit, ebp, snd_line);
+
+	} else {
+		// 1b. cmp arg1 arg2
+		struct mcc_asm_operand *eax1b = mcc_asm_new_register_operand(MCC_ASM_EAX, 0);
+		struct mcc_asm_operand *arg2 = NULL;
+		if (ir->arg2->type == MCC_IR_TYPE_ROW || ir->arg2->type == MCC_IR_TYPE_IDENTIFIER){
+			arg2 = get_pos(function->pos_list, ir->arg2);
+		} else if (ir->arg2->type == MCC_IR_TYPE_LIT_INT){
+			arg2 = mcc_asm_new_literal_operand(ir->arg2->lit_int);
+		}
+		struct mcc_asm_assembly_line *line_1b = mcc_asm_new_assembly_line(MCC_ASM_CMPL, arg2, eax1b, snd_line);
+		// 1.a mov lit eax
+		struct mcc_asm_operand *lit = NULL;
+		if(ir->arg1->type == MCC_IR_TYPE_LIT_INT){
+			lit = mcc_asm_new_literal_operand(ir->arg1->lit_int);
+		}
+		struct mcc_asm_operand *eax1a = mcc_asm_new_register_operand(MCC_ASM_EAX, 0);
+		fst_line = mcc_asm_new_assembly_line(MCC_ASM_MOVL, lit, eax1a, line_1b);
+	} 
+
+	return fst_line;
+}
+
 static struct mcc_asm_assembly_line *generate_ir_row(struct mcc_asm_function *function, struct mcc_ir_row *ir)
 {
 	assert(function);
@@ -536,7 +601,6 @@ static struct mcc_asm_assembly_line *generate_ir_row(struct mcc_asm_function *fu
 
 	switch (ir->instr) {
 	case MCC_IR_INSTR_ASSIGN:
-		function->ebp_offset -= 4;
 		line = generate_instr_assign(function, ir);
 		break;
 	case MCC_IR_INSTR_LABEL:
@@ -553,20 +617,37 @@ static struct mcc_asm_assembly_line *generate_ir_row(struct mcc_asm_function *fu
 		break;
 	case MCC_IR_INSTR_POP:
 		break;
-	case MCC_IR_INSTR_PLUS:
-	case MCC_IR_INSTR_MINUS:
-	case MCC_IR_INSTR_MULTIPLY:
-	case MCC_IR_INSTR_DIVIDE:
 	case MCC_IR_INSTR_EQUALS:
+		line = generate_cmp_op(function, ir, MCC_ASM_SETE);
+		break;
 	case MCC_IR_INSTR_NOTEQUALS:
+		line = generate_cmp_op(function, ir, MCC_ASM_SETNE);
+		break;
 	case MCC_IR_INSTR_SMALLER:
+		line = generate_cmp_op(function, ir, MCC_ASM_SETL);
+		break;
 	case MCC_IR_INSTR_GREATER:
+		line = generate_cmp_op(function, ir, MCC_ASM_SETG);
+		break;
 	case MCC_IR_INSTR_SMALLEREQ:
+		line = generate_cmp_op(function, ir, MCC_ASM_SETLE);
+		break;
 	case MCC_IR_INSTR_GREATEREQ:
+		line = generate_cmp_op(function, ir, MCC_ASM_SETGE);
+		break;
 	case MCC_IR_INSTR_AND:
 	case MCC_IR_INSTR_OR:
-		function->ebp_offset -= 4;
-		line = generate_binary_op(function, ir);
+	case MCC_IR_INSTR_PLUS:
+		line = generate_arithm_op(function, ir, MCC_ASM_ADDL);
+		break;
+	case MCC_IR_INSTR_MINUS:
+		line = generate_arithm_op(function, ir, MCC_ASM_SUBL);
+		break;
+	case MCC_IR_INSTR_MULTIPLY:
+		line = generate_arithm_op(function, ir, MCC_ASM_IMULL);
+		break;
+	case MCC_IR_INSTR_DIVIDE:
+		line = generate_arithm_op(function, ir, MCC_ASM_IDIVL);
 		break;
 	case MCC_IR_INSTR_RETURN:
 		break;
@@ -636,7 +717,7 @@ static bool variable_needs_local_space(struct mcc_ir_row *first, struct mcc_ir_r
 	assert(first);
 	assert(ir);
 
-	if(is_binary_instr(ir)){
+	if (is_binary_instr(ir)) {
 		return true;
 	}
 
@@ -671,7 +752,7 @@ static size_t get_var_size(struct mcc_ir_row *ir)
 {
 	assert(ir);
 
-	if(!ir->arg2){
+	if (!ir->arg2) {
 		return 0;
 	}
 

@@ -27,6 +27,10 @@ static char *opcode_to_string(enum mcc_asm_opcode op)
 	switch (op) {
 	case MCC_ASM_MOVL:
 		return "movl";
+	case MCC_ASM_MOVZBL:
+		return "movzbl";
+	case MCC_ASM_CMPL:
+		return "cmpl";
 	case MCC_ASM_PUSHL:
 		return "pushl";
 	case MCC_ASM_ADDL:
@@ -37,6 +41,18 @@ static char *opcode_to_string(enum mcc_asm_opcode op)
 		return "imull";
 	case MCC_ASM_IDIVL:
 		return "idivl";
+	case MCC_ASM_SETE:
+		return "sete";
+	case MCC_ASM_SETNE:
+		return "setne";
+	case MCC_ASM_SETL:
+		return "setl";
+	case MCC_ASM_SETG:
+		return "setg";
+	case MCC_ASM_SETLE:
+		return "setle";
+	case MCC_ASM_SETGE:
+		return "setge";
 	case MCC_ASM_LEAVE:
 		return "leave";
 	case MCC_ASM_CALL:
@@ -65,6 +81,8 @@ static char *register_name_to_string(enum mcc_asm_register reg)
 		return "%esp";
 	case MCC_ASM_EBP:
 		return "%ebp";
+	case MCC_ASM_DL:
+		return "%dl";
 	default:
 		return "unknown register";
 	}

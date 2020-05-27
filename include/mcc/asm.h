@@ -68,6 +68,8 @@ struct mcc_asm_function {
 
 enum mcc_asm_opcode {
 	MCC_ASM_MOVL,
+	MCC_ASM_MOVZBL,
+	MCC_ASM_CMPL,
 	MCC_ASM_PUSHL,
 	MCC_ASM_POPL,
 	MCC_ASM_LEAVE,
@@ -75,6 +77,12 @@ enum mcc_asm_opcode {
 	MCC_ASM_SUBL,
 	MCC_ASM_IMULL,
 	MCC_ASM_IDIVL,
+	MCC_ASM_SETE,
+	MCC_ASM_SETNE,
+	MCC_ASM_SETL,
+	MCC_ASM_SETG,
+	MCC_ASM_SETLE,
+	MCC_ASM_SETGE,
 	MCC_ASM_RETURN,
 	MCC_ASM_CALL,
 };
@@ -100,6 +108,7 @@ enum mcc_asm_register {
 	MCC_ASM_EDX,
 	MCC_ASM_ESP,
 	MCC_ASM_EBP,
+	MCC_ASM_DL,
 };
 
 struct mcc_asm_operand {
