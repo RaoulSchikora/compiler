@@ -382,19 +382,18 @@ static struct mcc_asm_line *generate_instr_assign(struct mcc_asm_function *func,
 
 	int offset2 = an_ir->stack_position;
 
-	// TODO implement correctly
+	// TODO lit_string, lit_float, arrays
 	struct mcc_asm_line *line1 = NULL;
 	if (an_ir->row->arg2->type == MCC_IR_TYPE_LIT_INT || an_ir->row->arg2->type == MCC_IR_TYPE_LIT_BOOL) {
 		line1 = mcc_asm_new_line(MCC_ASM_MOVL, arg_to_op(an_ir, an_ir->row->arg2), ebp(offset2), NULL);
-	} else if (an_ir->row->arg2->type == MCC_IR_TYPE_ROW) {
-		// TODO: Get offset of temporary or identifier (Implement function, type-generic for row or identifier)
+	} else if (an_ir->row->arg2->type == MCC_IR_TYPE_ROW || an_ir->row->arg2->type == MCC_IR_TYPE_IDENTIFIER) {
 		struct mcc_asm_line *line2 =
 		    mcc_asm_new_line(MCC_ASM_MOVL, eax(), arg_to_op(an_ir, an_ir->row->arg1), NULL);
 		line1 = mcc_asm_new_line(MCC_ASM_MOVL, arg_to_op(an_ir, an_ir->row->arg2), eax(), line2);
 	} else {
+		// TODO remove when done
 		line1 = mcc_asm_new_line(MCC_ASM_MOVL, mcc_asm_new_literal_operand((int)9999999), ebp(offset2), NULL);
 	}
-	// TODO: "a=b"
 
 	return line1;
 }
