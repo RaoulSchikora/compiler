@@ -112,7 +112,7 @@ void addition_lit(CuTest *tc)
 	CuAssertIntEquals(tc, MCC_ASM_ESP, code->text_section->function->head->next->next->second->reg);
 	CuAssertIntEquals(tc, 8, code->text_section->function->head->next->next->first->literal);
 
-	struct mcc_asm_assembly_line *line = code->text_section->function->head->next->next->next;
+	struct mcc_asm_line *line = code->text_section->function->head->next->next->next;
 
 	CuAssertIntEquals(tc, MCC_ASM_MOVL, line->opcode);
 	CuAssertIntEquals(tc, MCC_ASM_OPERAND_LITERAL, line->first->type);
@@ -177,7 +177,7 @@ void div_int(CuTest *tc)
 
 	struct mcc_asm *code = mcc_asm_generate(ir);
 	CuAssertPtrNotNull(tc, code);
-	struct mcc_asm_assembly_line *line = code->text_section->function->head->next->next->next->next;
+	struct mcc_asm_line *line = code->text_section->function->head->next->next->next->next;
 
 	CuAssertIntEquals(tc, MCC_ASM_MOVL, line->opcode);
 	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, line->first->type);
