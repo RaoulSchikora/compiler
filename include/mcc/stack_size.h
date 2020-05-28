@@ -14,8 +14,6 @@
 #define STACK_SIZE_STRING 0
 #define STACK_SIZE_INT 4
 
-// TODO: Name prefixing for public functions
-
 // --------------------------------------------------------------------------------------- Data structure
 
 // Annotate IR to determine stack size of each IR line
