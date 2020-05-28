@@ -37,6 +37,7 @@ mcc_src = [ 'src/ast.c',
             'src/cfg_print.c',
 	    'src/asm.c',
 	    'src/asm_print.c',
+	    'src/stack_size.c',
             lgen.process('src/scanner.l'),
             pgen.process('src/parser.y'),
             'src/symbol_table.c',
@@ -64,7 +65,7 @@ endforeach
 
 # ----------------------------------------------------------------------- Tests
 
-mcc_tests = [ 'parser_test', 'symbol_table_test', 'semantic_checks_test','ir_test', 'asm_test' ]
+mcc_tests = [ 'parser_test', 'symbol_table_test', 'semantic_checks_test','ir_test', 'asm_test', 'stack_size_test']
 
 cutest_inc = include_directories('vendor/cutest')
 

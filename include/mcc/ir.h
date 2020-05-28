@@ -108,6 +108,7 @@ void mcc_ir_delete_ir_arg(struct mcc_ir_arg *arg);
 
 // clang-format off
 
+// TODO: Move into C file
 #define mcc_ir_new_arg(x, y) _Generic((x), \
     long:                           new_arg_int, \
     double:                         new_arg_float, \
