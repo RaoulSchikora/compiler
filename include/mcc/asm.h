@@ -7,6 +7,7 @@
 #define MCC_ASM_H
 
 #include "mcc/ir.h"
+#include "mcc/stack_size.h"
 
 //---------------------------------------------------------------------------------------- Data structure: ASM
 
@@ -41,21 +42,6 @@ struct mcc_asm_declaration {
 		int array_size;
 	};
 	struct mcc_asm_declaration *next;
-};
-
-enum mcc_asm_pos_type {
-	MCC_ASM_POS_IDENT,
-	MCC_ASM_POS_ROW,
-};
-
-struct mcc_asm_pos_list {
-	enum mcc_asm_pos_type type;
-	int pos;
-	union {
-		struct mcc_ast_identifier *ident;
-		struct mcc_ir_row *row;
-	};
-	struct mcc_asm_pos_list *next_pos;
 };
 
 struct mcc_asm_function {
@@ -188,6 +174,6 @@ void mcc_asm_delete_pos_list(struct mcc_asm_pos_list *list);
 
 struct mcc_asm *mcc_asm_generate(struct mcc_ir_row *ir);
 
-struct mcc_asm_function *mcc_asm_generate_function(struct mcc_ir_row *ir);
+struct mcc_asm_function *mcc_asm_generate_function(struct mcc_annotated_ir *an_ir);
 
 #endif // MCC_ASM_H

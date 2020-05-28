@@ -109,7 +109,7 @@ static int argument_size(struct mcc_ir_arg *arg, struct mcc_ir_row *ir)
 		ref = find_first_occurence(arg->ident->identifier_name, ir);
 		if (!ref)
 			return 0;
-		return argument_size(ir->arg2, ir);
+		return argument_size(ref->arg2, ir);
 	case MCC_IR_TYPE_ARR_ELEM:
 		ref = find_first_occurence(arg->arr_ident->identifier_name, ir);
 		if (!ref)
@@ -338,7 +338,8 @@ static int get_array_base_size(struct mcc_ir_row *ir)
 	}
 }
 
-static int get_array_element_location(struct mcc_annotated_ir *an_ir)
+// TODO mcc prefix
+int get_array_element_location(struct mcc_annotated_ir *an_ir)
 {
 	assert(an_ir);
 	struct mcc_annotated_ir *head = an_ir;
