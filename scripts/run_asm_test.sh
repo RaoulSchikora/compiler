@@ -76,6 +76,7 @@ run_integration_test()
 	[[ -e "$OUTPUT_DIR/$test" ]] || return 1
 
 	command time \
+		--quiet \
 		--format "%e %M %x" \
 		--output "$stats" \
 		"$OUTPUT_DIR/$test" \
@@ -86,7 +87,7 @@ run_integration_test()
 		return 1
 	fi
 
-	tail -n1 "$stats"
+	tail -n1 "$stats" | sed -e 's/[0-9]*$/0/'
 }
 
 print_header_md()
