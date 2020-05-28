@@ -378,6 +378,7 @@ static void add_stack_positions(struct mcc_annotated_ir *head)
 	int current_position = 0;
 
 	while (head) {
+		// Function label
 		if (head->row->instr == MCC_IR_INSTR_FUNC_LABEL) {
 			head->stack_size = get_frame_size_of_function(head);
 			current_position = 0;
