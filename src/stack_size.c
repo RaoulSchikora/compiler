@@ -110,7 +110,6 @@ static int argument_size(struct mcc_ir_arg *arg, struct mcc_ir_row *ir)
 		if (!ref)
 			return 0;
 		return argument_size(ir->arg2, ir);
-	// TODO: Find out size of the array element
 	case MCC_IR_TYPE_ARR_ELEM:
 		ref = find_first_occurence(arg->arr_ident->identifier_name, ir);
 		if (!ref)
@@ -245,7 +244,7 @@ static int get_stack_frame_size(struct mcc_ir_row *ir)
 	case MCC_IR_INSTR_NEGATIV:
 		return get_temporary_size(ir);
 
-	// Assignment of temporary: Bool (TODO: 4 bytes for bool?)
+	// Assignment of temporary: Bool
 	case MCC_IR_INSTR_AND:
 	case MCC_IR_INSTR_OR:
 	case MCC_IR_INSTR_EQUALS:
