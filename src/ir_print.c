@@ -168,7 +168,7 @@ static int arg_size(struct mcc_ir_arg *arg)
 
 static void row_no_to_string(char *dest, int no)
 {
-	sprintf(dest, "_t%d", no);
+	sprintf(dest, "$t%d", no);
 }
 
 static void bool_to_string(char *dest, bool b)
