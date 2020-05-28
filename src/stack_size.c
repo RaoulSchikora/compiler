@@ -368,7 +368,6 @@ int get_array_element_location(struct mcc_annotated_ir *an_ir)
 	return 0;
 }
 
-// Add positions for references of already declared variables TODO
 static void add_stack_positions(struct mcc_annotated_ir *head)
 {
 	assert(head);
