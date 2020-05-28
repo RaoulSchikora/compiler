@@ -408,7 +408,7 @@ static void generate_ir_declaration(struct mcc_ast_declaration *decl, struct ir_
 		return;
 	}
 
-	struct mcc_ir_row *row;
+	struct mcc_ir_row *row = NULL;
 	switch (decl->array_type->type_value) {
 	case INT:
 		row = new_row(arg1, arg2, MCC_IR_INSTR_ARRAY_INT, data);
