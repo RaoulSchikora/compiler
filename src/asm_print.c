@@ -151,6 +151,10 @@ static int length_of_op(struct mcc_asm_operand *op)
 
 static void asm_print_line(FILE *out, struct mcc_asm_line *line)
 {
+	if(line->opcode == MCC_ASM_LABEL){
+		fprintf(out, "    L%d:\n", line->label);
+		return;
+	}
 	int len1 = length_of_op(line->first) + 1;
 	int len2 = length_of_op(line->second) + 1;
 	char op1[len1];

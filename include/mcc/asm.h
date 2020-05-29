@@ -78,12 +78,19 @@ enum mcc_asm_opcode {
 	MCC_ASM_CALL,
 	MCC_ASM_XORL,
 	MCC_ASM_NEGL,
+	MCC_ASM_LABEL,
 };
 
 struct mcc_asm_line {
 	enum mcc_asm_opcode opcode;
-	struct mcc_asm_operand *first;
-	struct mcc_asm_operand *second;
+	union{
+		struct{
+			struct mcc_asm_operand *first;
+			struct mcc_asm_operand *second;
+		};
+		// MCC_ASM_LABEL
+		unsigned label;
+	};
 	struct mcc_asm_line *next;
 };
 
