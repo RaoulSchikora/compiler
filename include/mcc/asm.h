@@ -52,7 +52,6 @@ struct mcc_asm_function {
 	char *label;
 	struct mcc_asm_line *head;
 	struct mcc_asm_function *next;
-	int ebp_offset;
 	struct mcc_asm_pos_list *pos_list;
 };
 

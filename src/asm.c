@@ -180,7 +180,6 @@ mcc_asm_new_function(char *label, struct mcc_asm_line *head, struct mcc_asm_func
 	new->head = head;
 	new->label = label;
 	new->next = next;
-	new->ebp_offset = 0;
 	new->pos_list = NULL;
 	return new;
 }
