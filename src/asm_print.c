@@ -65,6 +65,8 @@ static char *opcode_to_string(enum mcc_asm_opcode op)
 		return "xorl";
 	case MCC_ASM_NEGL:
 		return "negl";
+	case MCC_ASM_JE:
+		return "je";
 	case MCC_ASM_RETURN:
 		return "ret";
 
@@ -151,8 +153,11 @@ static int length_of_op(struct mcc_asm_operand *op)
 
 static void asm_print_line(FILE *out, struct mcc_asm_line *line)
 {
-	if(line->opcode == MCC_ASM_LABEL){
+	if (line->opcode == MCC_ASM_LABEL) {
 		fprintf(out, "    L%d:\n", line->label);
+		return;
+	} else if (line->opcode == MCC_ASM_JE) {
+		fprintf(out, "        %-7s L%d\n", opcode_to_string(line->opcode), line->label);
 		return;
 	}
 	int len1 = length_of_op(line->first) + 1;

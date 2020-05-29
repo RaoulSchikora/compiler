@@ -3,7 +3,9 @@ bool a;
 bool b;
 a = true;
 b = false;
-a = a || b;
-return 5;
+if (a || b){
+	return 1;
+}
+return 0;
 }
 

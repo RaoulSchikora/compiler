@@ -78,6 +78,7 @@ enum mcc_asm_opcode {
 	MCC_ASM_CALL,
 	MCC_ASM_XORL,
 	MCC_ASM_NEGL,
+	MCC_ASM_JE,
 	MCC_ASM_LABEL,
 };
 

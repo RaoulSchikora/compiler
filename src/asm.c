@@ -205,14 +205,14 @@ struct mcc_asm_line *mcc_asm_new_line(enum mcc_asm_opcode opcode,
 	return new;
 }
 
-struct mcc_asm_line *mcc_asm_new_label(unsigned label, struct mcc_asm_error *err)
+struct mcc_asm_line *mcc_asm_new_label(enum mcc_asm_opcode opcode, unsigned label, struct mcc_asm_error *err)
 {
 	struct mcc_asm_line *new = malloc(sizeof(*new));
 	if (!new) {
 		err->has_failed = true;
 		return NULL;
 	}
-	new->opcode = MCC_ASM_LABEL;
+	new->opcode = opcode;
 	new->label = label;
 	new->next = NULL;
 	return new;
@@ -373,7 +373,7 @@ void mcc_asm_delete_line(struct mcc_asm_line *line)
 {
 	if (!line)
 		return;
-	if (line->opcode != MCC_ASM_LABEL) {
+	if (line->opcode != MCC_ASM_LABEL && line->opcode != MCC_ASM_JE) {
 		mcc_asm_delete_operand(line->first);
 		mcc_asm_delete_operand(line->second);
 	}
@@ -402,7 +402,6 @@ static void func_append(struct mcc_asm_function *func, struct mcc_asm_line *line
 {
 	assert(line);
 	assert(func);
-
 	if (!func->head) {
 		func->head = line;
 		return;
@@ -419,7 +418,6 @@ arg_to_op(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm
 {
 	assert(an_ir);
 	assert(arg);
-
 	if (err->has_failed)
 		return NULL;
 
@@ -438,7 +436,6 @@ arg_to_op(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm
 static struct mcc_asm_line *generate_instr_assign(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
 {
 	assert(an_ir);
-
 	if (err->has_failed)
 		return NULL;
 
@@ -468,10 +465,10 @@ static struct mcc_asm_line *
 generate_arithm_op(struct mcc_annotated_ir *an_ir, enum mcc_asm_opcode opcode, struct mcc_asm_error *err)
 {
 	assert(an_ir);
-
 	if (err->has_failed) {
 		return NULL;
 	}
+
 	struct mcc_asm_line *line1 = NULL, *line2 = NULL, *line2a = NULL, *line2b = NULL, *line3 = NULL;
 	line3 = mcc_asm_new_line(MCC_ASM_MOVL, eax(err), ebp(an_ir->stack_position, err), NULL, err);
 
@@ -503,7 +500,6 @@ static struct mcc_asm_line *
 generate_unary(struct mcc_annotated_ir *an_ir, enum mcc_asm_opcode opcode, struct mcc_asm_error *err)
 {
 	assert(an_ir);
-
 	if (err->has_failed)
 		return NULL;
 
@@ -530,7 +526,6 @@ static struct mcc_asm_line *
 generate_cmp_op(struct mcc_annotated_ir *an_ir, enum mcc_asm_opcode opcode, struct mcc_asm_error *err)
 {
 	assert(an_ir);
-
 	if (err->has_failed)
 		return NULL;
 
@@ -574,7 +569,6 @@ generate_cmp_op(struct mcc_annotated_ir *an_ir, enum mcc_asm_opcode opcode, stru
 static struct mcc_asm_line *generate_return(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
 {
 	assert(an_ir);
-
 	if (err->has_failed)
 		return NULL;
 
@@ -596,6 +590,23 @@ static struct mcc_asm_line *generate_return(struct mcc_annotated_ir *an_ir, stru
 	}
 	return leave;
 }
+static struct mcc_asm_line *generate_jumpfalse(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
+{
+	assert(an_ir);
+	if (err->has_failed)
+		return NULL;
+
+	struct mcc_asm_line *je = mcc_asm_new_label(MCC_ASM_JE, an_ir->row->arg2->label, err);
+	struct mcc_asm_operand *zero = mcc_asm_new_literal_operand(0, err);
+	struct mcc_asm_line *cmp =
+	    mcc_asm_new_line(MCC_ASM_CMPL, zero, arg_to_op(an_ir, an_ir->row->arg1, err), je, err);
+	if(err->has_failed){
+		mcc_asm_delete_line(cmp);
+		mcc_asm_delete_line(je);
+		return NULL;
+	}
+	return cmp;
+}
 
 static struct mcc_asm_line *generate_asm_from_ir(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
 {
@@ -611,12 +622,15 @@ static struct mcc_asm_line *generate_asm_from_ir(struct mcc_annotated_ir *an_ir,
 		line = generate_instr_assign(an_ir, err);
 		break;
 	case MCC_IR_INSTR_LABEL:
-		line = mcc_asm_new_label(an_ir->row->arg1->label, err);
+		line = mcc_asm_new_label(MCC_ASM_LABEL, an_ir->row->arg1->label, err);
 		break;
 	case MCC_IR_INSTR_FUNC_LABEL:
 	case MCC_IR_INSTR_JUMP:
 	case MCC_IR_INSTR_CALL:
+		break;
 	case MCC_IR_INSTR_JUMPFALSE:
+		line = generate_jumpfalse(an_ir, err);
+		break;
 	case MCC_IR_INSTR_PUSH:
 	case MCC_IR_INSTR_POP:
 		break;
@@ -731,8 +745,7 @@ generate_function_body(struct mcc_asm_function *function, struct mcc_annotated_i
 	return function->head;
 }
 
-static struct mcc_asm_line *
-generate_function_args(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
+static struct mcc_asm_line *generate_function_args(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
 {
 	assert(an_ir);
 	assert(an_ir->row->instr == MCC_IR_INSTR_FUNC_LABEL);
@@ -864,7 +877,7 @@ struct mcc_asm *mcc_asm_generate(struct mcc_ir_row *ir)
 	struct mcc_asm *assembly = mcc_asm_new_asm(NULL, NULL, err);
 	struct mcc_asm_text_section *text_section = mcc_asm_new_text_section(NULL, err);
 	struct mcc_asm_data_section *data_section = mcc_asm_new_data_section(NULL, err);
-	if (!assembly || !text_section || !data_section) {
+	if (!an_ir || err->has_failed) {
 		mcc_asm_delete_asm(assembly);
 		mcc_asm_delete_text_section(text_section);
 		mcc_asm_delete_data_section(data_section);
