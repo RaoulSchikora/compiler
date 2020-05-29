@@ -566,6 +566,18 @@ static struct mcc_asm_line *generate_cmp_op(struct mcc_asm_function *func,
 	return line1;
 }
 
+static struct mcc_asm_line *generate_return(struct mcc_asm_error *err)
+{
+	struct mcc_asm_line *ret = mcc_asm_new_line(MCC_ASM_RETURN, NULL, NULL, NULL, err);
+	struct mcc_asm_line *leave = mcc_asm_new_line(MCC_ASM_LEAVE, NULL, NULL, ret, err);
+	if (err->has_failed) {
+		mcc_asm_delete_line(leave);
+		mcc_asm_delete_line(ret);
+		return NULL;
+	}
+	return leave;
+}
+
 static struct mcc_asm_line *
 generate_asm_from_ir(struct mcc_asm_function *function, struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
 {
@@ -626,6 +638,7 @@ generate_asm_from_ir(struct mcc_asm_function *function, struct mcc_annotated_ir 
 		line = generate_arithm_op(function, an_ir, MCC_ASM_IDIVL, err);
 		break;
 	case MCC_IR_INSTR_RETURN:
+		line = generate_return(err);
 		break;
 	// In these cases nothing needs to happen
 	case MCC_IR_INSTR_ARRAY_INT:
@@ -715,28 +728,13 @@ generate_function_args(struct mcc_asm_function *function, struct mcc_annotated_i
 	return sub_size_esp;
 }
 
-// TODO: Remove eventually
-static struct mcc_asm_line *generate_function_epilog(struct mcc_asm_error *err)
-{
-	struct mcc_asm_line *ret = mcc_asm_new_line(MCC_ASM_RETURN, NULL, NULL, NULL, err);
-	struct mcc_asm_line *leave = mcc_asm_new_line(MCC_ASM_LEAVE, NULL, NULL, ret, err);
-	if (err->has_failed) {
-		mcc_asm_delete_line(leave);
-		mcc_asm_delete_line(ret);
-		return NULL;
-	}
-	return leave;
-}
-
 static void compose_function_asm(struct mcc_asm_function *function,
                                  struct mcc_asm_line *prolog,
                                  struct mcc_asm_line *args,
-                                 struct mcc_asm_line *body,
-                                 struct mcc_asm_line *epilog)
+                                 struct mcc_asm_line *body)
 {
 	assert(prolog);
 	assert(body);
-	assert(epilog);
 	assert(function);
 	assert(args->first->type == MCC_ASM_OPERAND_LITERAL);
 	function->head = prolog;
@@ -750,8 +748,6 @@ static void compose_function_asm(struct mcc_asm_function *function,
 		args = last_asm_line(args);
 		args->next = body;
 	}
-	body = last_asm_line(body);
-	body->next = epilog;
 }
 
 static struct mcc_asm_line *generate_function_prolog(struct mcc_asm_error *err)
@@ -788,15 +784,13 @@ struct mcc_asm_function *mcc_asm_generate_function(struct mcc_annotated_ir *an_i
 	struct mcc_asm_line *prolog = generate_function_prolog(err);
 	struct mcc_asm_line *args = generate_function_args(function, an_ir, err);
 	struct mcc_asm_line *body = generate_function_body(function, an_ir, err);
-	struct mcc_asm_line *epilog = generate_function_epilog(err);
 	if (err->has_failed) {
 		mcc_asm_delete_all_lines(prolog);
 		mcc_asm_delete_all_lines(args);
 		mcc_asm_delete_all_lines(body);
-		mcc_asm_delete_all_lines(epilog);
 		return NULL;
 	}
-	compose_function_asm(function, prolog, args, body, epilog);
+	compose_function_asm(function, prolog, args, body);
 	return function;
 }
 
