@@ -67,6 +67,8 @@ static char *opcode_to_string(enum mcc_asm_opcode op)
 		return "negl";
 	case MCC_ASM_JE:
 		return "je";
+	case MCC_ASM_JNE:
+		return "jne";
 	case MCC_ASM_RETURN:
 		return "ret";
 
@@ -156,7 +158,7 @@ static void asm_print_line(FILE *out, struct mcc_asm_line *line)
 	if (line->opcode == MCC_ASM_LABEL) {
 		fprintf(out, "    L%d:\n", line->label);
 		return;
-	} else if (line->opcode == MCC_ASM_JE) {
+	} else if (line->opcode == MCC_ASM_JE || line->opcode == MCC_ASM_JNE) {
 		fprintf(out, "        %-7s L%d\n", opcode_to_string(line->opcode), line->label);
 		return;
 	}

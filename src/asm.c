@@ -373,7 +373,7 @@ void mcc_asm_delete_line(struct mcc_asm_line *line)
 {
 	if (!line)
 		return;
-	if (line->opcode != MCC_ASM_LABEL && line->opcode != MCC_ASM_JE) {
+	if (line->opcode != MCC_ASM_LABEL && line->opcode != MCC_ASM_JE && line->opcode != MCC_ASM_JNE) {
 		mcc_asm_delete_operand(line->first);
 		mcc_asm_delete_operand(line->second);
 	}
@@ -590,19 +590,25 @@ static struct mcc_asm_line *generate_return(struct mcc_annotated_ir *an_ir, stru
 	}
 	return leave;
 }
-static struct mcc_asm_line *generate_jumpfalse(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
+static struct mcc_asm_line *
+generate_jumpfalse(enum mcc_asm_opcode opcode, struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
 {
 	assert(an_ir);
 	if (err->has_failed)
 		return NULL;
 
-	struct mcc_asm_line *je = mcc_asm_new_label(MCC_ASM_JE, an_ir->row->arg2->label, err);
-	struct mcc_asm_operand *zero = mcc_asm_new_literal_operand(0, err);
-	struct mcc_asm_line *cmp =
-	    mcc_asm_new_line(MCC_ASM_CMPL, zero, arg_to_op(an_ir, an_ir->row->arg1, err), je, err);
-	if(err->has_failed){
+	unsigned label = opcode == MCC_ASM_JNE? an_ir->row->arg2->label : an_ir->row->arg1->label;
+	struct mcc_asm_line *jump = mcc_asm_new_label(opcode, label, err);
+	struct mcc_asm_line *cmp = NULL;
+	if(opcode == MCC_ASM_JNE){
+		struct mcc_asm_operand *one = mcc_asm_new_literal_operand(1, err);
+		cmp = mcc_asm_new_line(MCC_ASM_CMPL, one, arg_to_op(an_ir, an_ir->row->arg1, err), jump, err);
+	} else { // case of MCC_ASM_JE
+		cmp = mcc_asm_new_line(MCC_ASM_CMPL, eax(err), eax(err), jump, err);
+	}
+	if (err->has_failed) {
 		mcc_asm_delete_line(cmp);
-		mcc_asm_delete_line(je);
+		mcc_asm_delete_line(jump);
 		return NULL;
 	}
 	return cmp;
@@ -626,10 +632,12 @@ static struct mcc_asm_line *generate_asm_from_ir(struct mcc_annotated_ir *an_ir,
 		break;
 	case MCC_IR_INSTR_FUNC_LABEL:
 	case MCC_IR_INSTR_JUMP:
+		line = generate_jumpfalse(MCC_ASM_JE, an_ir, err);
+		break;
 	case MCC_IR_INSTR_CALL:
 		break;
 	case MCC_IR_INSTR_JUMPFALSE:
-		line = generate_jumpfalse(an_ir, err);
+		line = generate_jumpfalse(MCC_ASM_JNE, an_ir, err);
 		break;
 	case MCC_IR_INSTR_PUSH:
 	case MCC_IR_INSTR_POP:
