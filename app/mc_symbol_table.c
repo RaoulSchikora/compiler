@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
 	// Print to file or stdout
 	if (!command_line->options->print_dot) {
 		if (command_line->options->write_to_file == true) {
-			FILE *out = fopen(command_line->options->output_file, "a");
+			FILE *out = fopen(command_line->options->output_file, "w");
 			if (!out) {
 				return EXIT_FAILURE;
 			}
@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
 	// Print in dot format to file or stdout
 	if (command_line->options->print_dot) {
 		if (command_line->options->write_to_file == true) {
-			FILE *out = fopen(command_line->options->output_file, "a");
+			FILE *out = fopen(command_line->options->output_file, "w");
 			if (!out) {
 				return EXIT_FAILURE;
 			}

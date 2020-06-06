@@ -127,7 +127,7 @@ int main(int argc, char *argv[])
 	// ---------------------------------------------------------------------- Save assembly to file
 
 	// Print assembly to file
-	FILE *assembly_out = fopen("a.s", "w+");
+	FILE *assembly_out = fopen("a.s", "w");
 	if (!assembly_out) {
 		if (!command_line->options->quiet) {
 			fprintf(stderr, "Failed to open file a.s for writing.\n");
