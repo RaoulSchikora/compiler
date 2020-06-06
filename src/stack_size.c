@@ -167,7 +167,6 @@ static struct mcc_ir_row *last_line_of_function(struct mcc_ir_row *ir)
 	return ir;
 }
 
-// Done
 static int get_temporary_size(struct mcc_ir_row *ir)
 {
 	assert(ir);
