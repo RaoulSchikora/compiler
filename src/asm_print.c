@@ -19,7 +19,7 @@ static void asm_print_begin(FILE *out)
 
 static void asm_print_end(FILE *out)
 {
-	UNUSED(out);
+	fprintf(out, "\n");
 }
 
 static char *opcode_to_string(enum mcc_asm_opcode op)
@@ -190,13 +190,13 @@ static void asm_print_func(FILE *out, struct mcc_asm_function *func)
 // TODO: Allocate space for string and float arrays
 static void asm_print_decl(FILE *out, struct mcc_asm_declaration *decl)
 {
-	fprintf(out, "%s:\n", decl->identifier);
+	fprintf(out, "\t%s:", decl->identifier);
 	switch (decl->type) {
 	case MCC_ASM_DECLARATION_TYPE_FLOAT:
 		fprintf(out, "       .float %f\n", decl->float_value);
 		break;
 	case MCC_ASM_DECLARATION_TYPE_DB:
-		fprintf(out, "db %s", decl->db_value);
+		fprintf(out, "db \"%s\"\n", decl->db_value);
 		break;
 	case MCC_ASM_DECLARATION_TYPE_ARRAY_INT:
 	case MCC_ASM_DECLARATION_TYPE_ARRAY_BOOL:

@@ -597,10 +597,10 @@ generate_jumpfalse(enum mcc_asm_opcode opcode, struct mcc_annotated_ir *an_ir, s
 	if (err->has_failed)
 		return NULL;
 
-	unsigned label = opcode == MCC_ASM_JNE? an_ir->row->arg2->label : an_ir->row->arg1->label;
+	unsigned label = opcode == MCC_ASM_JNE ? an_ir->row->arg2->label : an_ir->row->arg1->label;
 	struct mcc_asm_line *jump = mcc_asm_new_label(opcode, label, err);
 	struct mcc_asm_line *cmp = NULL;
-	if(opcode == MCC_ASM_JNE){
+	if (opcode == MCC_ASM_JNE) {
 		struct mcc_asm_operand *one = mcc_asm_new_literal_operand(1, err);
 		cmp = mcc_asm_new_line(MCC_ASM_CMPL, one, arg_to_op(an_ir, an_ir->row->arg1, err), jump, err);
 	} else { // case of MCC_ASM_JE
@@ -869,8 +869,45 @@ static bool generate_text_section(struct mcc_asm_text_section *text_section,
 	return true;
 }
 
-static bool generate_data_section()
+static bool generate_data_section(struct mcc_asm_data_section *data_section,
+                                  struct mcc_annotated_ir *an_ir,
+                                  struct mcc_asm_error *err)
 {
+	assert(data_section);
+	assert(an_ir);
+	assert(err);
+	if (err->has_failed)
+		return false;
+	struct mcc_asm_declaration *head = data_section->head;
+
+	// Allocate all declared strings
+	while (an_ir) {
+		if (an_ir->row->instr != MCC_IR_INSTR_ASSIGN) {
+			an_ir = an_ir->next;
+			continue;
+		}
+		assert(an_ir->row->arg2);
+		if (an_ir->row->arg2->type != MCC_IR_TYPE_LIT_STRING) {
+			an_ir = an_ir->next;
+			continue;
+		}
+		struct mcc_asm_declaration *decl = mcc_asm_new_db_declaration(an_ir->row->arg1->ident->identifier_name,
+		                                                              an_ir->row->arg2->lit_string, NULL, err);
+		if (!decl) {
+			mcc_asm_delete_all_declarations(head);
+			err->has_failed = false;
+			return false;
+		}
+		if (!head) {
+			head = decl;
+			data_section->head = head;
+		} else {
+			head->next = decl;
+			head = decl;
+		}
+		an_ir = an_ir->next;
+	}
+
 	return true;
 }
 
@@ -895,7 +932,7 @@ struct mcc_asm *mcc_asm_generate(struct mcc_ir_row *ir)
 	assembly->text_section = text_section;
 
 	bool text_section_generated = generate_text_section(assembly->text_section, an_ir, err);
-	bool data_section_generated = generate_data_section();
+	bool data_section_generated = generate_data_section(assembly->data_section, an_ir, err);
 	if (!text_section_generated || !data_section_generated) {
 		mcc_asm_delete_asm(assembly);
 	}
