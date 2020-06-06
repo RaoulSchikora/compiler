@@ -881,6 +881,7 @@ static bool generate_data_section(struct mcc_asm_data_section *data_section,
 	struct mcc_asm_declaration *head = data_section->head;
 
 	// Allocate all declared strings
+	// TODO: Handle reassignment
 	while (an_ir) {
 		if (an_ir->row->instr != MCC_IR_INSTR_ASSIGN) {
 			an_ir = an_ir->next;
