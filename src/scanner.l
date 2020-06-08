@@ -115,4 +115,4 @@ string_literal \"[^"]*\"
 
 <<EOF>>           { yylloc->filename = filename; return TK_END; }
 
-.                 { fprintf(stderr, "invalid character '%c'\n", yytext[0]); }
+.                 { fprintf(stderr, "invalid character '%c'. I'll ignore it and continue.\n", yytext[0]); }
