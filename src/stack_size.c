@@ -343,7 +343,7 @@ int get_array_element_location(struct mcc_annotated_ir *an_ir)
 	assert(an_ir);
 	struct mcc_annotated_ir *head = an_ir;
 	struct mcc_annotated_ir *first = head;
-	while (first) {
+	while (first && first->prev) {
 		if (first->prev->row->instr == MCC_IR_INSTR_FUNC_LABEL) {
 			first = first->prev;
 			break;
