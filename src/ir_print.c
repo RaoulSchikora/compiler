@@ -24,33 +24,33 @@ static void row_to_string(
 {
 	switch (instr) {
 	case MCC_IR_INSTR_LABEL:
-		snprintf(out, TERMINAL_LINE_LENGTH, "%6s %s %s %s\n", label, instruction, arg1, arg2);
+		snprintf(out, TERMINAL_LINE_LENGTH, "%6s %s %s %s", label, instruction, arg1, arg2);
 		break;
 	case MCC_IR_INSTR_FUNC_LABEL:
 	case MCC_IR_INSTR_JUMPFALSE:
 	case MCC_IR_INSTR_JUMP:
 	case MCC_IR_INSTR_PUSH:
 	case MCC_IR_INSTR_RETURN:
-		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s %s %s\n", label, instruction, arg1, arg2);
+		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s %s %s", label, instruction, arg1, arg2);
 		break;
 	// Inline instructions
 	case MCC_IR_INSTR_ASSIGN:
-		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s %s %s\n", label, arg1, instruction, arg2);
+		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s %s %s", label, arg1, instruction, arg2);
 		break;
 	case MCC_IR_INSTR_POP:
-		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s %s\n", label, instruction, row_no);
+		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s %s", label, instruction, row_no);
 		break;
 	case MCC_IR_INSTR_ARRAY_INT:
-		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s = %s [%s] int\n", label, arg1, instruction, arg2);
+		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s = %s [%s] int", label, arg1, instruction, arg2);
 		break;
 	case MCC_IR_INSTR_ARRAY_FLOAT:
-		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s = %s [%s] float\n", label, arg1, instruction, arg2);
+		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s = %s [%s] float", label, arg1, instruction, arg2);
 		break;
 	case MCC_IR_INSTR_ARRAY_BOOL:
-		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s = %s [%s] bool\n", label, arg1, instruction, arg2);
+		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s = %s [%s] bool", label, arg1, instruction, arg2);
 		break;
 	case MCC_IR_INSTR_ARRAY_STRING:
-		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s = %s [%s] string\n", label, arg1, instruction, arg2);
+		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s = %s [%s] string", label, arg1, instruction, arg2);
 		break;
 	case MCC_IR_INSTR_AND:
 	case MCC_IR_INSTR_EQUALS:
@@ -64,14 +64,14 @@ static void row_to_string(
 	case MCC_IR_INSTR_MINUS:
 	case MCC_IR_INSTR_DIVIDE:
 	case MCC_IR_INSTR_MULTIPLY:
-		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s = %s %s %s\n", label, row_no, arg1, instruction, arg2);
+		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s = %s %s %s", label, row_no, arg1, instruction, arg2);
 		break;
 	case MCC_IR_INSTR_NEGATIV:
 	case MCC_IR_INSTR_NOT:
-		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s = %s%s\n", label, row_no, instruction, arg1);
+		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s = %s%s", label, row_no, instruction, arg1);
 		break;
 	case MCC_IR_INSTR_CALL:
-		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s = %s %s\n", label, row_no, instruction, arg1);
+		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s = %s %s", label, row_no, instruction, arg1);
 		break;
 	case MCC_IR_INSTR_UNKNOWN:
 		break;
@@ -223,15 +223,76 @@ static void arg_to_string(char *dest, struct mcc_ir_arg *arg)
 	};
 }
 
+static int row_type_size(struct mcc_ir_row_type *type)
+{	
+	int size = 0;
+	switch (type->type)
+	{
+	case MCC_IR_ROW_INT:
+		size = 4;
+		break;
+	case MCC_IR_ROW_FLOAT:
+		size = 6;
+		break;
+	case MCC_IR_ROW_BOOL:
+		size = 5;
+		break;
+	case MCC_IR_ROW_STRING:
+		size = 7;
+		break;
+	case MCC_IR_ROW_TYPELESS:
+		size = 1;
+		break;
+	}
+	if(type->array_size > -1){
+		size += length_of_int((int) type->array_size);
+	}
+	return size;
+}
+
+static void row_type_to_string(char *row_type_string, struct mcc_ir_row_type *type)
+{
+	int size = 0;
+	if(type->array_size != -1){
+		size = length_of_int((int) type->array_size);
+	}
+	char str_end[size + 2];
+	if(size > 0){
+		snprintf(str_end, size + 3, "[%d]", (int) type->array_size);
+	} else {
+		snprintf(str_end, 2, "%s", " ");
+	}
+	switch (type->type)
+	{
+	case MCC_IR_ROW_INT:
+		snprintf(row_type_string, size + 6, "%s%s", "INT", str_end);
+		break;
+	case MCC_IR_ROW_FLOAT:
+		snprintf(row_type_string, size + 8, "%s%s", "FLOAT", str_end);
+		break;
+	case MCC_IR_ROW_BOOL:
+		snprintf(row_type_string, size + 7, "%s%s", "BOOL", str_end);
+		break;
+	case MCC_IR_ROW_STRING:
+		snprintf(row_type_string, size + 9, "%s%s", "STRING", str_end);
+		break;
+	case MCC_IR_ROW_TYPELESS:
+		snprintf(row_type_string, size + 4, "%s%s", " ", str_end);
+		break;
+	}
+}
+
 static void get_row_string(struct mcc_ir_row *row, char *row_string)
 {
 	char *instr = instr_to_string(row->instr);
 	char arg1[arg_size(row->arg1)];
 	char arg2[arg_size(row->arg2)];
 	char no[length_of_int(row->row_no) + 2];
+	char row_type[row_type_size(row->type)];
 	row_no_to_string(no, row->row_no);
 	arg_to_string(arg1, row->arg1);
 	arg_to_string(arg2, row->arg2);
+	row_type_to_string(row_type, row->type);
 	char label[arg_size(row->arg1)];
 	switch (row->instr) {
 	case MCC_IR_INSTR_LABEL:
@@ -245,7 +306,9 @@ static void get_row_string(struct mcc_ir_row *row, char *row_string)
 	default:
 		strcpy(label, "");
 	}
-	row_to_string(row_string, label, no, instr, arg1, arg2, row->instr);
+	char row_string2[TERMINAL_LINE_LENGTH];
+	row_to_string(row_string2, label, no, instr, arg1, arg2, row->instr);
+	snprintf(row_string, TERMINAL_LINE_LENGTH, "%-30.29s%s\n", row_string2, row_type);
 }
 
 void mcc_ir_print_ir_row(FILE *out, struct mcc_ir_row *row)
