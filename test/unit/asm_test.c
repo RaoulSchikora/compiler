@@ -266,6 +266,32 @@ void array_loc(CuTest *tc)
 	mcc_asm_delete_asm(code);
 }
 
+void strings(CuTest *tc)
+{
+	// Define test input and create IR
+	const char input[] = "int main(){string a; a = \"test\"; a = \"test2\";return 0;}";
+	struct mcc_parser_result parser_result;
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
+	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+	struct mcc_semantic_check *checks = mcc_semantic_check_run_all((&parser_result)->program, table);
+	CuAssertIntEquals(tc, checks->status, MCC_SEMANTIC_CHECK_OK);
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program, table);
+	CuAssertPtrNotNull(tc, ir);
+
+	struct mcc_asm *code = mcc_asm_generate(ir);
+	CuAssertPtrNotNull(tc, code);
+
+	struct mcc_asm_declaration *decl = code->data_section->head;
+	CuAssertPtrNotNull(tc, decl);
+
+	mcc_ir_delete_ir(ir);
+	mcc_semantic_check_delete_single_check(checks);
+	mcc_ast_delete(parser_result.program);
+	mcc_symbol_table_delete_table(table);
+	mcc_asm_delete_asm(code);
+}
+
 // clang-format off
 
 #define TESTS \
@@ -273,7 +299,8 @@ void array_loc(CuTest *tc)
 	TEST(stack_frame_size_int) \
 	TEST(addition_lit) \
 	TEST(div_int) \
-	TEST(array_loc)
+	TEST(array_loc) \
+	TEST(strings)
 
 // clang-format on
 
