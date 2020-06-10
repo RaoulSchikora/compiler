@@ -48,14 +48,14 @@ enum mcc_ir_instruction {
 };
 
 enum mcc_ir_arg_type {
-	MCC_IR_TYPE_ROW,
 	MCC_IR_TYPE_LIT_INT,
 	MCC_IR_TYPE_LIT_FLOAT,
 	MCC_IR_TYPE_LIT_BOOL,
 	MCC_IR_TYPE_LIT_STRING,
+	MCC_IR_TYPE_ROW,
+	MCC_IR_TYPE_LABEL,
 	MCC_IR_TYPE_IDENTIFIER,
 	MCC_IR_TYPE_ARR_ELEM,
-	MCC_IR_TYPE_LABEL,
 	MCC_IR_TYPE_FUNC_LABEL,
 };
 
@@ -78,9 +78,23 @@ struct mcc_ir_arg {
 	};
 };
 
+enum mcc_ir_row_types {
+	MCC_IR_ROW_INT,
+	MCC_IR_ROW_FLOAT,
+	MCC_IR_ROW_BOOL,
+	MCC_IR_ROW_STRING,
+	MCC_IR_ROW_TYPELESS,
+};
+
+struct mcc_ir_row_type {
+	enum mcc_ir_row_types type;
+	signed array_size; // -1 if no array
+};
+
 struct mcc_ir_row {
 	unsigned row_no;
 	enum mcc_ir_instruction instr;
+	struct mcc_ir_row_type *type;
 
 	struct mcc_ir_arg *arg1;
 	struct mcc_ir_arg *arg2;
@@ -101,6 +115,8 @@ struct mcc_ir_row *mcc_ir_generate(struct mcc_ast_program *ast, struct mcc_symbo
 //---------------------------------------------------------------------------------------- Cleanup
 
 void mcc_ir_delete_ir(struct mcc_ir_row *head);
+
+void mcc_ir_delete_ir_row_type(struct mcc_ir_row_type *type);
 
 void mcc_ir_delete_ir_row(struct mcc_ir_row *row);
 
