@@ -926,6 +926,7 @@ struct mcc_asm *mcc_asm_generate(struct mcc_ir_row *ir)
 		mcc_asm_delete_asm(assembly);
 		mcc_asm_delete_text_section(text_section);
 		mcc_asm_delete_data_section(data_section);
+		mcc_delete_annotated_ir(an_ir);
 		return NULL;
 	}
 	assembly->data_section = data_section;
@@ -935,9 +936,11 @@ struct mcc_asm *mcc_asm_generate(struct mcc_ir_row *ir)
 	bool data_section_generated = generate_data_section(assembly->data_section, an_ir, err);
 	if (!text_section_generated || !data_section_generated) {
 		mcc_asm_delete_asm(assembly);
+		mcc_delete_annotated_ir(an_ir);
 	}
 
 	free(err);
+	mcc_delete_annotated_ir(an_ir);
 
 	return assembly;
 }
