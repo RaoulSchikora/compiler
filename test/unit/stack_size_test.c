@@ -104,7 +104,7 @@ void test_int_array(CuTest *tc)
 	CuAssertIntEquals(tc, -STACK_SIZE_INT - (41 * STACK_SIZE_INT), an_ir->next->next->next->next->stack_position);
 }
 
-void test_int_multiple_refernces(CuTest *tc)
+void test_int_multiple_references(CuTest *tc)
 {
 	// Define test input and create IR -> produces 2 temporaries
 	const char input[] = "int main(){int a; a = 1;int b; b = 1; a = 2; return 0;}";
@@ -134,7 +134,7 @@ void test_int_multiple_refernces(CuTest *tc)
 	TEST(test_ints) \
 	TEST(test_int_temporaries) \
 	TEST(test_int_array) \
-	TEST(test_int_multiple_refernces)
+	TEST(test_int_multiple_references)
 
 // clang-format on
 
