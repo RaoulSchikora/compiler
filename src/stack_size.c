@@ -40,7 +40,6 @@ static int argument_size(struct mcc_ir_arg *arg, struct mcc_ir_row *ir);
 
 // --------------------------------------------------------------------------------------- Calc stack size and position
 
-// DONE
 static bool assignment_is_first_occurence(struct mcc_ir_row *first, struct mcc_ir_row *ir)
 {
 	assert(first);
@@ -367,11 +366,34 @@ int get_array_element_location(struct mcc_annotated_ir *an_ir)
 	return 0;
 }
 
+int lookup_var_loc(struct mcc_annotated_ir *func, struct mcc_annotated_ir *head)
+{
+	assert(func);
+	assert(func->row->instr == MCC_IR_INSTR_FUNC_LABEL);
+	assert(head);
+	assert(head->row->instr == MCC_IR_INSTR_ASSIGN);
+	struct mcc_ir_row *last = last_line_of_function(func->row);
+	struct mcc_annotated_ir *var = head;
+	head = func;
+	while (head && (head->row != last)) {
+		if (head->row->instr != MCC_IR_INSTR_ASSIGN) {
+			head = head->next;
+			continue;
+		}
+		if (strcmp(head->row->arg1->ident->identifier_name, var->row->arg1->ident->identifier_name)==0) {
+			return head->stack_position;
+		}
+		head = head->next;
+	}
+	return 0;
+}
+
 static void add_stack_positions(struct mcc_annotated_ir *head)
 {
 	assert(head);
 	assert(head->row->instr == MCC_IR_INSTR_FUNC_LABEL);
 
+	struct mcc_annotated_ir *func = head;
 	head->stack_size = get_frame_size_of_function(head);
 	head = head->next;
 	int current_position = 0;
@@ -381,6 +403,7 @@ static void add_stack_positions(struct mcc_annotated_ir *head)
 		if (head->row->instr == MCC_IR_INSTR_FUNC_LABEL) {
 			head->stack_size = get_frame_size_of_function(head);
 			current_position = 0;
+			func = head;
 			head = head->next;
 			continue;
 		}
@@ -401,6 +424,18 @@ static void add_stack_positions(struct mcc_annotated_ir *head)
 			head = head->next;
 			continue;
 		}
+		// Variables
+		if (head->row->instr == MCC_IR_INSTR_ASSIGN) {
+			if (!assignment_is_first_occurence(func->row, head->row)) {
+				head->stack_position = lookup_var_loc(func, head);
+			} else {
+				current_position = current_position - head->stack_size;
+				head->stack_position = current_position;
+			}
+			head = head->next;
+			continue;
+		}
+		// Rest
 		current_position = current_position - head->stack_size;
 		head->stack_position = current_position;
 		head = head->next;
