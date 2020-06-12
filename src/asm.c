@@ -449,8 +449,9 @@ static struct mcc_asm_line *generate_instr_assign(struct mcc_annotated_ir *an_ir
 		line2 = mcc_asm_new_line(MCC_ASM_MOVL, eax(err), arg_to_op(an_ir, an_ir->row->arg1, err), NULL, err);
 		line1 = mcc_asm_new_line(MCC_ASM_MOVL, arg_to_op(an_ir, an_ir->row->arg2, err), eax(err), line2, err);
 	} else {
-		// TODO remove when done
-		line1 = mcc_asm_new_line(MCC_ASM_MOVL, mcc_asm_new_literal_operand((int)9999999, err),
+		// TODO remove when done. Remider: "(int)an_ir->stack_position" was only chosen to let compare operations
+		// of float-integration-test fail (makes no sense at all, so don't get confused :) ...)
+		line1 = mcc_asm_new_line(MCC_ASM_MOVL, mcc_asm_new_literal_operand((int)an_ir->stack_position, err),
 		                         ebp(offset2, err), NULL, err);
 	}
 
