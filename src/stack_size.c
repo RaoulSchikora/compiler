@@ -169,8 +169,21 @@ static struct mcc_ir_row *last_line_of_function(struct mcc_ir_row *ir)
 static int get_temporary_size(struct mcc_ir_row *ir)
 {
 	assert(ir);
-	assert(ir->arg1);
-	return argument_size(ir->arg1, ir);
+
+	switch (ir->type->type) {
+	case MCC_IR_ROW_TYPELESS:
+		return 0;
+	case MCC_IR_ROW_BOOL:
+		return STACK_SIZE_BOOL;
+	case MCC_IR_ROW_INT:
+		return STACK_SIZE_BOOL;
+	case MCC_IR_ROW_STRING:
+		return STACK_SIZE_STRING;
+	case MCC_IR_ROW_FLOAT:
+		return STACK_SIZE_FLOAT;
+	default:
+		return 0;
+	}
 }
 
 static int get_array_type_size(struct mcc_ir_row *ir)
@@ -178,15 +191,14 @@ static int get_array_type_size(struct mcc_ir_row *ir)
 	assert(ir);
 	assert(ir->instr == MCC_IR_INSTR_ARRAY_BOOL || MCC_ASM_DECLARATION_TYPE_ARRAY_FLOAT ||
 	       MCC_ASM_DECLARATION_TYPE_ARRAY_INT || MCC_ASM_DECLARATION_TYPE_ARRAY_STRING);
-	assert(ir->arg2->type == MCC_IR_TYPE_LIT_INT);
 
 	switch (ir->instr) {
 	case MCC_IR_INSTR_ARRAY_BOOL:
-		return STACK_SIZE_BOOL * (ir->arg2->lit_int);
+		return STACK_SIZE_BOOL * ir->type->array_size;
 	case MCC_IR_INSTR_ARRAY_FLOAT:
-		return STACK_SIZE_FLOAT * (ir->arg2->lit_int);
+		return STACK_SIZE_FLOAT * ir->type->array_size;
 	case MCC_IR_INSTR_ARRAY_INT:
-		return STACK_SIZE_INT * (ir->arg2->lit_int);
+		return STACK_SIZE_INT * ir->type->array_size;
 	case MCC_IR_INSTR_ARRAY_STRING:
 		return STACK_SIZE_STRING;
 	// Unreached, as per assertion
@@ -380,7 +392,7 @@ int lookup_var_loc(struct mcc_annotated_ir *func, struct mcc_annotated_ir *head)
 			head = head->next;
 			continue;
 		}
-		if (strcmp(head->row->arg1->ident->identifier_name, var->row->arg1->ident->identifier_name)==0) {
+		if (strcmp(head->row->arg1->ident->identifier_name, var->row->arg1->ident->identifier_name) == 0) {
 			return head->stack_position;
 		}
 		head = head->next;
