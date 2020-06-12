@@ -454,6 +454,31 @@ static void add_stack_positions(struct mcc_annotated_ir *head)
 	}
 }
 
+static void rename_strings(struct mcc_annotated_ir *head)
+{
+	assert(head);
+	assert(head->row->instr == MCC_IR_INSTR_FUNC_LABEL);
+	struct mcc_annotated_ir *first = head;
+	int rename_counter = 0;
+	while (head) {
+		if (head->row->instr != MCC_IR_INSTR_ASSIGN) {
+			head = head->next;
+			continue;
+		}
+		if (head->row->type->type != MCC_IR_ROW_STRING) {
+			head = head->next;
+			continue;
+		}
+		if (assignment_is_first_occurence(first->row, head->row)) {
+			head = head->next;
+			continue;
+		}
+		// rename_identifier(head->row->arg1->ident->identifier_name, rename_counter);
+		rename_counter = rename_counter + 1;
+		head = head->next;
+	}
+}
+
 struct mcc_annotated_ir *mcc_annotate_ir(struct mcc_ir_row *ir)
 {
 	assert(ir);
@@ -464,5 +489,6 @@ struct mcc_annotated_ir *mcc_annotate_ir(struct mcc_ir_row *ir)
 	if (!an_head)
 		return NULL;
 	add_stack_positions(an_head);
+	rename_strings(an_head);
 	return an_head;
 }

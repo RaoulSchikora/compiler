@@ -1,7 +1,9 @@
 // Stack Size
 //
-// Annotate the IR with the needed stack sizes per Line of IR
-// Also provides a suggested position on the stack for each variable that is introduced
+// A "pre-processing" module for the IR before generating ASM code.
+// Annotates the IR with the needed stack sizes per Line of IR
+// Also provides a suggested position on the stack for each variable that is introduced.
+// Renames string occurences within IR, so that each string has a unique name that can be used in asm code.
 
 #ifndef MCC_STACK_SIZE_H
 #define MCC_STACK_SIZE_H
