@@ -818,12 +818,16 @@ static struct mcc_ir_arg *new_arg_bool(bool lit, struct ir_generation_userdata *
 static struct mcc_ir_arg *new_arg_string(char *lit, struct ir_generation_userdata *data)
 {
 	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
-	if (!arg) {
+	char *string = malloc(sizeof(char) * (strlen(lit) + 1));
+	if (!arg || !string) {
 		data->has_failed = true;
+		free(arg);
+		free(string);
 		return NULL;
 	}
+	strcpy(string, lit);
 	arg->type = MCC_IR_TYPE_LIT_STRING;
-	arg->lit_string = lit;
+	arg->lit_string = string;
 	return arg;
 }
 
@@ -1168,6 +1172,9 @@ void mcc_ir_delete_ir_arg(struct mcc_ir_arg *arg)
 	}
 	if (arg->type == MCC_IR_TYPE_ARR_ELEM) {
 		mcc_ir_delete_ir_arg(arg->index);
+	}
+	if(arg->type == MCC_IR_TYPE_LIT_STRING){
+		free(arg->lit_string);
 	}
 	free(arg);
 }
