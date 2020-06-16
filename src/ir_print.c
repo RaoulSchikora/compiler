@@ -156,9 +156,9 @@ static int arg_size(struct mcc_ir_arg *arg)
 	case MCC_IR_TYPE_LABEL:
 		return length_of_int(arg->label) + 1;
 	case MCC_IR_TYPE_IDENTIFIER:
-		return strlen(arg->ident->identifier_name) + 2;
+		return strlen(arg->ident) + 2;
 	case MCC_IR_TYPE_ARR_ELEM:
-		return strlen(arg->arr_ident->identifier_name) + arg_size(arg->index) + 3;
+		return strlen(arg->arr_ident) + arg_size(arg->index) + 3;
 	case MCC_IR_TYPE_FUNC_LABEL:
 		return strlen(arg->func_label);
 	default:
@@ -212,11 +212,11 @@ static void arg_to_string(char *dest, struct mcc_ir_arg *arg)
 		sprintf(dest, "L%d", arg->label);
 		return;
 	case MCC_IR_TYPE_IDENTIFIER:
-		sprintf(dest, "%s", arg->ident->identifier_name);
+		sprintf(dest, "%s", arg->ident);
 		return;
 	case MCC_IR_TYPE_ARR_ELEM:
 		arg_to_string(index, arg->index);
-		sprintf(dest, "%s[%s]", arg->arr_ident->identifier_name, index);
+		sprintf(dest, "%s[%s]", arg->arr_ident, index);
 		return;
 	case MCC_IR_TYPE_FUNC_LABEL:
 		sprintf(dest, "%s", arg->func_label);
@@ -224,10 +224,9 @@ static void arg_to_string(char *dest, struct mcc_ir_arg *arg)
 }
 
 static int row_type_size(struct mcc_ir_row_type *type)
-{	
+{
 	int size = 0;
-	switch (type->type)
-	{
+	switch (type->type) {
 	case MCC_IR_ROW_INT:
 		size = 4;
 		break;
@@ -244,8 +243,8 @@ static int row_type_size(struct mcc_ir_row_type *type)
 		size = 1;
 		break;
 	}
-	if(type->array_size > -1){
-		size += length_of_int((int) type->array_size);
+	if (type->array_size > -1) {
+		size += length_of_int((int)type->array_size);
 	}
 	return size;
 }
@@ -253,17 +252,16 @@ static int row_type_size(struct mcc_ir_row_type *type)
 static void row_type_to_string(char *row_type_string, struct mcc_ir_row_type *type)
 {
 	int size = 0;
-	if(type->array_size != -1){
-		size = length_of_int((int) type->array_size);
+	if (type->array_size != -1) {
+		size = length_of_int((int)type->array_size);
 	}
 	char str_end[size + 2];
-	if(size > 0){
-		snprintf(str_end, size + 3, "[%d]", (int) type->array_size);
+	if (size > 0) {
+		snprintf(str_end, size + 3, "[%d]", (int)type->array_size);
 	} else {
 		snprintf(str_end, 2, "%s", " ");
 	}
-	switch (type->type)
-	{
+	switch (type->type) {
 	case MCC_IR_ROW_INT:
 		snprintf(row_type_string, size + 6, "%s%s", "INT", str_end);
 		break;

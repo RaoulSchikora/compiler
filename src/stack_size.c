@@ -51,14 +51,14 @@ static bool assignment_is_first_occurence(struct mcc_ir_row *first, struct mcc_i
 		return false;
 	}
 
-	char *id_name = ir->arg1->ident->identifier_name;
+	char *id_name = ir->arg1->ident;
 	struct mcc_ir_row *head = first;
 	while (head != ir) {
 		if (head->instr != MCC_IR_INSTR_ASSIGN) {
 			head = head->next_row;
 			continue;
 		}
-		if (strcmp(head->arg1->ident->identifier_name, id_name) == 0) {
+		if (strcmp(head->arg1->ident, id_name) == 0) {
 			return false;
 		}
 		head = head->next_row;
@@ -76,7 +76,7 @@ static struct mcc_ir_row *find_first_occurence(char *identifier, struct mcc_ir_r
 		if (ir->instr == MCC_IR_INSTR_ASSIGN || ir->instr == MCC_IR_INSTR_ARRAY_BOOL ||
 		    ir->instr == MCC_IR_INSTR_ARRAY_FLOAT || ir->instr == MCC_IR_INSTR_ARRAY_INT ||
 		    ir->instr == MCC_IR_INSTR_ARRAY_STRING) {
-			if (strcmp(identifier, ir->arg1->ident->identifier_name) == 0) {
+			if (strcmp(identifier, ir->arg1->ident) == 0) {
 				return ir;
 			}
 		}
@@ -105,12 +105,12 @@ static int argument_size(struct mcc_ir_arg *arg, struct mcc_ir_row *ir)
 	case MCC_IR_TYPE_LIT_BOOL:
 		return STACK_SIZE_BOOL;
 	case MCC_IR_TYPE_IDENTIFIER:
-		ref = find_first_occurence(arg->ident->identifier_name, ir);
+		ref = find_first_occurence(arg->ident, ir);
 		if (!ref)
 			return 0;
 		return argument_size(ref->arg2, ir);
 	case MCC_IR_TYPE_ARR_ELEM:
-		ref = find_first_occurence(arg->arr_ident->identifier_name, ir);
+		ref = find_first_occurence(arg->arr_ident, ir);
 		if (!ref)
 			return 0;
 		return get_array_type_size(ref);
@@ -365,8 +365,8 @@ int get_array_element_location(struct mcc_annotated_ir *an_ir)
 	while (head) {
 		if (head->row->instr == MCC_IR_INSTR_ARRAY_BOOL || head->row->instr == MCC_IR_INSTR_ARRAY_FLOAT ||
 		    head->row->instr == MCC_IR_INSTR_ARRAY_INT || head->row->instr == MCC_IR_INSTR_ARRAY_STRING) {
-			if (strcmp(head->row->arg1->ident->identifier_name,
-			           an_ir->row->arg1->arr_ident->identifier_name) == 0) {
+			if (strcmp(head->row->arg1->ident,
+			           an_ir->row->arg1->arr_ident) == 0) {
 				int array_pos = head->stack_position;
 				int element_pos =
 				    array_pos - an_ir->row->arg1->index->lit_int * get_array_base_size(head->row);
@@ -392,7 +392,7 @@ int lookup_var_loc(struct mcc_annotated_ir *func, struct mcc_annotated_ir *head)
 			head = head->next;
 			continue;
 		}
-		if (strcmp(head->row->arg1->ident->identifier_name, var->row->arg1->ident->identifier_name) == 0) {
+		if (strcmp(head->row->arg1->ident, var->row->arg1->ident) == 0) {
 			return head->stack_position;
 		}
 		head = head->next;

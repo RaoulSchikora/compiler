@@ -72,6 +72,7 @@ static struct mcc_ir_arg *new_arg_string(char *lit, struct ir_generation_userdat
 static struct mcc_ir_arg *new_arg_row(struct mcc_ir_row *row, struct ir_generation_userdata *data);
 static struct mcc_ir_arg *new_arg_label(struct ir_generation_userdata *data);
 static struct mcc_ir_arg *new_arg_identifier(struct mcc_ast_identifier *ident, struct ir_generation_userdata *data);
+static struct mcc_ir_arg *new_arg_identifier_from_string(char *ident, struct ir_generation_userdata *data);
 static struct mcc_ir_arg *
 new_arg_arr_elem(struct mcc_ast_identifier *ident, struct mcc_ir_arg *elem, struct ir_generation_userdata *data);
 static void append_row(struct mcc_ir_row *row, struct ir_generation_userdata *data);
@@ -147,11 +148,11 @@ ident_to_ir_type(struct mcc_ir_arg *arg, struct mcc_ast_expression *exp, struct 
 
 	struct mcc_symbol_table_row *row = NULL;
 	if (exp->type == MCC_AST_EXPRESSION_TYPE_VARIABLE) {
-		row = mcc_symbol_table_check_upwards_for_declaration(arg->ident->identifier_name, exp->variable_row);
+		row = mcc_symbol_table_check_upwards_for_declaration(arg->ident, exp->variable_row);
 	} else if (exp->type == MCC_AST_EXPRESSION_TYPE_ARRAY_ELEMENT) {
-		row = mcc_symbol_table_check_upwards_for_declaration(arg->ident->identifier_name, exp->array_row);
+		row = mcc_symbol_table_check_upwards_for_declaration(arg->ident, exp->array_row);
 	} else if (exp->type == MCC_AST_EXPRESSION_TYPE_FUNCTION_CALL) {
-		row = mcc_symbol_table_check_for_function_declaration(arg->ident->identifier_name, exp->function_row);
+		row = mcc_symbol_table_check_for_function_declaration(arg->ident, exp->function_row);
 	}
 
 	return st_row_to_ir_type(row, -1, data);
@@ -722,7 +723,7 @@ static struct mcc_ir_arg *copy_arg(struct mcc_ir_arg *arg, struct ir_generation_
 	case MCC_IR_TYPE_LIT_STRING:
 		return new_arg_string(arg->lit_string, data);
 	case MCC_IR_TYPE_IDENTIFIER:
-		return new_arg_identifier(arg->ident, data);
+		return new_arg_identifier_from_string(arg->ident, data);
 	case MCC_IR_TYPE_LABEL:
 		return copy_label_arg(arg, data);
 	case MCC_IR_TYPE_ROW:
@@ -847,12 +848,31 @@ static struct mcc_ir_arg *new_arg_label(struct ir_generation_userdata *data)
 static struct mcc_ir_arg *new_arg_identifier(struct mcc_ast_identifier *ident, struct ir_generation_userdata *data)
 {
 	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
-	if (!arg) {
+	char *str = malloc(sizeof(char) * (strlen(ident->identifier_name) + 1));
+	if (!arg || !str) {
 		data->has_failed = true;
+		free(arg);
+		free(str);
+		return NULL;
+	}
+	strcpy(str, ident->identifier_name);
+	arg->type = MCC_IR_TYPE_IDENTIFIER;
+	arg->ident = str;
+	return arg;
+}
+
+static struct mcc_ir_arg *new_arg_identifier_from_string(char *ident, struct ir_generation_userdata *data)
+{
+	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
+	char *str = strdup(ident);
+	if (!arg || !str) {
+		data->has_failed = true;
+		free(arg);
+		free(str);
 		return NULL;
 	}
 	arg->type = MCC_IR_TYPE_IDENTIFIER;
-	arg->ident = ident;
+	arg->ident = str;
 	return arg;
 }
 
@@ -860,12 +880,16 @@ static struct mcc_ir_arg *
 new_arg_arr_elem(struct mcc_ast_identifier *ident, struct mcc_ir_arg *index, struct ir_generation_userdata *data)
 {
 	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
-	if (!arg) {
+	char *str = malloc(sizeof(char) * (strlen(ident->identifier_name) + 1));
+	if (!arg || !str) {
 		data->has_failed = true;
+		free(arg);
+		free(str);
 		return NULL;
 	}
+	strcpy(str, ident->identifier_name);
 	arg->type = MCC_IR_TYPE_ARR_ELEM;
-	arg->arr_ident = ident;
+	arg->arr_ident = str;
 	arg->index = index;
 	return arg;
 }
@@ -1173,8 +1197,14 @@ void mcc_ir_delete_ir_arg(struct mcc_ir_arg *arg)
 	if (arg->type == MCC_IR_TYPE_ARR_ELEM) {
 		mcc_ir_delete_ir_arg(arg->index);
 	}
-	if(arg->type == MCC_IR_TYPE_LIT_STRING){
+	if (arg->type == MCC_IR_TYPE_LIT_STRING) {
 		free(arg->lit_string);
+	}
+	if(arg->type == MCC_IR_TYPE_IDENTIFIER){
+		free(arg->ident);
+	}
+	if(arg->type == MCC_IR_TYPE_ARR_ELEM){
+		free(arg->arr_ident);
 	}
 	free(arg);
 }

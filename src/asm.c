@@ -10,7 +10,7 @@
 #include "mcc/stack_size.h"
 #include "utils/unused.h"
 
-static int get_identifier_offset(struct mcc_annotated_ir *first, struct mcc_ast_identifier *ident)
+static int get_identifier_offset(struct mcc_annotated_ir *first,  char *ident)
 {
 	assert(first);
 	assert(ident);
@@ -20,7 +20,7 @@ static int get_identifier_offset(struct mcc_annotated_ir *first, struct mcc_ast_
 
 	while (first && first->row->instr != MCC_IR_INSTR_FUNC_LABEL) {
 		if (first->row->instr == MCC_IR_INSTR_ASSIGN) {
-			if (strcmp(first->row->arg1->ident->identifier_name, ident->identifier_name) == 0) {
+			if (strcmp(first->row->arg1->ident, ident) == 0) {
 				return first->stack_position;
 			}
 		}
@@ -449,8 +449,8 @@ static struct mcc_asm_line *generate_instr_assign(struct mcc_annotated_ir *an_ir
 		line2 = mcc_asm_new_line(MCC_ASM_MOVL, eax(err), arg_to_op(an_ir, an_ir->row->arg1, err), NULL, err);
 		line1 = mcc_asm_new_line(MCC_ASM_MOVL, arg_to_op(an_ir, an_ir->row->arg2, err), eax(err), line2, err);
 	} else {
-		// TODO remove when done. Remider: "(int)an_ir->stack_position" was only chosen to let compare operations
-		// of float-integration-test fail (makes no sense at all, so don't get confused :) ...)
+		// TODO remove when done. Remider: "(int)an_ir->stack_position" was only chosen to let compare
+		// operations of float-integration-test fail (makes no sense at all, so don't get confused :) ...)
 		line1 = mcc_asm_new_line(MCC_ASM_MOVL, mcc_asm_new_literal_operand((int)an_ir->stack_position, err),
 		                         ebp(offset2, err), NULL, err);
 	}
@@ -892,7 +892,7 @@ static bool generate_data_section(struct mcc_asm_data_section *data_section,
 			an_ir = an_ir->next;
 			continue;
 		}
-		struct mcc_asm_declaration *decl = mcc_asm_new_db_declaration(an_ir->row->arg1->ident->identifier_name,
+		struct mcc_asm_declaration *decl = mcc_asm_new_db_declaration(an_ir->row->arg1->ident,
 		                                                              an_ir->row->arg2->lit_string, NULL, err);
 		if (!decl) {
 			mcc_asm_delete_all_declarations(head);

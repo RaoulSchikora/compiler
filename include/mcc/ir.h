@@ -69,9 +69,9 @@ struct mcc_ir_arg {
 		char *lit_string;
 		struct mcc_ir_row *row;
 		unsigned label;
-		struct mcc_ast_identifier *ident;
+		char *ident;
 		struct {
-			struct mcc_ast_identifier *arr_ident;
+			 char *arr_ident;
 			struct mcc_ir_arg *index;
 		};
 		char *func_label;
