@@ -531,16 +531,16 @@ static void generate_ir_declaration(struct mcc_ast_declaration *decl, struct ir_
 	struct mcc_ir_row_type *type = st_row_to_ir_type(decl->row, (int)decl->array_size->i_value, data);
 	switch (decl->array_type->type_value) {
 	case INT:
-		row = new_row(arg1, arg2, MCC_IR_INSTR_ARRAY_INT, type, data);
+		row = new_row(arg1, arg2, MCC_IR_INSTR_ARRAY, type, data);
 		break;
 	case FLOAT:
-		row = new_row(arg1, arg2, MCC_IR_INSTR_ARRAY_FLOAT, type, data);
+		row = new_row(arg1, arg2, MCC_IR_INSTR_ARRAY, type, data);
 		break;
 	case STRING:
-		row = new_row(arg1, arg2, MCC_IR_INSTR_ARRAY_STRING, type, data);
+		row = new_row(arg1, arg2, MCC_IR_INSTR_ARRAY, type, data);
 		break;
 	case BOOL:
-		row = new_row(arg1, arg2, MCC_IR_INSTR_ARRAY_BOOL, type, data);
+		row = new_row(arg1, arg2, MCC_IR_INSTR_ARRAY, type, data);
 		break;
 	case VOID:
 		mcc_ir_delete_ir_arg(arg1);
@@ -1200,10 +1200,10 @@ void mcc_ir_delete_ir_arg(struct mcc_ir_arg *arg)
 	if (arg->type == MCC_IR_TYPE_LIT_STRING) {
 		free(arg->lit_string);
 	}
-	if(arg->type == MCC_IR_TYPE_IDENTIFIER){
+	if (arg->type == MCC_IR_TYPE_IDENTIFIER) {
 		free(arg->ident);
 	}
-	if(arg->type == MCC_IR_TYPE_ARR_ELEM){
+	if (arg->type == MCC_IR_TYPE_ARR_ELEM) {
 		free(arg->arr_ident);
 	}
 	free(arg);

@@ -685,10 +685,7 @@ static struct mcc_asm_line *generate_asm_from_ir(struct mcc_annotated_ir *an_ir,
 		line = generate_return(an_ir, err);
 		break;
 	// In these cases nothing needs to happen
-	case MCC_IR_INSTR_ARRAY_INT:
-	case MCC_IR_INSTR_ARRAY_FLOAT:
-	case MCC_IR_INSTR_ARRAY_BOOL:
-	case MCC_IR_INSTR_ARRAY_STRING:
+	case MCC_IR_INSTR_ARRAY:
 		break;
 	case MCC_IR_INSTR_NEGATIV:
 		line = generate_unary(an_ir, MCC_ASM_NEGL, err);

@@ -38,10 +38,7 @@ enum mcc_ir_instruction {
 	MCC_IR_INSTR_AND,
 	MCC_IR_INSTR_OR,
 	MCC_IR_INSTR_RETURN,
-	MCC_IR_INSTR_ARRAY_INT,
-	MCC_IR_INSTR_ARRAY_FLOAT,
-	MCC_IR_INSTR_ARRAY_BOOL,
-	MCC_IR_INSTR_ARRAY_STRING,
+	MCC_IR_INSTR_ARRAY,
 	MCC_IR_INSTR_NEGATIV,
 	MCC_IR_INSTR_NOT,
 	MCC_IR_INSTR_UNKNOWN
@@ -71,7 +68,7 @@ struct mcc_ir_arg {
 		unsigned label;
 		char *ident;
 		struct {
-			 char *arr_ident;
+			char *arr_ident;
 			struct mcc_ir_arg *index;
 		};
 		char *func_label;

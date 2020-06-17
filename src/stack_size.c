@@ -73,9 +73,7 @@ static struct mcc_ir_row *find_first_occurence(char *identifier, struct mcc_ir_r
 	ir = first;
 	struct mcc_ir_row *last = last_line_of_function(ir);
 	while (ir && (ir != last)) {
-		if (ir->instr == MCC_IR_INSTR_ASSIGN || ir->instr == MCC_IR_INSTR_ARRAY_BOOL ||
-		    ir->instr == MCC_IR_INSTR_ARRAY_FLOAT || ir->instr == MCC_IR_INSTR_ARRAY_INT ||
-		    ir->instr == MCC_IR_INSTR_ARRAY_STRING) {
+		if (ir->instr == MCC_IR_INSTR_ASSIGN || ir->instr == MCC_IR_INSTR_ARRAY) {
 			if (strcmp(identifier, ir->arg1->ident) == 0) {
 				return ir;
 			}
@@ -189,17 +187,16 @@ static int get_temporary_size(struct mcc_ir_row *ir)
 static int get_array_type_size(struct mcc_ir_row *ir)
 {
 	assert(ir);
-	assert(ir->instr == MCC_IR_INSTR_ARRAY_BOOL || MCC_ASM_DECLARATION_TYPE_ARRAY_FLOAT ||
-	       MCC_ASM_DECLARATION_TYPE_ARRAY_INT || MCC_ASM_DECLARATION_TYPE_ARRAY_STRING);
+	assert(ir->instr == MCC_IR_INSTR_ARRAY);
 
-	switch (ir->instr) {
-	case MCC_IR_INSTR_ARRAY_BOOL:
+	switch (ir->type->type) {
+	case MCC_IR_ROW_BOOL:
 		return STACK_SIZE_BOOL * ir->type->array_size;
-	case MCC_IR_INSTR_ARRAY_FLOAT:
+	case MCC_IR_ROW_FLOAT:
 		return STACK_SIZE_FLOAT * ir->type->array_size;
-	case MCC_IR_INSTR_ARRAY_INT:
+	case MCC_IR_ROW_INT:
 		return STACK_SIZE_INT * ir->type->array_size;
-	case MCC_IR_INSTR_ARRAY_STRING:
+	case MCC_IR_ROW_STRING:
 		return STACK_SIZE_STRING;
 	// Unreached, as per assertion
 	default:
@@ -210,20 +207,18 @@ static int get_array_type_size(struct mcc_ir_row *ir)
 static int get_array_size(struct mcc_ir_row *ir)
 {
 	assert(ir);
-	assert(ir->instr == MCC_IR_INSTR_ARRAY_BOOL || MCC_ASM_DECLARATION_TYPE_ARRAY_FLOAT ||
-	       MCC_ASM_DECLARATION_TYPE_ARRAY_INT || MCC_ASM_DECLARATION_TYPE_ARRAY_STRING);
+	assert(ir->instr == MCC_IR_INSTR_ARRAY);
 	assert(ir->arg2->type == MCC_IR_TYPE_LIT_INT);
 
-	switch (ir->instr) {
-	case MCC_IR_INSTR_ARRAY_BOOL:
+	switch (ir->type->type) {
+	case MCC_IR_ROW_BOOL:
 		return STACK_SIZE_BOOL * (ir->arg2->lit_int);
-	case MCC_IR_INSTR_ARRAY_FLOAT:
+	case MCC_IR_ROW_FLOAT:
 		return STACK_SIZE_FLOAT * (ir->arg2->lit_int);
-	case MCC_IR_INSTR_ARRAY_INT:
+	case MCC_IR_ROW_INT:
 		return STACK_SIZE_INT * (ir->arg2->lit_int);
-	case MCC_IR_INSTR_ARRAY_STRING:
+	case MCC_IR_ROW_STRING:
 		return STACK_SIZE_STRING;
-	// Unreached, as per assertion
 	default:
 		return 0;
 	}
@@ -277,10 +272,7 @@ static int get_stack_frame_size(struct mcc_ir_row *ir)
 		return 0;
 
 	// Arrays are located on the stack, and have special declaration IR instructions
-	case MCC_IR_INSTR_ARRAY_BOOL:
-	case MCC_IR_INSTR_ARRAY_INT:
-	case MCC_IR_INSTR_ARRAY_FLOAT:
-	case MCC_IR_INSTR_ARRAY_STRING:
+	case MCC_IR_INSTR_ARRAY:
 		return get_array_size(ir);
 
 	case MCC_IR_INSTR_UNKNOWN:
@@ -334,14 +326,14 @@ static int get_frame_size_of_function(struct mcc_annotated_ir *head)
 static int get_array_base_size(struct mcc_ir_row *ir)
 {
 	assert(ir);
-	switch (ir->instr) {
-	case MCC_IR_INSTR_ARRAY_BOOL:
+	switch (ir->type->type) {
+	case MCC_IR_ROW_BOOL:
 		return STACK_SIZE_BOOL;
-	case MCC_IR_INSTR_ARRAY_FLOAT:
+	case MCC_IR_ROW_FLOAT:
 		return STACK_SIZE_FLOAT;
-	case MCC_IR_INSTR_ARRAY_INT:
+	case MCC_IR_ROW_INT:
 		return STACK_SIZE_INT;
-	case MCC_IR_INSTR_ARRAY_STRING:
+	case MCC_IR_ROW_STRING:
 		return STACK_SIZE_STRING;
 	default:
 		return 0;
@@ -363,10 +355,8 @@ int get_array_element_location(struct mcc_annotated_ir *an_ir)
 	}
 	head = first;
 	while (head) {
-		if (head->row->instr == MCC_IR_INSTR_ARRAY_BOOL || head->row->instr == MCC_IR_INSTR_ARRAY_FLOAT ||
-		    head->row->instr == MCC_IR_INSTR_ARRAY_INT || head->row->instr == MCC_IR_INSTR_ARRAY_STRING) {
-			if (strcmp(head->row->arg1->ident,
-			           an_ir->row->arg1->arr_ident) == 0) {
+		if (head->row->instr == MCC_IR_INSTR_ARRAY) {
+			if (strcmp(head->row->arg1->ident, an_ir->row->arg1->arr_ident) == 0) {
 				int array_pos = head->stack_position;
 				int element_pos =
 				    array_pos - an_ir->row->arg1->index->lit_int * get_array_base_size(head->row);
@@ -428,8 +418,7 @@ static void add_stack_positions(struct mcc_annotated_ir *head)
 			}
 		}
 		// Arrays
-		if (head->row->instr == MCC_IR_INSTR_ARRAY_BOOL || head->row->instr == MCC_IR_INSTR_ARRAY_FLOAT ||
-		    head->row->instr == MCC_IR_INSTR_ARRAY_INT || head->row->instr == MCC_IR_INSTR_ARRAY_STRING) {
+		if (head->row->instr == MCC_IR_INSTR_ARRAY){
 			current_position = current_position - get_array_base_size(head->row);
 			head->stack_position = current_position;
 			current_position = current_position - head->stack_size + get_array_base_size(head->row);
