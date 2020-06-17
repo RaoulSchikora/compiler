@@ -444,6 +444,8 @@ arg_to_op(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm
 static struct mcc_asm_line *generate_instr_assign(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
 {
 	assert(an_ir);
+	assert(an_ir->row->instr == MCC_IR_INSTR_ASSIGN);
+
 	if (err->has_failed)
 		return NULL;
 
