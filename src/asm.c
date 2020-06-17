@@ -425,7 +425,8 @@ arg_to_op(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm
 		operand = mcc_asm_new_literal_operand(arg->lit_int, err);
 	} else if (arg->type == MCC_IR_TYPE_LIT_BOOL) {
 		operand = mcc_asm_new_literal_operand(arg->lit_bool, err);
-	} else if (arg->type == MCC_IR_TYPE_ROW || arg->type == MCC_IR_TYPE_IDENTIFIER) {
+	} else if (arg->type == MCC_IR_TYPE_ROW || arg->type == MCC_IR_TYPE_IDENTIFIER ||
+	           arg->type == MCC_IR_TYPE_ARR_ELEM) {
 		operand = mcc_asm_new_register_operand(MCC_ASM_EBP, get_offset_of(an_ir, arg), err);
 	}
 
