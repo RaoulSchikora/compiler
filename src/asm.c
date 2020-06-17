@@ -569,6 +569,8 @@ generate_cmp_op(struct mcc_annotated_ir *an_ir, enum mcc_asm_opcode opcode, stru
 static struct mcc_asm_line *generate_return(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
 {
 	assert(an_ir);
+	assert(an_ir->row->instr == MCC_IR_INSTR_RETURN);
+
 	if (err->has_failed)
 		return NULL;
 
