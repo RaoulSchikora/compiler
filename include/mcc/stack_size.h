@@ -13,7 +13,7 @@
 // TODO
 #define STACK_SIZE_BOOL 4
 #define STACK_SIZE_FLOAT 4
-#define STACK_SIZE_STRING 0
+#define STACK_SIZE_STRING 4
 #define STACK_SIZE_INT 4
 
 // --------------------------------------------------------------------------------------- Data structure

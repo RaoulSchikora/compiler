@@ -441,6 +441,27 @@ arg_to_op(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm
 	return operand;
 }
 
+// TODO: Find the name of the db-directive that holds the string associated with arg2 of this IR line
+// Problem: Needs access to db-Section
+static char *find_string_identifier(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
+{
+	UNUSED(an_ir);
+	UNUSED(err);
+	return NULL;
+}
+
+// TODO: Get name of correct db directive and load it into the corresponding stack posision with "leal"
+static struct mcc_asm_line *generate_string_assignment(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
+{
+	char *string_id = find_string_identifier(an_ir, err);
+	UNUSED(string_id);
+
+	struct mcc_asm_line *line1 =
+	    mcc_asm_new_line(MCC_ASM_MOVL, mcc_asm_new_literal_operand((int)an_ir->stack_position, err),
+	                     ebp(an_ir->stack_position, err), NULL, err);
+	return line1;
+}
+
 static struct mcc_asm_line *generate_instr_assign(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
 {
 	assert(an_ir);
@@ -451,14 +472,16 @@ static struct mcc_asm_line *generate_instr_assign(struct mcc_annotated_ir *an_ir
 
 	int offset2 = an_ir->stack_position;
 
-	// TODO lit_string, lit_float, arrays
+	// TODO lit_float, arrays
 	struct mcc_asm_line *line1 = NULL, *line2 = NULL;
 	if (an_ir->row->arg2->type == MCC_IR_TYPE_LIT_INT || an_ir->row->arg2->type == MCC_IR_TYPE_LIT_BOOL) {
 		line1 = mcc_asm_new_line(MCC_ASM_MOVL, arg_to_op(an_ir, an_ir->row->arg2, err), ebp(offset2, err), NULL,
 		                         err);
 	} else if (an_ir->row->arg2->type == MCC_IR_TYPE_ROW || an_ir->row->arg2->type == MCC_IR_TYPE_IDENTIFIER) {
 		line2 = mcc_asm_new_line(MCC_ASM_MOVL, eax(err), arg_to_op(an_ir, an_ir->row->arg1, err), NULL, err);
-		line1 = mcc_asm_new_line(MCC_ASM_MOVL, arg_to_op(an_ir, an_ir->row->arg2, err), eax(err), line2, err);
+		line1 = mcc_asm_new_line(MCC_ASM_MOVL, arg_to_op(an_ir, an_ir->row->arg2, err), eax(err), NULL, err);
+	} else if (an_ir->row->arg2->type == MCC_IR_TYPE_LIT_STRING) {
+		line1 = generate_string_assignment(an_ir, err);
 	} else {
 		// TODO remove when done. Remider: "(int)an_ir->stack_position" was only chosen to let compare
 		// operations of float-integration-test fail (makes no sense at all, so don't get confused :) ...)
@@ -468,6 +491,8 @@ static struct mcc_asm_line *generate_instr_assign(struct mcc_annotated_ir *an_ir
 
 	if (err->has_failed)
 		mcc_asm_delete_line(line2);
+	else
+		line1->next = line2;
 
 	return line1;
 }
