@@ -104,12 +104,12 @@ static int argument_size(struct mcc_ir_arg *arg, struct mcc_ir_row *ir)
 		return STACK_SIZE_BOOL;
 	case MCC_IR_TYPE_IDENTIFIER:
 		ref = find_first_occurence(arg->ident, ir);
-		if (!ref)
+		if (!ref || ref->instr != MCC_IR_INSTR_ASSIGN)
 			return 0;
 		return argument_size(ref->arg2, ir);
 	case MCC_IR_TYPE_ARR_ELEM:
 		ref = find_first_occurence(arg->arr_ident, ir);
-		if (!ref)
+		if (!ref || ref->instr != MCC_IR_INSTR_ARRAY)
 			return 0;
 		return get_array_type_size(ref);
 	case MCC_IR_TYPE_ROW:
