@@ -10,7 +10,7 @@
 #include "mcc/stack_size.h"
 #include "utils/unused.h"
 
-static int get_identifier_offset(struct mcc_annotated_ir *first,  char *ident)
+static int get_identifier_offset(struct mcc_annotated_ir *first, char *ident)
 {
 	assert(first);
 	assert(ident);
@@ -139,11 +139,16 @@ struct mcc_asm_declaration *mcc_asm_new_db_declaration(char *identifier,
                                                        struct mcc_asm_error *err)
 {
 	struct mcc_asm_declaration *new = malloc(sizeof(*new));
-	if (!new) {
+	char *identifier_copy = malloc(sizeof(char) * (strlen(identifier) + 1));
+	if (!new || !identifier) {
 		err->has_failed = true;
+		free(new);
+		free(identifier);
 		return NULL;
 	}
-	new->identifier = identifier;
+
+	strcpy(identifier_copy, identifier);
+	new->identifier = identifier_copy;
 	new->db_value = db_value;
 	new->next = next;
 	new->type = MCC_ASM_DECLARATION_TYPE_DB;
@@ -340,6 +345,9 @@ void mcc_asm_delete_declaration(struct mcc_asm_declaration *decl)
 {
 	if (!decl)
 		return;
+	if (decl->type == MCC_ASM_DECLARATION_TYPE_DB) {
+		free(decl->identifier);
+	}
 	free(decl);
 }
 
@@ -869,6 +877,18 @@ static bool generate_text_section(struct mcc_asm_text_section *text_section,
 	return true;
 }
 
+static char *rename_string_identifier(char *id)
+{
+	assert(id);
+	static int counter = 0;
+	int extra_length = 2 + length_of_int(counter);
+	int new_length = strlen(id) + extra_length;
+	char *new = malloc(sizeof(char) * new_length);
+	snprintf(new, new_length, "%s_%d", id, counter);
+	counter++;
+	return new;
+}
+
 static bool generate_data_section(struct mcc_asm_data_section *data_section,
                                   struct mcc_annotated_ir *an_ir,
                                   struct mcc_asm_error *err)
@@ -892,8 +912,10 @@ static bool generate_data_section(struct mcc_asm_data_section *data_section,
 			an_ir = an_ir->next;
 			continue;
 		}
-		struct mcc_asm_declaration *decl = mcc_asm_new_db_declaration(an_ir->row->arg1->ident,
-		                                                              an_ir->row->arg2->lit_string, NULL, err);
+		char *db_identifier = rename_string_identifier(an_ir->row->arg1->ident);
+		struct mcc_asm_declaration *decl =
+		    mcc_asm_new_db_declaration(db_identifier, an_ir->row->arg2->lit_string, NULL, err);
+		free(db_identifier);
 		if (!decl) {
 			mcc_asm_delete_all_declarations(head);
 			err->has_failed = false;
