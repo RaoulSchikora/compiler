@@ -483,7 +483,7 @@ static struct mcc_asm_line *generate_instr_assign(struct mcc_annotated_ir *an_ir
 		                         err);
 	} else if (an_ir->row->arg2->type == MCC_IR_TYPE_ROW || an_ir->row->arg2->type == MCC_IR_TYPE_IDENTIFIER) {
 		line2 = mcc_asm_new_line(MCC_ASM_MOVL, eax(err), arg_to_op(an_ir, an_ir->row->arg1, err), NULL, err);
-		line1 = mcc_asm_new_line(MCC_ASM_MOVL, arg_to_op(an_ir, an_ir->row->arg2, err), eax(err), NULL, err);
+		line1 = mcc_asm_new_line(MCC_ASM_MOVL, arg_to_op(an_ir, an_ir->row->arg2, err), eax(err), line2, err);
 	} else if (an_ir->row->arg2->type == MCC_IR_TYPE_LIT_STRING) {
 		line1 = generate_string_assignment(an_ir, err);
 	} else {
@@ -493,10 +493,10 @@ static struct mcc_asm_line *generate_instr_assign(struct mcc_annotated_ir *an_ir
 		                         ebp(offset2, err), NULL, err);
 	}
 
-	if (err->has_failed)
+	if (err->has_failed) {
+		line1->next = NULL;
 		mcc_asm_delete_line(line2);
-	else
-		line1->next = line2;
+	}
 
 	return line1;
 }
