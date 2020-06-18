@@ -955,10 +955,9 @@ static bool generate_text_section(struct mcc_asm_text_section *text_section,
 	return true;
 }
 
-static char *rename_string_identifier(char *id)
+static char *rename_string_identifier(char *id, int counter)
 {
 	assert(id);
-	static int counter = 0;
 	int extra_length = 2 + length_of_int(counter);
 	int new_length = strlen(id) + extra_length;
 	char *new = malloc(sizeof(char) * new_length);
@@ -977,6 +976,7 @@ static bool generate_data_section(struct mcc_asm_data_section *data_section,
 	if (err->has_failed)
 		return false;
 	struct mcc_asm_declaration *head = data_section->head;
+	int counter = 0;
 
 	// Allocate all declared strings
 	// TODO: Handle reassignment
@@ -990,10 +990,11 @@ static bool generate_data_section(struct mcc_asm_data_section *data_section,
 			an_ir = an_ir->next;
 			continue;
 		}
-		char *db_identifier = rename_string_identifier(an_ir->row->arg1->ident);
+		char *db_identifier = rename_string_identifier(an_ir->row->arg1->ident, counter);
 		struct mcc_asm_declaration *decl =
 		    mcc_asm_new_db_declaration(db_identifier, an_ir->row->arg2->lit_string, NULL, err);
 		free(db_identifier);
+		counter++;
 		if (!decl) {
 			mcc_asm_delete_all_declarations(head);
 			err->has_failed = false;
