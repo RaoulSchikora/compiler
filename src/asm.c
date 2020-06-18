@@ -122,11 +122,15 @@ struct mcc_asm_declaration *mcc_asm_new_float_declaration(char *identifier,
                                                           struct mcc_asm_error *err)
 {
 	struct mcc_asm_declaration *new = malloc(sizeof(*new));
-	if (!new) {
+	char *id_new = malloc(sizeof(char) * (strlen(identifier) + 1));
+	if (!new || !id_new) {
 		err->has_failed = true;
+		free(new);
+		free(id_new);
 		return NULL;
 	}
-	new->identifier = identifier;
+	strcpy(id_new, identifier);
+	new->identifier = id_new;
 	new->float_value = float_value;
 	new->next = next;
 	new->type = MCC_ASM_DECLARATION_TYPE_FLOAT;
@@ -139,16 +143,15 @@ struct mcc_asm_declaration *mcc_asm_new_db_declaration(char *identifier,
                                                        struct mcc_asm_error *err)
 {
 	struct mcc_asm_declaration *new = malloc(sizeof(*new));
-	char *identifier_copy = malloc(sizeof(char) * (strlen(identifier) + 1));
-	if (!new || !identifier) {
+	char *id_new = malloc(sizeof(char) * (strlen(identifier) + 1));
+	if (!new || !id_new) {
 		err->has_failed = true;
 		free(new);
-		free(identifier);
+		free(id_new);
 		return NULL;
 	}
-
-	strcpy(identifier_copy, identifier);
-	new->identifier = identifier_copy;
+	strcpy(id_new, identifier);
+	new->identifier = id_new;
 	new->db_value = db_value;
 	new->next = next;
 	new->type = MCC_ASM_DECLARATION_TYPE_DB;
@@ -162,11 +165,15 @@ struct mcc_asm_declaration *mcc_asm_new_array_declaration(char *identifier,
                                                           struct mcc_asm_error *err)
 {
 	struct mcc_asm_declaration *new = malloc(sizeof(*new));
-	if (!new) {
+	char *id_new = malloc(sizeof(char) * (strlen(identifier) + 1));
+	if (!new || !id_new) {
 		err->has_failed = true;
+		free(new);
+		free(id_new);
 		return NULL;
 	}
-	new->identifier = identifier;
+	strcpy(id_new, identifier);
+	new->identifier = id_new;
 	new->array_size = size;
 	new->next = next;
 	new->type = type;
@@ -177,12 +184,16 @@ struct mcc_asm_function *
 mcc_asm_new_function(char *label, struct mcc_asm_line *head, struct mcc_asm_function *next, struct mcc_asm_error *err)
 {
 	struct mcc_asm_function *new = malloc(sizeof(*new));
-	if (!new) {
+	char *lab_new = malloc(sizeof(char) * (strlen(label) + 1));
+	if (!new || !lab_new) {
+		free(new);
+		free(lab_new);
 		err->has_failed = true;
 		return NULL;
 	}
+	strcpy(lab_new, label);
 	new->head = head;
-	new->label = label;
+	new->label = lab_new;
 	new->next = next;
 	new->pos_list = NULL;
 	return new;
@@ -225,12 +236,16 @@ struct mcc_asm_line *mcc_asm_new_label(enum mcc_asm_opcode opcode, unsigned labe
 struct mcc_asm_operand *mcc_asm_new_function_operand(char *function_name, struct mcc_asm_error *err)
 {
 	struct mcc_asm_operand *new = malloc(sizeof(*new));
-	if (!new) {
+	char *func_name_new = malloc(sizeof(char) * (strlen(function_name) + 1));
+	if (!new || !func_name_new) {
+		free(new);
+		free(func_name_new);
 		err->has_failed = true;
 		return NULL;
 	}
+	strcpy(func_name_new, function_name);
 	new->type = MCC_ASM_OPERAND_FUNCTION;
-	new->func_name = function_name;
+	new->func_name = func_name_new;
 	new->offset = 0;
 	return new;
 }
@@ -348,6 +363,9 @@ void mcc_asm_delete_declaration(struct mcc_asm_declaration *decl)
 	if (decl->type == MCC_ASM_DECLARATION_TYPE_DB) {
 		free(decl->identifier);
 	}
+	if (decl->type == MCC_ASM_DECLARATION_TYPE_ARRAY_FLOAT) {
+		free(decl->identifier);
+	}
 	free(decl);
 }
 
@@ -391,6 +409,9 @@ void mcc_asm_delete_operand(struct mcc_asm_operand *operand)
 {
 	if (!operand)
 		return;
+	if (operand->type == MCC_ASM_OPERAND_FUNCTION) {
+		free(operand->func_name);
+	}
 	free(operand);
 }
 
@@ -881,10 +902,7 @@ struct mcc_asm_function *mcc_asm_generate_function(struct mcc_annotated_ir *an_i
 	if (err->has_failed)
 		return NULL;
 
-	char *label = strdup(an_ir->row->arg1->func_label);
-	if (!label)
-		return NULL;
-	struct mcc_asm_function *function = mcc_asm_new_function(label, NULL, NULL, err);
+	struct mcc_asm_function *function = mcc_asm_new_function(an_ir->row->arg1->func_label, NULL, NULL, err);
 	if (!function) {
 		return NULL;
 	}
