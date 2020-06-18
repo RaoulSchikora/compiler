@@ -121,6 +121,7 @@ static char *op_to_string(char *dest, int len, struct mcc_asm_operand *op)
 		register_to_string(dest, len, op->reg, op->offset);
 		break;
 	case MCC_ASM_OPERAND_DATA:
+		snprintf(dest, len, "%s", op->decl->identifier);
 		break;
 	case MCC_ASM_OPERAND_LITERAL:
 		snprintf(dest, len, "$%d", op->literal);
@@ -143,6 +144,7 @@ static int length_of_op(struct mcc_asm_operand *op)
 	case MCC_ASM_OPERAND_REGISTER:
 		return 4;
 	case MCC_ASM_OPERAND_DATA:
+		return strlen(op->decl->identifier);
 		break;
 	case MCC_ASM_OPERAND_LITERAL:
 		return length_of_int(op->literal) + 1;

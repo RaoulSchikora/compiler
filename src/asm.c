@@ -446,8 +446,37 @@ arg_to_op(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm
 // Problem: Needs access to db-Section
 static struct mcc_asm_operand *find_string_identifier(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
 {
-	UNUSED(an_ir);
-	UNUSED(err);
+	assert(an_ir);
+	assert(an_ir->row->instr == MCC_IR_INSTR_ASSIGN);
+	assert(an_ir->row->arg2->type == MCC_IR_TYPE_LIT_STRING);
+	assert(err);
+	if (err->has_failed)
+		return NULL;
+
+	struct mcc_asm_operand *op = malloc(sizeof(*op));
+	if (!op) {
+		err->has_failed = true;
+		return NULL;
+	}
+
+	char *wanted_string = an_ir->row->arg2->lit_string;
+	struct mcc_asm_declaration *head = err->data_section->head;
+	while (head) {
+		if (head->type != MCC_ASM_DECLARATION_TYPE_DB) {
+			head = head->next;
+			continue;
+		}
+		if (strcmp(wanted_string, head->db_value) != 0) {
+			head = head->next;
+			continue;
+		}
+		op->decl = head;
+		op->type = MCC_ASM_OPERAND_DATA;
+		op->offset = 0;
+		return op;
+	}
+
+	free(op);
 	return NULL;
 }
 
