@@ -71,7 +71,8 @@ static char *opcode_to_string(enum mcc_asm_opcode op)
 		return "jne";
 	case MCC_ASM_RETURN:
 		return "ret";
-
+	case MCC_ASM_LEAL:
+		return "leal";
 	default:
 		return "unknown opcode";
 	}

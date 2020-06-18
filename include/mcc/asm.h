@@ -81,6 +81,7 @@ enum mcc_asm_opcode {
 	MCC_ASM_JE,
 	MCC_ASM_JNE,
 	MCC_ASM_LABEL,
+	MCC_ASM_LEAL,
 };
 
 struct mcc_asm_line {
