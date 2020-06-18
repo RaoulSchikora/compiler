@@ -442,24 +442,28 @@ arg_to_op(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm
 }
 
 // TODO: Find the name of the db-directive that holds the string associated with arg2 of this IR line
+// Allocate new operand struct for it
 // Problem: Needs access to db-Section
-static char *find_string_identifier(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
+static struct mcc_asm_operand *find_string_identifier(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
 {
 	UNUSED(an_ir);
 	UNUSED(err);
 	return NULL;
 }
 
-// TODO: Get name of correct db directive and load it into the corresponding stack posision with "leal"
 static struct mcc_asm_line *generate_string_assignment(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
 {
-	char *string_id = find_string_identifier(an_ir, err);
-	UNUSED(string_id);
-
-	struct mcc_asm_line *line1 =
-	    mcc_asm_new_line(MCC_ASM_MOVL, mcc_asm_new_literal_operand((int)an_ir->stack_position, err),
-	                     ebp(an_ir->stack_position, err), NULL, err);
-	return line1;
+	struct mcc_asm_operand *string_id = find_string_identifier(an_ir, err);
+	struct mcc_asm_line *leal = mcc_asm_new_line(MCC_ASM_LEAL, string_id, eax(err), NULL, err);
+	struct mcc_asm_line *movl =
+	    mcc_asm_new_line(MCC_ASM_MOVL, eax(err), ebp(an_ir->stack_position, err), NULL, err);
+	if (err->has_failed || !leal || !movl || !string_id) {
+		mcc_asm_delete_line(leal);
+		mcc_asm_delete_line(movl);
+		return NULL;
+	}
+	leal->next = movl;
+	return leal;
 }
 
 static struct mcc_asm_line *generate_instr_assign(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
