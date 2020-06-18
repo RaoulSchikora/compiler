@@ -30,7 +30,7 @@ struct mcc_asm_data_section {
 };
 
 enum mcc_asm_declaration_type {
-	MCC_ASM_DECLARATION_TYPE_DB,
+	MCC_ASM_DECLARATION_TYPE_STRING,
 	MCC_ASM_DECLARATION_TYPE_FLOAT,
 	MCC_ASM_DECLARATION_TYPE_ARRAY_INT,
 	MCC_ASM_DECLARATION_TYPE_ARRAY_FLOAT,
@@ -43,7 +43,7 @@ struct mcc_asm_declaration {
 	enum mcc_asm_declaration_type type;
 	union {
 		float float_value;
-		char *db_value;
+		char *string_value;
 		int array_size;
 	};
 	struct mcc_asm_declaration *next;
@@ -140,8 +140,8 @@ struct mcc_asm_declaration *mcc_asm_new_float_declaration(char *identifier,
                                                           struct mcc_asm_declaration *next,
                                                           struct mcc_asm_error *err);
 
-struct mcc_asm_declaration *mcc_asm_new_db_declaration(char *identifier,
-                                                       char *db_value,
+struct mcc_asm_declaration *mcc_asm_new_string_declaration(char *identifier,
+                                                       char *string_value,
                                                        struct mcc_asm_declaration *next,
                                                        struct mcc_asm_error *err);
 

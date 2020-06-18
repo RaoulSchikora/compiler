@@ -285,10 +285,10 @@ void strings(CuTest *tc)
 	struct mcc_asm_declaration *decl = code->data_section->head;
 	CuAssertPtrNotNull(tc, decl);
 	CuAssertStrEquals(tc, "a_0", decl->identifier);
-	CuAssertStrEquals(tc, "test", decl->db_value);
+	CuAssertStrEquals(tc, "test", decl->string_value);
 	decl = decl->next;
 	CuAssertStrEquals(tc, "a_1", decl->identifier);
-	CuAssertStrEquals(tc, "test2", decl->db_value);
+	CuAssertStrEquals(tc, "test2", decl->string_value);
 
 	// pushl ebp
 	struct mcc_asm_line *line = code->text_section->function->head;
@@ -357,10 +357,10 @@ void strings2(CuTest *tc)
 	struct mcc_asm_declaration *decl = code->data_section->head;
 	CuAssertPtrNotNull(tc, decl);
 	CuAssertStrEquals(tc, "a_0", decl->identifier);
-	CuAssertStrEquals(tc, "test", decl->db_value);
+	CuAssertStrEquals(tc, "test", decl->string_value);
 	decl = decl->next;
 	CuAssertStrEquals(tc, "b_1", decl->identifier);
-	CuAssertStrEquals(tc, "test2", decl->db_value);
+	CuAssertStrEquals(tc, "test2", decl->string_value);
 
 	// pushl ebp
 	struct mcc_asm_line *line = code->text_section->function->head;

@@ -137,8 +137,8 @@ struct mcc_asm_declaration *mcc_asm_new_float_declaration(char *identifier,
 	return new;
 }
 
-struct mcc_asm_declaration *mcc_asm_new_db_declaration(char *identifier,
-                                                       char *db_value,
+struct mcc_asm_declaration *mcc_asm_new_string_declaration(char *identifier,
+                                                       char *string_value,
                                                        struct mcc_asm_declaration *next,
                                                        struct mcc_asm_error *err)
 {
@@ -152,9 +152,9 @@ struct mcc_asm_declaration *mcc_asm_new_db_declaration(char *identifier,
 	}
 	strcpy(id_new, identifier);
 	new->identifier = id_new;
-	new->db_value = db_value;
+	new->string_value = string_value;
 	new->next = next;
-	new->type = MCC_ASM_DECLARATION_TYPE_DB;
+	new->type = MCC_ASM_DECLARATION_TYPE_STRING;
 	return new;
 }
 
@@ -360,7 +360,7 @@ void mcc_asm_delete_declaration(struct mcc_asm_declaration *decl)
 {
 	if (!decl)
 		return;
-	if (decl->type == MCC_ASM_DECLARATION_TYPE_DB) {
+	if (decl->type == MCC_ASM_DECLARATION_TYPE_STRING) {
 		free(decl->identifier);
 	}
 	if (decl->type == MCC_ASM_DECLARATION_TYPE_ARRAY_FLOAT) {
@@ -462,7 +462,7 @@ arg_to_op(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm
 	return operand;
 }
 
-// TODO: Find the name of the db-directive that holds the string associated with arg2 of this IR line
+// TODO: Find the name of the string-directive that holds the string associated with arg2 of this IR line
 // Allocate new operand struct for it
 // Problem: Needs access to db-Section
 static struct mcc_asm_operand *find_string_identifier(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
@@ -483,11 +483,11 @@ static struct mcc_asm_operand *find_string_identifier(struct mcc_annotated_ir *a
 	char *wanted_string = an_ir->row->arg2->lit_string;
 	struct mcc_asm_declaration *head = err->data_section->head;
 	while (head) {
-		if (head->type != MCC_ASM_DECLARATION_TYPE_DB) {
+		if (head->type != MCC_ASM_DECLARATION_TYPE_STRING) {
 			head = head->next;
 			continue;
 		}
-		if (strcmp(wanted_string, head->db_value) != 0) {
+		if (strcmp(wanted_string, head->string_value) != 0) {
 			head = head->next;
 			continue;
 		}
@@ -990,10 +990,10 @@ static bool generate_data_section(struct mcc_asm_data_section *data_section,
 			an_ir = an_ir->next;
 			continue;
 		}
-		char *db_identifier = rename_string_identifier(an_ir->row->arg1->ident, counter);
+		char *string_identifier = rename_string_identifier(an_ir->row->arg1->ident, counter);
 		struct mcc_asm_declaration *decl =
-		    mcc_asm_new_db_declaration(db_identifier, an_ir->row->arg2->lit_string, NULL, err);
-		free(db_identifier);
+		    mcc_asm_new_string_declaration(string_identifier, an_ir->row->arg2->lit_string, NULL, err);
+		free(string_identifier);
 		counter++;
 		if (!decl) {
 			mcc_asm_delete_all_declarations(head);
