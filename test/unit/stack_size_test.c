@@ -228,6 +228,39 @@ void test_string_array(CuTest *tc)
 	CuAssertIntEquals(tc, -12 * STACK_SIZE_STRING, an_ir->stack_position);
 }
 
+void test_computed_int_array(CuTest *tc)
+{
+	// Define test input and create IR -> produces 2 temporaries
+	const char input[] = "int main(){int [12]a; a[1+2]= 1; return 0;}";
+	struct mcc_parser_result parser_result;
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
+	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+	struct mcc_semantic_check *checks = mcc_semantic_check_run_all((&parser_result)->program, table);
+	CuAssertIntEquals(tc, checks->status, MCC_SEMANTIC_CHECK_OK);
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program, table);
+	CuAssertPtrNotNull(tc, ir);
+
+	struct mcc_annotated_ir *an_ir = mcc_annotate_ir(ir);
+
+	// an_ir (Func_label)
+	CuAssertPtrNotNull(tc, an_ir);
+	CuAssertIntEquals(tc, (12 + 1) * STACK_SIZE_INT, an_ir->stack_size);
+
+	// a = array
+	an_ir = an_ir->next;
+	CuAssertIntEquals(tc, 12 * STACK_SIZE_INT, an_ir->stack_size);
+
+	// $t0 = 1 + 2
+	an_ir = an_ir->next;
+	CuAssertIntEquals(tc, STACK_SIZE_INT, an_ir->stack_size);
+	CuAssertIntEquals(tc, -(12 + 1) * STACK_SIZE_INT, an_ir->stack_position);
+
+	// a[$t0]
+	an_ir = an_ir->next;
+	CuAssertIntEquals(tc, -4 * STACK_SIZE_INT, an_ir->stack_position);
+}
+
 // clang-format off
 
 #define TESTS \
@@ -237,7 +270,8 @@ void test_string_array(CuTest *tc)
 	TEST(test_int_array) \
 	TEST(test_int_multiple_references) \
 	TEST(test_strings) \
-	TEST(test_string_array)
+	TEST(test_string_array) \
+	TEST(test_computed_int_array)
 
 // clang-format on
 
