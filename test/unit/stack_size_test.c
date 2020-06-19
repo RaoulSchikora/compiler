@@ -165,6 +165,69 @@ void test_bool_int(CuTest *tc)
 	CuAssertIntEquals(tc, -(STACK_SIZE_INT + STACK_SIZE_BOOL), an_ir->next->next->stack_position);
 }
 
+void test_strings(CuTest *tc)
+{
+	// Define test input and create IR -> produces 2 temporaries
+	const char input[] = "int main(){string a; a = \"test\"; string b; b = \"test2\"; return 0;}";
+	struct mcc_parser_result parser_result;
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
+	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+	struct mcc_semantic_check *checks = mcc_semantic_check_run_all((&parser_result)->program, table);
+	CuAssertIntEquals(tc, checks->status, MCC_SEMANTIC_CHECK_OK);
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program, table);
+	CuAssertPtrNotNull(tc, ir);
+
+	struct mcc_annotated_ir *an_ir = mcc_annotate_ir(ir);
+
+	CuAssertPtrNotNull(tc, an_ir);
+	CuAssertIntEquals(tc, 2 * STACK_SIZE_STRING, an_ir->stack_size);
+
+	an_ir = an_ir->next;
+	CuAssertIntEquals(tc, STACK_SIZE_STRING, an_ir->stack_size);
+	CuAssertIntEquals(tc, -STACK_SIZE_STRING, an_ir->stack_position);
+
+	an_ir = an_ir->next;
+	CuAssertIntEquals(tc, STACK_SIZE_STRING, an_ir->stack_size);
+	CuAssertIntEquals(tc, -2 * STACK_SIZE_STRING, an_ir->stack_position);
+}
+
+void test_string_array(CuTest *tc)
+{
+	// Define test input and create IR -> produces 2 temporaries
+	const char input[] = "int main(){string [12]a; a[0]= \"test\"; a[2] = \"test2\"; a[11] = \"test3\"; return 0;}";
+	struct mcc_parser_result parser_result;
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
+	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+	struct mcc_semantic_check *checks = mcc_semantic_check_run_all((&parser_result)->program, table);
+	CuAssertIntEquals(tc, checks->status, MCC_SEMANTIC_CHECK_OK);
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program, table);
+	CuAssertPtrNotNull(tc, ir);
+
+	struct mcc_annotated_ir *an_ir = mcc_annotate_ir(ir);
+
+	// an_ir (Func_label)
+	CuAssertPtrNotNull(tc, an_ir);
+	CuAssertIntEquals(tc, 12 * STACK_SIZE_STRING, an_ir->stack_size);
+
+	// a = array
+	an_ir = an_ir->next;
+	CuAssertIntEquals(tc, 12 * STACK_SIZE_STRING, an_ir->stack_size);
+
+	// a[0]
+	an_ir = an_ir->next;
+	CuAssertIntEquals(tc, -1 * STACK_SIZE_STRING, an_ir->stack_position);
+
+	// a[2]
+	an_ir = an_ir->next;
+	CuAssertIntEquals(tc, -3 * STACK_SIZE_STRING, an_ir->stack_position);
+
+	// a[11]
+	an_ir = an_ir->next;
+	CuAssertIntEquals(tc, -12 * STACK_SIZE_STRING, an_ir->stack_position);
+}
+
 // clang-format off
 
 #define TESTS \
@@ -172,7 +235,9 @@ void test_bool_int(CuTest *tc)
 	TEST(test_ints) \
 	TEST(test_int_temporaries) \
 	TEST(test_int_array) \
-	TEST(test_int_multiple_references)
+	TEST(test_int_multiple_references) \
+	TEST(test_strings) \
+	TEST(test_string_array)
 
 // clang-format on
 
