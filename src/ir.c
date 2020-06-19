@@ -969,7 +969,7 @@ static void rename_row(struct mcc_symbol_table_row *row, struct renaming_userdat
 		data->ir_data->has_failed = true;
 		return;
 	}
-	snprintf(row->name, size, "_r%d", data->num);
+	snprintf(row->name, size, "$r%d", data->num);
 }
 
 static void rename_ident(struct mcc_ast_identifier *ident, struct renaming_userdata *data)
@@ -983,7 +983,7 @@ static void rename_ident(struct mcc_ast_identifier *ident, struct renaming_userd
 		data->ir_data->has_failed = true;
 		return;
 	}
-	snprintf(ident->identifier_name, size, "_r%d", data->num);
+	snprintf(ident->identifier_name, size, "$r%d", data->num);
 }
 
 static void cb_rename_ident(struct mcc_ast_identifier *ident, void *data)

@@ -592,31 +592,31 @@ void variable_shadowing(CuTest *tc)
 
 	CuAssertIntEquals(tc, tmp->instr, MCC_IR_INSTR_ASSIGN);
 	CuAssertIntEquals(tc, tmp->arg1->type, MCC_IR_TYPE_IDENTIFIER);
-	CuAssertStrEquals(tc, tmp->arg1->ident, "_r1");
+	CuAssertStrEquals(tc, tmp->arg1->ident, "$r1");
 
 	tmp = tmp->next_row->next_row;
 
 	CuAssertIntEquals(tc, tmp->instr, MCC_IR_INSTR_ASSIGN);
 	CuAssertIntEquals(tc, tmp->arg1->type, MCC_IR_TYPE_IDENTIFIER);
-	CuAssertStrEquals(tc, tmp->arg1->ident, "_r0");
+	CuAssertStrEquals(tc, tmp->arg1->ident, "$r0");
 
 	tmp = tmp->next_row;
 
 	CuAssertIntEquals(tc, tmp->instr, MCC_IR_INSTR_PLUS);
 	CuAssertIntEquals(tc, tmp->arg1->type, MCC_IR_TYPE_IDENTIFIER);
-	CuAssertStrEquals(tc, tmp->arg1->ident, "_r0");
+	CuAssertStrEquals(tc, tmp->arg1->ident, "$r0");
 
 	tmp = tmp->next_row;
 
 	CuAssertIntEquals(tc, tmp->instr, MCC_IR_INSTR_ASSIGN);
 	CuAssertIntEquals(tc, tmp->arg1->type, MCC_IR_TYPE_IDENTIFIER);
-	CuAssertStrEquals(tc, tmp->arg1->ident, "_r0");
+	CuAssertStrEquals(tc, tmp->arg1->ident, "$r0");
 
 	tmp = tmp->next_row->next_row->next_row;
 
 	CuAssertIntEquals(tc, tmp->instr, MCC_IR_INSTR_ASSIGN);
 	CuAssertIntEquals(tc, tmp->arg1->type, MCC_IR_TYPE_IDENTIFIER);
-	CuAssertStrEquals(tc, tmp->arg1->ident, "_r1");
+	CuAssertStrEquals(tc, tmp->arg1->ident, "$r1");
 
 	tmp = tmp->next_row->next_row->next_row->next_row;
 
