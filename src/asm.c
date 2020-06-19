@@ -69,7 +69,7 @@ static int get_offset_of(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg)
 	case MCC_IR_TYPE_FUNC_LABEL:
 		return 0;
 	case MCC_IR_TYPE_ARR_ELEM:
-		return get_array_element_location(an_ir);
+		return get_array_element_location(an_ir,arg);
 	case MCC_IR_TYPE_IDENTIFIER:
 		return get_identifier_offset(first, arg->ident);
 	case MCC_IR_TYPE_ROW:
