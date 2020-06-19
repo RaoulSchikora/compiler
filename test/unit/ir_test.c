@@ -630,6 +630,80 @@ void variable_shadowing(CuTest *tc)
 	mcc_symbol_table_delete_table(table);
 }
 
+void type_test(CuTest *tc)
+{
+	const char input[] =
+	    "int main(){int i; i = 42; bool b; b = true; float f; f = 3.3; string str; str = \"hallo\"; return i;}";
+	struct mcc_parser_result parser_result;
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
+	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program, table);
+	struct mcc_ir_row *ir_head = ir;
+	struct mcc_ir_row *tmp = ir->next_row;
+
+	CuAssertIntEquals(tc, tmp->type->type, MCC_IR_ROW_INT);
+	CuAssertIntEquals(tc, tmp->type->array_size, -1);
+
+	tmp = tmp->next_row;
+
+	CuAssertIntEquals(tc, tmp->type->type, MCC_IR_ROW_BOOL);
+	CuAssertIntEquals(tc, tmp->type->array_size, -1);
+
+	tmp = tmp->next_row;
+
+	CuAssertIntEquals(tc, tmp->type->type, MCC_IR_ROW_FLOAT);
+	CuAssertIntEquals(tc, tmp->type->array_size, -1);
+
+	tmp = tmp->next_row;
+
+	CuAssertIntEquals(tc, tmp->type->type, MCC_IR_ROW_STRING);
+	CuAssertIntEquals(tc, tmp->type->array_size, -1);
+
+	// Cleanup
+	mcc_ir_delete_ir(ir_head);
+	mcc_ast_delete(parser_result.program);
+	mcc_symbol_table_delete_table(table);
+}
+
+void type_array_test(CuTest *tc)
+{
+	const char input[] = "int main(){int[42] i; i[14] = 4; bool[42] b; b[1] = true; float[32] f; f[12] = 3.3; "
+	                     "string[12] str; str[2] = \"hallo\"; return i[14];}";
+	struct mcc_parser_result parser_result;
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
+	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program, table);
+	struct mcc_ir_row *ir_head = ir;
+	struct mcc_ir_row *tmp = ir->next_row;
+
+	CuAssertIntEquals(tc, tmp->type->type, MCC_IR_ROW_INT);
+	CuAssertIntEquals(tc, tmp->type->array_size, 42);
+
+	tmp = tmp->next_row->next_row;
+
+	CuAssertIntEquals(tc, tmp->type->type, MCC_IR_ROW_BOOL);
+	CuAssertIntEquals(tc, tmp->type->array_size, 42);
+
+	tmp = tmp->next_row->next_row;
+
+	CuAssertIntEquals(tc, tmp->type->type, MCC_IR_ROW_FLOAT);
+	CuAssertIntEquals(tc, tmp->type->array_size, 32);
+
+	tmp = tmp->next_row->next_row;
+
+	CuAssertIntEquals(tc, tmp->type->type, MCC_IR_ROW_STRING);
+	CuAssertIntEquals(tc, tmp->type->array_size, 12);
+
+	// Cleanup
+	mcc_ir_delete_ir(ir_head);
+	mcc_ast_delete(parser_result.program);
+	mcc_symbol_table_delete_table(table);
+}
+
 // clang-format off
 
 #define TESTS \
@@ -642,7 +716,9 @@ void variable_shadowing(CuTest *tc)
 	TEST(while_stmt) \
     TEST(func_def) \
 	TEST(func_call)\
-	TEST(variable_shadowing)
+	TEST(variable_shadowing) \
+	TEST(type_test) \
+	TEST(type_array_test)
 
 // clang-format on
 
