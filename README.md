@@ -38,3 +38,8 @@ For integration testing we try to compile mC programs and compare their output f
 Since the unit test matches any grammar rule, there are 5 reduce/reduce-conflicts. These will however not arise, when 
 the testing mode isn't specified, because the parser can only match the unit-test grammar rule when a dedicated global 
 variable is set (which can't happen due to user input).
+
+### Arrays
+
+No out-of-bounds checking takes place. If elements are referenced that are not inside the declared array, the behaviour
+is undefined.
