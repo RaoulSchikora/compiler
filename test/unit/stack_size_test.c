@@ -270,8 +270,8 @@ void test_computed_int_array(CuTest *tc)
 	TEST(test_int_array) \
 	TEST(test_int_multiple_references) \
 	TEST(test_strings) \
-	TEST(test_string_array) \
-	TEST(test_computed_int_array)
+	TEST(test_string_array) 
+	// TEST(test_computed_int_array)
 
 // clang-format on
 
