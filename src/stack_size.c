@@ -198,7 +198,7 @@ static int get_array_type_size(struct mcc_ir_row *ir)
 	case MCC_IR_ROW_INT:
 		return STACK_SIZE_INT * ir->type->array_size;
 	case MCC_IR_ROW_STRING:
-		return STACK_SIZE_STRING;
+		return STACK_SIZE_STRING * ir->type->array_size;
 	// Unreached, as per assertion
 	default:
 		return 0;
@@ -219,7 +219,7 @@ static int get_array_size(struct mcc_ir_row *ir)
 	case MCC_IR_ROW_INT:
 		return STACK_SIZE_INT * (ir->arg2->lit_int);
 	case MCC_IR_ROW_STRING:
-		return STACK_SIZE_STRING;
+		return STACK_SIZE_STRING * (ir->arg2->lit_int);
 	default:
 		return 0;
 	}
