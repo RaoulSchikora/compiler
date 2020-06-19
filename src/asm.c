@@ -69,7 +69,7 @@ static int get_offset_of(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg)
 	case MCC_IR_TYPE_FUNC_LABEL:
 		return 0;
 	case MCC_IR_TYPE_ARR_ELEM:
-		return get_array_element_location(an_ir,arg);
+		return get_array_element_location(an_ir, arg);
 	case MCC_IR_TYPE_IDENTIFIER:
 		return get_identifier_offset(first, arg->ident);
 	case MCC_IR_TYPE_ROW:
@@ -633,8 +633,10 @@ generate_cmp_op(struct mcc_annotated_ir *an_ir, enum mcc_asm_opcode opcode, stru
 	// 2. setcc dl
 	line2 = mcc_asm_new_line(opcode, dl(err), NULL, line3, err);
 
-	if ((an_ir->row->arg1->type == MCC_IR_TYPE_ROW || an_ir->row->arg1->type == MCC_IR_TYPE_IDENTIFIER) &&
-	    (an_ir->row->arg2->type == MCC_IR_TYPE_ROW || an_ir->row->arg2->type == MCC_IR_TYPE_IDENTIFIER)) {
+	if ((an_ir->row->arg1->type == MCC_IR_TYPE_ROW || an_ir->row->arg1->type == MCC_IR_TYPE_IDENTIFIER ||
+	     an_ir->row->arg1->type == MCC_IR_TYPE_ARR_ELEM) &&
+	    (an_ir->row->arg2->type == MCC_IR_TYPE_ROW || an_ir->row->arg2->type == MCC_IR_TYPE_IDENTIFIER ||
+	     an_ir->row->arg2->type == MCC_IR_TYPE_ARR_ELEM)) {
 		// 1b. cmp eax and arg2
 		line1b = mcc_asm_new_line(MCC_ASM_CMPL, arg_to_op(an_ir, an_ir->row->arg2, err), eax(err), line2, err);
 		// 1a. move arg1 in eax
