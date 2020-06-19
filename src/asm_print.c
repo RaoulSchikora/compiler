@@ -71,7 +71,8 @@ static char *opcode_to_string(enum mcc_asm_opcode op)
 		return "jne";
 	case MCC_ASM_RETURN:
 		return "ret";
-
+	case MCC_ASM_LEAL:
+		return "leal";
 	default:
 		return "unknown opcode";
 	}
@@ -120,6 +121,7 @@ static char *op_to_string(char *dest, int len, struct mcc_asm_operand *op)
 		register_to_string(dest, len, op->reg, op->offset);
 		break;
 	case MCC_ASM_OPERAND_DATA:
+		snprintf(dest, len, "%s", op->decl->identifier);
 		break;
 	case MCC_ASM_OPERAND_LITERAL:
 		snprintf(dest, len, "$%d", op->literal);
@@ -142,6 +144,7 @@ static int length_of_op(struct mcc_asm_operand *op)
 	case MCC_ASM_OPERAND_REGISTER:
 		return 4;
 	case MCC_ASM_OPERAND_DATA:
+		return strlen(op->decl->identifier);
 		break;
 	case MCC_ASM_OPERAND_LITERAL:
 		return length_of_int(op->literal) + 1;
@@ -195,8 +198,8 @@ static void asm_print_decl(FILE *out, struct mcc_asm_declaration *decl)
 	case MCC_ASM_DECLARATION_TYPE_FLOAT:
 		fprintf(out, "       .float %f\n", decl->float_value);
 		break;
-	case MCC_ASM_DECLARATION_TYPE_DB:
-		fprintf(out, "db \"%s\"\n", decl->db_value);
+	case MCC_ASM_DECLARATION_TYPE_STRING:
+		fprintf(out, ".string \"%s\"\n", decl->string_value);
 		break;
 	case MCC_ASM_DECLARATION_TYPE_ARRAY_INT:
 	case MCC_ASM_DECLARATION_TYPE_ARRAY_BOOL:

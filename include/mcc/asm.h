@@ -11,6 +11,7 @@
 
 struct mcc_asm_error {
 	bool has_failed;
+	struct mcc_asm_data_section *data_section;
 };
 
 //---------------------------------------------------------------------------------------- Data structure: ASM
@@ -29,7 +30,7 @@ struct mcc_asm_data_section {
 };
 
 enum mcc_asm_declaration_type {
-	MCC_ASM_DECLARATION_TYPE_DB,
+	MCC_ASM_DECLARATION_TYPE_STRING,
 	MCC_ASM_DECLARATION_TYPE_FLOAT,
 	MCC_ASM_DECLARATION_TYPE_ARRAY_INT,
 	MCC_ASM_DECLARATION_TYPE_ARRAY_FLOAT,
@@ -42,7 +43,7 @@ struct mcc_asm_declaration {
 	enum mcc_asm_declaration_type type;
 	union {
 		float float_value;
-		char *db_value;
+		char *string_value;
 		int array_size;
 	};
 	struct mcc_asm_declaration *next;
@@ -81,12 +82,13 @@ enum mcc_asm_opcode {
 	MCC_ASM_JE,
 	MCC_ASM_JNE,
 	MCC_ASM_LABEL,
+	MCC_ASM_LEAL,
 };
 
 struct mcc_asm_line {
 	enum mcc_asm_opcode opcode;
-	union{
-		struct{
+	union {
+		struct {
 			struct mcc_asm_operand *first;
 			struct mcc_asm_operand *second;
 		};
@@ -126,20 +128,28 @@ struct mcc_asm_operand {
 
 //------------------------------------------------------------------------------------ Functions: Create data structures
 
-struct mcc_asm *mcc_asm_new_asm(struct mcc_asm_data_section *data, struct mcc_asm_text_section *text, struct mcc_asm_error *err);
+struct mcc_asm *
+mcc_asm_new_asm(struct mcc_asm_data_section *data, struct mcc_asm_text_section *text, struct mcc_asm_error *err);
 
 struct mcc_asm_data_section *mcc_asm_new_data_section(struct mcc_asm_declaration *head, struct mcc_asm_error *err);
 
 struct mcc_asm_text_section *mcc_asm_new_text_section(struct mcc_asm_function *function, struct mcc_asm_error *err);
 
-struct mcc_asm_declaration *
-mcc_asm_new_float_declaration(char *identifier, float float_value, struct mcc_asm_declaration *next, struct mcc_asm_error *err);
+struct mcc_asm_declaration *mcc_asm_new_float_declaration(char *identifier,
+                                                          float float_value,
+                                                          struct mcc_asm_declaration *next,
+                                                          struct mcc_asm_error *err);
 
-struct mcc_asm_declaration *
-mcc_asm_new_db_declaration(char *identifier, char *db_value, struct mcc_asm_declaration *next, struct mcc_asm_error *err);
+struct mcc_asm_declaration *mcc_asm_new_string_declaration(char *identifier,
+                                                       char *string_value,
+                                                       struct mcc_asm_declaration *next,
+                                                       struct mcc_asm_error *err);
 
-struct mcc_asm_declaration *mcc_asm_new_array_declaration(
-    char *identifier, int size, enum mcc_asm_declaration_type type, struct mcc_asm_declaration *next, struct mcc_asm_error *err);
+struct mcc_asm_declaration *mcc_asm_new_array_declaration(char *identifier,
+                                                          int size,
+                                                          enum mcc_asm_declaration_type type,
+                                                          struct mcc_asm_declaration *next,
+                                                          struct mcc_asm_error *err);
 
 struct mcc_asm_function *
 mcc_asm_new_function(char *label, struct mcc_asm_line *head, struct mcc_asm_function *next, struct mcc_asm_error *err);

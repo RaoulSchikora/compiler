@@ -284,6 +284,52 @@ void strings(CuTest *tc)
 
 	struct mcc_asm_declaration *decl = code->data_section->head;
 	CuAssertPtrNotNull(tc, decl);
+	CuAssertStrEquals(tc, "a_0", decl->identifier);
+	CuAssertStrEquals(tc, "test", decl->string_value);
+	decl = decl->next;
+	CuAssertStrEquals(tc, "a_1", decl->identifier);
+	CuAssertStrEquals(tc, "test2", decl->string_value);
+
+	// pushl ebp
+	struct mcc_asm_line *line = code->text_section->function->head;
+
+	// movl esp, ebp
+	line = line->next;
+
+	// subl 4 esp
+	line = line->next;
+
+	// leal a_0 eax
+	line = line->next;
+	CuAssertIntEquals(tc, MCC_ASM_LEAL, line->opcode);
+	CuAssertStrEquals(tc, "a_0", line->first->decl->identifier);
+	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, line->second->type);
+	CuAssertIntEquals(tc, MCC_ASM_EAX, line->second->reg);
+
+	// movl eax -4(ebp)
+	line = line->next;
+	CuAssertIntEquals(tc, MCC_ASM_MOVL, line->opcode);
+	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, line->first->type);
+	CuAssertIntEquals(tc, MCC_ASM_EAX, line->first->reg);
+	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, line->second->type);
+	CuAssertIntEquals(tc, MCC_ASM_EBP, line->second->reg);
+	CuAssertIntEquals(tc, -4, line->second->offset);
+
+	// leal a_1 eax
+	line = line->next;
+	CuAssertIntEquals(tc, MCC_ASM_LEAL, line->opcode);
+	CuAssertStrEquals(tc, "a_1", line->first->decl->identifier);
+	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, line->second->type);
+	CuAssertIntEquals(tc, MCC_ASM_EAX, line->second->reg);
+
+	// movl eax -4(ebp)
+	line = line->next;
+	CuAssertIntEquals(tc, MCC_ASM_MOVL, line->opcode);
+	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, line->first->type);
+	CuAssertIntEquals(tc, MCC_ASM_EAX, line->first->reg);
+	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, line->second->type);
+	CuAssertIntEquals(tc, MCC_ASM_EBP, line->second->reg);
+	CuAssertIntEquals(tc, -4, line->second->offset);
 
 	mcc_ir_delete_ir(ir);
 	mcc_semantic_check_delete_single_check(checks);
@@ -292,6 +338,77 @@ void strings(CuTest *tc)
 	mcc_asm_delete_asm(code);
 }
 
+void strings2(CuTest *tc)
+{
+	// Define test input and create IR
+	const char input[] = "int main(){string a; a = \"test\"; string b; b = \"test2\";return 0;}";
+	struct mcc_parser_result parser_result;
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
+	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+	struct mcc_semantic_check *checks = mcc_semantic_check_run_all((&parser_result)->program, table);
+	CuAssertIntEquals(tc, checks->status, MCC_SEMANTIC_CHECK_OK);
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program, table);
+	CuAssertPtrNotNull(tc, ir);
+
+	struct mcc_asm *code = mcc_asm_generate(ir);
+	CuAssertPtrNotNull(tc, code);
+
+	struct mcc_asm_declaration *decl = code->data_section->head;
+	CuAssertPtrNotNull(tc, decl);
+	CuAssertStrEquals(tc, "a_0", decl->identifier);
+	CuAssertStrEquals(tc, "test", decl->string_value);
+	decl = decl->next;
+	CuAssertStrEquals(tc, "b_1", decl->identifier);
+	CuAssertStrEquals(tc, "test2", decl->string_value);
+
+	// pushl ebp
+	struct mcc_asm_line *line = code->text_section->function->head;
+
+	// movl esp, ebp
+	line = line->next;
+
+	// subl 4 esp
+	line = line->next;
+
+	// leal a_0 eax
+	line = line->next;
+	CuAssertIntEquals(tc, MCC_ASM_LEAL, line->opcode);
+	CuAssertStrEquals(tc, "a_0", line->first->decl->identifier);
+	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, line->second->type);
+	CuAssertIntEquals(tc, MCC_ASM_EAX, line->second->reg);
+
+	// movl eax -4(ebp)
+	line = line->next;
+	CuAssertIntEquals(tc, MCC_ASM_MOVL, line->opcode);
+	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, line->first->type);
+	CuAssertIntEquals(tc, MCC_ASM_EAX, line->first->reg);
+	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, line->second->type);
+	CuAssertIntEquals(tc, MCC_ASM_EBP, line->second->reg);
+	CuAssertIntEquals(tc, -4, line->second->offset);
+
+	// leal a_1 eax
+	line = line->next;
+	CuAssertIntEquals(tc, MCC_ASM_LEAL, line->opcode);
+	CuAssertStrEquals(tc, "b_1", line->first->decl->identifier);
+	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, line->second->type);
+	CuAssertIntEquals(tc, MCC_ASM_EAX, line->second->reg);
+
+	// movl eax -4(ebp)
+	line = line->next;
+	CuAssertIntEquals(tc, MCC_ASM_MOVL, line->opcode);
+	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, line->first->type);
+	CuAssertIntEquals(tc, MCC_ASM_EAX, line->first->reg);
+	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, line->second->type);
+	CuAssertIntEquals(tc, MCC_ASM_EBP, line->second->reg);
+	CuAssertIntEquals(tc, -8, line->second->offset);
+
+	mcc_ir_delete_ir(ir);
+	mcc_semantic_check_delete_single_check(checks);
+	mcc_ast_delete(parser_result.program);
+	mcc_symbol_table_delete_table(table);
+	mcc_asm_delete_asm(code);
+}
 // clang-format off
 
 #define TESTS \
@@ -300,7 +417,8 @@ void strings(CuTest *tc)
 	TEST(addition_lit) \
 	TEST(div_int) \
 	TEST(array_loc) \
-	TEST(strings)
+	TEST(strings) \
+	TEST(strings2)
 
 // clang-format on
 

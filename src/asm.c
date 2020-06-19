@@ -122,36 +122,39 @@ struct mcc_asm_declaration *mcc_asm_new_float_declaration(char *identifier,
                                                           struct mcc_asm_error *err)
 {
 	struct mcc_asm_declaration *new = malloc(sizeof(*new));
-	if (!new) {
+	char *id_new = malloc(sizeof(char) * (strlen(identifier) + 1));
+	if (!new || !id_new) {
 		err->has_failed = true;
+		free(new);
+		free(id_new);
 		return NULL;
 	}
-	new->identifier = identifier;
+	strcpy(id_new, identifier);
+	new->identifier = id_new;
 	new->float_value = float_value;
 	new->next = next;
 	new->type = MCC_ASM_DECLARATION_TYPE_FLOAT;
 	return new;
 }
 
-struct mcc_asm_declaration *mcc_asm_new_db_declaration(char *identifier,
-                                                       char *db_value,
+struct mcc_asm_declaration *mcc_asm_new_string_declaration(char *identifier,
+                                                       char *string_value,
                                                        struct mcc_asm_declaration *next,
                                                        struct mcc_asm_error *err)
 {
 	struct mcc_asm_declaration *new = malloc(sizeof(*new));
-	char *identifier_copy = malloc(sizeof(char) * (strlen(identifier) + 1));
-	if (!new || !identifier) {
+	char *id_new = malloc(sizeof(char) * (strlen(identifier) + 1));
+	if (!new || !id_new) {
 		err->has_failed = true;
 		free(new);
-		free(identifier);
+		free(id_new);
 		return NULL;
 	}
-
-	strcpy(identifier_copy, identifier);
-	new->identifier = identifier_copy;
-	new->db_value = db_value;
+	strcpy(id_new, identifier);
+	new->identifier = id_new;
+	new->string_value = string_value;
 	new->next = next;
-	new->type = MCC_ASM_DECLARATION_TYPE_DB;
+	new->type = MCC_ASM_DECLARATION_TYPE_STRING;
 	return new;
 }
 
@@ -162,11 +165,15 @@ struct mcc_asm_declaration *mcc_asm_new_array_declaration(char *identifier,
                                                           struct mcc_asm_error *err)
 {
 	struct mcc_asm_declaration *new = malloc(sizeof(*new));
-	if (!new) {
+	char *id_new = malloc(sizeof(char) * (strlen(identifier) + 1));
+	if (!new || !id_new) {
 		err->has_failed = true;
+		free(new);
+		free(id_new);
 		return NULL;
 	}
-	new->identifier = identifier;
+	strcpy(id_new, identifier);
+	new->identifier = id_new;
 	new->array_size = size;
 	new->next = next;
 	new->type = type;
@@ -177,12 +184,16 @@ struct mcc_asm_function *
 mcc_asm_new_function(char *label, struct mcc_asm_line *head, struct mcc_asm_function *next, struct mcc_asm_error *err)
 {
 	struct mcc_asm_function *new = malloc(sizeof(*new));
-	if (!new) {
+	char *lab_new = malloc(sizeof(char) * (strlen(label) + 1));
+	if (!new || !lab_new) {
+		free(new);
+		free(lab_new);
 		err->has_failed = true;
 		return NULL;
 	}
+	strcpy(lab_new, label);
 	new->head = head;
-	new->label = label;
+	new->label = lab_new;
 	new->next = next;
 	new->pos_list = NULL;
 	return new;
@@ -225,12 +236,16 @@ struct mcc_asm_line *mcc_asm_new_label(enum mcc_asm_opcode opcode, unsigned labe
 struct mcc_asm_operand *mcc_asm_new_function_operand(char *function_name, struct mcc_asm_error *err)
 {
 	struct mcc_asm_operand *new = malloc(sizeof(*new));
-	if (!new) {
+	char *func_name_new = malloc(sizeof(char) * (strlen(function_name) + 1));
+	if (!new || !func_name_new) {
+		free(new);
+		free(func_name_new);
 		err->has_failed = true;
 		return NULL;
 	}
+	strcpy(func_name_new, function_name);
 	new->type = MCC_ASM_OPERAND_FUNCTION;
-	new->func_name = function_name;
+	new->func_name = func_name_new;
 	new->offset = 0;
 	return new;
 }
@@ -345,7 +360,10 @@ void mcc_asm_delete_declaration(struct mcc_asm_declaration *decl)
 {
 	if (!decl)
 		return;
-	if (decl->type == MCC_ASM_DECLARATION_TYPE_DB) {
+	if (decl->type == MCC_ASM_DECLARATION_TYPE_STRING) {
+		free(decl->identifier);
+	}
+	if (decl->type == MCC_ASM_DECLARATION_TYPE_ARRAY_FLOAT) {
 		free(decl->identifier);
 	}
 	free(decl);
@@ -391,6 +409,9 @@ void mcc_asm_delete_operand(struct mcc_asm_operand *operand)
 {
 	if (!operand)
 		return;
+	if (operand->type == MCC_ASM_OPERAND_FUNCTION) {
+		free(operand->func_name);
+	}
 	free(operand);
 }
 
@@ -441,25 +462,58 @@ arg_to_op(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm
 	return operand;
 }
 
-// TODO: Find the name of the db-directive that holds the string associated with arg2 of this IR line
+// TODO: Find the name of the string-directive that holds the string associated with arg2 of this IR line
+// Allocate new operand struct for it
 // Problem: Needs access to db-Section
-static char *find_string_identifier(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
+static struct mcc_asm_operand *find_string_identifier(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
 {
-	UNUSED(an_ir);
-	UNUSED(err);
+	assert(an_ir);
+	assert(an_ir->row->instr == MCC_IR_INSTR_ASSIGN);
+	assert(an_ir->row->arg2->type == MCC_IR_TYPE_LIT_STRING);
+	assert(err);
+	if (err->has_failed)
+		return NULL;
+
+	struct mcc_asm_operand *op = malloc(sizeof(*op));
+	if (!op) {
+		err->has_failed = true;
+		return NULL;
+	}
+
+	char *wanted_string = an_ir->row->arg2->lit_string;
+	struct mcc_asm_declaration *head = err->data_section->head;
+	while (head) {
+		if (head->type != MCC_ASM_DECLARATION_TYPE_STRING) {
+			head = head->next;
+			continue;
+		}
+		if (strcmp(wanted_string, head->string_value) != 0) {
+			head = head->next;
+			continue;
+		}
+		op->decl = head;
+		op->type = MCC_ASM_OPERAND_DATA;
+		op->offset = 0;
+		return op;
+	}
+
+	free(op);
 	return NULL;
 }
 
-// TODO: Get name of correct db directive and load it into the corresponding stack posision with "leal"
 static struct mcc_asm_line *generate_string_assignment(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
 {
-	char *string_id = find_string_identifier(an_ir, err);
-	UNUSED(string_id);
-
-	struct mcc_asm_line *line1 =
-	    mcc_asm_new_line(MCC_ASM_MOVL, mcc_asm_new_literal_operand((int)an_ir->stack_position, err),
-	                     ebp(an_ir->stack_position, err), NULL, err);
-	return line1;
+	struct mcc_asm_operand *string_id = find_string_identifier(an_ir, err);
+	struct mcc_asm_line *leal = mcc_asm_new_line(MCC_ASM_LEAL, string_id, eax(err), NULL, err);
+	struct mcc_asm_line *movl =
+	    mcc_asm_new_line(MCC_ASM_MOVL, eax(err), ebp(an_ir->stack_position, err), NULL, err);
+	if (err->has_failed || !leal || !movl || !string_id) {
+		mcc_asm_delete_line(leal);
+		mcc_asm_delete_line(movl);
+		return NULL;
+	}
+	leal->next = movl;
+	return leal;
 }
 
 static struct mcc_asm_line *generate_instr_assign(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
@@ -479,7 +533,7 @@ static struct mcc_asm_line *generate_instr_assign(struct mcc_annotated_ir *an_ir
 		                         err);
 	} else if (an_ir->row->arg2->type == MCC_IR_TYPE_ROW || an_ir->row->arg2->type == MCC_IR_TYPE_IDENTIFIER) {
 		line2 = mcc_asm_new_line(MCC_ASM_MOVL, eax(err), arg_to_op(an_ir, an_ir->row->arg1, err), NULL, err);
-		line1 = mcc_asm_new_line(MCC_ASM_MOVL, arg_to_op(an_ir, an_ir->row->arg2, err), eax(err), NULL, err);
+		line1 = mcc_asm_new_line(MCC_ASM_MOVL, arg_to_op(an_ir, an_ir->row->arg2, err), eax(err), line2, err);
 	} else if (an_ir->row->arg2->type == MCC_IR_TYPE_LIT_STRING) {
 		line1 = generate_string_assignment(an_ir, err);
 	} else {
@@ -489,10 +543,10 @@ static struct mcc_asm_line *generate_instr_assign(struct mcc_annotated_ir *an_ir
 		                         ebp(offset2, err), NULL, err);
 	}
 
-	if (err->has_failed)
+	if (err->has_failed) {
+		line1->next = NULL;
 		mcc_asm_delete_line(line2);
-	else
-		line1->next = line2;
+	}
 
 	return line1;
 }
@@ -848,10 +902,7 @@ struct mcc_asm_function *mcc_asm_generate_function(struct mcc_annotated_ir *an_i
 	if (err->has_failed)
 		return NULL;
 
-	char *label = strdup(an_ir->row->arg1->func_label);
-	if (!label)
-		return NULL;
-	struct mcc_asm_function *function = mcc_asm_new_function(label, NULL, NULL, err);
+	struct mcc_asm_function *function = mcc_asm_new_function(an_ir->row->arg1->func_label, NULL, NULL, err);
 	if (!function) {
 		return NULL;
 	}
@@ -904,10 +955,9 @@ static bool generate_text_section(struct mcc_asm_text_section *text_section,
 	return true;
 }
 
-static char *rename_string_identifier(char *id)
+static char *rename_string_identifier(char *id, int counter)
 {
 	assert(id);
-	static int counter = 0;
 	int extra_length = 2 + length_of_int(counter);
 	int new_length = strlen(id) + extra_length;
 	char *new = malloc(sizeof(char) * new_length);
@@ -926,6 +976,7 @@ static bool generate_data_section(struct mcc_asm_data_section *data_section,
 	if (err->has_failed)
 		return false;
 	struct mcc_asm_declaration *head = data_section->head;
+	int counter = 0;
 
 	// Allocate all declared strings
 	// TODO: Handle reassignment
@@ -939,10 +990,11 @@ static bool generate_data_section(struct mcc_asm_data_section *data_section,
 			an_ir = an_ir->next;
 			continue;
 		}
-		char *db_identifier = rename_string_identifier(an_ir->row->arg1->ident);
+		char *string_identifier = rename_string_identifier(an_ir->row->arg1->ident, counter);
 		struct mcc_asm_declaration *decl =
-		    mcc_asm_new_db_declaration(db_identifier, an_ir->row->arg2->lit_string, NULL, err);
-		free(db_identifier);
+		    mcc_asm_new_string_declaration(string_identifier, an_ir->row->arg2->lit_string, NULL, err);
+		free(string_identifier);
+		counter++;
 		if (!decl) {
 			mcc_asm_delete_all_declarations(head);
 			err->has_failed = false;
@@ -981,9 +1033,10 @@ struct mcc_asm *mcc_asm_generate(struct mcc_ir_row *ir)
 	}
 	assembly->data_section = data_section;
 	assembly->text_section = text_section;
+	err->data_section = data_section;
 
-	bool text_section_generated = generate_text_section(assembly->text_section, an_ir, err);
 	bool data_section_generated = generate_data_section(assembly->data_section, an_ir, err);
+	bool text_section_generated = generate_text_section(assembly->text_section, an_ir, err);
 	if (!text_section_generated || !data_section_generated) {
 		mcc_asm_delete_asm(assembly);
 		mcc_delete_annotated_ir(an_ir);
