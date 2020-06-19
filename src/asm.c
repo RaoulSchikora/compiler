@@ -121,15 +121,16 @@ struct mcc_asm_declaration *mcc_asm_new_float_declaration(char *identifier,
                                                           struct mcc_asm_declaration *next,
                                                           struct mcc_asm_error *err)
 {
+	int size = strlen(identifier) + 1;
 	struct mcc_asm_declaration *new = malloc(sizeof(*new));
-	char *id_new = malloc(sizeof(char) * (strlen(identifier) + 1));
+	char *id_new = malloc(sizeof(char) * size);
 	if (!new || !id_new) {
 		err->has_failed = true;
 		free(new);
 		free(id_new);
 		return NULL;
 	}
-	strcpy(id_new, identifier);
+	strncpy(id_new, identifier, size);
 	new->identifier = id_new;
 	new->float_value = float_value;
 	new->next = next;
@@ -138,19 +139,20 @@ struct mcc_asm_declaration *mcc_asm_new_float_declaration(char *identifier,
 }
 
 struct mcc_asm_declaration *mcc_asm_new_string_declaration(char *identifier,
-                                                       char *string_value,
-                                                       struct mcc_asm_declaration *next,
-                                                       struct mcc_asm_error *err)
+                                                           char *string_value,
+                                                           struct mcc_asm_declaration *next,
+                                                           struct mcc_asm_error *err)
 {
+	int size = strlen(identifier) + 1;
 	struct mcc_asm_declaration *new = malloc(sizeof(*new));
-	char *id_new = malloc(sizeof(char) * (strlen(identifier) + 1));
+	char *id_new = malloc(sizeof(char) * size);
 	if (!new || !id_new) {
 		err->has_failed = true;
 		free(new);
 		free(id_new);
 		return NULL;
 	}
-	strcpy(id_new, identifier);
+	strncpy(id_new, identifier, size);
 	new->identifier = id_new;
 	new->string_value = string_value;
 	new->next = next;
@@ -164,15 +166,16 @@ struct mcc_asm_declaration *mcc_asm_new_array_declaration(char *identifier,
                                                           struct mcc_asm_declaration *next,
                                                           struct mcc_asm_error *err)
 {
+	int string_size = strlen(identifier) + 1;
 	struct mcc_asm_declaration *new = malloc(sizeof(*new));
-	char *id_new = malloc(sizeof(char) * (strlen(identifier) + 1));
+	char *id_new = malloc(sizeof(char) * string_size);
 	if (!new || !id_new) {
 		err->has_failed = true;
 		free(new);
 		free(id_new);
 		return NULL;
 	}
-	strcpy(id_new, identifier);
+	strncpy(id_new, identifier, string_size);
 	new->identifier = id_new;
 	new->array_size = size;
 	new->next = next;
@@ -183,15 +186,16 @@ struct mcc_asm_declaration *mcc_asm_new_array_declaration(char *identifier,
 struct mcc_asm_function *
 mcc_asm_new_function(char *label, struct mcc_asm_line *head, struct mcc_asm_function *next, struct mcc_asm_error *err)
 {
+	int size = strlen(label) + 1;
 	struct mcc_asm_function *new = malloc(sizeof(*new));
-	char *lab_new = malloc(sizeof(char) * (strlen(label) + 1));
+	char *lab_new = malloc(sizeof(char) * size);
 	if (!new || !lab_new) {
 		free(new);
 		free(lab_new);
 		err->has_failed = true;
 		return NULL;
 	}
-	strcpy(lab_new, label);
+	strncpy(lab_new, label, size);
 	new->head = head;
 	new->label = lab_new;
 	new->next = next;
@@ -235,15 +239,16 @@ struct mcc_asm_line *mcc_asm_new_label(enum mcc_asm_opcode opcode, unsigned labe
 
 struct mcc_asm_operand *mcc_asm_new_function_operand(char *function_name, struct mcc_asm_error *err)
 {
+	int size = strlen(function_name) + 1;
 	struct mcc_asm_operand *new = malloc(sizeof(*new));
-	char *func_name_new = malloc(sizeof(char) * (strlen(function_name) + 1));
+	char *func_name_new = malloc(sizeof(char) * size);
 	if (!new || !func_name_new) {
 		free(new);
 		free(func_name_new);
 		err->has_failed = true;
 		return NULL;
 	}
-	strcpy(func_name_new, function_name);
+	strncpy(func_name_new, function_name, size);
 	new->type = MCC_ASM_OPERAND_FUNCTION;
 	new->func_name = func_name_new;
 	new->offset = 0;
