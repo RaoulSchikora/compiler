@@ -467,9 +467,6 @@ arg_to_op(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm
 	return operand;
 }
 
-// TODO: Find the name of the string-directive that holds the string associated with arg2 of this IR line
-// Allocate new operand struct for it
-// Problem: Needs access to db-Section
 static struct mcc_asm_operand *find_string_identifier(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
 {
 	assert(an_ir);
