@@ -69,7 +69,7 @@ static int get_offset_of(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg)
 	case MCC_IR_TYPE_FUNC_LABEL:
 		return 0;
 	case MCC_IR_TYPE_ARR_ELEM:
-		return get_array_element_location(an_ir, arg);
+		return mcc_get_array_element_stack_loc(an_ir, arg);
 	case MCC_IR_TYPE_IDENTIFIER:
 		return get_identifier_offset(first, arg->ident);
 	case MCC_IR_TYPE_ROW:
@@ -455,13 +455,23 @@ arg_to_op(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm
 		return NULL;
 
 	struct mcc_asm_operand *operand = NULL;
-	if (arg->type == MCC_IR_TYPE_LIT_INT) {
+	switch (arg->type) {
+	case MCC_IR_TYPE_LIT_INT:
 		operand = mcc_asm_new_literal_operand(arg->lit_int, err);
-	} else if (arg->type == MCC_IR_TYPE_LIT_BOOL) {
+		break;
+	case MCC_IR_TYPE_LIT_BOOL:
 		operand = mcc_asm_new_literal_operand(arg->lit_bool, err);
-	} else if (arg->type == MCC_IR_TYPE_ROW || arg->type == MCC_IR_TYPE_IDENTIFIER ||
-	           arg->type == MCC_IR_TYPE_ARR_ELEM) {
+		break;
+	case MCC_IR_TYPE_ROW:
+	case MCC_IR_TYPE_IDENTIFIER:
 		operand = mcc_asm_new_register_operand(MCC_ASM_EBP, get_offset_of(an_ir, arg), err);
+		break;
+	// TODO #201: Distinguish between literal and computed index
+	case MCC_IR_TYPE_ARR_ELEM:
+		operand = mcc_asm_new_register_operand(MCC_ASM_EBP, get_offset_of(an_ir, arg), err);
+		break;
+	default:
+		break;
 	}
 
 	return operand;

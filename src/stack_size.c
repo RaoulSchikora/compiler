@@ -341,8 +341,7 @@ static int get_array_base_size(struct mcc_ir_row *ir)
 	}
 }
 
-// TODO mcc prefix
-int get_array_element_location(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg)
+int mcc_get_array_element_stack_loc(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg)
 {
 	assert(arg);
 	assert(an_ir);
@@ -416,7 +415,7 @@ static void add_stack_positions(struct mcc_annotated_ir *head)
 		// Array elements
 		if (head->row->instr == MCC_IR_INSTR_ASSIGN) {
 			if (head->row->arg1->type == MCC_IR_TYPE_ARR_ELEM) {
-				head->stack_position = get_array_element_location(head, head->row->arg1);
+				head->stack_position = mcc_get_array_element_stack_loc(head, head->row->arg1);
 				head = head->next;
 				continue;
 			}

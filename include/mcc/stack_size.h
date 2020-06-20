@@ -33,6 +33,6 @@ void mcc_delete_annotated_ir(struct mcc_annotated_ir *head);
 
 struct mcc_annotated_ir *mcc_annotate_ir(struct mcc_ir_row *ir);
 
-int get_array_element_location(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg);
+int mcc_get_array_element_stack_loc(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg);
 
 #endif
