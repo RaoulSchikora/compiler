@@ -538,21 +538,28 @@ static struct mcc_asm_line *generate_instr_assign(struct mcc_annotated_ir *an_ir
 
 	int offset2 = an_ir->stack_position;
 
-	// TODO lit_float, arrays
+	// TODO #201 lit_float, arrays
 	struct mcc_asm_line *line1 = NULL, *line2 = NULL;
-	if (an_ir->row->arg2->type == MCC_IR_TYPE_LIT_INT || an_ir->row->arg2->type == MCC_IR_TYPE_LIT_BOOL) {
+	switch (an_ir->row->arg2->type) {
+	case MCC_IR_TYPE_LIT_INT:
+	case MCC_IR_TYPE_LIT_BOOL:
 		line1 = mcc_asm_new_line(MCC_ASM_MOVL, arg_to_op(an_ir, an_ir->row->arg2, err), ebp(offset2, err), NULL,
 		                         err);
-	} else if (an_ir->row->arg2->type == MCC_IR_TYPE_ROW || an_ir->row->arg2->type == MCC_IR_TYPE_IDENTIFIER) {
+		break;
+	case MCC_IR_TYPE_ROW:
+	case MCC_IR_TYPE_IDENTIFIER:
 		line2 = mcc_asm_new_line(MCC_ASM_MOVL, eax(err), arg_to_op(an_ir, an_ir->row->arg1, err), NULL, err);
 		line1 = mcc_asm_new_line(MCC_ASM_MOVL, arg_to_op(an_ir, an_ir->row->arg2, err), eax(err), line2, err);
-	} else if (an_ir->row->arg2->type == MCC_IR_TYPE_LIT_STRING) {
+		break;
+	case MCC_IR_TYPE_LIT_STRING:
 		line1 = generate_string_assignment(an_ir, err);
-	} else {
+		break;
+	default:
 		// TODO remove when done. Remider: "(int)an_ir->stack_position" was only chosen to let compare
 		// operations of float-integration-test fail (makes no sense at all, so don't get confused :) ...)
 		line1 = mcc_asm_new_line(MCC_ASM_MOVL, mcc_asm_new_literal_operand((int)an_ir->stack_position, err),
 		                         ebp(offset2, err), NULL, err);
+		break;
 	}
 
 	if (err->has_failed) {

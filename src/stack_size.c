@@ -349,6 +349,12 @@ int mcc_get_array_element_stack_loc(struct mcc_annotated_ir *an_ir, struct mcc_i
 
 	struct mcc_annotated_ir *head = an_ir;
 	struct mcc_annotated_ir *first = head;
+
+	// Array index is not int literal -> computed during runtime
+	if (arg->index->type != MCC_IR_TYPE_LIT_INT) {
+		return 0;
+	}
+
 	while (first && first->prev) {
 		if (first->prev->row->instr == MCC_IR_INSTR_FUNC_LABEL) {
 			first = first->prev;
@@ -361,8 +367,7 @@ int mcc_get_array_element_stack_loc(struct mcc_annotated_ir *an_ir, struct mcc_i
 		if (head->row->instr == MCC_IR_INSTR_ARRAY) {
 			if (strcmp(head->row->arg1->ident, arg->arr_ident) == 0) {
 				int array_pos = head->stack_position;
-				int element_pos =
-				    array_pos - arg->index->lit_int * get_array_base_size(head->row);
+				int element_pos = array_pos - arg->index->lit_int * get_array_base_size(head->row);
 				return element_pos;
 			}
 		}
