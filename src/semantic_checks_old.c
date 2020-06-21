@@ -2127,7 +2127,6 @@ struct mcc_semantic_check *mcc_semantic_check_run_define_built_in(struct mcc_ast
 
 // ------------------------------------------------------------- Functions: Cleanup
 
-// TODO: Delete all checks
 void mcc_semantic_check_delete_all_checks(struct mcc_semantic_check_all_checks *checks)
 {
 
