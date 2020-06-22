@@ -10,7 +10,6 @@
 
 #include "mcc/ir.h"
 
-// TODO
 #define STACK_SIZE_BOOL 4
 #define STACK_SIZE_FLOAT 4
 #define STACK_SIZE_STRING 4

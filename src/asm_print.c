@@ -190,7 +190,6 @@ static void asm_print_func(FILE *out, struct mcc_asm_function *func)
 	}
 }
 
-// TODO: Allocate space for string and float arrays
 static void asm_print_decl(FILE *out, struct mcc_asm_declaration *decl)
 {
 	fprintf(out, "\t%s:", decl->identifier);

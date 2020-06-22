@@ -444,8 +444,7 @@ static void func_append(struct mcc_asm_function *func, struct mcc_asm_line *line
 	return;
 }
 
-// TODO: Float, String
-// TODO: Function needs an_ir to find offset (instead of function)
+// TODO: Float
 static struct mcc_asm_operand *
 arg_to_op(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm_error *err)
 {
@@ -1012,7 +1011,6 @@ static bool generate_data_section(struct mcc_asm_data_section *data_section,
 	int counter = 0;
 
 	// Allocate all declared strings
-	// TODO: Handle reassignment
 	while (an_ir) {
 		if (an_ir->row->instr != MCC_IR_INSTR_ASSIGN) {
 			an_ir = an_ir->next;

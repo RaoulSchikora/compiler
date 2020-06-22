@@ -208,7 +208,6 @@ run_check_early_abrt(enum mcc_semantic_check_error_code (*fctptr)(struct mcc_ast
 }
 
 // Run all semantic checks, returns NULL if library functions fail
-// TODO: error handling?
 struct mcc_semantic_check *mcc_semantic_check_run_all(struct mcc_ast_program *ast,
                                                       struct mcc_symbol_table *symbol_table)
 {

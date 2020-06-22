@@ -621,7 +621,6 @@ static void generate_ir_program(struct mcc_ast_program *program, struct ir_gener
 	generate_ir_function_definition(program->function, data);
 }
 
-// TODO: generate return statements for void functions
 static void generate_ir_function_definition(struct mcc_ast_function_definition *def,
                                             struct ir_generation_userdata *data)
 {
