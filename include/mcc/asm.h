@@ -42,7 +42,7 @@ struct mcc_asm_declaration {
 	char *identifier;
 	enum mcc_asm_declaration_type type;
 	union {
-		float float_value;
+		double float_value;
 		char *string_value;
 		int array_size;
 	};
@@ -83,6 +83,8 @@ enum mcc_asm_opcode {
 	MCC_ASM_JNE,
 	MCC_ASM_LABEL,
 	MCC_ASM_LEAL,
+	MCC_ASM_FLDS,
+	MCC_ASM_FSTPS,
 };
 
 struct mcc_asm_line {

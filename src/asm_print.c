@@ -73,6 +73,10 @@ static char *opcode_to_string(enum mcc_asm_opcode op)
 		return "ret";
 	case MCC_ASM_LEAL:
 		return "leal";
+	case MCC_ASM_FLDS:
+		return "flds";
+	case MCC_ASM_FSTPS:
+		return "fstps";
 	default:
 		return "unknown opcode";
 	}

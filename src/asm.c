@@ -10,6 +10,8 @@
 #include "mcc/stack_size.h"
 #include "utils/unused.h"
 
+#define EPSILON 1e-06;
+
 static int get_identifier_offset(struct mcc_annotated_ir *first, char *ident)
 {
 	assert(first);
@@ -512,6 +514,38 @@ static struct mcc_asm_operand *find_string_identifier(struct mcc_annotated_ir *a
 	return NULL;
 }
 
+static struct mcc_asm_operand *find_float_identifier(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
+{
+	assert(an_ir);
+	assert(an_ir->row->instr == MCC_IR_INSTR_ASSIGN);
+	assert(an_ir->row->arg2->type == MCC_IR_TYPE_LIT_FLOAT);
+	assert(err);
+	if (err->has_failed)
+		return NULL;
+
+	struct mcc_asm_operand *op = malloc(sizeof(*op));
+	if (!op) {
+		err->has_failed = true;
+		return NULL;
+	}
+
+	double wanted_float = an_ir->row->arg2->lit_float;
+	double epsilon = EPSILON;
+	struct mcc_asm_declaration *head = err->data_section->head;
+	while (head) {
+		if (head->type == MCC_ASM_DECLARATION_TYPE_FLOAT &&
+		    (fabs(wanted_float - head->float_value) < epsilon)) {
+			op->decl = head;
+			op->type = MCC_ASM_OPERAND_DATA;
+			op->offset = 0;
+			return op;
+		}
+		head = head->next;
+	}
+	free(op);
+	return NULL;
+}
+
 static struct mcc_asm_line *generate_string_assignment(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
 {
 	struct mcc_asm_operand *string_id = find_string_identifier(an_ir, err);
@@ -527,6 +561,35 @@ static struct mcc_asm_line *generate_string_assignment(struct mcc_annotated_ir *
 	return leal;
 }
 
+static struct mcc_asm_line *generate_assign_row_ident(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
+{
+	assert(an_ir);
+	struct mcc_asm_line *line1 = NULL, *line2 = NULL;
+	//if (an_ir->row->type == MCC_IR_ROW_INT) {
+		line2 = mcc_asm_new_line(MCC_ASM_MOVL, eax(err), arg_to_op(an_ir, an_ir->row->arg1, err), NULL, err);
+		line1 = mcc_asm_new_line(MCC_ASM_MOVL, arg_to_op(an_ir, an_ir->row->arg2, err), eax(err), line2, err);
+		if (err->has_failed || !line1 || !line2) {
+			mcc_asm_delete_line(line1);
+			mcc_asm_delete_line(line2);
+			return NULL;
+		}
+		return line1;
+	//}
+}
+
+static struct mcc_asm_line *generate_float_assign(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
+{
+	struct mcc_asm_line *line2 =
+	    mcc_asm_new_line(MCC_ASM_FSTPS, arg_to_op(an_ir, an_ir->row->arg1, err), NULL, NULL, err);
+	struct mcc_asm_line *line1 = mcc_asm_new_line(MCC_ASM_FLDS, find_float_identifier(an_ir, err), NULL, line2, err);
+	if (err->has_failed || !line1 || !line2) {
+			mcc_asm_delete_line(line1);
+			mcc_asm_delete_line(line2);
+			return NULL;
+	}
+	return line1;
+}
+
 static struct mcc_asm_line *generate_instr_assign(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
 {
 	assert(an_ir);
@@ -538,17 +601,19 @@ static struct mcc_asm_line *generate_instr_assign(struct mcc_annotated_ir *an_ir
 	int offset2 = an_ir->stack_position;
 
 	// TODO #201 lit_float, arrays
-	struct mcc_asm_line *line1 = NULL, *line2 = NULL;
+	struct mcc_asm_line *line1 = NULL;
 	switch (an_ir->row->arg2->type) {
 	case MCC_IR_TYPE_LIT_INT:
 	case MCC_IR_TYPE_LIT_BOOL:
 		line1 = mcc_asm_new_line(MCC_ASM_MOVL, arg_to_op(an_ir, an_ir->row->arg2, err), ebp(offset2, err), NULL,
 		                         err);
 		break;
+	case MCC_IR_TYPE_LIT_FLOAT:
+		line1 = generate_float_assign(an_ir, err);
+		break;
 	case MCC_IR_TYPE_ROW:
 	case MCC_IR_TYPE_IDENTIFIER:
-		line2 = mcc_asm_new_line(MCC_ASM_MOVL, eax(err), arg_to_op(an_ir, an_ir->row->arg1, err), NULL, err);
-		line1 = mcc_asm_new_line(MCC_ASM_MOVL, arg_to_op(an_ir, an_ir->row->arg2, err), eax(err), line2, err);
+		line1 = generate_assign_row_ident(an_ir, err);
 		break;
 	case MCC_IR_TYPE_LIT_STRING:
 		line1 = generate_string_assignment(an_ir, err);
@@ -559,11 +624,6 @@ static struct mcc_asm_line *generate_instr_assign(struct mcc_annotated_ir *an_ir
 		line1 = mcc_asm_new_line(MCC_ASM_MOVL, mcc_asm_new_literal_operand((int)an_ir->stack_position, err),
 		                         ebp(offset2, err), NULL, err);
 		break;
-	}
-
-	if (err->has_failed) {
-		line1->next = NULL;
-		mcc_asm_delete_line(line2);
 	}
 
 	return line1;
