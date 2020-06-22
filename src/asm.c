@@ -976,15 +976,27 @@ static bool generate_text_section(struct mcc_asm_text_section *text_section,
 	return true;
 }
 
-static char *rename_string_identifier(char *id, int counter)
+static char *get_tmp_ident(char *id)
+{
+	memmove(id, id + 1, strlen(id));
+	char *new = malloc(sizeof(char) * strlen(id) + 1);
+	snprintf(new, strlen(id) + 1, "%s", id);
+	return new;
+}
+
+static char *rename_identifier(char *id, int counter)
 {
 	assert(id);
-	int extra_length = 2 + length_of_int(counter);
-	int new_length = strlen(id) + extra_length;
-	char *new = malloc(sizeof(char) * new_length);
-	snprintf(new, new_length, "%s_%d", id, counter);
-	counter++;
-	return new;
+	if (strncmp(id, "$tmp", 4) == 0) {
+		return get_tmp_ident(id);
+	} else {
+		int extra_length = 2 + length_of_int(counter);
+		int new_length = strlen(id) + extra_length;
+		char *new = malloc(sizeof(char) * new_length);
+		snprintf(new, new_length, "%s_%d", id, counter);
+		counter++;
+		return new;
+	}
 }
 
 static bool generate_data_section(struct mcc_asm_data_section *data_section,
@@ -1007,15 +1019,22 @@ static bool generate_data_section(struct mcc_asm_data_section *data_section,
 			continue;
 		}
 		assert(an_ir->row->arg2);
-		if (an_ir->row->arg2->type != MCC_IR_TYPE_LIT_STRING) {
+		struct mcc_asm_declaration *decl = NULL;
+		if (an_ir->row->arg2->type == MCC_IR_TYPE_LIT_STRING) {
+			char *string_identifier = rename_identifier(an_ir->row->arg1->ident, counter);
+			decl =
+			    mcc_asm_new_string_declaration(string_identifier, an_ir->row->arg2->lit_string, NULL, err);
+			free(string_identifier);
+			counter++;
+		} else if (an_ir->row->arg2->type == MCC_IR_TYPE_LIT_FLOAT) {
+			char *float_identifier = rename_identifier(an_ir->row->arg1->ident, counter);
+			decl = mcc_asm_new_float_declaration(float_identifier, an_ir->row->arg2->lit_float, NULL, err);
+			free(float_identifier);
+			counter++;
+		} else {
 			an_ir = an_ir->next;
 			continue;
 		}
-		char *string_identifier = rename_string_identifier(an_ir->row->arg1->ident, counter);
-		struct mcc_asm_declaration *decl =
-		    mcc_asm_new_string_declaration(string_identifier, an_ir->row->arg2->lit_string, NULL, err);
-		free(string_identifier);
-		counter++;
 		if (!decl) {
 			mcc_asm_delete_all_declarations(head);
 			err->has_failed = false;
