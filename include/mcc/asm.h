@@ -87,6 +87,8 @@ enum mcc_asm_opcode {
 	MCC_ASM_FSTPS,
 	MCC_ASM_FADDP,
 	MCC_ASM_FSUBP,
+	MCC_ASM_FCOMIP,
+	MCC_ASM_FINIT,
 };
 
 struct mcc_asm_line {

@@ -23,9 +23,9 @@ static int get_identifier_offset(struct mcc_annotated_ir *first, char *ident)
 	while (first && first->row->instr != MCC_IR_INSTR_FUNC_LABEL) {
 		if (first->row->instr == MCC_IR_INSTR_ASSIGN) {
 			// if ident is of form $tmp_xx only compare starting from position 1
-			if (strncmp(ident, "$tmp", 4) == 0){
-				const char* tmp = &ident[1];
-				if (strcmp(first->row->arg1->ident, tmp) == 0){
+			if (strncmp(ident, "$tmp", 4) == 0) {
+				const char *tmp = &ident[1];
+				if (strcmp(first->row->arg1->ident, tmp) == 0) {
 					return first->stack_position;
 				}
 			}
@@ -445,6 +445,15 @@ static struct mcc_asm_line *last_asm_line(struct mcc_asm_line *head)
 	return head;
 }
 
+static void append_line(struct mcc_asm_line *head1, struct mcc_asm_line *head2)
+{
+	assert(head1);
+	assert(head2);
+
+	struct mcc_asm_line *line = last_asm_line(head1);
+	line->next = head2;
+}
+
 static void func_append(struct mcc_asm_function *func, struct mcc_asm_line *line)
 {
 	assert(line);
@@ -456,6 +465,51 @@ static void func_append(struct mcc_asm_function *func, struct mcc_asm_line *line
 	struct mcc_asm_line *tail = last_asm_line(func->head);
 	tail->next = line;
 	return;
+}
+
+static bool is_in_data_section(char *ident, struct mcc_asm_error *err)
+{
+	struct mcc_asm_declaration *decl = err->data_section->head;
+	// if ident is '$tmp_xx' look for declaration starting from position 1
+	if (strncmp(ident, "$tmp", 4) == 0) {
+		ident = &ident[1];
+	}
+	while (decl) {
+		printf("%s\n", ident);
+		printf("%s\n", decl->identifier);
+		if (strcmp(decl->identifier, ident) == 0 && decl->type == MCC_ASM_DECLARATION_TYPE_FLOAT) {
+			return true;
+		}
+		decl = decl->next;
+	}
+	printf("false\n");
+	return false;
+}
+
+static bool is_float(struct mcc_ir_arg *arg, struct mcc_asm_error *err)
+{
+	assert(arg);
+
+	switch (arg->type) {
+	case MCC_IR_TYPE_LIT_INT:
+		return false;
+	case MCC_IR_TYPE_LIT_FLOAT:
+		return true;
+	case MCC_IR_TYPE_LIT_BOOL:
+		return false;
+	case MCC_IR_TYPE_LIT_STRING:
+		return false;
+	case MCC_IR_TYPE_ROW:
+		return (arg->row->type->type == MCC_IR_ROW_FLOAT);
+	case MCC_IR_TYPE_IDENTIFIER:
+		return is_in_data_section(arg->ident, err);
+	case MCC_IR_TYPE_ARR_ELEM:
+		// TODO
+		return false;
+
+	default:
+		return false;
+	}
 }
 
 // TODO: Float
@@ -702,47 +756,38 @@ generate_unary(struct mcc_annotated_ir *an_ir, enum mcc_asm_opcode opcode, struc
 	return line1;
 }
 
-static struct mcc_asm_line *
-generate_cmp_op_int(struct mcc_annotated_ir *an_ir, enum mcc_asm_opcode opcode, struct mcc_asm_error *err)
+static struct mcc_asm_line *generate_cmp_op_int(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
 {
 	assert(an_ir);
 	if (err->has_failed)
 		return NULL;
 
-	struct mcc_asm_line *line1 = NULL, *line1b = NULL, *line2 = NULL, *line3 = NULL, *line4 = NULL;
-
-	// 4. movl eax -x(ebp)
-	line4 = mcc_asm_new_line(MCC_ASM_MOVL, eax(err), ebp(an_ir->stack_position, err), NULL, err);
-	// 3. movcc dl eax
-	line3 = mcc_asm_new_line(MCC_ASM_MOVZBL, dl(err), eax(err), line4, err);
-	// 2. setcc dl
-	line2 = mcc_asm_new_line(opcode, dl(err), NULL, line3, err);
+	struct mcc_asm_line *line1 = NULL, *line1b = NULL;
 
 	if ((an_ir->row->arg1->type == MCC_IR_TYPE_ROW || an_ir->row->arg1->type == MCC_IR_TYPE_IDENTIFIER ||
 	     an_ir->row->arg1->type == MCC_IR_TYPE_ARR_ELEM) &&
 	    (an_ir->row->arg2->type == MCC_IR_TYPE_ROW || an_ir->row->arg2->type == MCC_IR_TYPE_IDENTIFIER ||
 	     an_ir->row->arg2->type == MCC_IR_TYPE_ARR_ELEM)) {
 		// 1b. cmp eax and arg2
-		line1b = mcc_asm_new_line(MCC_ASM_CMPL, arg_to_op(an_ir, an_ir->row->arg2, err), eax(err), line2, err);
+		line1b = mcc_asm_new_line(MCC_ASM_CMPL, arg_to_op(an_ir, an_ir->row->arg2, err), eax(err), NULL, err);
 		// 1a. move arg1 in eax
 		line1 = mcc_asm_new_line(MCC_ASM_MOVL, arg_to_op(an_ir, an_ir->row->arg1, err), eax(err), line1b, err);
 
 	} else if (an_ir->row->arg1->type == MCC_IR_TYPE_ROW || an_ir->row->arg1->type == MCC_IR_TYPE_IDENTIFIER) {
 		// 1. cmp arg1 arg2
 		line1 = mcc_asm_new_line(MCC_ASM_CMPL, arg_to_op(an_ir, an_ir->row->arg2, err),
-		                         arg_to_op(an_ir, an_ir->row->arg1, err), line2, err);
+		                         arg_to_op(an_ir, an_ir->row->arg1, err), NULL, err);
 	} else {
 		// 1b. cmp arg1 arg2
-		line1b = mcc_asm_new_line(MCC_ASM_CMPL, arg_to_op(an_ir, an_ir->row->arg2, err), eax(err), line2, err);
+		line1b = mcc_asm_new_line(MCC_ASM_CMPL, arg_to_op(an_ir, an_ir->row->arg2, err), eax(err), NULL, err);
 		// 1.a mov lit eax
 		line1 = mcc_asm_new_line(MCC_ASM_MOVL, arg_to_op(an_ir, an_ir->row->arg1, err), eax(err), line1b, err);
 	}
 
 	if (err->has_failed) {
+		mcc_asm_delete_line(line1);
 		mcc_asm_delete_line(line1b);
-		mcc_asm_delete_line(line2);
-		mcc_asm_delete_line(line3);
-		mcc_asm_delete_line(line4);
+		return NULL;
 	}
 
 	return line1;
@@ -807,7 +852,7 @@ generate_arithm_float_op(struct mcc_annotated_ir *an_ir, enum mcc_asm_opcode opc
 	line3 = mcc_asm_new_line(opcode, st(0, err), st(1, err), line4, err);
 	line2 = mcc_asm_new_line(MCC_ASM_FLDS, arg_to_op(an_ir, an_ir->row->arg1, err), NULL, line3, err);
 	line1 = mcc_asm_new_line(MCC_ASM_FLDS, arg_to_op(an_ir, an_ir->row->arg2, err), NULL, line2, err);
-	if(err->has_failed){
+	if (err->has_failed) {
 		mcc_asm_delete_line(line1);
 		mcc_asm_delete_line(line2);
 		mcc_asm_delete_line(line3);
@@ -839,6 +884,48 @@ static struct mcc_asm_line *generate_minus(struct mcc_annotated_ir *an_ir, struc
 	return line;
 }
 
+static struct mcc_asm_line *generate_cmp_op_float(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
+{
+	assert(an_ir);
+	if (err->has_failed) {
+		return NULL;
+	}
+
+	struct mcc_asm_line *line1 = NULL, *line2 = NULL, *line3 = NULL, *line4 = NULL;
+
+	line4 = mcc_asm_new_line(MCC_ASM_FINIT, NULL, NULL, NULL, err);
+	line3 = mcc_asm_new_line(MCC_ASM_FCOMIP, st(0, err), st(1, err), line4, err);
+	line2 = mcc_asm_new_line(MCC_ASM_FLDS, arg_to_op(an_ir, an_ir->row->arg1, err), NULL, line3, err);
+	line1 = mcc_asm_new_line(MCC_ASM_FLDS, arg_to_op(an_ir, an_ir->row->arg2, err), NULL, line2, err);
+
+	return line1;
+}
+
+static struct mcc_asm_line *
+generate_cmp(struct mcc_annotated_ir *an_ir, enum mcc_asm_opcode opcode, struct mcc_asm_error *err)
+{
+	assert(an_ir);
+	if (err->has_failed)
+		return NULL;
+
+	struct mcc_asm_line *first_lines = NULL, *line2 = NULL, *line3 = NULL, *line4 = NULL;
+
+	// 4. movl eax -x(ebp)
+	line4 = mcc_asm_new_line(MCC_ASM_MOVL, eax(err), ebp(an_ir->stack_position, err), NULL, err);
+	// 3. movcc dl eax
+	line3 = mcc_asm_new_line(MCC_ASM_MOVZBL, dl(err), eax(err), line4, err);
+	// 2. setcc dl
+	line2 = mcc_asm_new_line(opcode, dl(err), NULL, line3, err);
+	// line 1 - line 1b or line 1c (depended on case)
+	if (is_float(an_ir->row->arg1, err)) {
+		first_lines = generate_cmp_op_float(an_ir, err);
+	} else {
+		first_lines = generate_cmp_op_int(an_ir, err);
+	}
+	append_line(first_lines, line2);
+	return first_lines;
+}
+
 static struct mcc_asm_line *generate_asm_from_ir(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
 {
 	assert(an_ir);
@@ -868,22 +955,22 @@ static struct mcc_asm_line *generate_asm_from_ir(struct mcc_annotated_ir *an_ir,
 	case MCC_IR_INSTR_POP:
 		break;
 	case MCC_IR_INSTR_EQUALS:
-		line = generate_cmp_op_int(an_ir, MCC_ASM_SETE, err);
+		line = generate_cmp(an_ir, MCC_ASM_SETE, err);
 		break;
 	case MCC_IR_INSTR_NOTEQUALS:
-		line = generate_cmp_op_int(an_ir, MCC_ASM_SETNE, err);
+		line = generate_cmp(an_ir, MCC_ASM_SETNE, err);
 		break;
 	case MCC_IR_INSTR_SMALLER:
-		line = generate_cmp_op_int(an_ir, MCC_ASM_SETL, err);
+		line = generate_cmp(an_ir, MCC_ASM_SETL, err);
 		break;
 	case MCC_IR_INSTR_GREATER:
-		line = generate_cmp_op_int(an_ir, MCC_ASM_SETG, err);
+		line = generate_cmp(an_ir, MCC_ASM_SETG, err);
 		break;
 	case MCC_IR_INSTR_SMALLEREQ:
-		line = generate_cmp_op_int(an_ir, MCC_ASM_SETLE, err);
+		line = generate_cmp(an_ir, MCC_ASM_SETLE, err);
 		break;
 	case MCC_IR_INSTR_GREATEREQ:
-		line = generate_cmp_op_int(an_ir, MCC_ASM_SETGE, err);
+		line = generate_cmp(an_ir, MCC_ASM_SETGE, err);
 		break;
 	case MCC_IR_INSTR_AND:
 		line = generate_arithm_int_op(an_ir, MCC_ASM_AND, err);
