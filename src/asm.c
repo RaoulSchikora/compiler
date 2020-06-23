@@ -22,6 +22,13 @@ static int get_identifier_offset(struct mcc_annotated_ir *first, char *ident)
 
 	while (first && first->row->instr != MCC_IR_INSTR_FUNC_LABEL) {
 		if (first->row->instr == MCC_IR_INSTR_ASSIGN) {
+			// if ident is of form $tmp_xx only compare starting from position 1
+			if (strncmp(ident, "$tmp", 4) == 0){
+				const char* tmp = &ident[1];
+				if (strcmp(first->row->arg1->ident, tmp) == 0){
+					return first->stack_position;
+				}
+			}
 			if (strcmp(first->row->arg1->ident, ident) == 0) {
 				return first->stack_position;
 			}
@@ -328,6 +335,11 @@ static struct mcc_asm_operand *esp(struct mcc_asm_error *err)
 	return mcc_asm_new_register_operand(MCC_ASM_ESP, 0, err);
 }
 
+static struct mcc_asm_operand *st(int offset, struct mcc_asm_error *err)
+{
+	return mcc_asm_new_register_operand(MCC_ASM_ST, offset, err);
+}
+
 //------------------------------------------------------------------------------------ Functions: Delete data structures
 
 void mcc_asm_delete_asm(struct mcc_asm *head)
@@ -565,27 +577,27 @@ static struct mcc_asm_line *generate_assign_row_ident(struct mcc_annotated_ir *a
 {
 	assert(an_ir);
 	struct mcc_asm_line *line1 = NULL, *line2 = NULL;
-	//if (an_ir->row->type == MCC_IR_ROW_INT) {
-		line2 = mcc_asm_new_line(MCC_ASM_MOVL, eax(err), arg_to_op(an_ir, an_ir->row->arg1, err), NULL, err);
-		line1 = mcc_asm_new_line(MCC_ASM_MOVL, arg_to_op(an_ir, an_ir->row->arg2, err), eax(err), line2, err);
-		if (err->has_failed || !line1 || !line2) {
-			mcc_asm_delete_line(line1);
-			mcc_asm_delete_line(line2);
-			return NULL;
-		}
-		return line1;
-	//}
+	// TODO FLOATs ?!
+	line2 = mcc_asm_new_line(MCC_ASM_MOVL, eax(err), arg_to_op(an_ir, an_ir->row->arg1, err), NULL, err);
+	line1 = mcc_asm_new_line(MCC_ASM_MOVL, arg_to_op(an_ir, an_ir->row->arg2, err), eax(err), line2, err);
+	if (err->has_failed || !line1 || !line2) {
+		mcc_asm_delete_line(line1);
+		mcc_asm_delete_line(line2);
+		return NULL;
+	}
+	return line1;
 }
 
 static struct mcc_asm_line *generate_float_assign(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
 {
 	struct mcc_asm_line *line2 =
 	    mcc_asm_new_line(MCC_ASM_FSTPS, arg_to_op(an_ir, an_ir->row->arg1, err), NULL, NULL, err);
-	struct mcc_asm_line *line1 = mcc_asm_new_line(MCC_ASM_FLDS, find_float_identifier(an_ir, err), NULL, line2, err);
+	struct mcc_asm_line *line1 =
+	    mcc_asm_new_line(MCC_ASM_FLDS, find_float_identifier(an_ir, err), NULL, line2, err);
 	if (err->has_failed || !line1 || !line2) {
-			mcc_asm_delete_line(line1);
-			mcc_asm_delete_line(line2);
-			return NULL;
+		mcc_asm_delete_line(line1);
+		mcc_asm_delete_line(line2);
+		return NULL;
 	}
 	return line1;
 }
@@ -630,7 +642,7 @@ static struct mcc_asm_line *generate_instr_assign(struct mcc_annotated_ir *an_ir
 }
 
 static struct mcc_asm_line *
-generate_arithm_op(struct mcc_annotated_ir *an_ir, enum mcc_asm_opcode opcode, struct mcc_asm_error *err)
+generate_arithm_int_op(struct mcc_annotated_ir *an_ir, enum mcc_asm_opcode opcode, struct mcc_asm_error *err)
 {
 	assert(an_ir);
 	if (err->has_failed) {
@@ -691,7 +703,7 @@ generate_unary(struct mcc_annotated_ir *an_ir, enum mcc_asm_opcode opcode, struc
 }
 
 static struct mcc_asm_line *
-generate_cmp_op(struct mcc_annotated_ir *an_ir, enum mcc_asm_opcode opcode, struct mcc_asm_error *err)
+generate_cmp_op_int(struct mcc_annotated_ir *an_ir, enum mcc_asm_opcode opcode, struct mcc_asm_error *err)
 {
 	assert(an_ir);
 	if (err->has_failed)
@@ -786,6 +798,47 @@ generate_jumpfalse(enum mcc_asm_opcode opcode, struct mcc_annotated_ir *an_ir, s
 	return cmp;
 }
 
+static struct mcc_asm_line *
+generate_arithm_float_op(struct mcc_annotated_ir *an_ir, enum mcc_asm_opcode opcode, struct mcc_asm_error *err)
+{
+	assert(an_ir);
+	struct mcc_asm_line *line1 = NULL, *line2 = NULL, *line3 = NULL, *line4 = NULL;
+	line4 = mcc_asm_new_line(MCC_ASM_FSTPS, ebp(an_ir->stack_position, err), NULL, NULL, err);
+	line3 = mcc_asm_new_line(opcode, st(0, err), st(1, err), line4, err);
+	line2 = mcc_asm_new_line(MCC_ASM_FLDS, arg_to_op(an_ir, an_ir->row->arg1, err), NULL, line3, err);
+	line1 = mcc_asm_new_line(MCC_ASM_FLDS, arg_to_op(an_ir, an_ir->row->arg2, err), NULL, line2, err);
+	if(err->has_failed){
+		mcc_asm_delete_line(line1);
+		mcc_asm_delete_line(line2);
+		mcc_asm_delete_line(line3);
+		mcc_asm_delete_line(line4);
+		return NULL;
+	}
+	return line1;
+}
+
+static struct mcc_asm_line *generate_plus(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
+{
+	struct mcc_asm_line *line = NULL;
+	if (an_ir->row->type->type == MCC_IR_ROW_INT) {
+		line = generate_arithm_int_op(an_ir, MCC_ASM_ADDL, err);
+	} else if (an_ir->row->type->type == MCC_IR_ROW_FLOAT) {
+		line = generate_arithm_float_op(an_ir, MCC_ASM_FADDP, err);
+	}
+	return line;
+}
+
+static struct mcc_asm_line *generate_minus(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
+{
+	struct mcc_asm_line *line = NULL;
+	if (an_ir->row->type->type == MCC_IR_ROW_INT) {
+		line = generate_arithm_int_op(an_ir, MCC_ASM_SUBL, err);
+	} else if (an_ir->row->type->type == MCC_IR_ROW_FLOAT) {
+		line = generate_arithm_float_op(an_ir, MCC_ASM_FSUBP, err);
+	}
+	return line;
+}
+
 static struct mcc_asm_line *generate_asm_from_ir(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
 {
 	assert(an_ir);
@@ -815,40 +868,40 @@ static struct mcc_asm_line *generate_asm_from_ir(struct mcc_annotated_ir *an_ir,
 	case MCC_IR_INSTR_POP:
 		break;
 	case MCC_IR_INSTR_EQUALS:
-		line = generate_cmp_op(an_ir, MCC_ASM_SETE, err);
+		line = generate_cmp_op_int(an_ir, MCC_ASM_SETE, err);
 		break;
 	case MCC_IR_INSTR_NOTEQUALS:
-		line = generate_cmp_op(an_ir, MCC_ASM_SETNE, err);
+		line = generate_cmp_op_int(an_ir, MCC_ASM_SETNE, err);
 		break;
 	case MCC_IR_INSTR_SMALLER:
-		line = generate_cmp_op(an_ir, MCC_ASM_SETL, err);
+		line = generate_cmp_op_int(an_ir, MCC_ASM_SETL, err);
 		break;
 	case MCC_IR_INSTR_GREATER:
-		line = generate_cmp_op(an_ir, MCC_ASM_SETG, err);
+		line = generate_cmp_op_int(an_ir, MCC_ASM_SETG, err);
 		break;
 	case MCC_IR_INSTR_SMALLEREQ:
-		line = generate_cmp_op(an_ir, MCC_ASM_SETLE, err);
+		line = generate_cmp_op_int(an_ir, MCC_ASM_SETLE, err);
 		break;
 	case MCC_IR_INSTR_GREATEREQ:
-		line = generate_cmp_op(an_ir, MCC_ASM_SETGE, err);
+		line = generate_cmp_op_int(an_ir, MCC_ASM_SETGE, err);
 		break;
 	case MCC_IR_INSTR_AND:
-		line = generate_arithm_op(an_ir, MCC_ASM_AND, err);
+		line = generate_arithm_int_op(an_ir, MCC_ASM_AND, err);
 		break;
 	case MCC_IR_INSTR_OR:
-		line = generate_arithm_op(an_ir, MCC_ASM_OR, err);
+		line = generate_arithm_int_op(an_ir, MCC_ASM_OR, err);
 		break;
 	case MCC_IR_INSTR_PLUS:
-		line = generate_arithm_op(an_ir, MCC_ASM_ADDL, err);
+		line = generate_plus(an_ir, err);
 		break;
 	case MCC_IR_INSTR_MINUS:
-		line = generate_arithm_op(an_ir, MCC_ASM_SUBL, err);
+		line = generate_minus(an_ir, err);
 		break;
 	case MCC_IR_INSTR_MULTIPLY:
-		line = generate_arithm_op(an_ir, MCC_ASM_IMULL, err);
+		line = generate_arithm_int_op(an_ir, MCC_ASM_IMULL, err);
 		break;
 	case MCC_IR_INSTR_DIVIDE:
-		line = generate_arithm_op(an_ir, MCC_ASM_IDIVL, err);
+		line = generate_arithm_int_op(an_ir, MCC_ASM_IDIVL, err);
 		break;
 	case MCC_IR_INSTR_RETURN:
 		line = generate_return(an_ir, err);

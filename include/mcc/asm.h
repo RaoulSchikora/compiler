@@ -85,6 +85,8 @@ enum mcc_asm_opcode {
 	MCC_ASM_LEAL,
 	MCC_ASM_FLDS,
 	MCC_ASM_FSTPS,
+	MCC_ASM_FADDP,
+	MCC_ASM_FSUBP,
 };
 
 struct mcc_asm_line {
@@ -114,6 +116,7 @@ enum mcc_asm_register {
 	MCC_ASM_EDX,
 	MCC_ASM_ESP,
 	MCC_ASM_EBP,
+	MCC_ASM_ST,
 	MCC_ASM_DL,
 };
 

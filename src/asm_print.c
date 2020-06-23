@@ -77,6 +77,10 @@ static char *opcode_to_string(enum mcc_asm_opcode op)
 		return "flds";
 	case MCC_ASM_FSTPS:
 		return "fstps";
+	case MCC_ASM_FADDP:
+		return "faddp";
+	case MCC_ASM_FSUBP:
+		return "fsubp";
 	default:
 		return "unknown opcode";
 	}
@@ -98,6 +102,8 @@ static char *register_name_to_string(enum mcc_asm_register reg)
 		return "%esp";
 	case MCC_ASM_EBP:
 		return "%ebp";
+	case MCC_ASM_ST:
+		return "%st";
 	case MCC_ASM_DL:
 		return "%dl";
 	default:
@@ -107,11 +113,14 @@ static char *register_name_to_string(enum mcc_asm_register reg)
 
 static void register_to_string(char *dest, int len, enum mcc_asm_register reg, int offset)
 {
-	if (offset == 0) {
+	if (offset == 0 && reg != MCC_ASM_ST) {
 		snprintf(dest, len, "%s", register_name_to_string(reg));
-	}
-	if (offset != 0) {
-		snprintf(dest, len + length_of_int(offset) + 2, "%d(%s)", offset, register_name_to_string(reg));
+	} else {
+		if (reg == MCC_ASM_ST) {
+			snprintf(dest, len + length_of_int(offset) + 2, "%s(%d)", register_name_to_string(reg), offset);
+		} else {
+			snprintf(dest, len + length_of_int(offset) + 2, "%d(%s)", offset, register_name_to_string(reg));
+		}
 	}
 }
 
