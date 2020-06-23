@@ -150,7 +150,7 @@ ident_to_ir_type(struct mcc_ir_arg *arg, struct mcc_ast_expression *exp, struct 
 	// if argument is dummy for tmp of float declaration return row_type float
 	if (strncmp(arg->ident, "$tmp", 4) == 0) {
 		return new_ir_row_type(MCC_IR_ROW_FLOAT, -1, data);
-	} 
+	}
 	struct mcc_symbol_table_row *row = NULL;
 	if (exp->type == MCC_AST_EXPRESSION_TYPE_VARIABLE) {
 		row = mcc_symbol_table_check_upwards_for_declaration(arg->ident, exp->variable_row);
@@ -531,43 +531,47 @@ static void generate_ir_declaration(struct mcc_ast_declaration *decl, struct ir_
 {
 	assert(decl);
 	assert(data);
-	// Only arrays need an extra IR line for declaration
-	if (data->has_failed || decl->declaration_type == MCC_AST_DECLARATION_TYPE_VARIABLE)
-		return;
 
-	struct mcc_ir_arg *arg1 = mcc_ir_new_arg(decl->array_identifier, data);
-	struct mcc_ir_arg *arg2 = generate_arg_lit(decl->array_size, data);
-	if (!arg1 || !arg2) {
-		mcc_ir_delete_ir_arg(arg1);
-		mcc_ir_delete_ir_arg(arg2);
-		data->has_failed = true;
-		return;
-	}
-
+	struct mcc_ir_arg *arg1 = NULL, *arg2 = NULL;
 	struct mcc_ir_row *row = NULL;
-	struct mcc_ir_row_type *type = st_row_to_ir_type(decl->row, (int)decl->array_size->i_value, data);
-	switch (decl->array_type->type_value) {
-	case INT:
-		row = new_row(arg1, arg2, MCC_IR_INSTR_ARRAY, type, data);
-		break;
-	case FLOAT:
-		row = new_row(arg1, arg2, MCC_IR_INSTR_ARRAY, type, data);
-		break;
-	case STRING:
-		row = new_row(arg1, arg2, MCC_IR_INSTR_ARRAY, type, data);
-		break;
-	case BOOL:
-		row = new_row(arg1, arg2, MCC_IR_INSTR_ARRAY, type, data);
-		break;
-	case VOID:
-		mcc_ir_delete_ir_arg(arg1);
-		mcc_ir_delete_ir_arg(arg2);
-		data->has_failed = true;
+	// Only arrays and floats need an extra IR line for declaration
+	if (data->has_failed ||
+	    (decl->declaration_type == MCC_AST_DECLARATION_TYPE_VARIABLE && decl->variable_type->type_value != FLOAT)) {
 		return;
+	} else if (decl->variable_type->type_value == FLOAT) {
+		arg1 = mcc_ir_new_arg(decl->variable_identifier, data);
+		arg2 = mcc_ir_new_arg((double)0.0, data);
+		row = new_row(arg1, arg2, MCC_IR_INSTR_ASSIGN, new_ir_row_type(MCC_IR_ROW_FLOAT, -1, data), data);
+	} else {
+		arg1 = mcc_ir_new_arg(decl->array_identifier, data);
+		arg2 = generate_arg_lit(decl->array_size, data);
+
+		struct mcc_ir_row_type *type = st_row_to_ir_type(decl->row, (int)decl->array_size->i_value, data);
+		switch (decl->array_type->type_value) {
+		case INT:
+			row = new_row(arg1, arg2, MCC_IR_INSTR_ARRAY, type, data);
+			break;
+		case FLOAT:
+			row = new_row(arg1, arg2, MCC_IR_INSTR_ARRAY, type, data);
+			break;
+		case STRING:
+			row = new_row(arg1, arg2, MCC_IR_INSTR_ARRAY, type, data);
+			break;
+		case BOOL:
+			row = new_row(arg1, arg2, MCC_IR_INSTR_ARRAY, type, data);
+			break;
+		case VOID:
+			mcc_ir_delete_ir_arg(arg1);
+			mcc_ir_delete_ir_arg(arg2);
+			data->has_failed = true;
+			return;
+		}
 	}
-	if (!row) {
+
+	if (!arg1 || !arg2 || !row) {
 		mcc_ir_delete_ir_arg(arg1);
 		mcc_ir_delete_ir_arg(arg2);
+		mcc_ir_delete_ir_row(row);
 		data->has_failed = true;
 		return;
 	}

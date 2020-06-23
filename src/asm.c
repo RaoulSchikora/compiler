@@ -467,22 +467,60 @@ static void func_append(struct mcc_asm_function *func, struct mcc_asm_line *line
 	return;
 }
 
+// function to check if 'prefix' is a proper prefix of 'string'. It is proper if 'prefix' followed by _x is equal to
+// 'string', where x is an arbitrary number
+static bool is_proper_prefix(char *prefix, char *string)
+{
+	assert(prefix);
+	assert(string);
+
+	if (strlen(prefix) >= strlen(string)) {
+		return false;
+	}
+
+	unsigned len_p = strlen(prefix);
+	if (strncmp(prefix, string, len_p) != 0) {
+		return false;
+	}
+	if ('_' != string[len_p]) {
+		return false;
+	}
+	for (unsigned i = len_p + 1; i < strlen(string); i++) {
+		// check if all characters after the character '_' are digits
+		if (string[i] < '0' || string[i] > '9') {
+			return false;
+		}
+	}
+	return true;
+}
+
 static bool is_in_data_section(char *ident, struct mcc_asm_error *err)
 {
 	struct mcc_asm_declaration *decl = err->data_section->head;
-	// if ident is '$tmp_xx' look for declaration starting from position 1
+	bool looking_for_tmp = false;
+	// if ident is '$tmpXX' look for declaration starting from position 1
 	if (strncmp(ident, "$tmp", 4) == 0) {
 		ident = &ident[1];
+		looking_for_tmp = true;
 	}
 	while (decl) {
-		printf("%s\n", ident);
-		printf("%s\n", decl->identifier);
-		if (strcmp(decl->identifier, ident) == 0 && decl->type == MCC_ASM_DECLARATION_TYPE_FLOAT) {
-			return true;
+		if (looking_for_tmp) {
+			if (strcmp(decl->identifier, ident) == 0 && decl->type == MCC_ASM_DECLARATION_TYPE_FLOAT) {
+				return true;
+			}
+		} else { // not looking for tmp: check if ident is proper prefix of decl->identifier
+			// unsigned len = strlen(decl->identifier);
+			// char *copy;
+			// copy = strndup(decl->identifier, len >= 3 ? len - 2 : 0);
+			// if (strcmp(copy, ident) == 0) {
+			//	return true;
+			//}
+			if (is_proper_prefix(ident, decl->identifier)) {
+				return true;
+			}
 		}
 		decl = decl->next;
 	}
-	printf("false\n");
 	return false;
 }
 
@@ -599,13 +637,18 @@ static struct mcc_asm_operand *find_float_identifier(struct mcc_annotated_ir *an
 	double epsilon = EPSILON;
 	struct mcc_asm_declaration *head = err->data_section->head;
 	while (head) {
+		printf("%s\n", an_ir->row->arg1->ident);
+		printf("%s\n", head->identifier);
+		printf("%d\n", is_proper_prefix(an_ir->row->arg1->ident, head->identifier));
 		if (head->type == MCC_ASM_DECLARATION_TYPE_FLOAT &&
-		    (fabs(wanted_float - head->float_value) < epsilon)) {
+		    (fabs(wanted_float - head->float_value) < epsilon) &&
+		    (is_proper_prefix(an_ir->row->arg1->ident, head->identifier) || 
+			strcmp(an_ir->row->arg1->ident, head->identifier) == 0)) {
 			op->decl = head;
 			op->type = MCC_ASM_OPERAND_DATA;
 			op->offset = 0;
 			return op;
-		}
+		} 
 		head = head->next;
 	}
 	free(op);
