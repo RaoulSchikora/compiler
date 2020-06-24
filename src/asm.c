@@ -725,12 +725,13 @@ static struct mcc_asm_line *generate_instr_assign(struct mcc_annotated_ir *an_ir
 		break;
 	case MCC_IR_TYPE_ROW:
 	case MCC_IR_TYPE_IDENTIFIER:
-	case MCC_IR_TYPE_ARR_ELEM:
 		line1 = generate_assign_row_ident(an_ir, err);
 		break;
 	case MCC_IR_TYPE_LIT_STRING:
 		line1 = generate_string_assignment(an_ir, err);
 		break;
+	// TODO: Handle array elements
+	case MCC_IR_TYPE_ARR_ELEM:
 	default:
 		// TODO remove when done. Remider: "(int)an_ir->stack_position" was only chosen to let compare
 		// operations of float-integration-test fail (makes no sense at all, so don't get confused :) ...)
