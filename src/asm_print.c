@@ -67,7 +67,7 @@ static char *opcode_to_string(enum mcc_asm_opcode op)
 		return "or";
 	case MCC_ASM_LEAVE:
 		return "leave";
-	case MCC_ASM_CALL:
+	case MCC_ASM_CALLL:
 		return "calll";
 	case MCC_ASM_XORL:
 		return "xorl";

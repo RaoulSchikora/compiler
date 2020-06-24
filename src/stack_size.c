@@ -269,6 +269,7 @@ static int get_stack_frame_size(struct mcc_ir_row *ir)
 
 	// TODO
 	case MCC_IR_INSTR_CALL:
+		return get_temporary_size(ir);
 	case MCC_IR_INSTR_RETURN:
 		return 0;
 

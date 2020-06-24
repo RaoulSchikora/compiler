@@ -1021,6 +1021,21 @@ static struct mcc_asm_line *generate_div(struct mcc_annotated_ir *an_ir, struct 
 	return line;
 }
 
+static struct mcc_asm_line *generate_call(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
+{
+	assert(an_ir);
+	struct mcc_asm_line *line2 = mcc_asm_new_line(MCC_ASM_MOVL, eax(err), ebp(an_ir->stack_position, err), NULL, err);
+	struct mcc_asm_operand *func = mcc_asm_new_function_operand(an_ir->row->arg1->func_label, err);
+	struct mcc_asm_line *line1 = mcc_asm_new_line(MCC_ASM_CALLL, NULL, NULL, line2, err);
+	if(err->has_failed){
+		mcc_asm_delete_line(line1);
+		mcc_asm_delete_line(line2);
+		return NULL;
+	}
+	line1->first = func;
+	return line1;
+}
+
 static struct mcc_asm_line *generate_asm_from_ir(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
 {
 	assert(an_ir);
@@ -1038,10 +1053,12 @@ static struct mcc_asm_line *generate_asm_from_ir(struct mcc_annotated_ir *an_ir,
 		line = mcc_asm_new_label(MCC_ASM_LABEL, an_ir->row->arg1->label, err);
 		break;
 	case MCC_IR_INSTR_FUNC_LABEL:
+		break;
 	case MCC_IR_INSTR_JUMP:
 		line = generate_jumpfalse(MCC_ASM_JE, an_ir, err);
 		break;
 	case MCC_IR_INSTR_CALL:
+		line = generate_call(an_ir, err);
 		break;
 	case MCC_IR_INSTR_JUMPFALSE:
 		line = generate_jumpfalse(MCC_ASM_JNE, an_ir, err);
@@ -1108,7 +1125,7 @@ static struct mcc_asm_line *generate_asm_from_ir(struct mcc_annotated_ir *an_ir,
 static struct mcc_asm_line *get_fake_asm_line(struct mcc_asm_error *err)
 {
 	struct mcc_asm_operand *print_nl = mcc_asm_new_function_operand("print_nl", err);
-	struct mcc_asm_line *call = mcc_asm_new_line(MCC_ASM_CALL, NULL, NULL, NULL, err);
+	struct mcc_asm_line *call = mcc_asm_new_line(MCC_ASM_CALLL, NULL, NULL, NULL, err);
 	if (!print_nl || !call) {
 		mcc_asm_delete_line(call);
 		mcc_asm_delete_operand(print_nl);
