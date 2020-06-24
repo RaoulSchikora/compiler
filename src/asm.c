@@ -508,13 +508,7 @@ static bool is_in_data_section(char *ident, struct mcc_asm_error *err)
 			if (strcmp(decl->identifier, ident) == 0 && decl->type == MCC_ASM_DECLARATION_TYPE_FLOAT) {
 				return true;
 			}
-		} else { // not looking for tmp: check if ident is proper prefix of decl->identifier
-			// unsigned len = strlen(decl->identifier);
-			// char *copy;
-			// copy = strndup(decl->identifier, len >= 3 ? len - 2 : 0);
-			// if (strcmp(copy, ident) == 0) {
-			//	return true;
-			//}
+		} else { // if not looking for tmp: check if ident is proper prefix of decl->identifier
 			if (is_proper_prefix(ident, decl->identifier)) {
 				return true;
 			}
@@ -637,9 +631,6 @@ static struct mcc_asm_operand *find_float_identifier(struct mcc_annotated_ir *an
 	double epsilon = EPSILON;
 	struct mcc_asm_declaration *head = err->data_section->head;
 	while (head) {
-		printf("%s\n", an_ir->row->arg1->ident);
-		printf("%s\n", head->identifier);
-		printf("%d\n", is_proper_prefix(an_ir->row->arg1->ident, head->identifier));
 		if (head->type == MCC_ASM_DECLARATION_TYPE_FLOAT &&
 		    (fabs(wanted_float - head->float_value) < epsilon) &&
 		    (is_proper_prefix(an_ir->row->arg1->ident, head->identifier) || 
@@ -936,8 +927,8 @@ static struct mcc_asm_line *generate_cmp_op_float(struct mcc_annotated_ir *an_ir
 
 	struct mcc_asm_line *line1 = NULL, *line2 = NULL, *line3 = NULL, *line4 = NULL;
 
-	line4 = mcc_asm_new_line(MCC_ASM_FINIT, NULL, NULL, NULL, err);
-	line3 = mcc_asm_new_line(MCC_ASM_FCOMIP, st(0, err), st(1, err), line4, err);
+	line4 = mcc_asm_new_line(MCC_ASM_FSTP, st(0, err), NULL, NULL, err);
+	line3 = mcc_asm_new_line(MCC_ASM_FCOMIP, st(1, err), st(0, err), line4, err);
 	line2 = mcc_asm_new_line(MCC_ASM_FLDS, arg_to_op(an_ir, an_ir->row->arg1, err), NULL, line3, err);
 	line1 = mcc_asm_new_line(MCC_ASM_FLDS, arg_to_op(an_ir, an_ir->row->arg2, err), NULL, line2, err);
 
@@ -952,6 +943,21 @@ generate_cmp(struct mcc_annotated_ir *an_ir, enum mcc_asm_opcode opcode, struct 
 		return NULL;
 
 	struct mcc_asm_line *first_lines = NULL, *line2 = NULL, *line3 = NULL, *line4 = NULL;
+	// line 1 to line 1c or line 1d (depended on case)
+	if (is_float(an_ir->row->arg1, err)) {
+		first_lines = generate_cmp_op_float(an_ir, err);
+		// use unsigned opcode in case of float:
+		if(opcode == MCC_ASM_SETG)
+			opcode = MCC_ASM_SETA;
+		if(opcode == MCC_ASM_SETGE)
+			opcode = MCC_ASM_SETAE;
+		if(opcode == MCC_ASM_SETL)
+			opcode = MCC_ASM_SETB;
+		if(opcode == MCC_ASM_SETLE)
+			opcode = MCC_ASM_SETBE;
+	} else {
+		first_lines = generate_cmp_op_int(an_ir, err);
+	}
 
 	// 4. movl eax -x(ebp)
 	line4 = mcc_asm_new_line(MCC_ASM_MOVL, eax(err), ebp(an_ir->stack_position, err), NULL, err);
@@ -959,12 +965,6 @@ generate_cmp(struct mcc_annotated_ir *an_ir, enum mcc_asm_opcode opcode, struct 
 	line3 = mcc_asm_new_line(MCC_ASM_MOVZBL, dl(err), eax(err), line4, err);
 	// 2. setcc dl
 	line2 = mcc_asm_new_line(opcode, dl(err), NULL, line3, err);
-	// line 1 - line 1b or line 1c (depended on case)
-	if (is_float(an_ir->row->arg1, err)) {
-		first_lines = generate_cmp_op_float(an_ir, err);
-	} else {
-		first_lines = generate_cmp_op_int(an_ir, err);
-	}
 	append_line(first_lines, line2);
 	return first_lines;
 }

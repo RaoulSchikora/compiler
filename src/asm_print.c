@@ -53,6 +53,14 @@ static char *opcode_to_string(enum mcc_asm_opcode op)
 		return "setle";
 	case MCC_ASM_SETGE:
 		return "setge";
+	case MCC_ASM_SETA:
+		return "seta";
+	case MCC_ASM_SETAE:
+		return "setae";
+	case MCC_ASM_SETB:
+		return "setb";
+	case MCC_ASM_SETBE:
+		return "setbe";
 	case MCC_ASM_AND:
 		return "and";
 	case MCC_ASM_OR:
@@ -85,6 +93,8 @@ static char *opcode_to_string(enum mcc_asm_opcode op)
 		return "fcomip";
 	case MCC_ASM_FINIT:
 		return "finit";
+	case MCC_ASM_FSTP:
+		return "fstp";
 	default:
 		return "unknown opcode";
 	}
