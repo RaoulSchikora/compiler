@@ -44,11 +44,6 @@ Since the unit test matches any grammar rule, there are 5 reduce/reduce-conflict
 the testing mode isn't specified, because the parser can only match the unit-test grammar rule when a dedicated global 
 variable is set (which can't happen due to user input).
 
-### Arrays
-
-No out-of-bounds checking takes place. If elements are referenced that are not inside the declared array, the behaviour
-is undefined.
-
 ### Assembly Integration tests
 
 Currently some of the assembly integration tests fail, as well as all "regular" integration tets, since we haven't
