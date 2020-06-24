@@ -931,6 +931,13 @@ static struct mcc_asm_line *generate_cmp_op_float(struct mcc_annotated_ir *an_ir
 	line3 = mcc_asm_new_line(MCC_ASM_FCOMIP, st(1, err), st(0, err), line4, err);
 	line2 = mcc_asm_new_line(MCC_ASM_FLDS, arg_to_op(an_ir, an_ir->row->arg1, err), NULL, line3, err);
 	line1 = mcc_asm_new_line(MCC_ASM_FLDS, arg_to_op(an_ir, an_ir->row->arg2, err), NULL, line2, err);
+	if(err->has_failed){
+		mcc_asm_delete_line(line1);
+		mcc_asm_delete_line(line2);
+		mcc_asm_delete_line(line3);
+		mcc_asm_delete_line(line4);
+		return NULL;
+	}
 
 	return line1;
 }
@@ -965,6 +972,13 @@ generate_cmp(struct mcc_annotated_ir *an_ir, enum mcc_asm_opcode opcode, struct 
 	line3 = mcc_asm_new_line(MCC_ASM_MOVZBL, dl(err), eax(err), line4, err);
 	// 2. setcc dl
 	line2 = mcc_asm_new_line(opcode, dl(err), NULL, line3, err);
+	if(err->has_failed){
+		mcc_asm_delete_line(line2);
+		mcc_asm_delete_line(line3);
+		mcc_asm_delete_line(line4);
+		return NULL;
+	}
+
 	append_line(first_lines, line2);
 	return first_lines;
 }
@@ -1076,6 +1090,7 @@ static struct mcc_asm_line *generate_asm_from_ir(struct mcc_annotated_ir *an_ir,
 	return line;
 }
 
+// TODO: clearify if we need this function. I (Raoul) think we don't need it :)
 static struct mcc_asm_line *get_fake_asm_line(struct mcc_asm_error *err)
 {
 	struct mcc_asm_operand *print_nl = mcc_asm_new_function_operand("print_nl", err);
