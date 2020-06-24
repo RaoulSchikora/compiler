@@ -12,6 +12,7 @@
 struct mcc_asm_error {
 	bool has_failed;
 	struct mcc_asm_data_section *data_section;
+	struct mcc_asm_text_section *text_section;
 };
 
 //---------------------------------------------------------------------------------------- Data structure: ASM

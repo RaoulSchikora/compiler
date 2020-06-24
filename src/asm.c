@@ -1053,6 +1053,7 @@ struct mcc_asm *mcc_asm_generate(struct mcc_ir_row *ir)
 	assembly->data_section = data_section;
 	assembly->text_section = text_section;
 	err->data_section = data_section;
+	err->text_section = text_section;
 
 	bool data_section_generated = generate_data_section(assembly->data_section, an_ir, err);
 	bool text_section_generated = generate_text_section(assembly->text_section, an_ir, err);
