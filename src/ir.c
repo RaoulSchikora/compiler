@@ -17,6 +17,7 @@ struct ir_generation_userdata {
 	struct mcc_ir_row *current;
 	bool has_failed;
 	unsigned label_counter;
+	unsigned tmp_counter;
 };
 
 int length_of_int(int num)
@@ -64,6 +65,7 @@ static struct mcc_ir_row *new_row(struct mcc_ir_arg *arg1,
                                   enum mcc_ir_instruction instr,
                                   struct mcc_ir_row_type *type,
                                   struct ir_generation_userdata *data);
+static struct mcc_ir_row *new_ir_row_float_tmp(double f_value, struct ir_generation_userdata *data);
 static struct mcc_ir_arg *copy_arg(struct mcc_ir_arg *arg, struct ir_generation_userdata *data);
 static struct mcc_ir_arg *new_arg_int(long lit, struct ir_generation_userdata *data);
 static struct mcc_ir_arg *new_arg_float(double lit, struct ir_generation_userdata *data);
@@ -145,7 +147,10 @@ ident_to_ir_type(struct mcc_ir_arg *arg, struct mcc_ast_expression *exp, struct 
 	assert(data);
 	if (data->has_failed)
 		return NULL;
-
+	// if argument is dummy for tmp of float declaration return row_type float
+	if (strncmp(arg->ident, "$tmp", 4) == 0) {
+		return new_ir_row_type(MCC_IR_ROW_FLOAT, -1, data);
+	}
 	struct mcc_symbol_table_row *row = NULL;
 	if (exp->type == MCC_AST_EXPRESSION_TYPE_VARIABLE) {
 		row = mcc_symbol_table_check_upwards_for_declaration(arg->ident, exp->variable_row);
@@ -404,7 +409,13 @@ static void generate_ir_assignment(struct mcc_ast_assignment *asgn, struct ir_ge
 		                                                        asgn->row);
 		type = st_row_to_ir_type(st_row, -1, data);
 		identifier = mcc_ir_new_arg(asgn->variable_identifier, data);
-		exp = generate_ir_expression(asgn->variable_assigned_value, data);
+		// if float literal do not generate expression, because it will generate unneseccary extra line
+		if (asgn->variable_assigned_value->type == MCC_AST_EXPRESSION_TYPE_LITERAL &&
+		    asgn->variable_assigned_value->literal->type == MCC_AST_LITERAL_TYPE_FLOAT) {
+			exp = new_arg_float(asgn->variable_assigned_value->literal->f_value, data);
+		} else {
+			exp = generate_ir_expression(asgn->variable_assigned_value, data);
+		}
 		row = new_row(identifier, exp, MCC_IR_INSTR_ASSIGN, type, data);
 	} else {
 		st_row =
@@ -412,7 +423,13 @@ static void generate_ir_assignment(struct mcc_ast_assignment *asgn, struct ir_ge
 		type = st_row_to_ir_type(st_row, -1, data);
 		struct mcc_ir_arg *index = generate_ir_expression(asgn->array_index, data);
 		identifier = new_arg_arr_elem(asgn->array_identifier, index, data);
-		exp = generate_ir_expression(asgn->array_assigned_value, data);
+		// if float literal do not generate expression, because it will generate unneseccary extra line
+		if (asgn->array_assigned_value->type == MCC_AST_EXPRESSION_TYPE_LITERAL &&
+		    asgn->array_assigned_value->literal->type == MCC_AST_LITERAL_TYPE_FLOAT) {
+			exp = new_arg_float(asgn->array_assigned_value->literal->f_value, data);
+		} else {
+			exp = generate_ir_expression(asgn->array_assigned_value, data);
+		}
 		row = new_row(identifier, exp, MCC_IR_INSTR_ASSIGN, type, data);
 	}
 	append_row(row, data);
@@ -514,43 +531,47 @@ static void generate_ir_declaration(struct mcc_ast_declaration *decl, struct ir_
 {
 	assert(decl);
 	assert(data);
-	// Only arrays need an extra IR line for declaration
-	if (data->has_failed || decl->declaration_type == MCC_AST_DECLARATION_TYPE_VARIABLE)
-		return;
 
-	struct mcc_ir_arg *arg1 = mcc_ir_new_arg(decl->array_identifier, data);
-	struct mcc_ir_arg *arg2 = generate_arg_lit(decl->array_size, data);
-	if (!arg1 || !arg2) {
-		mcc_ir_delete_ir_arg(arg1);
-		mcc_ir_delete_ir_arg(arg2);
-		data->has_failed = true;
-		return;
-	}
-
+	struct mcc_ir_arg *arg1 = NULL, *arg2 = NULL;
 	struct mcc_ir_row *row = NULL;
-	struct mcc_ir_row_type *type = st_row_to_ir_type(decl->row, (int)decl->array_size->i_value, data);
-	switch (decl->array_type->type_value) {
-	case INT:
-		row = new_row(arg1, arg2, MCC_IR_INSTR_ARRAY, type, data);
-		break;
-	case FLOAT:
-		row = new_row(arg1, arg2, MCC_IR_INSTR_ARRAY, type, data);
-		break;
-	case STRING:
-		row = new_row(arg1, arg2, MCC_IR_INSTR_ARRAY, type, data);
-		break;
-	case BOOL:
-		row = new_row(arg1, arg2, MCC_IR_INSTR_ARRAY, type, data);
-		break;
-	case VOID:
-		mcc_ir_delete_ir_arg(arg1);
-		mcc_ir_delete_ir_arg(arg2);
-		data->has_failed = true;
+	// Only arrays and floats need an extra IR line for declaration
+	if (data->has_failed ||
+	    (decl->declaration_type == MCC_AST_DECLARATION_TYPE_VARIABLE && decl->variable_type->type_value != FLOAT)) {
 		return;
+	} else if (decl->variable_type->type_value == FLOAT) {
+		arg1 = mcc_ir_new_arg(decl->variable_identifier, data);
+		arg2 = mcc_ir_new_arg((double)0.0, data);
+		row = new_row(arg1, arg2, MCC_IR_INSTR_ASSIGN, new_ir_row_type(MCC_IR_ROW_FLOAT, -1, data), data);
+	} else {
+		arg1 = mcc_ir_new_arg(decl->array_identifier, data);
+		arg2 = generate_arg_lit(decl->array_size, data);
+
+		struct mcc_ir_row_type *type = st_row_to_ir_type(decl->row, (int)decl->array_size->i_value, data);
+		switch (decl->array_type->type_value) {
+		case INT:
+			row = new_row(arg1, arg2, MCC_IR_INSTR_ARRAY, type, data);
+			break;
+		case FLOAT:
+			row = new_row(arg1, arg2, MCC_IR_INSTR_ARRAY, type, data);
+			break;
+		case STRING:
+			row = new_row(arg1, arg2, MCC_IR_INSTR_ARRAY, type, data);
+			break;
+		case BOOL:
+			row = new_row(arg1, arg2, MCC_IR_INSTR_ARRAY, type, data);
+			break;
+		case VOID:
+			mcc_ir_delete_ir_arg(arg1);
+			mcc_ir_delete_ir_arg(arg2);
+			data->has_failed = true;
+			return;
+		}
 	}
-	if (!row) {
+
+	if (!arg1 || !arg2 || !row) {
 		mcc_ir_delete_ir_arg(arg1);
 		mcc_ir_delete_ir_arg(arg2);
+		mcc_ir_delete_ir_row(row);
 		data->has_failed = true;
 		return;
 	}
@@ -661,13 +682,15 @@ static struct mcc_ir_arg *generate_arg_lit(struct mcc_ast_literal *literal, stru
 	assert(literal);
 
 	struct mcc_ir_arg *arg = NULL;
+	struct mcc_ir_row *row = NULL;
 
 	switch (literal->type) {
 	case MCC_AST_LITERAL_TYPE_INT:
 		arg = mcc_ir_new_arg(literal->i_value, data);
 		break;
 	case MCC_AST_LITERAL_TYPE_FLOAT:
-		arg = mcc_ir_new_arg(literal->f_value, data);
+		row = new_ir_row_float_tmp(literal->f_value, data);
+		arg = new_arg_identifier_from_string(row->arg1->ident, data);
 		break;
 	case MCC_AST_LITERAL_TYPE_BOOL:
 		arg = mcc_ir_new_arg(literal->bool_value, data);
@@ -914,6 +937,25 @@ static struct mcc_ir_row *new_row(struct mcc_ir_arg *arg1,
 	return row;
 }
 
+static struct mcc_ir_row *new_ir_row_float_tmp(double f_value, struct ir_generation_userdata *data)
+{
+	unsigned size = 4 + length_of_int(data->tmp_counter) + 1;
+	char *ident = malloc(sizeof(char) * size);
+	if (!ident) {
+		data->has_failed = true;
+		return NULL;
+	}
+	snprintf(ident, size, "$tmp%d", data->tmp_counter);
+	data->tmp_counter++;
+	struct mcc_ir_arg *arg1 = new_arg_identifier_from_string(ident, data);
+	free(ident);
+	struct mcc_ir_arg *arg2 = new_arg_float(f_value, data);
+	struct mcc_ir_row_type *type = new_ir_row_type(MCC_IR_ROW_FLOAT, -1, data);
+	struct mcc_ir_row *row = new_row(arg1, arg2, MCC_IR_INSTR_ASSIGN, type, data);
+	append_row(row, data);
+	return row;
+}
+
 static void number_rows(struct mcc_ir_row *head)
 {
 	if (!head)
@@ -1155,6 +1197,7 @@ struct mcc_ir_row *mcc_ir_generate(struct mcc_ast_program *ast, struct mcc_symbo
 	data->has_failed = false;
 	data->current = NULL;
 	data->label_counter = 0;
+	data->tmp_counter = 0;
 
 	// remove all built_ins before creating the IR
 	ast = mcc_ast_remove_built_ins(ast);

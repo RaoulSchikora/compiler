@@ -43,7 +43,7 @@ struct mcc_asm_declaration {
 	char *identifier;
 	enum mcc_asm_declaration_type type;
 	union {
-		float float_value;
+		double float_value;
 		char *string_value;
 		int array_size;
 	};
@@ -74,6 +74,10 @@ enum mcc_asm_opcode {
 	MCC_ASM_SETG,
 	MCC_ASM_SETLE,
 	MCC_ASM_SETGE,
+	MCC_ASM_SETA,
+	MCC_ASM_SETAE,
+	MCC_ASM_SETB,
+	MCC_ASM_SETBE,
 	MCC_ASM_AND,
 	MCC_ASM_OR,
 	MCC_ASM_RETURN,
@@ -84,6 +88,15 @@ enum mcc_asm_opcode {
 	MCC_ASM_JNE,
 	MCC_ASM_LABEL,
 	MCC_ASM_LEAL,
+	MCC_ASM_FLDS,
+	MCC_ASM_FSTPS,
+	MCC_ASM_FADDP,
+	MCC_ASM_FSUBP,
+	MCC_ASM_FCOMIP,
+	MCC_ASM_FINIT,
+	MCC_ASM_FSTP,
+	MCC_ASM_FMULP,
+	MCC_ASM_FDIVP,
 };
 
 struct mcc_asm_line {
@@ -113,6 +126,7 @@ enum mcc_asm_register {
 	MCC_ASM_EDX,
 	MCC_ASM_ESP,
 	MCC_ASM_EBP,
+	MCC_ASM_ST,
 	MCC_ASM_DL,
 };
 

@@ -531,7 +531,7 @@ void func_call(CuTest *tc)
 	struct mcc_ir_row *tmp = ir;
 	struct mcc_ir_row *ir_head = ir;
 
-	tmp = tmp->next_row->next_row->next_row;
+	tmp = tmp->next_row->next_row->next_row->next_row;
 
 	CuAssertPtrNotNull(tc, tmp);
 	CuAssertIntEquals(tc, tmp->instr, MCC_IR_INSTR_PUSH);
@@ -649,6 +649,11 @@ void type_test(CuTest *tc)
 	tmp = tmp->next_row;
 
 	CuAssertIntEquals(tc, tmp->type->type, MCC_IR_ROW_BOOL);
+	CuAssertIntEquals(tc, tmp->type->array_size, -1);
+
+	tmp = tmp->next_row;
+
+	CuAssertIntEquals(tc, tmp->type->type, MCC_IR_ROW_FLOAT);
 	CuAssertIntEquals(tc, tmp->type->array_size, -1);
 
 	tmp = tmp->next_row;
