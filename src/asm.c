@@ -444,6 +444,19 @@ static void func_append(struct mcc_asm_function *func, struct mcc_asm_line *line
 	return;
 }
 
+// TODO: Implement
+static struct mcc_asm_operand *
+get_array_element_operand(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm_error *err)
+{
+	assert(an_ir);
+	assert(arg);
+	assert(err);
+	if (err->has_failed)
+		return NULL;
+	struct mcc_asm_operand *operand = NULL;
+	return operand;
+}
+
 // TODO: Float
 static struct mcc_asm_operand *
 arg_to_op(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm_error *err)
@@ -467,7 +480,7 @@ arg_to_op(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm
 		break;
 	// TODO #201: Distinguish between literal and computed index
 	case MCC_IR_TYPE_ARR_ELEM:
-		operand = mcc_asm_new_register_operand(MCC_ASM_EBP, get_offset_of(an_ir, arg), err);
+		operand = get_array_element_operand(an_ir, arg, err);
 		break;
 	default:
 		break;
@@ -547,6 +560,7 @@ static struct mcc_asm_line *generate_instr_assign(struct mcc_annotated_ir *an_ir
 		break;
 	case MCC_IR_TYPE_ROW:
 	case MCC_IR_TYPE_IDENTIFIER:
+	case MCC_IR_TYPE_ARR_ELEM:
 		line2 = mcc_asm_new_line(MCC_ASM_MOVL, eax(err), arg_to_op(an_ir, an_ir->row->arg1, err), NULL, err);
 		line1 = mcc_asm_new_line(MCC_ASM_MOVL, arg_to_op(an_ir, an_ir->row->arg2, err), eax(err), line2, err);
 		break;
