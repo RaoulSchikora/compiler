@@ -969,6 +969,30 @@ generate_cmp(struct mcc_annotated_ir *an_ir, enum mcc_asm_opcode opcode, struct 
 	return first_lines;
 }
 
+static struct mcc_asm_line *generate_mult(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
+{
+	assert(an_ir);
+	struct mcc_asm_line *line = NULL;
+	if (an_ir->row->type->type == MCC_IR_ROW_INT) {
+		line = generate_arithm_int_op(an_ir, MCC_ASM_IMULL, err);
+	} else if (an_ir->row->type->type == MCC_IR_ROW_FLOAT) {
+		line = generate_arithm_float_op(an_ir, MCC_ASM_FMULP, err);
+	}
+	return line;
+}
+
+static struct mcc_asm_line *generate_div(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
+{
+	assert(an_ir);
+	struct mcc_asm_line *line = NULL;
+	if (an_ir->row->type->type == MCC_IR_ROW_INT) {
+		line = generate_arithm_int_op(an_ir, MCC_ASM_IDIVL, err);
+	} else if (an_ir->row->type->type == MCC_IR_ROW_FLOAT) {
+		line = generate_arithm_float_op(an_ir, MCC_ASM_FDIVP, err);
+	}
+	return line;
+}
+
 static struct mcc_asm_line *generate_asm_from_ir(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
 {
 	assert(an_ir);
@@ -1028,10 +1052,10 @@ static struct mcc_asm_line *generate_asm_from_ir(struct mcc_annotated_ir *an_ir,
 		line = generate_minus(an_ir, err);
 		break;
 	case MCC_IR_INSTR_MULTIPLY:
-		line = generate_arithm_int_op(an_ir, MCC_ASM_IMULL, err);
+		line = generate_mult(an_ir, err);
 		break;
 	case MCC_IR_INSTR_DIVIDE:
-		line = generate_arithm_int_op(an_ir, MCC_ASM_IDIVL, err);
+		line = generate_div(an_ir, err);
 		break;
 	case MCC_IR_INSTR_RETURN:
 		line = generate_return(an_ir, err);

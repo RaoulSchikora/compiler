@@ -95,6 +95,10 @@ static char *opcode_to_string(enum mcc_asm_opcode op)
 		return "finit";
 	case MCC_ASM_FSTP:
 		return "fstp";
+	case MCC_ASM_FMULP:
+		return "fmulp";
+	case MCC_ASM_FDIVP:
+		return "fdivp";
 	default:
 		return "unknown opcode";
 	}
