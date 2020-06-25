@@ -473,10 +473,25 @@ get_array_element_operand(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg
 {
 	assert(an_ir);
 	assert(arg);
+	assert(arg->type == MCC_IR_TYPE_ARR_ELEM);
 	assert(err);
 	if (err->has_failed)
 		return NULL;
-	struct mcc_asm_operand *operand = NULL;
+	struct mcc_asm_operand *operand = malloc(sizeof(*operand));
+	if (!operand) {
+		err->has_failed = true;
+		return NULL;
+	}
+
+	// Check if index is known on compile time
+	if (arg->index->type == MCC_IR_TYPE_LIT_INT) {
+		int offset = mcc_get_array_element_stack_loc(an_ir, arg);
+		return mcc_asm_new_register_operand(MCC_ASM_EBP, offset, err);
+	} else {
+		// TODO #201: Create asm lines: Arg is pointing to a row -> generate asm lines to calculate index
+		return NULL;
+	}
+
 	return operand;
 }
 // function to check if 'prefix' is a proper prefix of 'string'. It is proper if 'prefix' followed by _x is equal to
