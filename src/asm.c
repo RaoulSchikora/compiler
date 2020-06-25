@@ -139,7 +139,7 @@ struct mcc_asm_declaration *mcc_asm_new_float_declaration(char *identifier,
 		free(id_new);
 		return NULL;
 	}
-	strncpy(id_new, identifier, size);
+	strcpy(id_new, identifier);
 	new->identifier = id_new;
 	new->float_value = float_value;
 	new->next = next;
@@ -161,7 +161,7 @@ struct mcc_asm_declaration *mcc_asm_new_string_declaration(char *identifier,
 		free(id_new);
 		return NULL;
 	}
-	strncpy(id_new, identifier, size);
+	strcpy(id_new, identifier);
 	new->identifier = id_new;
 	new->string_value = string_value;
 	new->next = next;
@@ -184,7 +184,7 @@ struct mcc_asm_declaration *mcc_asm_new_array_declaration(char *identifier,
 		free(id_new);
 		return NULL;
 	}
-	strncpy(id_new, identifier, string_size);
+	strcpy(id_new, identifier);
 	new->identifier = id_new;
 	new->array_size = size;
 	new->next = next;
@@ -204,7 +204,7 @@ mcc_asm_new_function(char *label, struct mcc_asm_line *head, struct mcc_asm_func
 		err->has_failed = true;
 		return NULL;
 	}
-	strncpy(lab_new, label, size);
+	strcpy(lab_new, label);
 	new->head = head;
 	new->label = lab_new;
 	new->next = next;
@@ -257,7 +257,7 @@ struct mcc_asm_operand *mcc_asm_new_function_operand(char *function_name, struct
 		err->has_failed = true;
 		return NULL;
 	}
-	strncpy(func_name_new, function_name, size);
+	strcpy(func_name_new, function_name);
 	new->type = MCC_ASM_OPERAND_FUNCTION;
 	new->func_name = func_name_new;
 	new->offset = 0;
