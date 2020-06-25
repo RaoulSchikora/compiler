@@ -4,17 +4,16 @@ int main(){
 	int depth;
 	depth = 10;
 	int b;
-	b = rec_func(a, depth);
+	b = sum(a, depth);
 	if(b == 20){
 		return 1;
-	} else {
-		return 0;
-	}
+	} 
+	return 0;
 }
 
-int rec_func(int result, int depth){
-	if (depth >= 0){
-		result = result + rec_func(result, depth - 1);
+int sum(int a, int depth){
+	if (depth == 0){
+		return 0;
 	}
-	return result;
+	return a + sum(a, depth - 1);
 }

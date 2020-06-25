@@ -645,13 +645,13 @@ static struct mcc_asm_operand *find_float_identifier(struct mcc_annotated_ir *an
 	while (head) {
 		if (head->type == MCC_ASM_DECLARATION_TYPE_FLOAT &&
 		    (fabs(wanted_float - head->float_value) < epsilon) &&
-		    (is_proper_prefix(an_ir->row->arg1->ident, head->identifier) || 
-			strcmp(an_ir->row->arg1->ident, head->identifier) == 0)) {
+		    (is_proper_prefix(an_ir->row->arg1->ident, head->identifier) ||
+		     strcmp(an_ir->row->arg1->ident, head->identifier) == 0)) {
 			op->decl = head;
 			op->type = MCC_ASM_OPERAND_DATA;
 			op->offset = 0;
 			return op;
-		} 
+		}
 		head = head->next;
 	}
 	free(op);
@@ -712,7 +712,7 @@ static struct mcc_asm_line *generate_instr_assign(struct mcc_annotated_ir *an_ir
 
 	int offset2 = an_ir->stack_position;
 
-	// TODO #201 lit_float, arrays
+	// TODO #201, arrays
 	struct mcc_asm_line *line1 = NULL;
 	switch (an_ir->row->arg2->type) {
 	case MCC_IR_TYPE_LIT_INT:
@@ -945,7 +945,7 @@ static struct mcc_asm_line *generate_cmp_op_float(struct mcc_annotated_ir *an_ir
 	line3 = mcc_asm_new_line(MCC_ASM_FCOMIP, st(1, err), st(0, err), line4, err);
 	line2 = mcc_asm_new_line(MCC_ASM_FLDS, arg_to_op(an_ir, an_ir->row->arg1, err), NULL, line3, err);
 	line1 = mcc_asm_new_line(MCC_ASM_FLDS, arg_to_op(an_ir, an_ir->row->arg2, err), NULL, line2, err);
-	if(err->has_failed){
+	if (err->has_failed) {
 		mcc_asm_delete_line(line1);
 		mcc_asm_delete_line(line2);
 		mcc_asm_delete_line(line3);
@@ -968,13 +968,13 @@ generate_cmp(struct mcc_annotated_ir *an_ir, enum mcc_asm_opcode opcode, struct 
 	if (is_float(an_ir->row->arg1, err)) {
 		first_lines = generate_cmp_op_float(an_ir, err);
 		// use unsigned opcode in case of float:
-		if(opcode == MCC_ASM_SETG)
+		if (opcode == MCC_ASM_SETG)
 			opcode = MCC_ASM_SETA;
-		if(opcode == MCC_ASM_SETGE)
+		if (opcode == MCC_ASM_SETGE)
 			opcode = MCC_ASM_SETAE;
-		if(opcode == MCC_ASM_SETL)
+		if (opcode == MCC_ASM_SETL)
 			opcode = MCC_ASM_SETB;
-		if(opcode == MCC_ASM_SETLE)
+		if (opcode == MCC_ASM_SETLE)
 			opcode = MCC_ASM_SETBE;
 	} else {
 		first_lines = generate_cmp_op_int(an_ir, err);
@@ -986,7 +986,7 @@ generate_cmp(struct mcc_annotated_ir *an_ir, enum mcc_asm_opcode opcode, struct 
 	line3 = mcc_asm_new_line(MCC_ASM_MOVZBL, dl(err), eax(err), line4, err);
 	// 2. setcc dl
 	line2 = mcc_asm_new_line(opcode, dl(err), NULL, line3, err);
-	if(err->has_failed){
+	if (err->has_failed) {
 		mcc_asm_delete_line(line2);
 		mcc_asm_delete_line(line3);
 		mcc_asm_delete_line(line4);
@@ -1024,15 +1024,34 @@ static struct mcc_asm_line *generate_div(struct mcc_annotated_ir *an_ir, struct 
 static struct mcc_asm_line *generate_call(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
 {
 	assert(an_ir);
-	struct mcc_asm_line *line2 = mcc_asm_new_line(MCC_ASM_MOVL, eax(err), ebp(an_ir->stack_position, err), NULL, err);
+	// if function is void do no move instruction
+	struct mcc_asm_line *line1 = NULL, *line2 = NULL;
 	struct mcc_asm_operand *func = mcc_asm_new_function_operand(an_ir->row->arg1->func_label, err);
-	struct mcc_asm_line *line1 = mcc_asm_new_line(MCC_ASM_CALLL, NULL, NULL, line2, err);
-	if(err->has_failed){
+	line1 = mcc_asm_new_line(MCC_ASM_CALLL, NULL, NULL, NULL, err);
+	if(an_ir->row->type->type != MCC_IR_ROW_TYPELESS){
+		line2 = mcc_asm_new_line(MCC_ASM_MOVL, eax(err), ebp(an_ir->stack_position, err), NULL, err);
+		line1->next = line2;
+	}
+	if (err->has_failed) {
 		mcc_asm_delete_line(line1);
 		mcc_asm_delete_line(line2);
 		return NULL;
 	}
 	line1->first = func;
+	return line1;
+}
+
+static struct mcc_asm_line *generate_pop(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
+{
+	assert(an_ir);
+	struct mcc_asm_line *line2 = NULL, *line1 = NULL;
+	line2 = mcc_asm_new_line(MCC_ASM_MOVL, eax(err), arg_to_op(an_ir->next, an_ir->next->row->arg1, err), NULL, err);
+	line1 = mcc_asm_new_line(MCC_ASM_MOVL, ebp(an_ir->stack_position, err), eax(err), line2, err);
+	if(err->has_failed){
+		mcc_asm_delete_line(line1);
+		mcc_asm_delete_line(line2);
+		return NULL;
+	}
 	return line1;
 }
 
@@ -1064,7 +1083,10 @@ static struct mcc_asm_line *generate_asm_from_ir(struct mcc_annotated_ir *an_ir,
 		line = generate_jumpfalse(MCC_ASM_JNE, an_ir, err);
 		break;
 	case MCC_IR_INSTR_PUSH:
+		line = mcc_asm_new_line(MCC_ASM_PUSHL, arg_to_op(an_ir, an_ir->row->arg1, err), NULL, NULL, err);
+		break;
 	case MCC_IR_INSTR_POP:
+		line = generate_pop(an_ir, err);
 		break;
 	case MCC_IR_INSTR_EQUALS:
 		line = generate_cmp(an_ir, MCC_ASM_SETE, err);
@@ -1164,7 +1186,12 @@ generate_function_body(struct mcc_asm_function *function, struct mcc_annotated_i
 			mcc_asm_delete_all_lines(function->head);
 			return NULL;
 		}
-		an_ir = an_ir->next;
+		// if pop omit the next assign instruction, since it is already handled with the pop instruction
+		if(an_ir->row->instr == MCC_IR_INSTR_POP){
+			an_ir = an_ir->next->next;
+		} else {
+			an_ir = an_ir->next;
+		}
 	}
 
 	// TODO: Exchange function->head for first asm line
