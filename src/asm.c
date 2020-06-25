@@ -1227,15 +1227,9 @@ static void compose_function_asm(struct mcc_asm_function *function,
 	assert(args->first->type == MCC_ASM_OPERAND_LITERAL);
 	function->head = prolog;
 	prolog = last_asm_line(prolog);
-	// If we remove 0 from ESP, we can remove that line
-	if (args->first->literal == 0) {
-		prolog->next = body;
-		mcc_asm_delete_line(args);
-	} else {
-		prolog->next = args;
-		args = last_asm_line(args);
-		args->next = body;
-	}
+	prolog->next = args;
+	args = last_asm_line(args);
+	args->next = body;
 }
 
 static struct mcc_asm_line *generate_function_prolog(struct mcc_asm_error *err)
