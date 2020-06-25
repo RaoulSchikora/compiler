@@ -231,10 +231,6 @@ static void asm_print_decl(FILE *out, struct mcc_asm_declaration *decl)
 	case MCC_ASM_DECLARATION_TYPE_STRING:
 		fprintf(out, ".string \"%s\"\n", decl->string_value);
 		break;
-	case MCC_ASM_DECLARATION_TYPE_ARRAY_INT:
-	case MCC_ASM_DECLARATION_TYPE_ARRAY_BOOL:
-		fprintf(out, "       .fill %d\n", decl->array_size);
-		break;
 	default:
 		break;
 	}

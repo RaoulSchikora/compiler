@@ -33,10 +33,6 @@ struct mcc_asm_data_section {
 enum mcc_asm_declaration_type {
 	MCC_ASM_DECLARATION_TYPE_STRING,
 	MCC_ASM_DECLARATION_TYPE_FLOAT,
-	MCC_ASM_DECLARATION_TYPE_ARRAY_INT,
-	MCC_ASM_DECLARATION_TYPE_ARRAY_FLOAT,
-	MCC_ASM_DECLARATION_TYPE_ARRAY_BOOL,
-	MCC_ASM_DECLARATION_TYPE_ARRAY_STRING,
 };
 
 struct mcc_asm_declaration {
@@ -45,7 +41,6 @@ struct mcc_asm_declaration {
 	union {
 		double float_value;
 		char *string_value;
-		int array_size;
 	};
 	struct mcc_asm_declaration *next;
 };
@@ -156,15 +151,9 @@ struct mcc_asm_declaration *mcc_asm_new_float_declaration(char *identifier,
                                                           struct mcc_asm_error *err);
 
 struct mcc_asm_declaration *mcc_asm_new_string_declaration(char *identifier,
-                                                       char *string_value,
-                                                       struct mcc_asm_declaration *next,
-                                                       struct mcc_asm_error *err);
-
-struct mcc_asm_declaration *mcc_asm_new_array_declaration(char *identifier,
-                                                          int size,
-                                                          enum mcc_asm_declaration_type type,
-                                                          struct mcc_asm_declaration *next,
-                                                          struct mcc_asm_error *err);
+                                                           char *string_value,
+                                                           struct mcc_asm_declaration *next,
+                                                           struct mcc_asm_error *err);
 
 struct mcc_asm_function *
 mcc_asm_new_function(char *label, struct mcc_asm_line *head, struct mcc_asm_function *next, struct mcc_asm_error *err);

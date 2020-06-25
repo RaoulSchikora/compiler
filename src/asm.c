@@ -169,29 +169,6 @@ struct mcc_asm_declaration *mcc_asm_new_string_declaration(char *identifier,
 	return new;
 }
 
-struct mcc_asm_declaration *mcc_asm_new_array_declaration(char *identifier,
-                                                          int size,
-                                                          enum mcc_asm_declaration_type type,
-                                                          struct mcc_asm_declaration *next,
-                                                          struct mcc_asm_error *err)
-{
-	int string_size = strlen(identifier) + 1;
-	struct mcc_asm_declaration *new = malloc(sizeof(*new));
-	char *id_new = malloc(sizeof(char) * string_size);
-	if (!new || !id_new) {
-		err->has_failed = true;
-		free(new);
-		free(id_new);
-		return NULL;
-	}
-	strncpy(id_new, identifier, string_size);
-	new->identifier = id_new;
-	new->array_size = size;
-	new->next = next;
-	new->type = type;
-	return new;
-}
-
 struct mcc_asm_function *
 mcc_asm_new_function(char *label, struct mcc_asm_line *head, struct mcc_asm_function *next, struct mcc_asm_error *err)
 {
@@ -380,9 +357,6 @@ void mcc_asm_delete_declaration(struct mcc_asm_declaration *decl)
 	if (!decl)
 		return;
 	if (decl->type == MCC_ASM_DECLARATION_TYPE_STRING) {
-		free(decl->identifier);
-	}
-	if (decl->type == MCC_ASM_DECLARATION_TYPE_ARRAY_FLOAT) {
 		free(decl->identifier);
 	}
 	free(decl);
