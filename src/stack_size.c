@@ -13,7 +13,8 @@ struct mcc_annotated_ir *mcc_new_annotated_ir(struct mcc_ir_row *row, int stack_
 	struct mcc_annotated_ir *ir = malloc(sizeof(*ir));
 	if (!ir)
 		return NULL;
-	// Hold stack size of current IR line. If line is func label, holds stack size of that function
+	// Hold stack size (number of bytes needed on the stack) of current IR line.
+	// If line is func label, holds stack size of that function
 	ir->stack_size = stack_size;
 	ir->stack_position = 0;
 	ir->row = row;
