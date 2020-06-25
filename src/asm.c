@@ -1042,7 +1042,7 @@ static struct mcc_asm_line *generate_call(struct mcc_annotated_ir *an_ir, struct
 	struct mcc_asm_line *line1 = NULL, *line2 = NULL;
 	struct mcc_asm_operand *func = mcc_asm_new_function_operand(an_ir->row->arg1->func_label, err);
 	line1 = mcc_asm_new_line(MCC_ASM_CALLL, NULL, NULL, NULL, err);
-	if(an_ir->row->type->type != MCC_IR_ROW_TYPELESS){
+	if (an_ir->row->type->type != MCC_IR_ROW_TYPELESS) {
 		line2 = mcc_asm_new_line(MCC_ASM_MOVL, eax(err), ebp(an_ir->stack_position, err), NULL, err);
 		line1->next = line2;
 	}
@@ -1059,9 +1059,10 @@ static struct mcc_asm_line *generate_pop(struct mcc_annotated_ir *an_ir, struct 
 {
 	assert(an_ir);
 	struct mcc_asm_line *line2 = NULL, *line1 = NULL;
-	line2 = mcc_asm_new_line(MCC_ASM_MOVL, eax(err), arg_to_op(an_ir->next, an_ir->next->row->arg1, err), NULL, err);
+	line2 =
+	    mcc_asm_new_line(MCC_ASM_MOVL, eax(err), arg_to_op(an_ir->next, an_ir->next->row->arg1, err), NULL, err);
 	line1 = mcc_asm_new_line(MCC_ASM_MOVL, ebp(an_ir->stack_position, err), eax(err), line2, err);
-	if(err->has_failed){
+	if (err->has_failed) {
 		mcc_asm_delete_line(line1);
 		mcc_asm_delete_line(line2);
 		return NULL;
@@ -1201,7 +1202,7 @@ generate_function_body(struct mcc_asm_function *function, struct mcc_annotated_i
 			return NULL;
 		}
 		// if pop omit the next assign instruction, since it is already handled with the pop instruction
-		if(an_ir->row->instr == MCC_IR_INSTR_POP){
+		if (an_ir->row->instr == MCC_IR_INSTR_POP) {
 			an_ir = an_ir->next->next;
 		} else {
 			an_ir = an_ir->next;
