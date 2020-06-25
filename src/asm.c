@@ -592,7 +592,6 @@ arg_to_op(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm
 	case MCC_IR_TYPE_IDENTIFIER:
 		operand = mcc_asm_new_register_operand(MCC_ASM_EBP, get_offset_of(an_ir, arg), err);
 		break;
-	// TODO #201: Distinguish between literal and computed index
 	case MCC_IR_TYPE_ARR_ELEM:
 		operand = get_array_element_operand(an_ir, arg, err);
 		break;
