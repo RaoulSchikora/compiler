@@ -318,10 +318,28 @@ static void generate_ir_arguments(struct mcc_ast_arguments *arguments, struct ir
 		generate_ir_arguments(arguments->next_arguments, data);
 	}
 	if (!arguments->is_empty) {
-		struct mcc_ir_arg *arg_push = generate_ir_expression(arguments->expression, data);
-		struct mcc_ir_row_type *type = get_type_of_row(arg_push, arguments->expression, data);
-		struct mcc_ir_row *row = new_row(arg_push, NULL, MCC_IR_INSTR_PUSH, type, data);
-		append_row(row, data);
+		if (arguments->expression->type == MCC_AST_EXPRESSION_TYPE_LITERAL &&
+		    arguments->expression->literal->type == MCC_AST_LITERAL_TYPE_STRING) {
+			unsigned size = 5 + length_of_int(data->tmp_counter);
+			char tmp[size];
+			snprintf(tmp, size, "$tmp%d", data->tmp_counter);
+			data->tmp_counter += 1;
+			struct mcc_ir_arg *lit = generate_ir_expression(arguments->expression, data);
+			struct mcc_ir_row_type *type1 = get_type_of_row(lit, arguments->expression, data);
+			struct mcc_ir_row_type *type2 = get_type_of_row(lit, arguments->expression, data);
+			struct mcc_ir_arg *ident1 = new_arg_identifier_from_string(tmp, data);
+			struct mcc_ir_arg *ident2 = new_arg_identifier_from_string(tmp, data);
+			struct mcc_ir_row *row1 = NULL, *row2 = NULL;
+			row1 = new_row(ident1, lit, MCC_IR_INSTR_ASSIGN, type1, data);
+			row2 = new_row(ident2, NULL, MCC_IR_INSTR_PUSH, type2, data);
+			append_row(row1, data);
+			append_row(row2, data);
+		} else {
+			struct mcc_ir_arg *arg_push = generate_ir_expression(arguments->expression, data);
+			struct mcc_ir_row_type *type = get_type_of_row(arg_push, arguments->expression, data);
+			struct mcc_ir_row *row = new_row(arg_push, NULL, MCC_IR_INSTR_PUSH, type, data);
+			append_row(row, data);
+		}
 	}
 }
 
