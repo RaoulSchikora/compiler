@@ -1068,7 +1068,6 @@ static struct mcc_asm_line* generate_neg_float(struct mcc_annotated_ir *an_ir, s
 		mcc_asm_delete_line(line3);
 		return NULL;
 	}
-	
 	return line1;
 }
 
