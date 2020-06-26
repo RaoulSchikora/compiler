@@ -244,6 +244,7 @@ void array_loc(CuTest *tc)
 
 	struct mcc_asm_line *line = code->text_section->function->head->next->next;
 
+	// subl esp
 	CuAssertIntEquals(tc, MCC_ASM_SUBL, line->opcode);
 	CuAssertIntEquals(tc, MCC_ASM_OPERAND_LITERAL, line->first->type);
 	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, line->second->type);
@@ -252,12 +253,62 @@ void array_loc(CuTest *tc)
 
 	line = line->next;
 
+	// a[1] = 17
 	CuAssertIntEquals(tc, MCC_ASM_MOVL, line->opcode);
 	CuAssertIntEquals(tc, MCC_ASM_OPERAND_LITERAL, line->first->type);
 	CuAssertIntEquals(tc, 17, line->first->literal);
-	CuAssertIntEquals(tc, -(45 * STACK_SIZE_BOOL + 2 * STACK_SIZE_INT), line->second->offset);
+	CuAssertIntEquals(tc, -(45 * STACK_SIZE_BOOL + 4 * STACK_SIZE_INT) + 1 * STACK_SIZE_INT, line->second->offset);
 	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, line->second->type);
 	CuAssertIntEquals(tc, MCC_ASM_EBP, line->second->reg);
+
+	mcc_ir_delete_ir(ir);
+	mcc_semantic_check_delete_single_check(checks);
+	mcc_ast_delete(parser_result.program);
+	mcc_symbol_table_delete_table(table);
+	mcc_asm_delete_asm(code);
+}
+
+void array_loc2(CuTest *tc)
+{
+	// Define test input and create IR
+	const char input[] = "int main(){ int[45] a; a[1] = 0; a[1+2] = a[3-2]; return a[3];}";
+	struct mcc_parser_result parser_result;
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
+	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+	struct mcc_semantic_check *checks = mcc_semantic_check_run_all((&parser_result)->program, table);
+	CuAssertIntEquals(tc, checks->status, MCC_SEMANTIC_CHECK_OK);
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program, table);
+	CuAssertPtrNotNull(tc, ir);
+
+	struct mcc_asm *code = mcc_asm_generate(ir);
+	CuAssertPtrNotNull(tc, code);
+
+	struct mcc_asm_line *line = code->text_section->function->head->next->next;
+
+	// a = array              INT[45]
+	// a[1] = 0               INT
+	// $t0 = 1 + 2            INT
+	// $t1 = 3 - 2            INT
+	// a[$t0] = a[$t1]        INT
+	// return a[3]            INT
+
+	// subl esp
+	CuAssertIntEquals(tc, MCC_ASM_SUBL, line->opcode);
+	CuAssertIntEquals(tc, MCC_ASM_OPERAND_LITERAL, line->first->type);
+	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, line->second->type);
+	CuAssertIntEquals(tc, MCC_ASM_ESP, line->second->reg);
+	CuAssertIntEquals(tc, 45 * STACK_SIZE_INT + 2 * STACK_SIZE_INT, line->first->literal);
+
+	line = line->next;
+
+	// a[1] = 17
+	// CuAssertIntEquals(tc, MCC_ASM_MOVL, line->opcode);
+	// CuAssertIntEquals(tc, MCC_ASM_OPERAND_LITERAL, line->first->type);
+	// CuAssertIntEquals(tc, 17, line->first->literal);
+	// CuAssertIntEquals(tc, -(45 * STACK_SIZE_BOOL + 4 * STACK_SIZE_INT) + 1 * STACK_SIZE_INT, line->second->offset);
+	// CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, line->second->type);
+	// CuAssertIntEquals(tc, MCC_ASM_EBP, line->second->reg);
 
 	mcc_ir_delete_ir(ir);
 	mcc_semantic_check_delete_single_check(checks);
@@ -419,6 +470,7 @@ void strings2(CuTest *tc)
 	TEST(array_loc) \
 	TEST(strings) \
 	TEST(strings2)
+	// TEST(array_loc2)
 
 // clang-format on
 

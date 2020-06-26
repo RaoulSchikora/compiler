@@ -169,29 +169,6 @@ struct mcc_asm_declaration *mcc_asm_new_string_declaration(char *identifier,
 	return new;
 }
 
-struct mcc_asm_declaration *mcc_asm_new_array_declaration(char *identifier,
-                                                          int size,
-                                                          enum mcc_asm_declaration_type type,
-                                                          struct mcc_asm_declaration *next,
-                                                          struct mcc_asm_error *err)
-{
-	int string_size = strlen(identifier) + 1;
-	struct mcc_asm_declaration *new = malloc(sizeof(*new));
-	char *id_new = malloc(sizeof(char) * string_size);
-	if (!new || !id_new) {
-		err->has_failed = true;
-		free(new);
-		free(id_new);
-		return NULL;
-	}
-	strcpy(id_new, identifier);
-	new->identifier = id_new;
-	new->array_size = size;
-	new->next = next;
-	new->type = type;
-	return new;
-}
-
 struct mcc_asm_function *
 mcc_asm_new_function(char *label, struct mcc_asm_line *head, struct mcc_asm_function *next, struct mcc_asm_error *err)
 {
@@ -290,6 +267,24 @@ struct mcc_asm_operand *mcc_asm_new_register_operand(enum mcc_asm_register reg, 
 	return new;
 }
 
+struct mcc_asm_operand *mcc_asm_new_computed_offset_operand(int offset_initial,
+                                                            enum mcc_asm_register offset_base,
+                                                            enum mcc_asm_register offset_factor,
+                                                            int offset_size,
+                                                            struct mcc_asm_error *err)
+{
+	struct mcc_asm_operand *new = malloc(sizeof(*new));
+	if (!new) {
+		err->has_failed = true;
+		return NULL;
+	}
+	new->offset_initial = offset_initial;
+	new->offset_base = offset_base;
+	new->offset_factor = offset_factor;
+	new->offset_size = offset_size;
+	return new;
+}
+
 struct mcc_asm_operand *mcc_asm_new_data_operand(struct mcc_asm_declaration *decl, struct mcc_asm_error *err)
 {
 	struct mcc_asm_operand *new = malloc(sizeof(*new));
@@ -382,9 +377,6 @@ void mcc_asm_delete_declaration(struct mcc_asm_declaration *decl)
 	if (decl->type == MCC_ASM_DECLARATION_TYPE_STRING) {
 		free(decl->identifier);
 	}
-	if (decl->type == MCC_ASM_DECLARATION_TYPE_ARRAY_FLOAT) {
-		free(decl->identifier);
-	}
 	free(decl);
 }
 
@@ -445,38 +437,31 @@ static struct mcc_asm_line *last_asm_line(struct mcc_asm_line *head)
 	return head;
 }
 
-static void append_line(struct mcc_asm_line *head1, struct mcc_asm_line *head2)
-{
-	assert(head1);
-	assert(head2);
-
-	struct mcc_asm_line *line = last_asm_line(head1);
-	line->next = head2;
-}
-
-static void func_append(struct mcc_asm_function *func, struct mcc_asm_line *line)
-{
-	assert(line);
-	assert(func);
-	if (!func->head) {
-		func->head = line;
-		return;
-	}
-	struct mcc_asm_line *tail = last_asm_line(func->head);
-	tail->next = line;
-	return;
-}
-
 // TODO: Implement
 static struct mcc_asm_operand *
 get_array_element_operand(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm_error *err)
 {
 	assert(an_ir);
 	assert(arg);
+	assert(arg->type == MCC_IR_TYPE_ARR_ELEM);
 	assert(err);
 	if (err->has_failed)
 		return NULL;
-	struct mcc_asm_operand *operand = NULL;
+	struct mcc_asm_operand *operand = malloc(sizeof(*operand));
+	if (!operand) {
+		err->has_failed = true;
+		return NULL;
+	}
+
+	// Check if index is known on compile time
+	if (arg->index->type == MCC_IR_TYPE_LIT_INT) {
+		int offset = mcc_get_array_element_stack_loc(an_ir, arg);
+		return mcc_asm_new_register_operand(MCC_ASM_EBP, offset, err);
+	} else {
+		// TODO #201: Create asm lines: Arg is pointing to a row -> generate asm lines to calculate index
+		return NULL;
+	}
+
 	return operand;
 }
 // function to check if 'prefix' is a proper prefix of 'string'. It is proper if 'prefix' followed by _x is equal to
@@ -577,7 +562,6 @@ arg_to_op(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm
 	case MCC_IR_TYPE_IDENTIFIER:
 		operand = mcc_asm_new_register_operand(MCC_ASM_EBP, get_offset_of(an_ir, arg), err);
 		break;
-	// TODO #201: Distinguish between literal and computed index
 	case MCC_IR_TYPE_ARR_ELEM:
 		operand = get_array_element_operand(an_ir, arg, err);
 		break;
@@ -702,6 +686,7 @@ static struct mcc_asm_line *generate_float_assign(struct mcc_annotated_ir *an_ir
 	return line1;
 }
 
+// TODO #201: Handle arrays in subfunctions
 static struct mcc_asm_line *generate_instr_assign(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
 {
 	assert(an_ir);
@@ -730,7 +715,7 @@ static struct mcc_asm_line *generate_instr_assign(struct mcc_annotated_ir *an_ir
 	case MCC_IR_TYPE_LIT_STRING:
 		line1 = generate_string_assignment(an_ir, err);
 		break;
-	// TODO: Handle array elements
+	// TODO 201: Handle array elements
 	case MCC_IR_TYPE_ARR_ELEM:
 	default:
 		// TODO remove when done. Remider: "(int)an_ir->stack_position" was only chosen to let compare
@@ -993,7 +978,7 @@ generate_cmp(struct mcc_annotated_ir *an_ir, enum mcc_asm_opcode opcode, struct 
 		return NULL;
 	}
 
-	append_line(first_lines, line2);
+	last_asm_line(first_lines)->next = line2;
 	return first_lines;
 }
 
@@ -1028,7 +1013,7 @@ static struct mcc_asm_line *generate_call(struct mcc_annotated_ir *an_ir, struct
 	struct mcc_asm_line *line1 = NULL, *line2 = NULL;
 	struct mcc_asm_operand *func = mcc_asm_new_function_operand(an_ir->row->arg1->func_label, err);
 	line1 = mcc_asm_new_line(MCC_ASM_CALLL, NULL, NULL, NULL, err);
-	if(an_ir->row->type->type != MCC_IR_ROW_TYPELESS){
+	if (an_ir->row->type->type != MCC_IR_ROW_TYPELESS) {
 		line2 = mcc_asm_new_line(MCC_ASM_MOVL, eax(err), ebp(an_ir->stack_position, err), NULL, err);
 		line1->next = line2;
 	}
@@ -1045,9 +1030,10 @@ static struct mcc_asm_line *generate_pop(struct mcc_annotated_ir *an_ir, struct 
 {
 	assert(an_ir);
 	struct mcc_asm_line *line2 = NULL, *line1 = NULL;
-	line2 = mcc_asm_new_line(MCC_ASM_MOVL, eax(err), arg_to_op(an_ir->next, an_ir->next->row->arg1, err), NULL, err);
+	line2 =
+	    mcc_asm_new_line(MCC_ASM_MOVL, eax(err), arg_to_op(an_ir->next, an_ir->next->row->arg1, err), NULL, err);
 	line1 = mcc_asm_new_line(MCC_ASM_MOVL, ebp(an_ir->stack_position, err), eax(err), line2, err);
-	if(err->has_failed){
+	if (err->has_failed) {
 		mcc_asm_delete_line(line1);
 		mcc_asm_delete_line(line2);
 		return NULL;
@@ -1171,20 +1157,6 @@ static struct mcc_asm_line *generate_asm_from_ir(struct mcc_annotated_ir *an_ir,
 	return line;
 }
 
-// TODO: clearify if we need this function. I (Raoul) think we don't need it :)
-static struct mcc_asm_line *get_fake_asm_line(struct mcc_asm_error *err)
-{
-	struct mcc_asm_operand *print_nl = mcc_asm_new_function_operand("print_nl", err);
-	struct mcc_asm_line *call = mcc_asm_new_line(MCC_ASM_CALLL, NULL, NULL, NULL, err);
-	if (!print_nl || !call) {
-		mcc_asm_delete_line(call);
-		mcc_asm_delete_operand(print_nl);
-		return NULL;
-	}
-	call->first = print_nl;
-	return call;
-}
-
 // TODO: Implement correctly
 static struct mcc_asm_line *
 generate_function_body(struct mcc_asm_function *function, struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
@@ -1198,87 +1170,36 @@ generate_function_body(struct mcc_asm_function *function, struct mcc_annotated_i
 
 	an_ir = an_ir->next;
 	struct mcc_asm_line *line = NULL;
+	struct mcc_asm_line *first = NULL;
+	struct mcc_asm_line *prev = NULL;
 
 	// Iterate up to next function
 	while (an_ir && an_ir->row->instr != MCC_IR_INSTR_FUNC_LABEL) {
 
-		// TODO: When finalizing, line musn't return NULL. It now returns NULL if the corresponding
-		// IR line isn't implemented yet
 		line = generate_asm_from_ir(an_ir, err);
-		if (line)
-			func_append(function, line);
 		if (err->has_failed) {
-			// deletion of all lines needs to happen after appending current line, since in error case still
-			// a line can be returned
-			// TODO: Exchange function->head for first asm line
-			mcc_asm_delete_all_lines(function->head);
+			mcc_asm_delete_all_lines(first);
 			return NULL;
 		}
-		// if pop omit the next assign instruction, since it is already handled with the pop instruction
-		if(an_ir->row->instr == MCC_IR_INSTR_POP){
+		if (!line) {
+			an_ir = an_ir->next;
+			continue;
+		}
+
+		if (!first)
+			first = line;
+		if (prev)
+			prev->next = line;
+		prev = last_asm_line(line);
+		// if pop, omit the next assign instruction, since it is already handled with the pop instruction
+		if (an_ir->row->instr == MCC_IR_INSTR_POP) {
 			an_ir = an_ir->next->next;
 		} else {
 			an_ir = an_ir->next;
 		}
 	}
 
-	// TODO: Exchange function->head for first asm line
-	if (!function->head)
-		return get_fake_asm_line(err);
-
-	// TODO: Simply return the first line of the block of asm code you created. The merging will happen later.
-	return function->head;
-}
-
-static struct mcc_asm_line *generate_function_args(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
-{
-	assert(an_ir);
-	assert(an_ir->row->instr == MCC_IR_INSTR_FUNC_LABEL);
-
-	if (err->has_failed)
-		return NULL;
-
-	struct mcc_asm_operand *size_literal = mcc_asm_new_literal_operand(an_ir->stack_size, err);
-	struct mcc_asm_line *sub_size_esp = mcc_asm_new_line(MCC_ASM_SUBL, size_literal, esp(err), NULL, err);
-
-	return sub_size_esp;
-}
-
-static void compose_function_asm(struct mcc_asm_function *function,
-                                 struct mcc_asm_line *prolog,
-                                 struct mcc_asm_line *args,
-                                 struct mcc_asm_line *body)
-{
-	assert(prolog);
-	assert(body);
-	assert(function);
-	assert(args->first->type == MCC_ASM_OPERAND_LITERAL);
-	function->head = prolog;
-	prolog = last_asm_line(prolog);
-	// If we remove 0 from ESP, we can remove that line
-	if (args->first->literal == 0) {
-		prolog->next = body;
-		mcc_asm_delete_line(args);
-	} else {
-		prolog->next = args;
-		args = last_asm_line(args);
-		args->next = body;
-	}
-}
-
-static struct mcc_asm_line *generate_function_prolog(struct mcc_asm_error *err)
-{
-	if (err->has_failed)
-		return NULL;
-
-	struct mcc_asm_line *mov_ebp_esp = mcc_asm_new_line(MCC_ASM_MOVL, esp(err), ebp(0, err), NULL, err);
-	struct mcc_asm_line *push_ebp = mcc_asm_new_line(MCC_ASM_PUSHL, ebp(0, err), NULL, mov_ebp_esp, err);
-	if (err->has_failed) {
-		mcc_asm_delete_line(push_ebp);
-		mcc_asm_delete_line(mov_ebp_esp);
-		return NULL;
-	}
-	return push_ebp;
+	return first;
 }
 
 struct mcc_asm_function *mcc_asm_generate_function(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
@@ -1294,16 +1215,26 @@ struct mcc_asm_function *mcc_asm_generate_function(struct mcc_annotated_ir *an_i
 	if (!function) {
 		return NULL;
 	}
-	struct mcc_asm_line *prolog = generate_function_prolog(err);
-	struct mcc_asm_line *args = generate_function_args(an_ir, err);
+
+	// Function body
 	struct mcc_asm_line *body = generate_function_body(function, an_ir, err);
+	// Func args
+	struct mcc_asm_operand *size_literal = mcc_asm_new_literal_operand(an_ir->stack_size, err);
+	struct mcc_asm_line *sub_size_esp = mcc_asm_new_line(MCC_ASM_SUBL, size_literal, esp(err), body, err);
+	// Prolog
+	struct mcc_asm_line *mov_ebp_esp = mcc_asm_new_line(MCC_ASM_MOVL, esp(err), ebp(0, err), sub_size_esp, err);
+	struct mcc_asm_line *push_ebp = mcc_asm_new_line(MCC_ASM_PUSHL, ebp(0, err), NULL, mov_ebp_esp, err);
+
 	if (err->has_failed) {
-		mcc_asm_delete_all_lines(prolog);
-		mcc_asm_delete_all_lines(args);
+		mcc_asm_delete_line(mov_ebp_esp);
+		mcc_asm_delete_line(push_ebp);
+		mcc_asm_delete_line(sub_size_esp);
 		mcc_asm_delete_all_lines(body);
 		return NULL;
 	}
-	compose_function_asm(function, prolog, args, body);
+
+	function->head = push_ebp;
+
 	return function;
 }
 
@@ -1317,30 +1248,32 @@ static struct mcc_annotated_ir *find_next_function(struct mcc_annotated_ir *an_i
 	return an_ir;
 }
 
-static bool generate_text_section(struct mcc_asm_text_section *text_section,
+static void generate_text_section(struct mcc_asm_text_section *text_section,
                                   struct mcc_annotated_ir *an_ir,
                                   struct mcc_asm_error *err)
 {
 	if (err->has_failed)
-		return NULL;
+		return;
 
 	struct mcc_asm_function *first_function = mcc_asm_generate_function(an_ir, err);
-	if (!first_function)
-		return false;
+	if (!first_function) {
+		err->has_failed = true;
+		return;
+	}
 	struct mcc_asm_function *latest_function = first_function;
 	an_ir = find_next_function(an_ir);
 	while (an_ir) {
 		struct mcc_asm_function *new_function = mcc_asm_generate_function(an_ir, err);
 		if (err->has_failed) {
 			mcc_asm_delete_all_functions(first_function);
-			return false;
+			return;
 		}
 		latest_function->next = new_function;
 		latest_function = new_function;
 		an_ir = find_next_function(an_ir);
 	}
 	text_section->function = first_function;
-	return true;
+	return;
 }
 
 static char *get_tmp_ident(char *id)
@@ -1366,7 +1299,7 @@ static char *rename_identifier(char *id, int counter)
 	}
 }
 
-static bool generate_data_section(struct mcc_asm_data_section *data_section,
+static void generate_data_section(struct mcc_asm_data_section *data_section,
                                   struct mcc_annotated_ir *an_ir,
                                   struct mcc_asm_error *err)
 {
@@ -1374,7 +1307,7 @@ static bool generate_data_section(struct mcc_asm_data_section *data_section,
 	assert(an_ir);
 	assert(err);
 	if (err->has_failed)
-		return false;
+		return;
 	struct mcc_asm_declaration *head = data_section->head;
 	int counter = 0;
 
@@ -1384,7 +1317,6 @@ static bool generate_data_section(struct mcc_asm_data_section *data_section,
 			an_ir = an_ir->next;
 			continue;
 		}
-		assert(an_ir->row->arg2);
 		struct mcc_asm_declaration *decl = NULL;
 		if (an_ir->row->arg2->type == MCC_IR_TYPE_LIT_STRING) {
 			char *string_identifier = rename_identifier(an_ir->row->arg1->ident, counter);
@@ -1404,7 +1336,7 @@ static bool generate_data_section(struct mcc_asm_data_section *data_section,
 		if (!decl) {
 			mcc_asm_delete_all_declarations(head);
 			err->has_failed = false;
-			return false;
+			return;
 		}
 		if (!head) {
 			head = decl;
@@ -1416,7 +1348,7 @@ static bool generate_data_section(struct mcc_asm_data_section *data_section,
 		an_ir = an_ir->next;
 	}
 
-	return true;
+	return;
 }
 
 struct mcc_asm *mcc_asm_generate(struct mcc_ir_row *ir)
@@ -1442,9 +1374,9 @@ struct mcc_asm *mcc_asm_generate(struct mcc_ir_row *ir)
 	err->data_section = data_section;
 	err->text_section = text_section;
 
-	bool data_section_generated = generate_data_section(assembly->data_section, an_ir, err);
-	bool text_section_generated = generate_text_section(assembly->text_section, an_ir, err);
-	if (!text_section_generated || !data_section_generated) {
+	generate_data_section(assembly->data_section, an_ir, err);
+	generate_text_section(assembly->text_section, an_ir, err);
+	if (err->has_failed) {
 		mcc_asm_delete_asm(assembly);
 		mcc_delete_annotated_ir(an_ir);
 	}

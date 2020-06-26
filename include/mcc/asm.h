@@ -33,10 +33,6 @@ struct mcc_asm_data_section {
 enum mcc_asm_declaration_type {
 	MCC_ASM_DECLARATION_TYPE_STRING,
 	MCC_ASM_DECLARATION_TYPE_FLOAT,
-	MCC_ASM_DECLARATION_TYPE_ARRAY_INT,
-	MCC_ASM_DECLARATION_TYPE_ARRAY_FLOAT,
-	MCC_ASM_DECLARATION_TYPE_ARRAY_BOOL,
-	MCC_ASM_DECLARATION_TYPE_ARRAY_STRING,
 };
 
 struct mcc_asm_declaration {
@@ -45,7 +41,6 @@ struct mcc_asm_declaration {
 	union {
 		double float_value;
 		char *string_value;
-		int array_size;
 	};
 	struct mcc_asm_declaration *next;
 };
@@ -115,6 +110,7 @@ struct mcc_asm_line {
 
 enum mcc_asm_operand_type {
 	MCC_ASM_OPERAND_REGISTER,
+	MCC_ASM_OPERAND_COMPUTED_OFFSET,
 	MCC_ASM_OPERAND_DATA,
 	MCC_ASM_OPERAND_LITERAL,
 	MCC_ASM_OPERAND_FUNCTION,
@@ -138,6 +134,13 @@ struct mcc_asm_operand {
 		enum mcc_asm_register reg;
 		struct mcc_asm_declaration *decl;
 		char *func_name;
+		// e.g. -24(%ebp, %ebx, 4)
+		struct {
+			int offset_initial;                  // -24
+			enum mcc_asm_register offset_base;   // ebp
+			enum mcc_asm_register offset_factor; // ebx
+			int offset_size;                  // 4
+		};
 	};
 	int offset;
 };
@@ -157,15 +160,9 @@ struct mcc_asm_declaration *mcc_asm_new_float_declaration(char *identifier,
                                                           struct mcc_asm_error *err);
 
 struct mcc_asm_declaration *mcc_asm_new_string_declaration(char *identifier,
-                                                       char *string_value,
-                                                       struct mcc_asm_declaration *next,
-                                                       struct mcc_asm_error *err);
-
-struct mcc_asm_declaration *mcc_asm_new_array_declaration(char *identifier,
-                                                          int size,
-                                                          enum mcc_asm_declaration_type type,
-                                                          struct mcc_asm_declaration *next,
-                                                          struct mcc_asm_error *err);
+                                                           char *string_value,
+                                                           struct mcc_asm_declaration *next,
+                                                           struct mcc_asm_error *err);
 
 struct mcc_asm_function *
 mcc_asm_new_function(char *label, struct mcc_asm_line *head, struct mcc_asm_function *next, struct mcc_asm_error *err);
@@ -179,6 +176,12 @@ struct mcc_asm_line *mcc_asm_new_line(enum mcc_asm_opcode opcode,
 struct mcc_asm_operand *mcc_asm_new_literal_operand(int literal, struct mcc_asm_error *err);
 
 struct mcc_asm_operand *mcc_asm_new_register_operand(enum mcc_asm_register reg, int offset, struct mcc_asm_error *err);
+
+struct mcc_asm_operand *mcc_asm_new_computed_offset_operand(int offset_initial,
+                                                            enum mcc_asm_register offset_base,
+                                                            enum mcc_asm_register offset_factor,
+                                                            int offset_size,
+                                                            struct mcc_asm_error *err);
 
 struct mcc_asm_operand *mcc_asm_new_data_operand(struct mcc_asm_declaration *decl, struct mcc_asm_error *err);
 
