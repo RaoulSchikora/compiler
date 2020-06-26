@@ -322,6 +322,7 @@ void test_computed_int_array(CuTest *tc)
 	an_ir = an_ir->next;
 	CuAssertIntEquals(tc, 12 * STACK_SIZE_INT, an_ir->stack_size);
 
+	// TODO: 201: Check the stack positions
 	// $t0 = 1 + 2
 	an_ir = an_ir->next;
 	CuAssertIntEquals(tc, STACK_SIZE_INT, an_ir->stack_size);
@@ -329,7 +330,7 @@ void test_computed_int_array(CuTest *tc)
 
 	// a[$t0]
 	an_ir = an_ir->next;
-	CuAssertIntEquals(tc, -4 * STACK_SIZE_INT, an_ir->stack_position);
+	CuAssertIntEquals(tc, -(12 + 3) * STACK_SIZE_INT, an_ir->stack_position);
 
 	// Cleanup
 	mcc_ir_delete_ir(ir);
