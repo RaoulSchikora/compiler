@@ -1055,6 +1055,35 @@ static struct mcc_asm_line *generate_pop(struct mcc_annotated_ir *an_ir, struct 
 	return line1;
 }
 
+static struct mcc_asm_line* generate_neg_float(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
+{
+	assert(an_ir);
+	struct mcc_asm_line *line1 = NULL, *line2 = NULL, *line3 = NULL;
+	line3 = mcc_asm_new_line(MCC_ASM_FSTPS, ebp(an_ir->stack_position, err), NULL, NULL, err);
+	line2 = mcc_asm_new_line(MCC_ASM_FCHS, NULL, NULL, line3, err);
+	line1 = mcc_asm_new_line(MCC_ASM_FLDS, arg_to_op(an_ir, an_ir->row->arg1, err), NULL, line2, err);
+	if(err->has_failed){
+		mcc_asm_delete_line(line1);
+		mcc_asm_delete_line(line2);
+		mcc_asm_delete_line(line3);
+		return NULL;
+	}
+	
+	return line1;
+}
+
+static struct mcc_asm_line* generate_negative(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
+{
+	assert(an_ir);
+	struct mcc_asm_line *line = NULL;
+	if (an_ir->row->type->type == MCC_IR_ROW_INT) {
+		line = generate_unary(an_ir, MCC_ASM_NEGL, err);
+	} else if (an_ir->row->type->type == MCC_IR_ROW_FLOAT) {
+		line = generate_neg_float(an_ir, err);
+	}
+	return line;
+}
+
 static struct mcc_asm_line *generate_asm_from_ir(struct mcc_annotated_ir *an_ir, struct mcc_asm_error *err)
 {
 	assert(an_ir);
@@ -1131,7 +1160,7 @@ static struct mcc_asm_line *generate_asm_from_ir(struct mcc_annotated_ir *an_ir,
 	case MCC_IR_INSTR_ARRAY:
 		break;
 	case MCC_IR_INSTR_NEGATIV:
-		line = generate_unary(an_ir, MCC_ASM_NEGL, err);
+		line = generate_negative(an_ir, err);
 		break;
 	case MCC_IR_INSTR_NOT:
 		line = generate_unary(an_ir, MCC_ASM_XORL, err);

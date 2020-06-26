@@ -99,6 +99,8 @@ static char *opcode_to_string(enum mcc_asm_opcode op)
 		return "fmulp";
 	case MCC_ASM_FDIVP:
 		return "fdivp";
+	case MCC_ASM_FCHS:
+		return "fchs";
 	default:
 		return "unknown opcode";
 	}
