@@ -244,6 +244,7 @@ void array_loc(CuTest *tc)
 
 	struct mcc_asm_line *line = code->text_section->function->head->next->next;
 
+	// subl esp
 	CuAssertIntEquals(tc, MCC_ASM_SUBL, line->opcode);
 	CuAssertIntEquals(tc, MCC_ASM_OPERAND_LITERAL, line->first->type);
 	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, line->second->type);
@@ -252,10 +253,11 @@ void array_loc(CuTest *tc)
 
 	line = line->next;
 
+	// a[1] = 17
 	CuAssertIntEquals(tc, MCC_ASM_MOVL, line->opcode);
 	CuAssertIntEquals(tc, MCC_ASM_OPERAND_LITERAL, line->first->type);
 	CuAssertIntEquals(tc, 17, line->first->literal);
-	CuAssertIntEquals(tc, -(45 * STACK_SIZE_BOOL + 2 * STACK_SIZE_INT), line->second->offset);
+	CuAssertIntEquals(tc, -(45 * STACK_SIZE_BOOL + 4 * STACK_SIZE_INT) + 1 * STACK_SIZE_INT, line->second->offset);
 	CuAssertIntEquals(tc, MCC_ASM_OPERAND_REGISTER, line->second->type);
 	CuAssertIntEquals(tc, MCC_ASM_EBP, line->second->reg);
 

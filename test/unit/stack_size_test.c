@@ -122,11 +122,17 @@ void test_int_array(CuTest *tc)
 
 	// an_ir
 	CuAssertPtrNotNull(tc, an_ir);
+	// Function
 	CuAssertIntEquals(tc, 42 * STACK_SIZE_INT, an_ir->stack_size);
-	CuAssertIntEquals(tc, -STACK_SIZE_INT, an_ir->next->stack_position);
-	CuAssertIntEquals(tc, -STACK_SIZE_INT - (0 * STACK_SIZE_INT), an_ir->next->next->stack_position);
-	CuAssertIntEquals(tc, -STACK_SIZE_INT - (2 * STACK_SIZE_INT), an_ir->next->next->next->stack_position);
-	CuAssertIntEquals(tc, -STACK_SIZE_INT - (41 * STACK_SIZE_INT), an_ir->next->next->next->next->stack_position);
+	// Array
+	CuAssertIntEquals(tc, -42 * STACK_SIZE_INT + 0 * STACK_SIZE_INT, an_ir->next->stack_position);
+	// a[0]
+	CuAssertIntEquals(tc, -42 * STACK_SIZE_INT + 0 * STACK_SIZE_INT, an_ir->next->next->stack_position);
+	// a[2]
+	CuAssertIntEquals(tc, -42 * STACK_SIZE_INT + 2 * STACK_SIZE_INT, an_ir->next->next->next->stack_position);
+	// a[41]
+	CuAssertIntEquals(tc, -42 * STACK_SIZE_INT + 41 * STACK_SIZE_INT,
+	                  an_ir->next->next->next->next->stack_position);
 
 	// Cleanup
 	mcc_ir_delete_ir(ir);
@@ -274,15 +280,15 @@ void test_string_array(CuTest *tc)
 
 	// a[0]
 	an_ir = an_ir->next;
-	CuAssertIntEquals(tc, -1 * STACK_SIZE_STRING, an_ir->stack_position);
+	CuAssertIntEquals(tc, -12 * STACK_SIZE_STRING, an_ir->stack_position);
 
 	// a[2]
 	an_ir = an_ir->next;
-	CuAssertIntEquals(tc, -3 * STACK_SIZE_STRING, an_ir->stack_position);
+	CuAssertIntEquals(tc, -12 * STACK_SIZE_STRING + 2 * STACK_SIZE_STRING, an_ir->stack_position);
 
 	// a[11]
 	an_ir = an_ir->next;
-	CuAssertIntEquals(tc, -12 * STACK_SIZE_STRING, an_ir->stack_position);
+	CuAssertIntEquals(tc, -12 * STACK_SIZE_STRING + 11 * STACK_SIZE_STRING, an_ir->stack_position);
 
 	// Cleanup
 	mcc_ir_delete_ir(ir);
