@@ -1058,6 +1058,7 @@ struct mcc_asm_function *mcc_asm_generate_function(struct mcc_annotated_ir *an_i
 	}
 	push_ebp->opcode = MCC_ASM_PUSHL;
 	push_ebp->first = ebp(0, data);
+	push_ebp->second = NULL;
 	data->current = push_ebp;
 	mcc_asm_new_line(MCC_ASM_MOVL, esp(data), ebp(0, data), data);
 	// Func args
