@@ -330,7 +330,7 @@ static int get_frame_size_of_function(struct mcc_annotated_ir *head)
 	return frame_size;
 }
 
-static int get_array_base_size(struct mcc_ir_row *ir)
+int get_array_base_size(struct mcc_ir_row *ir)
 {
 	assert(ir);
 	switch (ir->type->type) {
@@ -345,6 +345,62 @@ static int get_array_base_size(struct mcc_ir_row *ir)
 	default:
 		return 0;
 	}
+}
+
+int mcc_get_array_base_size(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg)
+{
+	assert(arg);
+	assert(an_ir);
+	assert(an_ir->row->arg1 == arg || an_ir->row->arg2 == arg);
+
+	struct mcc_annotated_ir *head = an_ir;
+	struct mcc_annotated_ir *first = head;
+
+	while (first && first->prev) {
+		if (first->prev->row->instr == MCC_IR_INSTR_FUNC_LABEL) {
+			first = first->prev;
+			break;
+		}
+		first = first->prev;
+	}
+	head = first;
+	while (head) {
+		if (head->row->instr == MCC_IR_INSTR_ARRAY) {
+			if (strcmp(head->row->arg1->ident, arg->arr_ident) == 0) {
+				return get_array_base_size(head->row);
+			}
+		}
+		head = head->next;
+	}
+	return 0;
+}
+
+int mcc_get_array_base_stack_loc(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg)
+{
+	assert(arg);
+	assert(an_ir);
+	assert(an_ir->row->arg1 == arg || an_ir->row->arg2 == arg);
+
+	struct mcc_annotated_ir *head = an_ir;
+	struct mcc_annotated_ir *first = head;
+
+	while (first && first->prev) {
+		if (first->prev->row->instr == MCC_IR_INSTR_FUNC_LABEL) {
+			first = first->prev;
+			break;
+		}
+		first = first->prev;
+	}
+	head = first;
+	while (head) {
+		if (head->row->instr == MCC_IR_INSTR_ARRAY) {
+			if (strcmp(head->row->arg1->ident, arg->arr_ident) == 0) {
+				return head->stack_position;
+			}
+		}
+		head = head->next;
+	}
+	return 0;
 }
 
 int mcc_get_array_element_stack_loc(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg)
@@ -373,7 +429,7 @@ int mcc_get_array_element_stack_loc(struct mcc_annotated_ir *an_ir, struct mcc_i
 		if (head->row->instr == MCC_IR_INSTR_ARRAY) {
 			if (strcmp(head->row->arg1->ident, arg->arr_ident) == 0) {
 				int array_pos = head->stack_position;
-				int element_pos = array_pos - arg->index->lit_int * get_array_base_size(head->row);
+				int element_pos = array_pos + (arg->index->lit_int) * get_array_base_size(head->row);
 				return element_pos;
 			}
 		}
@@ -435,9 +491,9 @@ static void add_stack_positions(struct mcc_annotated_ir *head)
 		}
 		// Arrays
 		if (head->row->instr == MCC_IR_INSTR_ARRAY) {
-			current_position = current_position - get_array_base_size(head->row);
+			current_position =
+			    current_position - get_array_base_size(head->row) * head->row->type->array_size;
 			head->stack_position = current_position;
-			current_position = current_position - head->stack_size + get_array_base_size(head->row);
 			head = head->next;
 			continue;
 		}
