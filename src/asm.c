@@ -267,6 +267,24 @@ struct mcc_asm_operand *mcc_asm_new_register_operand(enum mcc_asm_register reg, 
 	return new;
 }
 
+struct mcc_asm_operand *mcc_asm_new_computed_offset_operand(int offset_initial,
+                                                            enum mcc_asm_register offset_base,
+                                                            enum mcc_asm_register offset_factor,
+                                                            int offset_size,
+                                                            struct mcc_asm_error *err)
+{
+	struct mcc_asm_operand *new = malloc(sizeof(*new));
+	if (!new) {
+		err->has_failed = true;
+		return NULL;
+	}
+	new->offset_initial = offset_initial;
+	new->offset_base = offset_base;
+	new->offset_factor = offset_factor;
+	new->offset_size = offset_size;
+	return new;
+}
+
 struct mcc_asm_operand *mcc_asm_new_data_operand(struct mcc_asm_declaration *decl, struct mcc_asm_error *err)
 {
 	struct mcc_asm_operand *new = malloc(sizeof(*new));

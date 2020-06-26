@@ -142,6 +142,17 @@ static void register_to_string(char *dest, int len, enum mcc_asm_register reg, i
 	}
 }
 
+static void computed_offset_to_string(char *dest, int len, struct mcc_asm_operand *op)
+{
+	if (op->offset_initial == 0) {
+		snprintf(dest, len, "(%s,%s,%d)", register_name_to_string(op->offset_base),
+		         register_name_to_string(op->offset_factor), op->offset_size);
+	} else {
+		snprintf(dest, len, "%d(%s,%s,%d)", op->offset_initial, register_name_to_string(op->offset_base),
+		         register_name_to_string(op->offset_factor), op->offset_size);
+	}
+}
+
 static char *op_to_string(char *dest, int len, struct mcc_asm_operand *op)
 {
 	if (!op) {
@@ -160,10 +171,32 @@ static char *op_to_string(char *dest, int len, struct mcc_asm_operand *op)
 	case MCC_ASM_OPERAND_FUNCTION:
 		snprintf(dest, len, "%s", op->func_name);
 		break;
+	case MCC_ASM_OPERAND_COMPUTED_OFFSET:
+		computed_offset_to_string(dest, len, op);
+		break;
 	default:
 		return "unknown operand";
 	}
 	return dest;
+}
+
+static int length_of_comp_offset(struct mcc_asm_operand *op)
+{
+	// -24(%ebp, %ebx, 4) -> 6 additional chars
+	int length = 0;
+	if (op->offset_initial == 0) {
+		length += 6;
+		length += length_of_int(op->offset_size);
+		length += strlen(register_name_to_string(op->offset_base));
+		length += strlen(register_name_to_string(op->offset_factor));
+	} else {
+		length += 6;
+		length += length_of_int(op->offset_size);
+		length += length_of_int(op->offset_initial);
+		length += strlen(register_name_to_string(op->offset_base));
+		length += strlen(register_name_to_string(op->offset_factor));
+	}
+	return length;
 }
 
 static int length_of_op(struct mcc_asm_operand *op)
@@ -181,6 +214,8 @@ static int length_of_op(struct mcc_asm_operand *op)
 		return length_of_int(op->literal) + 1;
 	case MCC_ASM_OPERAND_FUNCTION:
 		return strlen(op->func_name) + 1;
+	case MCC_ASM_OPERAND_COMPUTED_OFFSET:
+		return length_of_comp_offset(op);
 	default:
 		return 0;
 	}
