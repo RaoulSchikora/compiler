@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/wait.h>
 
 #include "mcc/asm.h"
 #include "mcc/asm_print.h"
@@ -174,10 +175,14 @@ bool assemble_and_link(char *binary_filename)
 	snprintf(callstring, length, "%s -m32 -o %s a.s %s", cc, binary_filename, builtins);
 
 	// Call backend compiler
-	system(callstring);
+	int wstatus = system(callstring);
 
-	// TODO:
-	// system() replaces the current process with exec and has a complicated return status definition with some
-	// macros available. We need to implement a mechanism to check wether the compilation was successfull.
-	return true;
+	// Check return value of gcc
+	if (WIFEXITED(wstatus)) {
+		if (WEXITSTATUS(wstatus) == 0) {
+			return true;
+		}
+	}
+
+	return false;
 }
