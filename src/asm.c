@@ -777,7 +777,8 @@ static void generate_jumpfalse(enum mcc_asm_opcode opcode, struct mcc_annotated_
 
 	if (opcode == MCC_ASM_JNE) {
 		struct mcc_asm_operand *one = mcc_asm_new_literal_operand(1, data);
-		mcc_asm_new_line(MCC_ASM_CMPL, one, arg_to_op(an_ir, an_ir->row->arg1, data), data);
+		mcc_asm_new_line(MCC_ASM_MOVL, one, eax(data), data);
+		mcc_asm_new_line(MCC_ASM_CMPL, arg_to_op(an_ir, an_ir->row->arg1, data), eax(data), data);
 	} else { // case of MCC_ASM_JE
 		mcc_asm_new_line(MCC_ASM_CMPL, eax(data), eax(data), data);
 	}
