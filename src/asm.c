@@ -38,12 +38,16 @@ static int get_identifier_offset(struct mcc_annotated_ir *first, char *ident)
 	return 0;
 }
 
-static int get_row_offset(struct mcc_annotated_ir *first, struct mcc_ir_row *row)
+static int get_row_offset(struct mcc_annotated_ir *an_ir, struct mcc_ir_row *row)
 {
-	assert(first);
-	assert(first->row->instr == MCC_IR_INSTR_FUNC_LABEL);
+	assert(an_ir);
 	assert(row);
 
+	while (an_ir->row->instr != MCC_IR_INSTR_FUNC_LABEL) {
+		an_ir = an_ir->next;
+	}
+
+	struct mcc_annotated_ir *first = an_ir;
 	first = first->next;
 
 	while (first && first->row->instr != MCC_IR_INSTR_FUNC_LABEL) {
