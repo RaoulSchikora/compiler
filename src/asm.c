@@ -44,7 +44,7 @@ static int get_row_offset(struct mcc_annotated_ir *an_ir, struct mcc_ir_row *row
 	assert(row);
 
 	while (an_ir->row->instr != MCC_IR_INSTR_FUNC_LABEL) {
-		an_ir = an_ir->next;
+		an_ir = an_ir->prev;
 	}
 
 	struct mcc_annotated_ir *first = an_ir;
@@ -290,6 +290,7 @@ struct mcc_asm_operand *mcc_asm_new_computed_offset_operand(int offset_initial,
 		data->has_failed = true;
 		return NULL;
 	}
+	new->type = MCC_ASM_OPERAND_COMPUTED_OFFSET;
 	new->offset_initial = offset_initial;
 	new->offset_base = offset_base;
 	new->offset_factor = offset_factor;
@@ -440,7 +441,6 @@ void mcc_asm_delete_operand(struct mcc_asm_operand *operand)
 
 //---------------------------------------------------------------------------------------- Functions: ASM generation
 
-// TODO: Implement
 static struct mcc_asm_operand *
 get_array_element_operand(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm_data *data)
 {
@@ -461,8 +461,11 @@ get_array_element_operand(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg
 		int offset = mcc_get_array_element_stack_loc(an_ir, arg);
 		return mcc_asm_new_register_operand(MCC_ASM_EBP, offset, data);
 	} else {
-		// TODO #201: Create asm lines: Arg is pointing to a row -> generate asm lines to calculate index
-		return NULL;
+		// TODO #201: Check correctness
+		int offset = get_row_offset(an_ir, arg->index->row);
+		mcc_asm_new_line(MCC_ASM_MOVL, ebp(offset, data), ebx(data), data);
+		return mcc_asm_new_computed_offset_operand(mcc_get_array_base_stack_loc(an_ir, arg), MCC_ASM_EBP,
+		                                           MCC_ASM_EBX, mcc_get_array_base_size(an_ir, arg), data);
 	}
 
 	return operand;
@@ -665,7 +668,6 @@ static void generate_float_assign(struct mcc_annotated_ir *an_ir, struct mcc_asm
 	mcc_asm_new_line(MCC_ASM_FSTPS, arg_to_op(an_ir, an_ir->row->arg1, data), NULL, data);
 }
 
-// TODO #201: Handle arrays in subfunctions
 static void generate_instr_assign(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data)
 {
 	assert(an_ir);
@@ -674,31 +676,24 @@ static void generate_instr_assign(struct mcc_annotated_ir *an_ir, struct mcc_asm
 	if (data->has_failed)
 		return;
 
-	int offset2 = an_ir->stack_position;
-
-	// TODO #201, arrays
 	switch (an_ir->row->arg2->type) {
 	case MCC_IR_TYPE_LIT_INT:
 	case MCC_IR_TYPE_LIT_BOOL:
-		mcc_asm_new_line(MCC_ASM_MOVL, arg_to_op(an_ir, an_ir->row->arg2, data), ebp(offset2, data), data);
+		mcc_asm_new_line(MCC_ASM_MOVL, arg_to_op(an_ir, an_ir->row->arg2, data),
+		                 arg_to_op(an_ir, an_ir->row->arg1, data), data);
 		break;
 	case MCC_IR_TYPE_LIT_FLOAT:
 		generate_float_assign(an_ir, data);
 		break;
 	case MCC_IR_TYPE_ROW:
 	case MCC_IR_TYPE_IDENTIFIER:
+	case MCC_IR_TYPE_ARR_ELEM:
 		generate_assign_row_ident(an_ir, data);
 		break;
 	case MCC_IR_TYPE_LIT_STRING:
 		generate_string_assignment(an_ir, data);
 		break;
-	// TODO 201: Handle array elements
-	case MCC_IR_TYPE_ARR_ELEM:
 	default:
-		// TODO remove when done. Remider: "(int)an_ir->stack_position" was only chosen to let compare
-		// operations of float-integration-test fail (makes no sense at all, so don't get confused :) ...)
-		mcc_asm_new_line(MCC_ASM_MOVL, mcc_asm_new_literal_operand(an_ir->stack_position, data),
-		                 ebp(offset2, data), data);
 		break;
 	}
 }
