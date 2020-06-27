@@ -461,7 +461,6 @@ get_array_element_operand(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg
 		int offset = mcc_get_array_element_stack_loc(an_ir, arg);
 		return mcc_asm_new_register_operand(MCC_ASM_EBP, offset, data);
 	} else {
-		// TODO #201: Check correctness
 		int offset = get_row_offset(an_ir, arg->index->row);
 		mcc_asm_new_line(MCC_ASM_MOVL, ebp(offset, data), ebx(data), data);
 		return mcc_asm_new_computed_offset_operand(mcc_get_array_base_stack_loc(an_ir, arg), MCC_ASM_EBP,
