@@ -268,7 +268,7 @@ static void asm_print_decl(FILE *out, struct mcc_asm_declaration *decl)
 		fprintf(out, "       .float %f\n", decl->float_value);
 		break;
 	case MCC_ASM_DECLARATION_TYPE_STRING:
-		fprintf(out, ".string \"%s\"\n", decl->string_value);
+		fprintf(out, "       .string \"%s\"\n", decl->string_value);
 		break;
 	default:
 		break;
