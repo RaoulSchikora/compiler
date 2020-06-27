@@ -450,11 +450,6 @@ get_array_element_operand(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg
 	assert(data);
 	if (data->has_failed)
 		return NULL;
-	struct mcc_asm_operand *operand = malloc(sizeof(*operand));
-	if (!operand) {
-		data->has_failed = true;
-		return NULL;
-	}
 
 	// Check if index is known on compile time
 	if (arg->index->type == MCC_IR_TYPE_LIT_INT) {
@@ -466,8 +461,6 @@ get_array_element_operand(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg
 		return mcc_asm_new_computed_offset_operand(mcc_get_array_base_stack_loc(an_ir, arg), MCC_ASM_EBP,
 		                                           MCC_ASM_EBX, mcc_get_array_base_size(an_ir, arg), data);
 	}
-
-	return operand;
 }
 // function to check if 'prefix' is a proper prefix of 'string'. It is proper if 'prefix' followed by _x is equal to
 // 'string', where x is an arbitrary number
