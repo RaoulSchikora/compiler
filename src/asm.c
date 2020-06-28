@@ -763,7 +763,11 @@ static void generate_return(struct mcc_annotated_ir *an_ir, struct mcc_asm_data 
 		return;
 
 	if (an_ir->row->arg1) {
-		mcc_asm_new_line(MCC_ASM_MOVL, arg_to_op(an_ir, an_ir->row->arg1, data), eax(data), data);
+		if (an_ir->row->type->type == MCC_IR_ROW_FLOAT) {
+			mcc_asm_new_line(MCC_ASM_FLDS, arg_to_op(an_ir, an_ir->row->arg1, data), NULL, data);
+		} else {
+			mcc_asm_new_line(MCC_ASM_MOVL, arg_to_op(an_ir, an_ir->row->arg1, data), eax(data), data);
+		}
 	}
 	mcc_asm_new_line(MCC_ASM_LEAVE, NULL, NULL, data);
 	mcc_asm_new_line(MCC_ASM_RETURN, NULL, NULL, data);
@@ -881,11 +885,15 @@ static void generate_div(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *da
 static void generate_call(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data)
 {
 	assert(an_ir);
-	// if function is void do no move instruction
 	struct mcc_asm_operand *func = mcc_asm_new_function_operand(an_ir->row->arg1->func_label, data);
 	mcc_asm_new_line(MCC_ASM_CALLL, func, NULL, data);
+	// if function is void do no move instruction
 	if (an_ir->row->type->type != MCC_IR_ROW_TYPELESS) {
-		mcc_asm_new_line(MCC_ASM_MOVL, eax(data), ebp(an_ir->stack_position, data), data);
+		if (an_ir->row->type->type == MCC_IR_ROW_FLOAT) {
+			mcc_asm_new_line(MCC_ASM_FSTPS, ebp(an_ir->stack_position, data), NULL, data);
+		} else {
+			mcc_asm_new_line(MCC_ASM_MOVL, eax(data), ebp(an_ir->stack_position, data), data);
+		}
 	}
 }
 
