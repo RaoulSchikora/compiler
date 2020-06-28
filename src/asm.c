@@ -754,6 +754,18 @@ static void generate_cmp_op_int(struct mcc_annotated_ir *an_ir, struct mcc_asm_d
 	}
 }
 
+static char *get_function(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data)
+{
+	assert(data);
+	while (an_ir) {
+		if (an_ir->row->instr == MCC_IR_INSTR_FUNC_LABEL) {
+			return strdup(an_ir->row->arg1->func_label);
+		}
+		an_ir = an_ir->prev;
+	}
+	return NULL;
+}
+
 static void generate_return(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data)
 {
 	assert(an_ir);
@@ -768,6 +780,10 @@ static void generate_return(struct mcc_annotated_ir *an_ir, struct mcc_asm_data 
 		} else {
 			mcc_asm_new_line(MCC_ASM_MOVL, arg_to_op(an_ir, an_ir->row->arg1, data), eax(data), data);
 		}
+	}
+	// pop ebx
+	if (strcmp(get_function(an_ir, data), "main") != 0) {
+		mcc_asm_new_line(MCC_ASM_POPL, ebx(data), NULL, data);
 	}
 	mcc_asm_new_line(MCC_ASM_LEAVE, NULL, NULL, data);
 	mcc_asm_new_line(MCC_ASM_RETURN, NULL, NULL, data);
@@ -1064,6 +1080,10 @@ struct mcc_asm_function *mcc_asm_generate_function(struct mcc_annotated_ir *an_i
 	// Func args
 	struct mcc_asm_operand *size_literal = mcc_asm_new_literal_operand(an_ir->stack_size, data);
 	mcc_asm_new_line(MCC_ASM_SUBL, size_literal, esp(data), data);
+	// store ebx except for main
+	if (strcmp(an_ir->row->arg1->func_label, "main") != 0) {
+		mcc_asm_new_line(MCC_ASM_PUSHL, ebx(data), NULL, data);
+	}
 
 	// Function body
 	generate_function_body(function, an_ir, data);

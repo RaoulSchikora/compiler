@@ -33,6 +33,8 @@ static char *opcode_to_string(enum mcc_asm_opcode op)
 		return "cmpl";
 	case MCC_ASM_PUSHL:
 		return "pushl";
+	case MCC_ASM_POPL:
+		return "popl";
 	case MCC_ASM_ADDL:
 		return "addl";
 	case MCC_ASM_SUBL:
