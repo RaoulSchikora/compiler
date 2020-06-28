@@ -12,6 +12,15 @@
 
 #define EPSILON 1e-06;
 
+static struct mcc_annotated_ir *get_function_label(struct mcc_annotated_ir *an_ir)
+{
+	assert(an_ir);
+	while (an_ir->row->instr != MCC_IR_INSTR_FUNC_LABEL) {
+		an_ir = an_ir->prev;
+	}
+	return an_ir;
+}
+
 static int get_identifier_offset(struct mcc_annotated_ir *first, char *ident)
 {
 	assert(first);
