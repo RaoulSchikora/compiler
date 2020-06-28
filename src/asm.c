@@ -503,6 +503,57 @@ static bool array_is_reference(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg
 	data->has_failed = true;
 	return false;
 }
+static struct mcc_asm_operand *
+get_array_element_operand_lit_int(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm_data *data)
+{
+	if (!array_is_reference(an_ir, arg, data)) {
+		int index_offset = mcc_get_array_element_stack_loc(an_ir, arg);
+		return mcc_asm_new_register_operand(MCC_ASM_EBP, index_offset, data);
+
+	} else {
+		int offset = get_identifier_offset(an_ir, arg->arr_ident);
+		int index_offset = arg->index->lit_int;
+		mcc_asm_new_line(MCC_ASM_MOVL, mcc_asm_new_literal_operand(index_offset, data), ebx(data), data);
+		mcc_asm_new_line(MCC_ASM_MOVL, ebp(offset, data), ecx(data), data);
+		return mcc_asm_new_computed_offset_operand(0, MCC_ASM_ECX, MCC_ASM_EBX,
+		                                           mcc_get_array_base_size(an_ir, arg), data);
+	}
+}
+static struct mcc_asm_operand *
+get_array_element_operand_identifier(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm_data *data)
+{
+	if (!array_is_reference(an_ir, arg, data)) {
+		int index_offset = get_identifier_offset(an_ir, arg->index->ident);
+		mcc_asm_new_line(MCC_ASM_MOVL, ebp(index_offset, data), ebx(data), data);
+		return mcc_asm_new_computed_offset_operand(mcc_get_array_base_stack_loc(an_ir, arg), MCC_ASM_EBP,
+		                                           MCC_ASM_EBX, mcc_get_array_base_size(an_ir, arg), data);
+	} else {
+		int offset = get_identifier_offset(an_ir, arg->arr_ident);
+		int index_offset = get_identifier_offset(an_ir, arg->index->ident);
+		mcc_asm_new_line(MCC_ASM_MOVL, ebp(index_offset, data), ebx(data), data);
+		mcc_asm_new_line(MCC_ASM_MOVL, ebp(offset, data), ecx(data), data);
+		return mcc_asm_new_computed_offset_operand(0, MCC_ASM_ECX, MCC_ASM_EBX,
+		                                           mcc_get_array_base_size(an_ir, arg), data);
+	}
+}
+
+static struct mcc_asm_operand *
+get_array_element_operand_temporary(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm_data *data)
+{
+	if (!array_is_reference(an_ir, arg, data)) {
+		int index_offset = get_row_offset(an_ir, arg->index->row);
+		mcc_asm_new_line(MCC_ASM_MOVL, ebp(index_offset, data), ebx(data), data);
+		return mcc_asm_new_computed_offset_operand(mcc_get_array_base_stack_loc(an_ir, arg), MCC_ASM_EBP,
+		                                           MCC_ASM_EBX, mcc_get_array_base_size(an_ir, arg), data);
+	} else {
+		int offset = get_identifier_offset(an_ir, arg->arr_ident);
+		int index_offset = get_row_offset(an_ir, arg->index->row);
+		mcc_asm_new_line(MCC_ASM_MOVL, ebp(index_offset, data), ebx(data), data);
+		mcc_asm_new_line(MCC_ASM_MOVL, ebp(offset, data), ecx(data), data);
+		return mcc_asm_new_computed_offset_operand(0, MCC_ASM_ECX, MCC_ASM_EBX,
+		                                           mcc_get_array_base_size(an_ir, arg), data);
+	}
+}
 
 static struct mcc_asm_operand *
 get_array_element_operand(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm_data *data)
@@ -513,40 +564,21 @@ get_array_element_operand(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg
 	assert(data);
 	if (data->has_failed)
 		return NULL;
+	switch (arg->index->type) {
+	case MCC_IR_TYPE_LIT_INT:
+		return get_array_element_operand_lit_int(an_ir, arg, data);
+	case MCC_IR_TYPE_IDENTIFIER:
+		return get_array_element_operand_identifier(an_ir, arg, data);
+	case MCC_IR_TYPE_ROW:
+		return get_array_element_operand_temporary(an_ir, arg, data);
 
-	// Check if array comes from local stack
-	if (!array_is_reference(an_ir, arg, data)) {
-		// Check if index is known on compile time
-		if (arg->index->type == MCC_IR_TYPE_LIT_INT) {
-			int index_offset = mcc_get_array_element_stack_loc(an_ir, arg);
-			return mcc_asm_new_register_operand(MCC_ASM_EBP, index_offset, data);
-		} else {
-			int index_offset = get_row_offset(an_ir, arg->index->row);
-			mcc_asm_new_line(MCC_ASM_MOVL, ebp(index_offset, data), ebx(data), data);
-			return mcc_asm_new_computed_offset_operand(mcc_get_array_base_stack_loc(an_ir, arg),
-			                                           MCC_ASM_EBP, MCC_ASM_EBX,
-			                                           mcc_get_array_base_size(an_ir, arg), data);
-		}
-	} else {
-		// Check if index is known on compile time
-		if (arg->index->type == MCC_IR_TYPE_LIT_INT) {
-			int offset = get_identifier_offset(an_ir, arg->arr_ident);
-			int index_offset = arg->index->lit_int;
-			mcc_asm_new_line(MCC_ASM_MOVL, mcc_asm_new_literal_operand(index_offset,data), ebx(data), data);
-			mcc_asm_new_line(MCC_ASM_MOVL, ebp(offset, data), ecx(data), data);
-			return mcc_asm_new_computed_offset_operand(0, MCC_ASM_ECX, MCC_ASM_EBX,
-			                                           mcc_get_array_base_size(an_ir, arg), data);
-
-		} else {
-			int offset = get_identifier_offset(an_ir, arg->arr_ident);
-			int index_offset = get_row_offset(an_ir, arg->index->row);
-			mcc_asm_new_line(MCC_ASM_MOVL, ebp(index_offset, data), ebx(data), data);
-			mcc_asm_new_line(MCC_ASM_MOVL, ebp(offset, data), ecx(data), data);
-			return mcc_asm_new_computed_offset_operand(0, MCC_ASM_ECX, MCC_ASM_EBX,
-			                                           mcc_get_array_base_size(an_ir, arg), data);
-		}
+		// Shouldn't be reached as per IR implementation
+	default:
+		data->has_failed = true;
+		return NULL;
 	}
 }
+
 // function to check if 'prefix' is a proper prefix of 'string'. It is proper if 'prefix' followed by _x is equal to
 // 'string', where x is an arbitrary number
 static bool is_proper_prefix(char *prefix, char *string)
