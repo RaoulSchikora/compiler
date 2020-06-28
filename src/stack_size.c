@@ -265,6 +265,8 @@ static int get_stack_frame_size(struct mcc_ir_row *ir)
 
 	// TODO
 	case MCC_IR_INSTR_POP:
+		break;
+
 	case MCC_IR_INSTR_PUSH:
 		break;
 
@@ -274,7 +276,6 @@ static int get_stack_frame_size(struct mcc_ir_row *ir)
 	case MCC_IR_INSTR_RETURN:
 		return 0;
 
-	// Arrays are located on the stack, and have special declaration IR instructions
 	case MCC_IR_INSTR_ARRAY:
 		return get_array_size(ir);
 
@@ -330,6 +331,7 @@ static int get_frame_size_of_function(struct mcc_annotated_ir *head)
 	return frame_size;
 }
 
+// TODO: Very poor naming, considering the next function
 int get_array_base_size(struct mcc_ir_row *ir)
 {
 	assert(ir);
