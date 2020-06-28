@@ -65,6 +65,7 @@ static struct mcc_ir_row *new_row(struct mcc_ir_arg *arg1,
                                   enum mcc_ir_instruction instr,
                                   struct mcc_ir_row_type *type,
                                   struct ir_generation_userdata *data);
+static struct mcc_ir_row *new_ir_row_array_tmp(struct mcc_ir_arg *index, struct ir_generation_userdata *data);
 static struct mcc_ir_row *new_ir_row_float_tmp(double f_value, struct ir_generation_userdata *data);
 static struct mcc_ir_arg *copy_arg(struct mcc_ir_arg *arg, struct ir_generation_userdata *data);
 static struct mcc_ir_arg *new_arg_int(long lit, struct ir_generation_userdata *data);
@@ -930,7 +931,12 @@ new_arg_arr_elem(struct mcc_ast_identifier *ident, struct mcc_ir_arg *index, str
 	strcpy(str, ident->identifier_name);
 	arg->type = MCC_IR_TYPE_ARR_ELEM;
 	arg->arr_ident = str;
-	arg->index = index;
+	if (index->type == MCC_IR_TYPE_ARR_ELEM) {
+		struct mcc_ir_row *row = new_ir_row_array_tmp(index, data);
+		arg->index = new_arg_identifier_from_string(row->arg1->ident, data);
+	} else {
+		arg->index = index;
+	}
 	return arg;
 }
 
@@ -952,6 +958,26 @@ static struct mcc_ir_row *new_row(struct mcc_ir_arg *arg1,
 	row->type = type;
 	row->next_row = NULL;
 	row->prev_row = NULL;
+	return row;
+}
+
+static struct mcc_ir_row *new_ir_row_array_tmp(struct mcc_ir_arg *index, struct ir_generation_userdata *data)
+{
+	unsigned size = 4 + length_of_int(data->tmp_counter) + 1;
+	char *ident = malloc(sizeof(char) * size);
+	if (!ident) {
+		data->has_failed = true;
+		return NULL;
+	}
+	snprintf(ident, size, "$tmp%d", data->tmp_counter);
+	data->tmp_counter++;
+	struct mcc_ir_arg *arg1 = new_arg_identifier_from_string(ident, data);
+	free(ident);
+	struct mcc_ir_arg *arg2 = index;
+	// is always of type int because it is only used when index of array element is again array element
+	struct mcc_ir_row_type *type = new_ir_row_type(MCC_IR_ROW_INT, -1, data);
+	struct mcc_ir_row *row = new_row(arg1, arg2, MCC_IR_INSTR_ASSIGN, type, data);
+	append_row(row, data);
 	return row;
 }
 
