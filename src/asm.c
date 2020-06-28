@@ -789,6 +789,13 @@ static void generate_return(struct mcc_annotated_ir *an_ir, struct mcc_asm_data 
 	mcc_asm_new_line(MCC_ASM_RETURN, NULL, NULL, data);
 }
 
+static void generate_push(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data)
+{
+	assert(an_ir);
+	assert(an_ir->row->instr == MCC_IR_INSTR_PUSH);
+	mcc_asm_new_line(MCC_ASM_PUSHL, arg_to_op(an_ir, an_ir->row->arg1, data), NULL, data);
+}
+
 static void generate_jumpfalse(enum mcc_asm_opcode opcode, struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data)
 {
 	assert(an_ir);
@@ -917,7 +924,7 @@ static void generate_pop(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *da
 {
 	assert(an_ir);
 	assert(an_ir->row->instr == MCC_IR_INSTR_POP);
-	// TODO: Check if an array was popped and assign it correctly 
+	// TODO: Check if an array was popped and assign it correctly
 	mcc_asm_new_line(MCC_ASM_MOVL, ebp(an_ir->stack_position, data), eax(data), data);
 	mcc_asm_new_line(MCC_ASM_MOVL, eax(data), arg_to_op(an_ir->next, an_ir->next->row->arg1, data), data);
 }
@@ -966,7 +973,7 @@ static void generate_asm_from_ir(struct mcc_annotated_ir *an_ir, struct mcc_asm_
 		generate_jumpfalse(MCC_ASM_JNE, an_ir, data);
 		break;
 	case MCC_IR_INSTR_PUSH:
-		mcc_asm_new_line(MCC_ASM_PUSHL, arg_to_op(an_ir, an_ir->row->arg1, data), NULL, data);
+		generate_push(an_ir, data);
 		break;
 	case MCC_IR_INSTR_POP:
 		generate_pop(an_ir, data);

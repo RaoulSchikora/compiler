@@ -483,13 +483,19 @@ static void add_stack_positions(struct mcc_annotated_ir *head)
 			head = head->next;
 			continue;
 		}
-		// Array elements
+
+		// Variables
 		if (head->row->instr == MCC_IR_INSTR_ASSIGN) {
 			if (head->row->arg1->type == MCC_IR_TYPE_ARR_ELEM) {
 				head->stack_position = mcc_get_array_element_stack_loc(head, head->row->arg1);
-				head = head->next;
-				continue;
+			} else if (!assignment_is_first_occurence(func->row, head->row)) {
+				head->stack_position = lookup_var_loc(func, head);
+			} else {
+				current_position = current_position - head->stack_size;
+				head->stack_position = current_position;
 			}
+			head = head->next;
+			continue;
 		}
 		// Arrays
 		if (head->row->instr == MCC_IR_INSTR_ARRAY) {
@@ -499,18 +505,7 @@ static void add_stack_positions(struct mcc_annotated_ir *head)
 			head = head->next;
 			continue;
 		}
-		// Variables
-		if (head->row->instr == MCC_IR_INSTR_ASSIGN) {
-			if (!assignment_is_first_occurence(func->row, head->row)) {
-				head->stack_position = lookup_var_loc(func, head);
-			} else {
-				current_position = current_position - head->stack_size;
-				head->stack_position = current_position;
-			}
-			head = head->next;
-			continue;
-		}
-		// Pop
+		// Pop (Located on previous stack)
 		if (head->row->instr == MCC_IR_INSTR_POP) {
 			pop_counter += 4;
 			head->stack_position = pop_counter;
