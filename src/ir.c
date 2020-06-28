@@ -510,10 +510,11 @@ static void generate_ir_statememt_if_else_stmt(struct mcc_ast_statement *stmt, s
 	struct mcc_ir_arg *l2 = new_arg_label(data);
 	bool if_ends_on_return = false;
 	if (data->current->instr != MCC_IR_INSTR_RETURN) {
-		if_ends_on_return = true;
 		// Jump L2
 		struct mcc_ir_row *jump_row = new_row(l2, NULL, MCC_IR_INSTR_JUMP, typeless(data), data);
 		append_row(jump_row, data);
+	} else {
+		if_ends_on_return = true;
 	}
 
 	// Label L1
@@ -523,7 +524,7 @@ static void generate_ir_statememt_if_else_stmt(struct mcc_ast_statement *stmt, s
 	// If false
 	generate_ir_statement(stmt->if_else_on_false, data);
 
-	if (data->current->instr != MCC_IR_INSTR_RETURN && if_ends_on_return) {
+	if (data->current->instr != MCC_IR_INSTR_RETURN || !if_ends_on_return) {
 		// Label L2
 		struct mcc_ir_row *label_row_2 =
 		    new_row(copy_arg(l2, data), NULL, MCC_IR_INSTR_LABEL, typeless(data), data);
