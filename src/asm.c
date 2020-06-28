@@ -189,7 +189,6 @@ mcc_asm_new_function(char *label, struct mcc_asm_line *head, struct mcc_asm_func
 	new->head = head;
 	new->label = lab_new;
 	new->next = next;
-	new->pos_list = NULL;
 	return new;
 }
 

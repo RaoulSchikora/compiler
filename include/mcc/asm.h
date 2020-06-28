@@ -49,7 +49,6 @@ struct mcc_asm_function {
 	char *label;
 	struct mcc_asm_line *head;
 	struct mcc_asm_function *next;
-	struct mcc_asm_pos_list *pos_list;
 };
 
 enum mcc_asm_opcode {
@@ -148,45 +147,43 @@ struct mcc_asm_operand {
 //------------------------------------------------------------------------------------ Functions: Create data structures
 
 struct mcc_asm *
-mcc_asm_new_asm(struct mcc_asm_data_section *data, struct mcc_asm_text_section *text, struct mcc_asm_data *err);
+mcc_asm_new_asm(struct mcc_asm_data_section *data_section, struct mcc_asm_text_section *text, struct mcc_asm_data *data);
 
-struct mcc_asm_data_section *mcc_asm_new_data_section(struct mcc_asm_declaration *head, struct mcc_asm_data *err);
+struct mcc_asm_data_section *mcc_asm_new_data_section(struct mcc_asm_declaration *head, struct mcc_asm_data *data);
 
-struct mcc_asm_text_section *mcc_asm_new_text_section(struct mcc_asm_function *function, struct mcc_asm_data *err);
+struct mcc_asm_text_section *mcc_asm_new_text_section(struct mcc_asm_function *function, struct mcc_asm_data *data);
 
 struct mcc_asm_declaration *mcc_asm_new_float_declaration(char *identifier,
                                                           float float_value,
                                                           struct mcc_asm_declaration *next,
-                                                          struct mcc_asm_data *err);
+                                                          struct mcc_asm_data *data);
 
 struct mcc_asm_declaration *mcc_asm_new_string_declaration(char *identifier,
                                                            char *string_value,
                                                            struct mcc_asm_declaration *next,
-                                                           struct mcc_asm_data *err);
+                                                           struct mcc_asm_data *data);
 
 struct mcc_asm_function *
-mcc_asm_new_function(char *label, struct mcc_asm_line *head, struct mcc_asm_function *next, struct mcc_asm_data *err);
+mcc_asm_new_function(char *label, struct mcc_asm_line *head, struct mcc_asm_function *next, struct mcc_asm_data *data);
 
 void mcc_asm_new_line(enum mcc_asm_opcode opcode,
                       struct mcc_asm_operand *first,
                       struct mcc_asm_operand *second,
-                      struct mcc_asm_data *err);
+                      struct mcc_asm_data *data);
 
 void mcc_asm_new_label(enum mcc_asm_opcode opcode, unsigned label, struct mcc_asm_data *data);
 
-struct mcc_asm_operand *mcc_asm_new_literal_operand(int literal, struct mcc_asm_data *err);
+struct mcc_asm_operand *mcc_asm_new_literal_operand(int literal, struct mcc_asm_data *data);
 
-struct mcc_asm_operand *mcc_asm_new_register_operand(enum mcc_asm_register reg, int offset, struct mcc_asm_data *err);
+struct mcc_asm_operand *mcc_asm_new_register_operand(enum mcc_asm_register reg, int offset, struct mcc_asm_data *data);
 
 struct mcc_asm_operand *mcc_asm_new_computed_offset_operand(int offset_initial,
                                                             enum mcc_asm_register offset_base,
                                                             enum mcc_asm_register offset_factor,
                                                             int offset_size,
-                                                            struct mcc_asm_data *err);
+                                                            struct mcc_asm_data *data);
 
-struct mcc_asm_operand *mcc_asm_new_data_operand(struct mcc_asm_declaration *decl, struct mcc_asm_data *err);
-
-struct mcc_asm_pos_list *mcc_asm_new_pos_list(struct mcc_ast_identifier *ident, int offset, struct mcc_asm_data *err);
+struct mcc_asm_operand *mcc_asm_new_data_operand(struct mcc_asm_declaration *decl, struct mcc_asm_data *data);
 
 //------------------------------------------------------------------------------------ Functions: Delete data structures
 
@@ -210,12 +207,10 @@ void mcc_asm_delete_line(struct mcc_asm_line *line);
 
 void mcc_asm_delete_operand(struct mcc_asm_operand *operand);
 
-void mcc_asm_delete_pos_list(struct mcc_asm_pos_list *list);
-
 //---------------------------------------------------------------------------------------- Functions: ASM generation
 
 struct mcc_asm *mcc_asm_generate(struct mcc_ir_row *ir);
 
-struct mcc_asm_function *mcc_asm_generate_function(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *err);
+struct mcc_asm_function *mcc_asm_generate_function(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data);
 
 #endif // MCC_ASM_H
