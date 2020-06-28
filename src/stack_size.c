@@ -319,10 +319,6 @@ static int get_frame_size_of_function(struct mcc_annotated_ir *head)
 	assert(head->row->instr == MCC_IR_INSTR_FUNC_LABEL);
 
 	int frame_size = 0;
-	// for functions not being main the address of the function itself needs 4 bytes
-	if (strcmp(head->row->arg1->func_label, "main") != 0) {
-		frame_size = 4;
-	}
 	struct mcc_ir_row *last = last_line_of_function(head->row);
 	while (head->row != last) {
 		frame_size = frame_size + head->stack_size;
