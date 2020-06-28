@@ -21,6 +21,23 @@ static struct mcc_annotated_ir *get_function_label(struct mcc_annotated_ir *an_i
 	return an_ir;
 }
 
+static bool arg_is_local_array(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg)
+{
+	if (arg->type != MCC_IR_TYPE_IDENTIFIER) {
+		return false;
+	}
+	an_ir = get_function_label(an_ir);
+	an_ir = an_ir->next;
+	while (an_ir && an_ir->row->instr != MCC_IR_INSTR_FUNC_LABEL) {
+		if (an_ir->row->instr == MCC_IR_INSTR_ARRAY) {
+			if (strcmp(an_ir->row->arg1->ident, arg->ident) == 0)
+				return true;
+		}
+		an_ir = an_ir->next;
+	}
+	return false;
+}
+
 static int get_identifier_offset(struct mcc_annotated_ir *first, char *ident)
 {
 	assert(first);
@@ -81,6 +98,8 @@ static int get_offset_of(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg)
 		}
 		prev = prev->prev;
 	}
+	if (arg_is_local_array(an_ir, arg))
+		return mcc_get_array_base_stack_loc(an_ir, arg);
 
 	switch (arg->type) {
 	case MCC_IR_TYPE_LIT_INT:
@@ -512,8 +531,8 @@ get_array_element_operand(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg
 		// Check if index is known on compile time
 		if (arg->index->type == MCC_IR_TYPE_LIT_INT) {
 			int offset = get_identifier_offset(an_ir, arg->arr_ident);
-			int index_offset = arg->lit_int;
-			mcc_asm_new_line(MCC_ASM_MOVL, ebp(index_offset, data), ebx(data), data);
+			int index_offset = arg->index->lit_int;
+			mcc_asm_new_line(MCC_ASM_MOVL, mcc_asm_new_literal_operand(index_offset,data), ebx(data), data);
 			mcc_asm_new_line(MCC_ASM_MOVL, ebp(offset, data), ecx(data), data);
 			return mcc_asm_new_computed_offset_operand(0, MCC_ASM_ECX, MCC_ASM_EBX,
 			                                           mcc_get_array_base_size(an_ir, arg), data);
@@ -869,6 +888,12 @@ static void generate_return(struct mcc_annotated_ir *an_ir, struct mcc_asm_data 
 static void generate_push(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data)
 {
 	assert(an_ir);
+	assert(an_ir->row->arg1);
+	if (arg_is_local_array(an_ir, an_ir->row->arg1)) {
+		mcc_asm_new_line(MCC_ASM_LEAL, arg_to_op(an_ir, an_ir->row->arg1, data), eax(data), data);
+		mcc_asm_new_line(MCC_ASM_PUSHL, eax(data), NULL, data);
+		return;
+	}
 	assert(an_ir->row->instr == MCC_IR_INSTR_PUSH);
 	mcc_asm_new_line(MCC_ASM_PUSHL, arg_to_op(an_ir, an_ir->row->arg1, data), NULL, data);
 }
