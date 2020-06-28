@@ -331,6 +331,11 @@ static struct mcc_asm_operand *ebx(struct mcc_asm_data *data)
 	return mcc_asm_new_register_operand(MCC_ASM_EBX, 0, data);
 }
 
+static struct mcc_asm_operand *ecx(struct mcc_asm_data *data)
+{
+	return mcc_asm_new_register_operand(MCC_ASM_ECX, 0, data);
+}
+
 static struct mcc_asm_operand *edx(struct mcc_asm_data *data)
 {
 	return mcc_asm_new_register_operand(MCC_ASM_EDX, 0, data);
