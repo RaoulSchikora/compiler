@@ -916,6 +916,8 @@ static void generate_call(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *d
 static void generate_pop(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data)
 {
 	assert(an_ir);
+	assert(an_ir->row->instr == MCC_IR_INSTR_POP);
+	// TODO: Check if an array was popped and assign it correctly 
 	mcc_asm_new_line(MCC_ASM_MOVL, ebp(an_ir->stack_position, data), eax(data), data);
 	mcc_asm_new_line(MCC_ASM_MOVL, eax(data), arg_to_op(an_ir->next, an_ir->next->row->arg1, data), data);
 }
