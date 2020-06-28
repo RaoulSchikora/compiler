@@ -544,7 +544,7 @@ static int count_pushes(struct mcc_annotated_ir *an_ir)
 	assert(an_ir->row->instr == MCC_IR_INSTR_CALL);
 	an_ir = an_ir->prev;
 	int num_pushes = 0;
-	while (an_ir->row->instr == MCC_IR_INSTR_PUSH){
+	while (an_ir->row->instr == MCC_IR_INSTR_PUSH) {
 		num_pushes += 1;
 		an_ir = an_ir->prev;
 	}
@@ -921,10 +921,13 @@ static void generate_call(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *d
 	assert(an_ir);
 	struct mcc_asm_operand *func = mcc_asm_new_function_operand(an_ir->row->arg1->func_label, data);
 	mcc_asm_new_line(MCC_ASM_CALLL, func, NULL, data);
-	// if function is void do no move instruction and no adding to the esp necessary
-	if (an_ir->row->type->type != MCC_IR_ROW_TYPELESS) {
+	// count pushes before call and add to esp afterwards
 	int literal = count_pushes(an_ir);
-	mcc_asm_new_line(MCC_ASM_ADDL, mcc_asm_new_literal_operand(literal*4, data), esp(data), data);
+	if (literal != 0) {
+		mcc_asm_new_line(MCC_ASM_ADDL, mcc_asm_new_literal_operand(literal * 4, data), esp(data), data);
+	}
+	// if function is void do no move instruction
+	if (an_ir->row->type->type != MCC_IR_ROW_TYPELESS) {
 		if (an_ir->row->type->type == MCC_IR_ROW_FLOAT) {
 			mcc_asm_new_line(MCC_ASM_FSTPS, ebp(an_ir->stack_position, data), NULL, data);
 		} else {

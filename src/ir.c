@@ -315,9 +315,6 @@ static void generate_ir_arguments(struct mcc_ast_arguments *arguments, struct ir
 	if (data->has_failed)
 		return;
 
-	if (arguments->next_arguments) {
-		generate_ir_arguments(arguments->next_arguments, data);
-	}
 	if (!arguments->is_empty) {
 		if (arguments->expression->type == MCC_AST_EXPRESSION_TYPE_LITERAL &&
 		    arguments->expression->literal->type == MCC_AST_LITERAL_TYPE_STRING) {
@@ -332,12 +329,22 @@ static void generate_ir_arguments(struct mcc_ast_arguments *arguments, struct ir
 			struct mcc_ir_arg *ident2 = new_arg_identifier_from_string(tmp, data);
 			struct mcc_ir_row *row1 = NULL, *row2 = NULL;
 			row1 = new_row(ident1, lit, MCC_IR_INSTR_ASSIGN, type1, data);
-			row2 = new_row(ident2, NULL, MCC_IR_INSTR_PUSH, type2, data);
 			append_row(row1, data);
+			// recursive call of generate_ir_arguments in order to have all push-instructions following each
+			// other without othre instructions in between
+			if (arguments->next_arguments) {
+				generate_ir_arguments(arguments->next_arguments, data);
+			}
+			row2 = new_row(ident2, NULL, MCC_IR_INSTR_PUSH, type2, data);
 			append_row(row2, data);
 		} else {
 			struct mcc_ir_arg *arg_push = generate_ir_expression(arguments->expression, data);
 			struct mcc_ir_row_type *type = get_type_of_row(arg_push, arguments->expression, data);
+			// recursive call of generate_ir_arguments in order to have all push-instructions following each
+			// other without othre instructions in between
+			if (arguments->next_arguments) {
+				generate_ir_arguments(arguments->next_arguments, data);
+			}
 			struct mcc_ir_row *row = new_row(arg_push, NULL, MCC_IR_INSTR_PUSH, type, data);
 			append_row(row, data);
 		}
