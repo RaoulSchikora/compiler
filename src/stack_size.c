@@ -372,6 +372,12 @@ int mcc_get_array_base_size(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *a
 				return get_array_base_size(head->row);
 			}
 		}
+		if (head->row->instr == MCC_IR_INSTR_ASSIGN) {
+			if (head->prev->row->instr == MCC_IR_INSTR_POP &&
+			    strcmp(head->row->arg1->ident, arg->arr_ident) == 0) {
+				return get_array_base_size(head->row);
+			}
+		}
 		head = head->next;
 	}
 	return 0;
@@ -515,6 +521,17 @@ static void add_stack_positions(struct mcc_annotated_ir *head)
 			head = head->next;
 			continue;
 		}
+
+		// Popped arrays are just memory refernces
+		if (head->row->prev_row->instr != MCC_IR_INSTR_POP) {
+			head->array_is_func_arg = false;
+		} else {
+			if (head->row->type->array_size != -1) {
+				head->array_is_func_arg = true;
+				head->stack_position = head->prev->stack_position;
+			}
+		}
+
 		// Rest
 		current_position = current_position - head->stack_size;
 		head->stack_position = current_position;
