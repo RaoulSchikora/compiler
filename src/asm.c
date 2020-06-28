@@ -25,8 +25,8 @@ static int get_identifier_offset(struct mcc_annotated_ir *first, char *ident)
 {
 	assert(first);
 	assert(ident);
-	assert(first->row->instr == MCC_IR_INSTR_FUNC_LABEL);
 
+	first = get_function_label(first);
 	first = first->next;
 
 	while (first && first->row->instr != MCC_IR_INSTR_FUNC_LABEL) {
