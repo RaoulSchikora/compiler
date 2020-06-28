@@ -759,7 +759,7 @@ static char *get_function(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *d
 	assert(data);
 	while (an_ir) {
 		if (an_ir->row->instr == MCC_IR_INSTR_FUNC_LABEL) {
-			return strdup(an_ir->row->arg1->func_label);
+			return an_ir->row->arg1->func_label;
 		}
 		an_ir = an_ir->prev;
 	}
