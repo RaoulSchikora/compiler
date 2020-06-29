@@ -502,6 +502,8 @@ static bool array_is_reference(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg
 static struct mcc_asm_operand *
 get_array_element_operand_lit_int(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm_data *data)
 {
+	if (data->has_failed)
+		return NULL;
 	if (!array_is_reference(an_ir, arg, data)) {
 		int index_offset = mcc_get_array_element_stack_loc(an_ir, arg);
 		return mcc_asm_new_register_operand(MCC_ASM_EBP, index_offset, data);
@@ -518,6 +520,8 @@ get_array_element_operand_lit_int(struct mcc_annotated_ir *an_ir, struct mcc_ir_
 static struct mcc_asm_operand *
 get_array_element_operand_identifier(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm_data *data)
 {
+	if (data->has_failed)
+		return NULL;
 	if (!array_is_reference(an_ir, arg, data)) {
 		int index_offset = get_identifier_offset(an_ir, arg->index->ident);
 		mcc_asm_new_line(MCC_ASM_MOVL, ebp(index_offset, data), ebx(data), data);
@@ -536,6 +540,8 @@ get_array_element_operand_identifier(struct mcc_annotated_ir *an_ir, struct mcc_
 static struct mcc_asm_operand *
 get_array_element_operand_temporary(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm_data *data)
 {
+	if (data->has_failed)
+		return NULL;
 	if (!array_is_reference(an_ir, arg, data)) {
 		int index_offset = get_row_offset(an_ir, arg->index->row);
 		mcc_asm_new_line(MCC_ASM_MOVL, ebp(index_offset, data), ebx(data), data);
