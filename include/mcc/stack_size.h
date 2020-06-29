@@ -19,6 +19,8 @@
 
 // Annotate IR to determine stack size of each IR line
 struct mcc_annotated_ir {
+	// Hold stack size (number of bytes needed on the stack) of current IR line.
+	// If line is func label, holds stack size of that function
 	int stack_size;
 	int stack_position;
 	struct mcc_annotated_ir *next;

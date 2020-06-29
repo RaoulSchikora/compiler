@@ -22,8 +22,6 @@ struct mcc_annotated_ir *mcc_new_annotated_ir(struct mcc_ir_row *row, int stack_
 	struct mcc_annotated_ir *ir = malloc(sizeof(*ir));
 	if (!ir)
 		return NULL;
-	// Hold stack size (number of bytes needed on the stack) of current IR line.
-	// If line is func label, holds stack size of that function
 	ir->stack_size = stack_size;
 	ir->stack_position = 0;
 	ir->row = row;
@@ -43,11 +41,9 @@ void mcc_delete_annotated_ir(struct mcc_annotated_ir *head)
 
 // --------------------------------------------------------------------------------------- Forward declarations
 
-static int get_array_size(struct mcc_ir_row *ir);
 static struct mcc_ir_row *first_line_of_function(struct mcc_ir_row *ir);
-static int get_temporary_size(struct mcc_ir_row *ir);
-static struct mcc_ir_row *last_line_of_function(struct mcc_ir_row *ir);
-static int argument_size(struct mcc_ir_arg *arg, struct mcc_ir_row *ir);
+static int get_row_size(struct mcc_ir_row *ir);
+static int get_argument_size(struct mcc_ir_arg *arg, struct mcc_ir_row *ir);
 
 // --------------------------------------------------------------------------------------- Calc stack size and position
 
@@ -80,10 +76,9 @@ static bool assignment_is_first_occurence(struct mcc_ir_row *first, struct mcc_i
 // Finds first occurence of variable (not array element) in a function
 static struct mcc_ir_row *find_first_occurence(char *identifier, struct mcc_ir_row *ir)
 {
-	struct mcc_ir_row *first = first_line_of_function(ir);
-	ir = first;
-	struct mcc_ir_row *last = last_line_of_function(ir);
-	while (ir && (ir != last)) {
+	ir = first_line_of_function(ir);
+	ir = ir->next_row;
+	while (ir && (ir->instr != MCC_IR_INSTR_FUNC_LABEL)) {
 		if (ir->instr == MCC_IR_INSTR_ASSIGN || ir->instr == MCC_IR_INSTR_ARRAY) {
 			if (strcmp(identifier, ir->arg1->ident) == 0) {
 				return ir;
@@ -98,7 +93,7 @@ static struct mcc_ir_row *find_first_occurence(char *identifier, struct mcc_ir_r
 // This function returns the size of an argument in the IR line.
 // Since semantic consistency is guaranteed, we can infer the required size of an IR line
 // by knowing the size of one of its arguments
-static int argument_size(struct mcc_ir_arg *arg, struct mcc_ir_row *ir)
+static int get_argument_size(struct mcc_ir_arg *arg, struct mcc_ir_row *ir)
 {
 	assert(arg);
 	struct mcc_ir_row *ref = NULL;
@@ -117,14 +112,14 @@ static int argument_size(struct mcc_ir_arg *arg, struct mcc_ir_row *ir)
 		ref = find_first_occurence(arg->ident, ir);
 		if (!ref || ref->instr != MCC_IR_INSTR_ASSIGN)
 			return 0;
-		return argument_size(ref->arg2, ir);
+		return get_argument_size(ref->arg2, ir);
 	case MCC_IR_TYPE_ARR_ELEM:
 		ref = find_first_occurence(arg->arr_ident, ir);
 		if (!ref || ref->instr != MCC_IR_INSTR_ARRAY)
 			return 0;
-		return get_array_size(ref);
+		return get_row_size(ref) * ref->type->array_size;
 	case MCC_IR_TYPE_ROW:
-		return get_temporary_size(arg->row);
+		return get_row_size(arg->row);
 	default:
 		return 0;
 	}
@@ -141,47 +136,26 @@ static int get_var_size(struct mcc_ir_row *ir)
 		return 0;
 	}
 	// "a = x" -> find size of x
-	return argument_size(ir->arg2, ir);
+	return get_argument_size(ir->arg2, ir);
 }
 
 static struct mcc_ir_row *first_line_of_function(struct mcc_ir_row *ir)
 {
 	assert(ir);
-	if (ir->instr == MCC_IR_INSTR_FUNC_LABEL)
-		return ir;
+	do {
+		if (ir->instr == MCC_IR_INSTR_FUNC_LABEL)
+			return ir;
+		ir = ir->prev_row;
 
-	struct mcc_ir_row *prev = ir->prev_row;
-	while (prev) {
-		if (prev->instr == MCC_IR_INSTR_FUNC_LABEL) {
-			return prev;
-		}
-		prev = prev->prev_row;
-	}
+	} while (ir);
 	return NULL;
 }
 
-static struct mcc_ir_row *last_line_of_function(struct mcc_ir_row *ir)
-{
-	assert(ir->instr == MCC_IR_INSTR_FUNC_LABEL);
-	assert(ir);
-	struct mcc_ir_row *next = ir->next_row;
-	while (next) {
-		if (next->instr == MCC_IR_INSTR_FUNC_LABEL) {
-			return ir;
-		}
-		ir = ir->next_row;
-		next = next->next_row;
-	}
-	return ir;
-}
-
-static int get_temporary_size(struct mcc_ir_row *ir)
+static int get_row_size(struct mcc_ir_row *ir)
 {
 	assert(ir);
 
 	switch (ir->type->type) {
-	case MCC_IR_ROW_TYPELESS:
-		return 0;
 	case MCC_IR_ROW_BOOL:
 		return STACK_SIZE_BOOL;
 	case MCC_IR_ROW_INT:
@@ -190,27 +164,6 @@ static int get_temporary_size(struct mcc_ir_row *ir)
 		return STACK_SIZE_STRING;
 	case MCC_IR_ROW_FLOAT:
 		return STACK_SIZE_FLOAT;
-	default:
-		return 0;
-	}
-}
-
-static int get_array_size(struct mcc_ir_row *ir)
-{
-	assert(ir);
-	assert(ir->instr == MCC_IR_INSTR_ARRAY);
-	assert(ir->arg2->type == MCC_IR_TYPE_LIT_INT);
-
-	switch (ir->type->type) {
-	case MCC_IR_ROW_BOOL:
-		return STACK_SIZE_BOOL * ir->type->array_size;
-	case MCC_IR_ROW_FLOAT:
-		return STACK_SIZE_FLOAT * ir->type->array_size;
-	case MCC_IR_ROW_INT:
-		return STACK_SIZE_INT * ir->type->array_size;
-	case MCC_IR_ROW_STRING:
-		return STACK_SIZE_STRING * ir->type->array_size;
-	// Unreached, as per assertion
 	default:
 		return 0;
 	}
@@ -231,7 +184,7 @@ static int get_stack_frame_size(struct mcc_ir_row *ir)
 	case MCC_IR_INSTR_MINUS:
 	case MCC_IR_INSTR_MULTIPLY:
 	case MCC_IR_INSTR_NEGATIV:
-		return get_temporary_size(ir);
+		return get_row_size(ir);
 
 	// Assignment of temporary: Bool
 	case MCC_IR_INSTR_AND:
@@ -246,11 +199,11 @@ static int get_stack_frame_size(struct mcc_ir_row *ir)
 		return STACK_SIZE_BOOL;
 
 	case MCC_IR_INSTR_CALL:
-		return get_temporary_size(ir);
+		return get_row_size(ir);
 
 	// Size of entire array
 	case MCC_IR_INSTR_ARRAY:
-		return get_array_size(ir);
+		return get_row_size(ir) * ir->type->array_size;
 
 	// Labels: Size 0
 	case MCC_IR_INSTR_LABEL:
@@ -301,30 +254,12 @@ static int get_frame_size_of_function(struct mcc_annotated_ir *head)
 	assert(head->row->instr == MCC_IR_INSTR_FUNC_LABEL);
 
 	int frame_size = 0;
-	struct mcc_ir_row *last = last_line_of_function(head->row);
-	while (head->row != last) {
+	head = head->next;
+	while (head && head->row->instr != MCC_IR_INSTR_FUNC_LABEL) {
 		frame_size = frame_size + head->stack_size;
 		head = head->next;
 	}
 	return frame_size;
-}
-
-// TODO: Very poor naming, considering the next function
-static int get_array_base_size(struct mcc_ir_row *ir)
-{
-	assert(ir);
-	switch (ir->type->type) {
-	case MCC_IR_ROW_BOOL:
-		return STACK_SIZE_BOOL;
-	case MCC_IR_ROW_FLOAT:
-		return STACK_SIZE_FLOAT;
-	case MCC_IR_ROW_INT:
-		return STACK_SIZE_INT;
-	case MCC_IR_ROW_STRING:
-		return STACK_SIZE_STRING;
-	default:
-		return 0;
-	}
 }
 
 int mcc_get_array_base_size(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg)
@@ -333,30 +268,21 @@ int mcc_get_array_base_size(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *a
 	assert(an_ir);
 	assert(an_ir->row->arg1 == arg || an_ir->row->arg2 == arg);
 
-	struct mcc_annotated_ir *head = an_ir;
-	struct mcc_annotated_ir *first = head;
+	an_ir = mcc_get_function_label(an_ir);
 
-	while (first && first->prev) {
-		if (first->prev->row->instr == MCC_IR_INSTR_FUNC_LABEL) {
-			first = first->prev;
-			break;
-		}
-		first = first->prev;
-	}
-	head = first;
-	while (head) {
-		if (head->row->instr == MCC_IR_INSTR_ARRAY) {
-			if (strcmp(head->row->arg1->ident, arg->arr_ident) == 0) {
-				return get_array_base_size(head->row);
+	while (an_ir) {
+		if (an_ir->row->instr == MCC_IR_INSTR_ARRAY) {
+			if (strcmp(an_ir->row->arg1->ident, arg->arr_ident) == 0) {
+				return get_row_size(an_ir->row);
 			}
 		}
-		if (head->row->instr == MCC_IR_INSTR_ASSIGN) {
-			if (head->prev->row->instr == MCC_IR_INSTR_POP &&
-			    strcmp(head->row->arg1->ident, arg->arr_ident) == 0) {
-				return get_array_base_size(head->row);
+		if (an_ir->row->instr == MCC_IR_INSTR_ASSIGN) {
+			if (an_ir->prev->row->instr == MCC_IR_INSTR_POP &&
+			    strcmp(an_ir->row->arg1->ident, arg->arr_ident) == 0) {
+				return get_row_size(an_ir->row);
 			}
 		}
-		head = head->next;
+		an_ir = an_ir->next;
 	}
 	return 0;
 }
@@ -367,24 +293,14 @@ int mcc_get_array_base_stack_loc(struct mcc_annotated_ir *an_ir, struct mcc_ir_a
 	assert(an_ir);
 	assert(an_ir->row->arg1 == arg || an_ir->row->arg2 == arg);
 
-	struct mcc_annotated_ir *head = an_ir;
-	struct mcc_annotated_ir *first = head;
-
-	while (first && first->prev) {
-		if (first->prev->row->instr == MCC_IR_INSTR_FUNC_LABEL) {
-			first = first->prev;
-			break;
-		}
-		first = first->prev;
-	}
-	head = first;
-	while (head) {
-		if (head->row->instr == MCC_IR_INSTR_ARRAY) {
-			if (strcmp(head->row->arg1->ident, arg->arr_ident) == 0) {
-				return head->stack_position;
+	an_ir = mcc_get_function_label(an_ir);
+	while (an_ir) {
+		if (an_ir->row->instr == MCC_IR_INSTR_ARRAY) {
+			if (strcmp(an_ir->row->arg1->ident, arg->arr_ident) == 0) {
+				return an_ir->stack_position;
 			}
 		}
-		head = head->next;
+		an_ir = an_ir->next;
 	}
 	return 0;
 }
@@ -395,53 +311,43 @@ int mcc_get_array_element_stack_loc(struct mcc_annotated_ir *an_ir, struct mcc_i
 	assert(an_ir);
 	assert(an_ir->row->arg1 == arg || an_ir->row->arg2 == arg);
 
-	struct mcc_annotated_ir *head = an_ir;
-	struct mcc_annotated_ir *first = head;
-
 	// Array index is not int literal -> computed during runtime
 	if (arg->index->type != MCC_IR_TYPE_LIT_INT) {
 		return 0;
 	}
 
-	while (first && first->prev) {
-		if (first->prev->row->instr == MCC_IR_INSTR_FUNC_LABEL) {
-			first = first->prev;
-			break;
-		}
-		first = first->prev;
-	}
-	head = first;
-	while (head) {
-		if (head->row->instr == MCC_IR_INSTR_ARRAY) {
-			if (strcmp(head->row->arg1->ident, arg->arr_ident) == 0) {
-				int array_pos = head->stack_position;
-				int element_pos = array_pos + (arg->index->lit_int) * get_array_base_size(head->row);
+	an_ir = mcc_get_function_label(an_ir);
+	while (an_ir) {
+		if (an_ir->row->instr == MCC_IR_INSTR_ARRAY) {
+			if (strcmp(an_ir->row->arg1->ident, arg->arr_ident) == 0) {
+				int array_pos = an_ir->stack_position;
+				int element_pos = array_pos + (arg->index->lit_int) * get_row_size(an_ir->row);
 				return element_pos;
 			}
 		}
-		head = head->next;
+		an_ir = an_ir->next;
 	}
 	return 0;
 }
 
-int lookup_var_loc(struct mcc_annotated_ir *func, struct mcc_annotated_ir *head)
+int lookup_var_loc(struct mcc_annotated_ir *an_ir, struct mcc_annotated_ir *var)
 {
-	assert(func);
-	assert(func->row->instr == MCC_IR_INSTR_FUNC_LABEL);
-	assert(head);
-	assert(head->row->instr == MCC_IR_INSTR_ASSIGN);
-	struct mcc_ir_row *last = last_line_of_function(func->row);
-	struct mcc_annotated_ir *var = head;
-	head = func;
-	while (head && (head->row != last)) {
-		if (head->row->instr != MCC_IR_INSTR_ASSIGN) {
-			head = head->next;
+	assert(an_ir);
+	assert(var);
+	assert(var->row->instr == MCC_IR_INSTR_ASSIGN);
+
+	an_ir = mcc_get_function_label(an_ir);
+	an_ir = an_ir->next;
+
+	while (an_ir && (an_ir->row->instr != MCC_IR_INSTR_FUNC_LABEL)) {
+		if (an_ir->row->instr != MCC_IR_INSTR_ASSIGN) {
+			an_ir = an_ir->next;
 			continue;
 		}
-		if (strcmp(head->row->arg1->ident, var->row->arg1->ident) == 0) {
-			return head->stack_position;
+		if (strcmp(an_ir->row->arg1->ident, var->row->arg1->ident) == 0) {
+			return an_ir->stack_position;
 		}
-		head = head->next;
+		an_ir = an_ir->next;
 	}
 	return 0;
 }
@@ -485,8 +391,7 @@ static void add_stack_positions(struct mcc_annotated_ir *head)
 		}
 		// Arrays
 		if (head->row->instr == MCC_IR_INSTR_ARRAY) {
-			current_position =
-			    current_position - get_array_base_size(head->row) * head->row->type->array_size;
+			current_position = current_position - get_row_size(head->row) * head->row->type->array_size;
 			head->stack_position = current_position;
 			head = head->next;
 			continue;
@@ -510,7 +415,6 @@ static void add_stack_positions(struct mcc_annotated_ir *head)
 struct mcc_annotated_ir *mcc_annotate_ir(struct mcc_ir_row *ir)
 {
 	assert(ir);
-	// First IR line should be function label
 	assert(ir->instr == MCC_IR_INSTR_FUNC_LABEL);
 
 	struct mcc_annotated_ir *an_head = add_stack_sizes(ir);
