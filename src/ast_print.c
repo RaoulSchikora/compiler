@@ -127,7 +127,7 @@ static void print_dot_expression_unary_op(struct mcc_ast_expression *expression,
 	assert(data);
 
 	char label[LABEL_SIZE] = {0};
-	snprintf(label, sizeof(label), "expr: %s", mcc_ast_print_unary_op(expression->op));
+	snprintf(label, sizeof(label), "expr: %s", mcc_ast_print_unary_op(expression->u_op));
 
 	FILE *out = data;
 	print_dot_node(out, expression, label);
