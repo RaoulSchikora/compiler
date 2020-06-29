@@ -12,21 +12,12 @@
 
 #define EPSILON 1e-06;
 
-static struct mcc_annotated_ir *get_function_label(struct mcc_annotated_ir *an_ir)
-{
-	assert(an_ir);
-	while (an_ir->row->instr != MCC_IR_INSTR_FUNC_LABEL) {
-		an_ir = an_ir->prev;
-	}
-	return an_ir;
-}
-
 static bool arg_is_local_array(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg)
 {
 	if (arg->type != MCC_IR_TYPE_IDENTIFIER) {
 		return false;
 	}
-	an_ir = get_function_label(an_ir);
+	an_ir = mcc_get_function_label(an_ir);
 	an_ir = an_ir->next;
 	while (an_ir && an_ir->row->instr != MCC_IR_INSTR_FUNC_LABEL) {
 		if (an_ir->row->instr == MCC_IR_INSTR_ARRAY) {
@@ -43,7 +34,7 @@ static int get_identifier_offset(struct mcc_annotated_ir *first, char *ident)
 	assert(first);
 	assert(ident);
 
-	first = get_function_label(first);
+	first = mcc_get_function_label(first);
 	first = first->next;
 
 	while (first && first->row->instr != MCC_IR_INSTR_FUNC_LABEL) {
@@ -69,7 +60,7 @@ static int get_row_offset(struct mcc_annotated_ir *an_ir, struct mcc_ir_row *row
 	assert(an_ir);
 	assert(row);
 
-	an_ir = get_function_label(an_ir);
+	an_ir = mcc_get_function_label(an_ir);
 	an_ir = an_ir->next;
 
 	while (an_ir && an_ir->row->instr != MCC_IR_INSTR_FUNC_LABEL) {
@@ -477,7 +468,7 @@ static bool array_is_reference(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg
 	if (data->has_failed) {
 		return false;
 	}
-	an_ir = get_function_label(an_ir);
+	an_ir = mcc_get_function_label(an_ir);
 	an_ir = an_ir->next;
 	while (an_ir->row->instr != MCC_IR_INSTR_FUNC_LABEL) {
 		// Is it a local array?

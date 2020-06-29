@@ -7,6 +7,15 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+struct mcc_annotated_ir *mcc_get_function_label(struct mcc_annotated_ir *an_ir)
+{
+	assert(an_ir);
+	while (an_ir->row->instr != MCC_IR_INSTR_FUNC_LABEL) {
+		an_ir = an_ir->prev;
+	}
+	return an_ir;
+}
+
 struct mcc_annotated_ir *mcc_new_annotated_ir(struct mcc_ir_row *row, int stack_size)
 {
 	assert(row);
@@ -516,16 +525,6 @@ static void add_stack_positions(struct mcc_annotated_ir *head)
 			current_position = current_position - head->stack_size;
 			head = head->next;
 			continue;
-		}
-
-		// Popped arrays are just memory refernces
-		if (head->row->prev_row->instr != MCC_IR_INSTR_POP) {
-			head->array_is_func_arg = false;
-		} else {
-			if (head->row->type->array_size != -1) {
-				head->array_is_func_arg = true;
-				head->stack_position = head->prev->stack_position;
-			}
 		}
 
 		// Rest
