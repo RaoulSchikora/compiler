@@ -12,6 +12,85 @@
 
 #define EPSILON 1e-06;
 
+//---------------------------------------------------------------------------------------- Function prototypes
+
+static int count_pushes(struct mcc_annotated_ir *an_ir);
+
+// Create register operands more easily
+static struct mcc_asm_operand *dl(struct mcc_asm_data *data);
+static struct mcc_asm_operand *eax(struct mcc_asm_data *data);
+static struct mcc_asm_operand *ebp(int offset, struct mcc_asm_data *data);
+static struct mcc_asm_operand *ebx(struct mcc_asm_data *data);
+static struct mcc_asm_operand *ecx(struct mcc_asm_data *data);
+static struct mcc_asm_operand *edx(struct mcc_asm_data *data);
+static struct mcc_asm_operand *esp(struct mcc_asm_data *data);
+
+// Find Stuff
+static struct mcc_asm_operand *find_float_identifier(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data);
+static struct mcc_annotated_ir *find_next_function(struct mcc_annotated_ir *an_ir);
+static struct mcc_asm_operand *find_string_identifier(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data);
+static int get_row_offset(struct mcc_annotated_ir *an_ir, struct mcc_ir_row *row);
+static char *get_tmp_ident(char *id);
+
+// Check stuff
+static bool is_float(struct mcc_ir_arg *arg, struct mcc_asm_data *data);
+static bool is_in_data_section(char *ident, struct mcc_asm_data *data);
+static bool is_proper_prefix(char *prefix, char *string);
+static bool arg_is_local_array(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg);
+static bool array_is_reference(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm_data *data);
+
+// Generate assembly
+static void generate_asm_from_ir(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data);
+static void
+generate_arithm_float_op(struct mcc_annotated_ir *an_ir, enum mcc_asm_opcode opcode, struct mcc_asm_data *data);
+static void
+generate_arithm_int_op(struct mcc_annotated_ir *an_ir, enum mcc_asm_opcode opcode, struct mcc_asm_data *data);
+static void generate_assign_row_ident(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data);
+static void generate_call(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data);
+static void generate_cmp(struct mcc_annotated_ir *an_ir, enum mcc_asm_opcode opcode, struct mcc_asm_data *data);
+static void generate_cmp_op_float(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data);
+static void generate_cmp_op_int(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data);
+static void generate_div(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data);
+static void generate_float_assign(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data);
+static void
+generate_function_body(struct mcc_asm_function *function, struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data);
+static void generate_instr_assign(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data);
+static void generate_jumpfalse(enum mcc_asm_opcode opcode, struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data);
+static void generate_minus(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data);
+static void generate_mult(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data);
+static void generate_neg_float(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data);
+static void generate_negative(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data);
+static void generate_plus(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data);
+static void generate_pop(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data);
+static void generate_push(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data);
+static void generate_return(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data);
+static void generate_string_assignment(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data);
+static void generate_unary(struct mcc_annotated_ir *an_ir, enum mcc_asm_opcode opcode, struct mcc_asm_data *data);
+
+// Generate the sections
+static void generate_text_section(struct mcc_asm_text_section *text_section,
+                                  struct mcc_annotated_ir *an_ir,
+                                  struct mcc_asm_data *data);
+static void generate_data_section(struct mcc_asm_data_section *data_section,
+                                  struct mcc_annotated_ir *an_ir,
+                                  struct mcc_asm_data *data);
+
+// Get IR args as ASM operand
+static struct mcc_asm_operand *
+arg_to_op(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm_data *data);
+
+// Get array elements as assembly operand
+static struct mcc_asm_operand *
+get_array_element_operand(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm_data *data);
+static int get_identifier_offset(struct mcc_annotated_ir *first, char *ident);
+static struct mcc_asm_operand *
+get_local_array_element_operand(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm_data *data);
+static int get_offset_of(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg);
+static struct mcc_asm_operand *
+get_referenced_array_element_operand(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm_data *data);
+
+//---------------------------------------------------------------------------------------- Implementation
+
 static bool arg_is_local_array(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg)
 {
 	if (arg->type != MCC_IR_TYPE_IDENTIFIER) {
