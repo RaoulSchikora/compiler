@@ -224,7 +224,7 @@ struct mcc_asm_text_section *mcc_asm_new_text_section(struct mcc_asm_function *f
 }
 
 struct mcc_asm_declaration *mcc_asm_new_float_declaration(char *identifier,
-                                                          float float_value,
+                                                          double float_value,
                                                           struct mcc_asm_declaration *next,
                                                           struct mcc_asm_data *data)
 {
