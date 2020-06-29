@@ -529,6 +529,8 @@ static void generate_ir_statememt_if_else_stmt(struct mcc_ast_statement *stmt, s
 		struct mcc_ir_row *label_row_2 =
 		    new_row(copy_arg(l2, data), NULL, MCC_IR_INSTR_LABEL, typeless(data), data);
 		append_row(label_row_2, data);
+	} else {
+		mcc_ir_delete_ir_arg(l2);
 	}
 }
 
