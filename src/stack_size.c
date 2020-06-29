@@ -43,7 +43,7 @@ void mcc_delete_annotated_ir(struct mcc_annotated_ir *head)
 
 // --------------------------------------------------------------------------------------- Forward declarations
 
-static int get_array_type_size(struct mcc_ir_row *ir);
+static int get_array_size(struct mcc_ir_row *ir);
 static struct mcc_ir_row *first_line_of_function(struct mcc_ir_row *ir);
 static int get_temporary_size(struct mcc_ir_row *ir);
 static struct mcc_ir_row *last_line_of_function(struct mcc_ir_row *ir);
@@ -122,7 +122,7 @@ static int argument_size(struct mcc_ir_arg *arg, struct mcc_ir_row *ir)
 		ref = find_first_occurence(arg->arr_ident, ir);
 		if (!ref || ref->instr != MCC_IR_INSTR_ARRAY)
 			return 0;
-		return get_array_type_size(ref);
+		return get_array_size(ref);
 	case MCC_IR_TYPE_ROW:
 		return get_temporary_size(arg->row);
 	default:
@@ -195,10 +195,11 @@ static int get_temporary_size(struct mcc_ir_row *ir)
 	}
 }
 
-static int get_array_type_size(struct mcc_ir_row *ir)
+static int get_array_size(struct mcc_ir_row *ir)
 {
 	assert(ir);
 	assert(ir->instr == MCC_IR_INSTR_ARRAY);
+	assert(ir->arg2->type == MCC_IR_TYPE_LIT_INT);
 
 	switch (ir->type->type) {
 	case MCC_IR_ROW_BOOL:
@@ -215,39 +216,11 @@ static int get_array_type_size(struct mcc_ir_row *ir)
 	}
 }
 
-static int get_array_size(struct mcc_ir_row *ir)
-{
-	assert(ir);
-	assert(ir->instr == MCC_IR_INSTR_ARRAY);
-	assert(ir->arg2->type == MCC_IR_TYPE_LIT_INT);
-
-	switch (ir->type->type) {
-	case MCC_IR_ROW_BOOL:
-		return STACK_SIZE_BOOL * (ir->arg2->lit_int);
-	case MCC_IR_ROW_FLOAT:
-		return STACK_SIZE_FLOAT * (ir->arg2->lit_int);
-	case MCC_IR_ROW_INT:
-		return STACK_SIZE_INT * (ir->arg2->lit_int);
-	case MCC_IR_ROW_STRING:
-		return STACK_SIZE_STRING * (ir->arg2->lit_int);
-	default:
-		return 0;
-	}
-}
-
 static int get_stack_frame_size(struct mcc_ir_row *ir)
 {
 	assert(ir);
 
 	switch (ir->instr) {
-
-	// Labels: Size 0
-	case MCC_IR_INSTR_LABEL:
-	case MCC_IR_INSTR_JUMPFALSE:
-	case MCC_IR_INSTR_JUMP:
-	case MCC_IR_INSTR_FUNC_LABEL:
-		return 0;
-
 	// Assignment of variables to immediate value or temporary:
 	case MCC_IR_INSTR_ASSIGN:
 		return get_var_size(ir);
@@ -272,26 +245,26 @@ static int get_stack_frame_size(struct mcc_ir_row *ir)
 	case MCC_IR_INSTR_SMALLEREQ:
 		return STACK_SIZE_BOOL;
 
-	// TODO
-	case MCC_IR_INSTR_POP:
-		break;
-
-	case MCC_IR_INSTR_PUSH:
-		break;
-
-	// TODO
 	case MCC_IR_INSTR_CALL:
 		return get_temporary_size(ir);
-	case MCC_IR_INSTR_RETURN:
-		return 0;
 
+	// Size of entire array
 	case MCC_IR_INSTR_ARRAY:
 		return get_array_size(ir);
 
+	// Labels: Size 0
+	case MCC_IR_INSTR_LABEL:
+	case MCC_IR_INSTR_JUMPFALSE:
+	case MCC_IR_INSTR_JUMP:
+	case MCC_IR_INSTR_FUNC_LABEL:
+	// Rest: Also 0
 	case MCC_IR_INSTR_UNKNOWN:
+	case MCC_IR_INSTR_POP:
+	case MCC_IR_INSTR_RETURN:
+	case MCC_IR_INSTR_PUSH:
+	default:
 		return 0;
 	}
-	return 0;
 }
 
 static struct mcc_annotated_ir *add_stack_sizes(struct mcc_ir_row *ir)
@@ -337,7 +310,7 @@ static int get_frame_size_of_function(struct mcc_annotated_ir *head)
 }
 
 // TODO: Very poor naming, considering the next function
-int get_array_base_size(struct mcc_ir_row *ir)
+static int get_array_base_size(struct mcc_ir_row *ir)
 {
 	assert(ir);
 	switch (ir->type->type) {

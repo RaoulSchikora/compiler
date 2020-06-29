@@ -21,7 +21,6 @@
 struct mcc_annotated_ir {
 	int stack_size;
 	int stack_position;
-	bool array_is_func_arg;
 	struct mcc_annotated_ir *next;
 	struct mcc_annotated_ir *prev;
 	struct mcc_ir_row *row;
