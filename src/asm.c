@@ -69,18 +69,14 @@ static int get_row_offset(struct mcc_annotated_ir *an_ir, struct mcc_ir_row *row
 	assert(an_ir);
 	assert(row);
 
-	while (an_ir->row->instr != MCC_IR_INSTR_FUNC_LABEL) {
-		an_ir = an_ir->prev;
-	}
+	an_ir = get_function_label(an_ir);
+	an_ir = an_ir->next;
 
-	struct mcc_annotated_ir *first = an_ir;
-	first = first->next;
-
-	while (first && first->row->instr != MCC_IR_INSTR_FUNC_LABEL) {
-		if (first->row == row) {
-			return first->stack_position;
+	while (an_ir && an_ir->row->instr != MCC_IR_INSTR_FUNC_LABEL) {
+		if (an_ir->row == row) {
+			return an_ir->stack_position;
 		}
-		first = first->next;
+		an_ir = an_ir->next;
 	}
 	return 0;
 }
