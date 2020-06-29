@@ -867,18 +867,6 @@ static void generate_cmp_op_int(struct mcc_annotated_ir *an_ir, struct mcc_asm_d
 	}
 }
 
-static char *get_function(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data)
-{
-	assert(data);
-	while (an_ir) {
-		if (an_ir->row->instr == MCC_IR_INSTR_FUNC_LABEL) {
-			return an_ir->row->arg1->func_label;
-		}
-		an_ir = an_ir->prev;
-	}
-	return NULL;
-}
-
 static void generate_return(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data)
 {
 	assert(an_ir);
@@ -895,7 +883,8 @@ static void generate_return(struct mcc_annotated_ir *an_ir, struct mcc_asm_data 
 		}
 	}
 	// pop ebx
-	if (strcmp(get_function(an_ir, data), "main") != 0) {
+	an_ir = mcc_get_function_label(an_ir);
+	if (strcmp(an_ir->row->arg1->func_label, "main") != 0) {
 		mcc_asm_new_line(MCC_ASM_POPL, ebx(data), NULL, data);
 	}
 	mcc_asm_new_line(MCC_ASM_LEAVE, NULL, NULL, data);
