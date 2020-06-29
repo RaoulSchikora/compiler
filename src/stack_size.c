@@ -10,7 +10,7 @@
 struct mcc_annotated_ir *mcc_get_function_label(struct mcc_annotated_ir *an_ir)
 {
 	assert(an_ir);
-	while (an_ir->row->instr != MCC_IR_INSTR_FUNC_LABEL) {
+	while (an_ir && an_ir->row->instr != MCC_IR_INSTR_FUNC_LABEL) {
 		an_ir = an_ir->prev;
 	}
 	return an_ir;
