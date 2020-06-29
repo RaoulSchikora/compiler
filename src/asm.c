@@ -485,7 +485,7 @@ void mcc_asm_delete_declaration(struct mcc_asm_declaration *decl)
 {
 	if (!decl)
 		return;
-	if (decl->type == MCC_ASM_DECLARATION_TYPE_STRING) {
+	if (decl->type == MCC_ASM_DECLARATION_TYPE_STRING || decl->type == MCC_ASM_DECLARATION_TYPE_FLOAT) {
 		free(decl->identifier);
 	}
 	free(decl);
