@@ -177,6 +177,8 @@ static void print_usage(enum mc_apps app, const char *usage_string)
 
 		fprintf(stderr, "  -q, --quiet               suppress error output\n");
 		fprintf(stderr, "  -o, --output <out-file>   write the output to <out-file> (defaults to 'a.out')\n");
+		fprintf(stderr, "\nEnvironment Variables:\n");
+		fprintf(stderr, "  MCC_BACKEND               override the back-end compiler (defaults to 'gcc')\n");
 	} else {
 		fprintf(stderr, "  -o, --output <out-file>   write the output to <out-file> (defaults to stdout)\n");
 	}

@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
 	// ---------------------------------------------------------------------- Parsing and checking command line
 
 	// Get all options and arguments from command line
-	char *usage_string = "The mC compiler. It takes an mC input file and produces an executable.\n"
+	char *usage_string = "The mC compiler. It takes one or more mC input files and produces an executable.\n"
 	                     "Errors are reported on invalid inputs.\n";
 	struct mc_cl_parser_command_line_parser *command_line = mc_cl_parser_parse(argc, argv, usage_string, MCC);
 	register_cleanup(command_line);
