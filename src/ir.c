@@ -12,6 +12,20 @@
 #include "mcc/symbol_table.h"
 #include "utils/unused.h"
 
+// clang-format off
+
+#define mcc_ir_new_arg(x, y) _Generic((x), \
+    long:                           new_arg_int, \
+    double:                         new_arg_float, \
+    bool:                           new_arg_bool, \
+    char*:                          new_arg_string, \
+    struct mcc_ir_row *:            new_arg_row, \
+    unsigned:                       new_arg_label, \
+    struct mcc_ast_identifier *:    new_arg_identifier \
+    )(x,y)
+
+// clang-format on
+
 struct ir_generation_userdata {
 	struct mcc_ir_row *head;
 	struct mcc_ir_row *current;
