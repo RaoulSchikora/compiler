@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 
 struct mcc_annotated_ir *mcc_get_function_label(struct mcc_annotated_ir *an_ir)
 {
