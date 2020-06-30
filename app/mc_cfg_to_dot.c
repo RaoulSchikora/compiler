@@ -1,12 +1,9 @@
 #define _GNU_SOURCE
 
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include "mcc/ast.h"
-#include "mcc/ast_visit.h"
 #include "mcc/cfg.h"
 #include "mcc/cfg_print.h"
 #include "mcc/ir.h"

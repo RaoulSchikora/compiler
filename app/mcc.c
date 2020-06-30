@@ -9,7 +9,6 @@
 #include "mcc/asm.h"
 #include "mcc/asm_print.h"
 #include "mcc/ast.h"
-#include "mcc/ast_visit.h"
 #include "mcc/ir.h"
 #include "mcc/parser.h"
 #include "mcc/semantic_checks.h"

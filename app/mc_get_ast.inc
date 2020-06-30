@@ -1,17 +1,14 @@
 #ifndef MC_GET_AST_INC
 #define MC_GET_AST_INC
 
-#include <assert.h>
-#include <errno.h>
-#include <getopt.h>
 #include <stdbool.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
-#include "mc_cl_parser.inc"
 #include "mcc/ast.h"
+
+#include "mc_cl_parser.inc"
 
 // Parse file and return the result of the parser
 struct mcc_parser_result parse_file(char *filename);
