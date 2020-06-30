@@ -31,9 +31,11 @@ static struct mcc_annotated_ir *find_next_function(struct mcc_annotated_ir *an_i
 static struct mcc_asm_operand *find_string_identifier(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data);
 static int get_row_offset(struct mcc_annotated_ir *an_ir, struct mcc_ir_row *row);
 static char *get_tmp_ident(char *id);
+static struct mcc_annotated_ir *
+get_array_element_declaration(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm_data *data);
 
 // Check stuff
-static bool is_float(struct mcc_ir_arg *arg, struct mcc_asm_data *data);
+static bool is_float(struct mcc_ir_arg *arg, struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data);
 static bool is_in_data_section(char *ident, struct mcc_asm_data *data);
 static bool is_proper_prefix(char *prefix, char *string);
 static bool arg_is_local_array(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg);
@@ -535,35 +537,41 @@ void mcc_asm_delete_operand(struct mcc_asm_operand *operand)
 
 //---------------------------------------------------------------------------------------- Functions: ASM generation
 
-static bool array_is_reference(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm_data *data)
+static struct mcc_annotated_ir *
+get_array_element_declaration(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm_data *data)
 {
 	assert(an_ir);
-	assert(arg);
-
-	if (data->has_failed) {
-		return false;
-	}
+	if (data->has_failed)
+		return NULL;
 	an_ir = mcc_get_function_label(an_ir);
 	an_ir = an_ir->next;
 	while (an_ir->row->instr != MCC_IR_INSTR_FUNC_LABEL) {
-		// Is it a local array?
 		if (an_ir->row->instr == MCC_IR_INSTR_ARRAY) {
 			if (strcmp(an_ir->row->arg1->ident, arg->ident) == 0) {
-				return false;
+				return an_ir;
 			}
 		}
 		if (an_ir->row->instr == MCC_IR_INSTR_ASSIGN) {
 			if (strcmp(an_ir->row->arg1->ident, arg->ident) == 0) {
-				return (an_ir->prev->row->instr == MCC_IR_INSTR_POP);
+				return an_ir;
 			}
 		}
 		an_ir = an_ir->next;
 		continue;
 	}
-
-	// Array not found
 	data->has_failed = true;
-	return false;
+	return NULL;
+}
+
+static bool array_is_reference(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm_data *data)
+{
+	assert(an_ir);
+	assert(arg);
+
+	an_ir = get_array_element_declaration(an_ir, arg, data);
+	if (data->has_failed)
+		return false;
+	return (an_ir->prev->row->instr == MCC_IR_INSTR_POP);
 }
 
 static struct mcc_asm_operand *
@@ -662,9 +670,10 @@ static bool is_in_data_section(char *ident, struct mcc_asm_data *data)
 	return false;
 }
 
-static bool is_float(struct mcc_ir_arg *arg, struct mcc_asm_data *data)
+static bool is_float(struct mcc_ir_arg *arg, struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data)
 {
 	assert(arg);
+	assert(an_ir);
 
 	switch (arg->type) {
 	case MCC_IR_TYPE_LIT_INT:
@@ -680,9 +689,8 @@ static bool is_float(struct mcc_ir_arg *arg, struct mcc_asm_data *data)
 	case MCC_IR_TYPE_IDENTIFIER:
 		return is_in_data_section(arg->ident, data);
 	case MCC_IR_TYPE_ARR_ELEM:
-		// TODO
-		return false;
-
+		an_ir = get_array_element_declaration(an_ir, arg, data);
+		return (an_ir->row->type->type == MCC_IR_ROW_FLOAT);
 	default:
 		return false;
 	}
@@ -1018,7 +1026,7 @@ static void generate_cmp(struct mcc_annotated_ir *an_ir, enum mcc_asm_opcode opc
 		return;
 
 	// line 1 to line 1c or line 1d (depended on case)
-	if (is_float(an_ir->row->arg1, data)) {
+	if (is_float(an_ir->row->arg1, an_ir, data)) {
 		generate_cmp_op_float(an_ir, data);
 		// use unsigned opcode in case of float:
 		if (opcode == MCC_ASM_SETG)
