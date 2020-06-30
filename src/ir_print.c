@@ -41,7 +41,7 @@ static void row_to_string(
 		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s %s", label, instruction, row_no);
 		break;
 	case MCC_IR_INSTR_ARRAY:
-		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s = %s ", label, arg1, instruction);
+		snprintf(out, TERMINAL_LINE_LENGTH, "%-7s%s: %s ", label, instruction, arg1);
 		break;
 	case MCC_IR_INSTR_AND:
 	case MCC_IR_INSTR_EQUALS:
