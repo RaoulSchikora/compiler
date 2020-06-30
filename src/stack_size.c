@@ -1,8 +1,5 @@
 #include "mcc/stack_size.h"
 
-#include "mcc/asm.h"
-#include "mcc/ir.h"
-#include "utils/unused.h"
 #include <assert.h>
 #include <stdbool.h>
 #include <stdlib.h>

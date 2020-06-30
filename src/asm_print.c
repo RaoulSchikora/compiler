@@ -1,5 +1,4 @@
 #include "mcc/asm_print.h"
-#include "mcc/asm.h"
 
 #include <assert.h>
 #include <math.h>
@@ -8,7 +7,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "mcc/asm.h"
 #include "utils/unused.h"
+
 
 //---------------------------------------------------------------------------------------- Functions: Print ASM
 

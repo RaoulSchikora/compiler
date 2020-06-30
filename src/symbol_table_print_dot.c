@@ -1,7 +1,9 @@
 #include "mcc/symbol_table_print_dot.h"
 
-#include <stdlib.h>
 #include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 // forward declaration
 static void print_dot_symbol_table_scope(struct mcc_symbol_table_scope *scope, const char *leading_spaces, FILE *out);
@@ -13,15 +15,16 @@ static void print_dot_symbol_table_begin(struct mcc_symbol_table_scope *scope, F
 	assert(out);
 	assert(scope);
 
-	if(scope->head && scope->head->node){
+	if (scope->head && scope->head->node) {
 		struct mcc_ast_node node = *(scope->head->node);
-		fprintf(out, "digraph {\n\n"
-		             "tbl [\n\n"
-		             "shape=plaintext\n"
-		             "label=<\n\n"
-		             "<table border='0' cellborder='0' cellspacing='0'>\n"
-		             "<tr><td>Symbol Table: %s</td></tr>\n",
-					 node.sloc.filename);
+		fprintf(out,
+		        "digraph {\n\n"
+		        "tbl [\n\n"
+		        "shape=plaintext\n"
+		        "label=<\n\n"
+		        "<table border='0' cellborder='0' cellspacing='0'>\n"
+		        "<tr><td>Symbol Table: %s</td></tr>\n",
+		        node.sloc.filename);
 	} else {
 		fprintf(out, "digraph {\n\n"
 		             "tbl [\n\n"
@@ -30,7 +33,6 @@ static void print_dot_symbol_table_begin(struct mcc_symbol_table_scope *scope, F
 		             "<table border='0' cellborder='0' cellspacing='0'>\n"
 		             "<tr><td>Symbol Table</td></tr>\n");
 	}
-	
 }
 
 static void print_dot_symbol_table_end(FILE *out)
@@ -73,8 +75,8 @@ static const char *print_dot_row_type(enum mcc_symbol_table_row_type type)
 		return "void";
 	case MCC_SYMBOL_TABLE_ROW_TYPE_PSEUDO:
 		return "-";
-    default :
-	    return "unknown type";
+	default:
+		return "unknown type";
 	}
 }
 
@@ -109,8 +111,9 @@ static void print_dot_symbol_table_row(struct mcc_symbol_table_row *row, const c
 	print_dot_row(row, leading_spaces, out);
 
 	// don't print scopes of built-ins
-	if((strcmp(row->name,"print")==0) || (strcmp(row->name,"print_int")==0) || (strcmp(row->name,"print_float")==0) ){
-	    return;
+	if ((strcmp(row->name, "print") == 0) || (strcmp(row->name, "print_int") == 0) ||
+	    (strcmp(row->name, "print_float") == 0)) {
+		return;
 	}
 	struct mcc_symbol_table_scope *child_scope = row->child_scope;
 

@@ -6,8 +6,6 @@
 #ifndef MCC_AST_PRINT_H
 #define MCC_AST_PRINT_H
 
-#include <stdio.h>
-
 #include "mcc/ast.h"
 
 const char *mcc_ast_print_binary_op(enum mcc_ast_binary_op op);

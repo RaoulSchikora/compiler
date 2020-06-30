@@ -2,14 +2,11 @@
 
 #include <assert.h>
 #include <math.h>
-#include <stdarg.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include <string.h>
 
-#include "mcc/ast.h"
 #include "mcc/ast_visit.h"
-#include "mcc/symbol_table.h"
+// TODO: See below and maybe throw out this header
 #include "utils/unused.h"
 
 // clang-format off
@@ -429,8 +426,6 @@ static void generate_ir_comp_statement(struct mcc_ast_compound_statement *cmp_st
 			generate_ir_statement(cmp_stmt->statement, data);
 		cmp_stmt = cmp_stmt->next_compound_statement;
 	}
-	UNUSED(cmp_stmt);
-	UNUSED(data);
 }
 
 static void generate_ir_assignment(struct mcc_ast_assignment *asgn, struct ir_generation_userdata *data)
@@ -566,7 +561,7 @@ static void generate_ir_statement_return(struct mcc_ast_statement *stmt, struct 
 	assert(stmt);
 	assert(data);
 
-	if(data->current->instr == MCC_IR_INSTR_RETURN){
+	if (data->current->instr == MCC_IR_INSTR_RETURN) {
 		return;
 	}
 
@@ -1269,6 +1264,7 @@ static void modify_ast(struct mcc_ast_program *ast, struct ir_generation_userdat
 
 struct mcc_ir_row *mcc_ir_generate(struct mcc_ast_program *ast, struct mcc_symbol_table *table)
 {
+	// TODO: Why do we even pass it?
 	UNUSED(table);
 
 	struct ir_generation_userdata *data = malloc(sizeof(*data));

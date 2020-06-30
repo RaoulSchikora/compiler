@@ -1,7 +1,9 @@
 #include "mcc/symbol_table_print.h"
 
-#include <stdlib.h>
 #include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 // ------------------------------------------------------------- Forward declaration
 
@@ -11,21 +13,21 @@ static void print_symbol_table_scope(struct mcc_symbol_table_scope *scope, const
 
 static void print_symbol_table_begin(struct mcc_symbol_table_scope *scope, FILE *out)
 {
-    assert(scope);
+	assert(scope);
 	assert(out);
 
-    if(scope->head && scope->head->node){
-        struct mcc_ast_node node = *(scope->head->node);
-        fprintf(out, 
-        "----------------------------------------------------------------------\n" \
-        "symbol table: %s\n"\
-        "----------------------------------------------------------------------\n", node.sloc.filename);
-    } else {
-        fprintf(out, 
-        "----------------------------------------------------------------------\n" \
-        "symbol table:\n"\
-        "----------------------------------------------------------------------\n");
-    }
+	if (scope->head && scope->head->node) {
+		struct mcc_ast_node node = *(scope->head->node);
+		fprintf(out,
+		        "----------------------------------------------------------------------\n"
+		        "symbol table: %s\n"
+		        "----------------------------------------------------------------------\n",
+		        node.sloc.filename);
+	} else {
+		fprintf(out, "----------------------------------------------------------------------\n"
+		             "symbol table:\n"
+		             "----------------------------------------------------------------------\n");
+	}
 }
 
 static void print_symbol_table_end(FILE *out)
@@ -50,8 +52,8 @@ static const char *print_row_type(enum mcc_symbol_table_row_type type)
 		return "void";
 	case MCC_SYMBOL_TABLE_ROW_TYPE_PSEUDO:
 		return "-";
-    default :
-	    return "unknown type";
+	default:
+		return "unknown type";
 	}
 }
 
@@ -69,7 +71,8 @@ static void print_row(struct mcc_symbol_table_row *row, const char *leading_spac
 		fprintf(out, "%s%s (%s function)\n", leading_spaces, row->name, print_row_type(row->row_type));
 		break;
 	case MCC_SYMBOL_TABLE_ROW_STRUCTURE_ARRAY:
-		fprintf(out, "%s%s (%s[%ld])\n", leading_spaces, row->name, print_row_type(row->row_type), row->array_size);
+		fprintf(out, "%s%s (%s[%ld])\n", leading_spaces, row->name, print_row_type(row->row_type),
+		        row->array_size);
 		break;
 	}
 }
@@ -83,8 +86,9 @@ static void print_symbol_table_row(struct mcc_symbol_table_row *row, const char 
 	print_row(row, leading_spaces, out);
 
 	// don't print scopes of built-ins
-	if((strcmp(row->name,"print")==0) || (strcmp(row->name,"print_int")==0) || (strcmp(row->name,"print_float")==0) ){
-	    return;
+	if ((strcmp(row->name, "print") == 0) || (strcmp(row->name, "print_int") == 0) ||
+	    (strcmp(row->name, "print_float") == 0)) {
+		return;
 	}
 	struct mcc_symbol_table_scope *child_scope = row->child_scope;
 
@@ -121,7 +125,7 @@ static void print_symbol_table_scope(struct mcc_symbol_table_scope *scope, const
 
 void mcc_symbol_table_print(struct mcc_symbol_table *table, void *data)
 {
-    assert(table);
+	assert(table);
 	assert(data);
 
 	FILE *out = data;

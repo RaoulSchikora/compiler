@@ -1,6 +1,7 @@
 #include "mcc/ast_print.h"
 
 #include <assert.h>
+#include <stdio.h>
 
 #include "mcc/ast_visit.h"
 

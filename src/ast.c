@@ -1,5 +1,4 @@
 #include "mcc/ast.h"
-#include "mcc/parser.h"
 
 #include <assert.h>
 #include <stdlib.h>

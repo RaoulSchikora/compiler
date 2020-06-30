@@ -1,7 +1,6 @@
 #include "mcc/symbol_table.h"
 
 #include <assert.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 

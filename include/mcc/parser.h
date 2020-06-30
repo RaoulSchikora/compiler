@@ -8,7 +8,6 @@
 #ifndef MCC_PARSER_H
 #define MCC_PARSER_H
 
-#include <stdbool.h>
 #include <stdio.h>
 
 #include "mcc/ast.h"
@@ -36,7 +35,7 @@ struct mcc_parser_result {
 	enum mcc_parser_status status;
 	enum mcc_parser_entry_point entry_point;
 
-	char* error_buffer;
+	char *error_buffer;
 
 	union {
 		// MCC_PARSER_ENTRY_POINT_EXPRESSION
@@ -57,9 +56,8 @@ struct mcc_parser_result {
 
 struct mcc_parser_result mcc_parse_string(const char *input, enum mcc_parser_entry_point entry_point);
 
-struct mcc_parser_result mcc_parse_file(FILE *input,enum mcc_parser_entry_point entry_point,char* name);
+struct mcc_parser_result mcc_parse_file(FILE *input, enum mcc_parser_entry_point entry_point, char *name);
 
 void mcc_ast_delete_result(struct mcc_parser_result *result);
 
 #endif // MCC_PARSER_H
-

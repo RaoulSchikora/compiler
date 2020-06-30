@@ -7,9 +7,6 @@
 #ifndef MCC_SYMBOL_TABLE_H
 #define MCC_SYMBOL_TABLE_H
 
-#include <stdbool.h>
-#include <string.h>
-
 #include "mcc/ast.h"
 
 // ------------------------------------------------------------ Data structure: Symbol Table row

@@ -1,8 +1,9 @@
 #include "mcc/ir_print.h"
-#include "mcc/ir.h"
-#include <math.h>
+
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "mcc/ir.h"
 
 #define TERMINAL_LINE_LENGTH 120
 

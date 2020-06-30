@@ -12,6 +12,9 @@
 %code requires {
 #include "mcc/parser.h"
 
+#include <stdbool.h>
+#include <string.h>
+
 char *filename; /* current filename here for the lexer */
 
 typedef struct MCC_PARSER_LTYPE {
@@ -45,8 +48,6 @@ while (0)
 }
 
 %{
-#include <string.h>
-
 int mcc_parser_lex();
 void mcc_parser_error();
 

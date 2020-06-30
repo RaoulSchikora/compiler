@@ -8,7 +8,6 @@
 
 #include "mcc/ir.h"
 #include "mcc/stack_size.h"
-#include "utils/unused.h"
 
 #define EPSILON 1e-06;
 

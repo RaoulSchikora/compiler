@@ -1,17 +1,8 @@
 #include "mcc/cfg.h"
 
 #include <assert.h>
-#include <math.h>
-#include <stdarg.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include <string.h>
-
-#include "mcc/ast.h"
-#include "mcc/ast_visit.h"
-#include "mcc/ir_print.h"
-#include "mcc/symbol_table.h"
-#include "utils/unused.h"
 
 //---------------------------------------------------------------------------------------- Annotate IR with leaders
 

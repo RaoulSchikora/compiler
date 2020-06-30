@@ -1,12 +1,9 @@
 #include "mcc/cfg_print.h"
-#include "mcc/cfg.h"
-#include "mcc/ir.h"
-#include "mcc/ir_print.h"
 
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+
+#include "mcc/ir_print.h"
 
 void mcc_cfg_print_dot_begin(FILE *out)
 {

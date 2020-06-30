@@ -6,8 +6,6 @@
 #ifndef MCC_IR_PRINT_H
 #define MCC_IR_PRINT_H
 
-#include <stdio.h>
-
 #include "mcc/ir.h"
 
 void mcc_ir_print_table_begin(FILE *out);

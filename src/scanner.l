@@ -14,7 +14,6 @@
 
 %{
 #include "parser.tab.h"
-#include <stdbool.h>
 
 #define YYSTYPE MCC_PARSER_STYPE
 #define YYLTYPE MCC_PARSER_LTYPE
