@@ -13,7 +13,6 @@
 
 enum mcc_ast_visit_traversal {
 	MCC_AST_VISIT_DEPTH_FIRST,
-	// TODO: MCC_AST_VISIT_BREADTH_FIRST,
 };
 
 enum mcc_ast_visit_order {
