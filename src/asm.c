@@ -83,11 +83,7 @@ arg_to_op(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm
 static struct mcc_asm_operand *
 get_array_element_operand(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm_data *data);
 static int get_identifier_offset(struct mcc_annotated_ir *first, char *ident);
-static struct mcc_asm_operand *
-get_local_array_element_operand(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm_data *data);
 static int get_offset_of(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg);
-static struct mcc_asm_operand *
-get_referenced_array_element_operand(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm_data *data);
 
 //---------------------------------------------------------------------------------------- Implementation
 
@@ -571,40 +567,21 @@ static bool array_is_reference(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg
 }
 
 static struct mcc_asm_operand *
-get_local_array_element_operand(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm_data *data)
+get_array_element_operand(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm_data *data)
 {
+	assert(an_ir);
+	assert(arg);
+	assert(arg->type == MCC_IR_TYPE_ARR_ELEM);
+	assert(data);
 	if (data->has_failed)
 		return NULL;
 
 	int index_offset;
-	switch (arg->index->type) {
-	case MCC_IR_TYPE_LIT_INT:
-		index_offset = mcc_get_array_element_stack_loc(an_ir, arg);
-		return mcc_asm_new_register_operand(MCC_ASM_EBP, index_offset, data);
-	case MCC_IR_TYPE_IDENTIFIER:
-		index_offset = get_identifier_offset(an_ir, arg->index->ident);
-		break;
-	case MCC_IR_TYPE_ROW:
-		index_offset = get_row_offset(an_ir, arg->index->row);
-		break;
-	default:
-		data->has_failed = true;
-		return NULL;
-	}
-	mcc_asm_new_line(MCC_ASM_MOVL, ebp(index_offset, data), ebx(data), data);
-	return mcc_asm_new_computed_offset_operand(mcc_get_array_base_stack_loc(an_ir, arg), MCC_ASM_EBP, MCC_ASM_EBX,
-	                                           mcc_get_array_base_size(an_ir, arg), data);
-}
+	int offset;
+	bool is_reference = array_is_reference(an_ir, arg, data);
 
-static struct mcc_asm_operand *
-get_referenced_array_element_operand(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm_data *data)
-{
-
-	if (data->has_failed)
-		return NULL;
-
-	int offset = get_identifier_offset(an_ir, arg->arr_ident);
-	int index_offset;
+	if (is_reference)
+		offset = get_identifier_offset(an_ir, arg->arr_ident);
 
 	switch (arg->index->type) {
 	case MCC_IR_TYPE_LIT_INT:
@@ -623,24 +600,15 @@ get_referenced_array_element_operand(struct mcc_annotated_ir *an_ir, struct mcc_
 		data->has_failed = true;
 		return NULL;
 	}
-	mcc_asm_new_line(MCC_ASM_MOVL, ebp(offset, data), ecx(data), data);
-	return mcc_asm_new_computed_offset_operand(0, MCC_ASM_ECX, MCC_ASM_EBX, mcc_get_array_base_size(an_ir, arg),
-	                                           data);
-}
 
-static struct mcc_asm_operand *
-get_array_element_operand(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm_data *data)
-{
-	assert(an_ir);
-	assert(arg);
-	assert(arg->type == MCC_IR_TYPE_ARR_ELEM);
-	assert(data);
-	if (data->has_failed)
-		return NULL;
-	if (array_is_reference(an_ir, arg, data))
-		return get_referenced_array_element_operand(an_ir, arg, data);
-	else
-		return get_local_array_element_operand(an_ir, arg, data);
+	if (is_reference) {
+		mcc_asm_new_line(MCC_ASM_MOVL, ebp(offset, data), ecx(data), data);
+		return mcc_asm_new_computed_offset_operand(0, MCC_ASM_ECX, MCC_ASM_EBX,
+		                                           mcc_get_array_base_size(an_ir, arg), data);
+	} else {
+		return mcc_asm_new_computed_offset_operand(mcc_get_array_base_stack_loc(an_ir, arg), MCC_ASM_EBP,
+		                                           MCC_ASM_EBX, mcc_get_array_base_size(an_ir, arg), data);
+	}
 }
 
 // function to check if 'prefix' is a proper prefix of 'string'. It is proper if 'prefix' followed by _x is equal to
