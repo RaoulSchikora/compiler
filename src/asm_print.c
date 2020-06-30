@@ -260,15 +260,57 @@ static void asm_print_func(FILE *out, struct mcc_asm_function *func)
 	}
 }
 
+// Transform escape characters into regular ones for printing. E.g.: "\n" -> "\\n"
+static char *transform_escape_chars(char *string)
+{
+	assert(string);
+	int count_escaped_chars = 0;
+	int i = 0;
+	while (string[i] != '\0') {
+		if (string[i] == '\n' || string[i] == '\t')
+			count_escaped_chars++;
+		i++;
+	}
+
+	char *new = malloc(sizeof(char) * (strlen(string) + count_escaped_chars + 1));
+	if (!new)
+		return NULL;
+
+	i = 0;
+	int count_processed_chars = 0;
+	do {
+		if (string[i] == '\n') {
+			new[i + count_processed_chars] = '\\';
+			count_processed_chars++;
+			new[i + count_processed_chars] = 'n';
+			i++;
+			continue;
+		}
+		if (string[i] == '\t') {
+			new[i + count_processed_chars] = '\\';
+			count_processed_chars++;
+			new[i + count_processed_chars] = 't';
+			i++;
+			continue;
+		}
+		new[i + count_processed_chars] = string[i];
+		i++;
+	} while (string[i - 1] != '\0');
+	return new;
+}
+
 static void asm_print_decl(FILE *out, struct mcc_asm_declaration *decl)
 {
 	fprintf(out, "\t%s:", decl->identifier);
+	char *tmp;
 	switch (decl->type) {
 	case MCC_ASM_DECLARATION_TYPE_FLOAT:
 		fprintf(out, "       .float %f\n", decl->float_value);
 		break;
 	case MCC_ASM_DECLARATION_TYPE_STRING:
-		fprintf(out, "       .string \"%s\"\n", decl->string_value);
+		tmp = transform_escape_chars(decl->string_value);
+		fprintf(out, "       .string \"%s\"\n", tmp);
+		free(tmp);
 		break;
 	default:
 		break;
