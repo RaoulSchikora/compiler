@@ -282,6 +282,9 @@ void mcc_ast_visit_program(struct mcc_ast_program *program, struct mcc_ast_visit
 	assert(visitor);
 
 	visit_if_pre_order(program, visitor->program, visitor);
+	if (!program->function) {
+		return;
+	}
 	mcc_ast_visit(program->function, visitor);
 	if (program->has_next_function) {
 		mcc_ast_visit(program->next_function, visitor);

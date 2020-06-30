@@ -1234,7 +1234,7 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
 		// Check for type error
 		type_expr = check_and_get_type(args->expression, check);
 		type_decl = check_and_get_type(params->declaration, check);
-		if(!type_expr || !type_decl){
+		if (!type_expr || !type_decl) {
 			data->error = MCC_SEMANTIC_CHECK_ERROR_UNKNOWN;
 			free(type_decl);
 			free(type_expr);

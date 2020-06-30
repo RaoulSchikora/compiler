@@ -286,7 +286,7 @@ parameters          : declaration    { $$ = mcc_ast_new_parameters(false, $1, NU
 function_def        : VOID identifier LPARENTH parameters RPARENTH compound_statement
                       { $$ = mcc_ast_new_void_function_def($2, $4, $6);                            loc($$, @1, @6); }
                     | TYPE identifier LPARENTH parameters RPARENTH compound_statement
-                      { $$ = mcc_ast_new_type_function_def($1, $2,$4,$6);                          loc($$, @1, @6); }
+                      { $$ = mcc_ast_new_type_function_def($1, $2, $4, $6);                        loc($$, @1, @6); }
                     ;
 
 function_defs       : function_def function_defs  { $$ = mcc_ast_new_program($1, $2);              loc($$, @1, @2); }
@@ -294,6 +294,7 @@ function_defs       : function_def function_defs  { $$ = mcc_ast_new_program($1,
                     ;
 
 program             : function_defs { $$ = $1;                                                     loc($$, @1, @1); }
+                    | END           { $$ = mcc_ast_new_empty_program();                            loc($$, @1, @1); }
                     ;
 
 %%

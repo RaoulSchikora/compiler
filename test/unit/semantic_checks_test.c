@@ -1342,6 +1342,29 @@ void invalid_array_operation5(CuTest *tc)
 	mcc_semantic_check_delete_single_check(check);
 }
 
+void empty(CuTest *tc)
+{
+	// Define test input and create symbol table
+	const char input[] = "";
+	struct mcc_parser_result parser_result;
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
+	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
+	struct mcc_semantic_check *check = mcc_semantic_check_initialize_check();
+	CuAssertPtrNotNull(tc,check);
+	enum mcc_semantic_check_error_code error = mcc_semantic_check_run_main_function((&parser_result)->program, table, check);
+	CuAssertIntEquals(tc,MCC_SEMANTIC_CHECK_ERROR_OK,error);
+
+	CuAssertPtrNotNull(tc, check->error_buffer);
+	CuAssertPtrNotNull(tc, check);
+	CuAssertIntEquals(tc, check->status, MCC_SEMANTIC_CHECK_FAIL);
+
+	// Cleanup
+	mcc_ast_delete(parser_result.program);
+	mcc_symbol_table_delete_table(table);
+	mcc_semantic_check_delete_single_check(check);
+}
+
 #define TESTS \
 	TEST(positive) \
 	TEST(ensure_variable_shadowing) \
@@ -1395,6 +1418,7 @@ void invalid_array_operation5(CuTest *tc)
 	TEST(invalid_array_operation2) \
 	TEST(invalid_array_operation3) \
 	TEST(invalid_array_operation4) \
-	TEST(invalid_array_operation5)
+	TEST(invalid_array_operation5) \
+	TEST(empty)
 #include "main_stub.inc"
 #undef TESTS

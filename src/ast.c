@@ -758,6 +758,19 @@ struct mcc_ast_program *mcc_ast_new_program(struct mcc_ast_function_definition *
 	return program;
 }
 
+struct mcc_ast_program *mcc_ast_new_empty_program()
+{
+	struct mcc_ast_program *program = malloc(sizeof(*program));
+	if (!program)
+		return NULL;
+
+	program->function = NULL;
+	program->has_next_function = false;
+	program->next_function = NULL;
+
+	return program;
+}
+
 void mcc_ast_delete_program(struct mcc_ast_program *program)
 {
 	if (!program)
@@ -884,7 +897,10 @@ int mcc_ast_add_built_ins(struct mcc_ast_program *program)
 
 	if (!program->function) {
 		program->function = (&result)->program->function;
+		program->has_next_function = true;
+		program->next_function = (&result)->program->next_function;
 		(&result)->program->function = NULL;
+		free((&result)->program);
 	} else if (!program->next_function) {
 		program->next_function = (&result)->program;
 		program->has_next_function = true;

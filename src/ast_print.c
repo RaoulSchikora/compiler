@@ -454,6 +454,9 @@ static void print_dot_program(struct mcc_ast_program *program, void *data)
 
 	FILE *out = data;
 	print_dot_node(out, program, "program");
+	if (!program->function) {
+		return;
+	}
 	print_dot_edge(out, program, program->function, "func");
 	if (program->has_next_function == true) {
 		print_dot_edge(out, program, program->next_function, "next func");
