@@ -154,12 +154,10 @@ static void print_dot_symbol_table_scope(struct mcc_symbol_table_scope *scope, c
 	}
 }
 
-void mcc_symbol_table_print_dot(struct mcc_symbol_table *table, void *data)
+void mcc_symbol_table_print_dot(struct mcc_symbol_table *table, FILE *out)
 {
 	assert(table);
-	assert(data);
-
-	FILE *out = data;
+	assert(out);
 
 	if (!table->head) {
 		fprintf(out, "<tr><td> ---- </td></tr>\n");

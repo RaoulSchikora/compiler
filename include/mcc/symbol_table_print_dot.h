@@ -4,9 +4,11 @@
 #ifndef MCC_SYMBOL_TABLE_PRINT_DOT_H
 #define MCC_SYMBOL_TABLE_PRINT_DOT_H
 
+#include <stdio.h>
+
 #include "mcc/symbol_table.h"
 
-void mcc_symbol_table_print_dot(struct mcc_symbol_table *table, void *data);
+void mcc_symbol_table_print_dot(struct mcc_symbol_table *table, FILE *out);
 
 #endif // MCC_SYMBOL_TABLE_PRINT_DOT_H
 
