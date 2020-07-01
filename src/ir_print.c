@@ -125,11 +125,14 @@ static char *instr_to_string(enum mcc_ir_instruction instr)
 	}
 }
 
-static int arg_size(struct mcc_ir_arg *arg)
+static int arg_size(struct mcc_ir_arg *arg, bool escape_quotes)
 {
 	if (!arg)
 		return length_of_int(1000);
 
+	int quotes_space = 0;
+	if (escape_quotes)
+		quotes_space = 2;
 	switch (arg->type) {
 	case MCC_IR_TYPE_ROW:
 		return length_of_int(arg->row->row_no) + 2;
@@ -144,9 +147,9 @@ static int arg_size(struct mcc_ir_arg *arg)
 	case MCC_IR_TYPE_LABEL:
 		return length_of_int(arg->label) + 1;
 	case MCC_IR_TYPE_IDENTIFIER:
-		return strlen(arg->ident) + 2;
+		return strlen(arg->ident) + 2 + quotes_space;
 	case MCC_IR_TYPE_ARR_ELEM:
-		return strlen(arg->arr_ident) + arg_size(arg->index) + 3;
+		return strlen(arg->arr_ident) + arg_size(arg->index, escape_quotes) + 3;
 	case MCC_IR_TYPE_FUNC_LABEL:
 		return strlen(arg->func_label);
 	default:
@@ -168,7 +171,7 @@ static void bool_to_string(char *dest, bool b)
 	}
 }
 
-static void arg_to_string(char *dest, struct mcc_ir_arg *arg)
+static void arg_to_string(char *dest, struct mcc_ir_arg *arg, bool escape_quotes)
 {
 	if (!arg) {
 		strcpy(dest, "");
@@ -176,7 +179,7 @@ static void arg_to_string(char *dest, struct mcc_ir_arg *arg)
 	}
 	int index_size = 0;
 	if (arg->type == MCC_IR_TYPE_ARR_ELEM) {
-		index_size = arg_size(arg->index);
+		index_size = arg_size(arg->index, escape_quotes);
 	}
 	char index[index_size];
 
@@ -194,8 +197,7 @@ static void arg_to_string(char *dest, struct mcc_ir_arg *arg)
 		bool_to_string(dest, arg->lit_bool);
 		return;
 	case MCC_IR_TYPE_LIT_STRING:
-		sprintf(dest, "\"%s\"", arg->lit_string);
-		return;
+		break;
 	case MCC_IR_TYPE_LABEL:
 		sprintf(dest, "L%d", arg->label);
 		return;
@@ -203,12 +205,19 @@ static void arg_to_string(char *dest, struct mcc_ir_arg *arg)
 		sprintf(dest, "%s", arg->ident);
 		return;
 	case MCC_IR_TYPE_ARR_ELEM:
-		arg_to_string(index, arg->index);
+		arg_to_string(index, arg->index, escape_quotes);
 		sprintf(dest, "%s[%s]", arg->arr_ident, index);
 		return;
 	case MCC_IR_TYPE_FUNC_LABEL:
 		sprintf(dest, "%s", arg->func_label);
+		return;
 	};
+	// MCC_IR_TYPE_LIT_STRING:
+	if (escape_quotes) {
+		sprintf(dest, "\\\"%s\\\"", arg->lit_string);
+	} else {
+		sprintf(dest, "\"%s\"", arg->lit_string);
+	}
 }
 
 static int row_type_size(struct mcc_ir_row_type *type)
@@ -268,18 +277,18 @@ static void row_type_to_string(char *row_type_string, struct mcc_ir_row_type *ty
 	}
 }
 
-static void get_row_string(struct mcc_ir_row *row, char *row_string)
+static void get_row_string(struct mcc_ir_row *row, char *row_string, bool escape_quotes)
 {
 	char *instr = instr_to_string(row->instr);
-	char arg1[arg_size(row->arg1)];
-	char arg2[arg_size(row->arg2)];
+	char arg1[arg_size(row->arg1, escape_quotes)];
+	char arg2[arg_size(row->arg2, escape_quotes)];
 	char no[length_of_int(row->row_no) + 2];
 	char row_type[row_type_size(row->type)];
 	row_no_to_string(no, row->row_no);
-	arg_to_string(arg1, row->arg1);
-	arg_to_string(arg2, row->arg2);
+	arg_to_string(arg1, row->arg1, escape_quotes);
+	arg_to_string(arg2, row->arg2, escape_quotes);
 	row_type_to_string(row_type, row->type);
-	char label[arg_size(row->arg1)];
+	char label[arg_size(row->arg1, escape_quotes)];
 	switch (row->instr) {
 	case MCC_IR_INSTR_LABEL:
 		strcpy(label, arg1);
@@ -297,28 +306,28 @@ static void get_row_string(struct mcc_ir_row *row, char *row_string)
 	snprintf(row_string, TERMINAL_LINE_LENGTH, "%-30.29s%s\n", row_string2, row_type);
 }
 
-void mcc_ir_print_ir_row(FILE *out, struct mcc_ir_row *row)
+void mcc_ir_print_ir_row(FILE *out, struct mcc_ir_row *row, bool escape_quotes)
 {
 	char row_string[TERMINAL_LINE_LENGTH];
-	get_row_string(row, row_string);
+	get_row_string(row, row_string, escape_quotes);
 	fprintf(out, "%s", row_string);
 }
 
-char *mcc_ir_print_ir_row_to_string(struct mcc_ir_row *row)
+char *mcc_ir_print_ir_row_to_string(struct mcc_ir_row *row, bool escape_quotes)
 {
 	char *ret_string = malloc(sizeof(char) * TERMINAL_LINE_LENGTH);
 	if (!ret_string)
 		return NULL;
-	get_row_string(row, ret_string);
+	get_row_string(row, ret_string, escape_quotes);
 	return ret_string;
 }
 
-void mcc_ir_print_ir(FILE *out, struct mcc_ir_row *head)
+void mcc_ir_print_ir(FILE *out, struct mcc_ir_row *head, bool escape_quotes)
 {
 	mcc_ir_print_table_begin(out);
 
 	while (head) {
-		mcc_ir_print_ir_row(out, head);
+		mcc_ir_print_ir_row(out, head, escape_quotes);
 		head = head->next_row;
 	}
 

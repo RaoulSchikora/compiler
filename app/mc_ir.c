@@ -104,10 +104,12 @@ int main(int argc, char *argv[])
 		if (!out) {
 			return EXIT_FAILURE;
 		}
-		mcc_ir_print_ir(out, ir);
+		// Print IR, don't escape quotes
+		mcc_ir_print_ir(out, ir, false);
 		fclose(out);
 	} else {
-		mcc_ir_print_ir(stdout, ir);
+		// Print IR, don't escape quotes
+		mcc_ir_print_ir(stdout, ir, false);
 	}
 
 	return EXIT_SUCCESS;
