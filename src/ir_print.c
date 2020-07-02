@@ -313,15 +313,6 @@ void mcc_ir_print_ir_row(FILE *out, struct mcc_ir_row *row, bool escape_quotes)
 	fprintf(out, "%s", row_string);
 }
 
-char *mcc_ir_print_ir_row_to_string(struct mcc_ir_row *row, bool escape_quotes)
-{
-	char *ret_string = malloc(sizeof(char) * TERMINAL_LINE_LENGTH);
-	if (!ret_string)
-		return NULL;
-	get_row_string(row, ret_string, escape_quotes);
-	return ret_string;
-}
-
 void mcc_ir_print_ir(FILE *out, struct mcc_ir_row *head, bool escape_quotes)
 {
 	mcc_ir_print_table_begin(out);
