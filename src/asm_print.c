@@ -271,7 +271,7 @@ static void asm_print_decl(FILE *out, struct mcc_asm_declaration *decl)
 		break;
 	case MCC_ASM_DECLARATION_TYPE_STRING:
 		fprintf(out, "       .string \"");
-		mcc_print_string_literal(out, decl->string_value);
+		mcc_print_string_literal(out, decl->string_value,false);
 		fprintf(out, "\"\n");
 		break;
 	default:

@@ -10,7 +10,7 @@
 
 char *bool_to_string(bool b);
 char *instr_to_string(enum mcc_ir_instruction instr);
-static void print_arg(FILE *out, struct mcc_ir_arg *arg, bool escape_quotes);
+static void print_arg(FILE *out, struct mcc_ir_arg *arg, bool escape_quotes, bool doubly_escaped);
 static void print_type(FILE *out, struct mcc_ir_row_type *type);
 
 void mcc_ir_print_table_begin(FILE *out)
@@ -26,12 +26,12 @@ void mcc_ir_print_table_end(FILE *out)
 	fprintf(out, "\n");
 }
 
-void mcc_ir_print_ir(FILE *out, struct mcc_ir_row *head, bool escape_quotes)
+void mcc_ir_print_ir(FILE *out, struct mcc_ir_row *head, bool escape_quotes, bool doubly_escaped)
 {
 	mcc_ir_print_table_begin(out);
 
 	while (head) {
-		mcc_ir_print_ir_row(out, head, escape_quotes);
+		mcc_ir_print_ir_row(out, head, escape_quotes, doubly_escaped);
 		fprintf(out, "\n");
 		head = head->next_row;
 	}
@@ -39,7 +39,7 @@ void mcc_ir_print_ir(FILE *out, struct mcc_ir_row *head, bool escape_quotes)
 	mcc_ir_print_table_end(out);
 }
 
-void mcc_ir_print_ir_row(FILE *out, struct mcc_ir_row *row, bool escape_quotes)
+void mcc_ir_print_ir_row(FILE *out, struct mcc_ir_row *row, bool escape_quotes, bool doubly_escaped)
 {
 	print_type(out, row->type);
 	switch (row->instr) {
@@ -50,9 +50,9 @@ void mcc_ir_print_ir_row(FILE *out, struct mcc_ir_row *row, bool escape_quotes)
 	case MCC_IR_INSTR_RETURN:
 		fprintf(out, "\t");
 		fprintf(out, "%s ", instr_to_string(row->instr));
-		print_arg(out, row->arg1, escape_quotes);
+		print_arg(out, row->arg1, escape_quotes, doubly_escaped);
 		fprintf(out, " ");
-		print_arg(out, row->arg2, escape_quotes);
+		print_arg(out, row->arg2, escape_quotes, doubly_escaped);
 		break;
 
 	// Pop
@@ -68,15 +68,15 @@ void mcc_ir_print_ir_row(FILE *out, struct mcc_ir_row *row, bool escape_quotes)
 		fprintf(out, "\t");
 		fprintf(out, "$t%d =", row->row_no);
 		fprintf(out, " %s ", instr_to_string(row->instr));
-		print_arg(out, row->arg1, escape_quotes);
+		print_arg(out, row->arg1, escape_quotes, doubly_escaped);
 		break;
 
 	case MCC_IR_INSTR_ARRAY:
 		fprintf(out, "\t");
 		fprintf(out, "%s ", instr_to_string(row->instr));
-		print_arg(out, row->arg1, escape_quotes);
+		print_arg(out, row->arg1, escape_quotes, doubly_escaped);
 		fprintf(out, "[");
-		print_arg(out, row->arg2, escape_quotes);
+		print_arg(out, row->arg2, escape_quotes, doubly_escaped);
 		fprintf(out, "]");
 
 		break;
@@ -96,17 +96,17 @@ void mcc_ir_print_ir_row(FILE *out, struct mcc_ir_row *row, bool escape_quotes)
 	case MCC_IR_INSTR_PLUS:
 		fprintf(out, "\t");
 		fprintf(out, "$t%d = ", row->row_no);
-		print_arg(out, row->arg1, escape_quotes);
+		print_arg(out, row->arg1, escape_quotes, doubly_escaped);
 		fprintf(out, " %s ", instr_to_string(row->instr));
-		print_arg(out, row->arg2, escape_quotes);
+		print_arg(out, row->arg2, escape_quotes, doubly_escaped);
 		break;
 
 	// Inline
 	case MCC_IR_INSTR_ASSIGN:
 		fprintf(out, "\t");
-		print_arg(out, row->arg1, escape_quotes);
+		print_arg(out, row->arg1, escape_quotes, doubly_escaped);
 		fprintf(out, " %s ", instr_to_string(row->instr));
-		print_arg(out, row->arg2, escape_quotes);
+		print_arg(out, row->arg2, escape_quotes, doubly_escaped);
 		break;
 
 	// Function label
@@ -216,7 +216,7 @@ char *bool_to_string(bool b)
 	}
 }
 
-static void print_arg(FILE *out, struct mcc_ir_arg *arg, bool escape_quotes)
+static void print_arg(FILE *out, struct mcc_ir_arg *arg, bool escape_quotes, bool doubly_escaped)
 {
 	if (!arg)
 		return;
@@ -243,7 +243,7 @@ static void print_arg(FILE *out, struct mcc_ir_arg *arg, bool escape_quotes)
 		return;
 	case MCC_IR_TYPE_ARR_ELEM:
 		fprintf(out, "%s[", arg->arr_ident);
-		print_arg(out, arg->index, escape_quotes);
+		print_arg(out, arg->index, escape_quotes, doubly_escaped);
 		fprintf(out, "]");
 		return;
 	case MCC_IR_TYPE_FUNC_LABEL:
@@ -253,11 +253,11 @@ static void print_arg(FILE *out, struct mcc_ir_arg *arg, bool escape_quotes)
 	// MCC_IR_TYPE_LIT_STRING:
 	if (escape_quotes) {
 		fprintf(out, "\\\"");
-		mcc_print_string_literal(out, arg->lit_string);
+		mcc_print_string_literal(out, arg->lit_string, doubly_escaped);
 		fprintf(out, "\\\"");
 	} else {
 		fprintf(out, "\"");
-		mcc_print_string_literal(out, arg->lit_string);
+		mcc_print_string_literal(out, arg->lit_string, doubly_escaped);
 		fprintf(out, "\"");
 	}
 }
