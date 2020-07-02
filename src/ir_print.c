@@ -32,6 +32,7 @@ void mcc_ir_print_ir(FILE *out, struct mcc_ir_row *head, bool escape_quotes)
 
 	while (head) {
 		mcc_ir_print_ir_row(out, head, escape_quotes);
+	fprintf(out, "\n");
 		head = head->next_row;
 	}
 
@@ -111,7 +112,6 @@ void mcc_ir_print_ir_row(FILE *out, struct mcc_ir_row *row, bool escape_quotes)
 	default:
 		break;
 	}
-	fprintf(out, "\n");
 }
 
 static void print_type(FILE *out, struct mcc_ir_row_type *type)
