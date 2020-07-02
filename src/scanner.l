@@ -61,10 +61,10 @@ string_literal \"[^"]*\"
 "true"    { yylval->TK_BOOL_LITERAL = true; return TK_BOOL_LITERAL; }
 "false"   { yylval->TK_BOOL_LITERAL = false; return TK_BOOL_LITERAL; }
 
-"int"     { yylval->TK_TYPE = INT; return TK_TYPE;}
-"float"   { yylval->TK_TYPE = FLOAT; return TK_TYPE;}
-"bool"    { yylval->TK_TYPE = BOOL; return TK_TYPE;}
-"string"  { yylval->TK_TYPE = STRING; return TK_TYPE;}
+"int"     { yylval->TK_TYPE = INT; return TK_TYPE; }
+"float"   { yylval->TK_TYPE = FLOAT; return TK_TYPE; }
+"bool"    { yylval->TK_TYPE = BOOL; return TK_TYPE; }
+"string"  { yylval->TK_TYPE = STRING; return TK_TYPE; }
 "void"    { return TK_VOID; }
 
 
