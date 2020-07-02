@@ -7,8 +7,6 @@
 #include <stdlib.h>
 
 #include "mcc/ast_visit.h"
-// TODO: See below and maybe throw out this header
-#include "utils/unused.h"
 
 // clang-format off
 
