@@ -63,6 +63,8 @@ void mcc_ir_print_ir_row(FILE *out, struct mcc_ir_row *row, bool escape_quotes)
 
 	// Print temporary, instruction first
 	case MCC_IR_INSTR_CALL:
+	case MCC_IR_INSTR_NEGATIV:
+	case MCC_IR_INSTR_NOT:
 		fprintf(out, "\t");
 		fprintf(out, "$t%d =", row->row_no);
 		fprintf(out, " %s ", instr_to_string(row->instr));
@@ -83,8 +85,6 @@ void mcc_ir_print_ir_row(FILE *out, struct mcc_ir_row *row, bool escape_quotes)
 	case MCC_IR_INSTR_MULTIPLY:
 	case MCC_IR_INSTR_OR:
 	case MCC_IR_INSTR_PLUS:
-	case MCC_IR_INSTR_NEGATIV:
-	case MCC_IR_INSTR_NOT:
 		fprintf(out, "\t");
 		fprintf(out, "$t%d = ", row->row_no);
 		print_arg(out, row->arg1, escape_quotes);
