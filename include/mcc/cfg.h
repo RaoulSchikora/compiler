@@ -26,7 +26,7 @@ struct mcc_basic_block {
 struct mcc_basic_block *mcc_cfg_generate(struct mcc_ir_row *ir);
 
 // Restrict the CFG to just one function
-struct mcc_basic_block *mcc_cfg_limit_to_function(char *function_identifier, struct mcc_basic_block *cfg);
+struct mcc_basic_block *mcc_cfg_limit_to_function(char *function_identifier, struct mcc_basic_block *cfg_first);
 
 //---------------------------------------------------------------------------------------- Functions: Set up datastructs
 

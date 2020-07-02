@@ -312,7 +312,7 @@ static void remove_cfg_after_next_function_label(struct mcc_basic_block *head)
 	}
 }
 
-struct mcc_basic_block *mcc_cfg_limit_to_function(char *function_identifier, struct mcc_basic_block *cfg)
+struct mcc_basic_block *mcc_cfg_limit_to_function(char *function_identifier, struct mcc_basic_block *cfg_first)
 {
 	assert(function_identifier);
 	assert(cfg);
