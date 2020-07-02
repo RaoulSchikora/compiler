@@ -10,17 +10,9 @@
 
 #define TERMINAL_LINE_LENGTH 120
 
-static void print_instr_first(FILE *out, struct mcc_ir_row *row, bool escape_quotes);
-static void print_instr_pop(FILE *out, struct mcc_ir_row *row, bool escape_quotes);
-static void print_temporary(FILE *out, struct mcc_ir_row *row, bool escape_quotes);
-static void print_assign(FILE *out, struct mcc_ir_row *row, bool escape_quotes);
-static void print_label(FILE *out, struct mcc_ir_row *row, bool escape_quotes);
-static void print_function_label(FILE *out, struct mcc_ir_row *row, bool escape_quotes);
-
 char *bool_to_string(bool b);
-static void print_arg(FILE *out, struct mcc_ir_arg *arg, bool escape_quotes);
-
 char *instr_to_string(enum mcc_ir_instruction instr);
+static void print_arg(FILE *out, struct mcc_ir_arg *arg, bool escape_quotes);
 
 void mcc_ir_print_table_begin(FILE *out)
 {
@@ -56,17 +48,27 @@ void mcc_ir_print_ir_row(FILE *out, struct mcc_ir_row *row, bool escape_quotes)
 	case MCC_IR_INSTR_PUSH:
 	case MCC_IR_INSTR_RETURN:
 		fprintf(out, "\t    ");
-		print_instr_first(out, row, escape_quotes);
+		fprintf(out, "%s ", instr_to_string(row->instr));
+		print_arg(out, row->arg1, escape_quotes);
+		fprintf(out, " ");
+		print_arg(out, row->arg2, escape_quotes);
 		break;
 
 	// Pop
 	case MCC_IR_INSTR_POP:
 		fprintf(out, "\t    ");
-		print_instr_pop(out, row, escape_quotes);
+		fprintf(out, "%s $t%d", instr_to_string(row->instr), row->row_no);
 		break;
 
-	// Temporary
+	// Print temporary, instruction first
 	case MCC_IR_INSTR_CALL:
+		fprintf(out, "\t    ");
+		fprintf(out, "$t%d =", row->row_no);
+		fprintf(out, " %s ", instr_to_string(row->instr));
+		print_arg(out, row->arg1, escape_quotes);
+		break;
+
+	// Print temporary, inline instruction
 	case MCC_IR_INSTR_AND:
 	case MCC_IR_INSTR_ARRAY:
 	case MCC_IR_INSTR_DIVIDE:
@@ -83,67 +85,34 @@ void mcc_ir_print_ir_row(FILE *out, struct mcc_ir_row *row, bool escape_quotes)
 	case MCC_IR_INSTR_NEGATIV:
 	case MCC_IR_INSTR_NOT:
 		fprintf(out, "\t    ");
-		print_temporary(out, row, escape_quotes);
+		fprintf(out, "$t%d = ", row->row_no);
+		print_arg(out, row->arg1, escape_quotes);
+		fprintf(out, " %s ", instr_to_string(row->instr));
+		print_arg(out, row->arg2, escape_quotes);
 		break;
 
 	// Inline
 	case MCC_IR_INSTR_ASSIGN:
 		fprintf(out, "\t    ");
-		print_assign(out, row, escape_quotes);
+		print_arg(out, row->arg1, escape_quotes);
+		fprintf(out, " %s ", instr_to_string(row->instr));
+		print_arg(out, row->arg2, escape_quotes);
 		break;
 
 	// Function label
 	case MCC_IR_INSTR_FUNC_LABEL:
-		print_function_label(out, row, escape_quotes);
+		fprintf(out, "%s", row->arg1->func_label);
 		break;
 
 	// Label
 	case MCC_IR_INSTR_LABEL:
 		fprintf(out, "\t");
-		print_label(out, row, escape_quotes);
+		fprintf(out, "L%d", row->arg1->label);
 		break;
 	default:
 		break;
 	}
 	fprintf(out, "\n");
-}
-
-static void print_instr_first(FILE *out, struct mcc_ir_row *row, bool escape_quotes)
-{
-	fprintf(out, "%s ", instr_to_string(row->instr));
-	print_arg(out, row->arg1, escape_quotes);
-	fprintf(out, " ");
-	print_arg(out, row->arg2, escape_quotes);
-}
-
-static void print_instr_pop(FILE *out, struct mcc_ir_row *row, bool escape_quotes)
-{
-	fprintf(out, "%s $t%d", instr_to_string(row->instr), row->row_no);
-	UNUSED(escape_quotes);
-}
-
-static void print_temporary(FILE *out, struct mcc_ir_row *row, bool escape_quotes)
-{
-	fprintf(out, "$t%d = ", row->row_no);
-	print_arg(out, row->arg1, escape_quotes);
-	fprintf(out, " %s ", instr_to_string(row->instr));
-	print_arg(out, row->arg2, escape_quotes);
-}
-static void print_assign(FILE *out, struct mcc_ir_row *row, bool escape_quotes)
-{
-	print_arg(out, row->arg1, escape_quotes);
-	fprintf(out, " %s ", instr_to_string(row->instr));
-	print_arg(out, row->arg2, escape_quotes);
-}
-static void print_label(FILE *out, struct mcc_ir_row *row, bool escape_quotes)
-{
-	fprintf(out, "L%d:", row->arg1->label);
-	UNUSED(escape_quotes);
-}
-static void print_function_label(FILE *out, struct mcc_ir_row *row, bool escape_quotes)
-{
-	fprintf(out, "%s:", row->arg1->func_label);
-	UNUSED(escape_quotes);
 }
 
 char *instr_to_string(enum mcc_ir_instruction instr)
