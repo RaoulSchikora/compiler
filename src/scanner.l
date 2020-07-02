@@ -54,9 +54,8 @@ string_literal \"[^"]*\"
 
 {float_literal}   { yylval->TK_FLOAT_LITERAL = atof(yytext); return TK_FLOAT_LITERAL; }
 
-{string_literal}  { yylval->TK_STRING_LITERAL = strdup(yytext); int i, count; 
-                    for (i=0, count=0; yytext[i]; i++) count += (yytext[i] == '\n'); 
-                    yylloc->last_line += count; 
+{string_literal}  { yylval->TK_STRING_LITERAL = strdup(yytext); 
+                    for (int i=0; yytext[i]; i++) yylloc->last_line += (yytext[i] == '\n');
                     return TK_STRING_LITERAL; }
 
 "true"    { yylval->TK_BOOL_LITERAL = true; return TK_BOOL_LITERAL; }
