@@ -8,8 +8,6 @@
 #include "utils/print_string.h"
 #include "utils/unused.h"
 
-#define TERMINAL_LINE_LENGTH 120
-
 char *bool_to_string(bool b);
 char *instr_to_string(enum mcc_ir_instruction instr);
 static void print_arg(FILE *out, struct mcc_ir_arg *arg, bool escape_quotes);
