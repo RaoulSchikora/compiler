@@ -42,7 +42,7 @@ void mcc_cfg_print_dot_bb(FILE *out, struct mcc_basic_block *block)
 void mcc_cfg_print_dot_ir_row(FILE *out, struct mcc_ir_row *leader)
 {
 	fprintf(out, "{");
-	mcc_ir_print_ir_row(out, leader, false);
+	mcc_ir_print_ir_row(out, leader, true);
 	fprintf(out, "}");
 	if (leader->next_row)
 		fprintf(out, "|");
