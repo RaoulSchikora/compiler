@@ -71,9 +71,18 @@ void mcc_ir_print_ir_row(FILE *out, struct mcc_ir_row *row, bool escape_quotes)
 		print_arg(out, row->arg1, escape_quotes);
 		break;
 
+	case MCC_IR_INSTR_ARRAY:
+		fprintf(out, "\t");
+		fprintf(out, "%s ", instr_to_string(row->instr));
+		print_arg(out, row->arg1, escape_quotes);
+		fprintf(out, "[");
+		print_arg(out, row->arg2, escape_quotes);
+		fprintf(out, "]");
+
+		break;
+
 	// Print temporary, inline instruction
 	case MCC_IR_INSTR_AND:
-	case MCC_IR_INSTR_ARRAY:
 	case MCC_IR_INSTR_DIVIDE:
 	case MCC_IR_INSTR_EQUALS:
 	case MCC_IR_INSTR_NOTEQUALS:
@@ -160,7 +169,7 @@ char *instr_to_string(enum mcc_ir_instruction instr)
 	case MCC_IR_INSTR_AND:
 		return "&&";
 	case MCC_IR_INSTR_ARRAY:
-		return "array";
+		return "array:";
 	case MCC_IR_INSTR_DIVIDE:
 		return "/";
 	case MCC_IR_INSTR_EQUALS:
