@@ -20,7 +20,7 @@ void test1(CuTest *tc)
 	struct mcc_semantic_check *checks = mcc_semantic_check_run_all((&parser_result)->program, table);
 	CuAssertIntEquals(tc, checks->status, MCC_SEMANTIC_CHECK_OK);
 
-	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program, table);
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program);
 	struct mcc_ir_row *ir_head = ir;
 
 	CuAssertPtrNotNull(tc, ir);
@@ -54,7 +54,7 @@ void expression(CuTest *tc)
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 
-	struct mcc_ir_row *ir_head = mcc_ir_generate((&parser_result)->program, table);
+	struct mcc_ir_row *ir_head = mcc_ir_generate((&parser_result)->program );
 	struct mcc_ir_row *ir = ir_head->next_row;
 
 	CuAssertPtrNotNull(tc, ir);
@@ -89,7 +89,7 @@ void exp_plus_exp(CuTest *tc)
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 
-	struct mcc_ir_row *ir_head = mcc_ir_generate((&parser_result)->program, table);
+	struct mcc_ir_row *ir_head = mcc_ir_generate((&parser_result)->program );
 	struct mcc_ir_row *ir = ir_head->next_row;
 
 	CuAssertPtrNotNull(tc, ir);
@@ -117,7 +117,7 @@ void expression_var(CuTest *tc)
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 
-	struct mcc_ir_row *ir_head = mcc_ir_generate((&parser_result)->program, table);
+	struct mcc_ir_row *ir_head = mcc_ir_generate((&parser_result)->program );
 	struct mcc_ir_row *ir = ir_head->next_row;
 
 	CuAssertPtrNotNull(tc, ir);
@@ -152,7 +152,7 @@ void expression_arr(CuTest *tc)
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 
-	struct mcc_ir_row *ir_head = mcc_ir_generate((&parser_result)->program, table);
+	struct mcc_ir_row *ir_head = mcc_ir_generate((&parser_result)->program );
 	struct mcc_ir_row *ir = ir_head->next_row;
 
 	CuAssertIntEquals(tc, ir->instr, MCC_IR_INSTR_ARRAY);
@@ -196,7 +196,7 @@ void if_stmt(CuTest *tc)
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 
-	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program, table);
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program );
 	struct mcc_ir_row *ir_head = ir;
 	struct mcc_ir_row *tmp = ir;
 	// Skip first row
@@ -268,7 +268,7 @@ void if_else_stmt(CuTest *tc)
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 
-	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program, table);
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program );
 	struct mcc_ir_row *ir_head = ir;
 	struct mcc_ir_row *tmp = ir;
 	// Skip first row
@@ -358,7 +358,7 @@ void while_stmt(CuTest *tc)
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 
-	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program, table);
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program );
 	struct mcc_ir_row *ir_head = ir;
 	struct mcc_ir_row *tmp = ir;
 	// Skip first row
@@ -460,7 +460,7 @@ void func_def(CuTest *tc)
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 
-	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program, table);
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program );
 	struct mcc_ir_row *tmp = ir;
 	struct mcc_ir_row *ir_head = ir;
 
@@ -527,7 +527,7 @@ void func_call(CuTest *tc)
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 
-	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program, table);
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program );
 	struct mcc_ir_row *tmp = ir;
 	struct mcc_ir_row *ir_head = ir;
 
@@ -580,7 +580,7 @@ void variable_shadowing(CuTest *tc)
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 
-	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program, table);
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program );
 	struct mcc_ir_row *ir_head = ir;
 	struct mcc_ir_row *tmp = ir->next_row;
 
@@ -639,7 +639,7 @@ void type_test(CuTest *tc)
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 
-	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program, table);
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program );
 	struct mcc_ir_row *ir_head = ir;
 	struct mcc_ir_row *tmp = ir->next_row;
 
@@ -681,7 +681,7 @@ void type_array_test(CuTest *tc)
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 
-	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program, table);
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program );
 	struct mcc_ir_row *ir_head = ir;
 	struct mcc_ir_row *tmp = ir->next_row;
 

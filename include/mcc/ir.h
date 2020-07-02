@@ -108,7 +108,7 @@ bool is_binary_instr(struct mcc_ir_row *row);
 //---------------------------------------------------------------------------------------- Generate IR datastructures
 
 // Returns NULL if something along the genration process failed
-struct mcc_ir_row *mcc_ir_generate(struct mcc_ast_program *ast, struct mcc_symbol_table *table);
+struct mcc_ir_row *mcc_ir_generate(struct mcc_ast_program *ast);
 
 //---------------------------------------------------------------------------------------- Cleanup
 

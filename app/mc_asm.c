@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
 
 	// ---------------------------------------------------------------------- Generate IR
 
-	struct mcc_ir_row *ir = mcc_ir_generate((&result)->program, table);
+	struct mcc_ir_row *ir = mcc_ir_generate((&result)->program );
 	if (!ir) {
 		fprintf(stderr, "IR generation failed\n");
 		return EXIT_FAILURE;

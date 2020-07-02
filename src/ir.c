@@ -1263,11 +1263,8 @@ static void modify_ast(struct mcc_ast_program *ast, struct ir_generation_userdat
 	free(re_data);
 }
 
-struct mcc_ir_row *mcc_ir_generate(struct mcc_ast_program *ast, struct mcc_symbol_table *table)
+struct mcc_ir_row *mcc_ir_generate(struct mcc_ast_program *ast)
 {
-	// TODO: Why do we even pass it?
-	UNUSED(table);
-
 	struct ir_generation_userdata *data = malloc(sizeof(*data));
 	if (!data)
 		return NULL;
