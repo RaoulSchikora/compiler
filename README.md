@@ -38,20 +38,8 @@ match the expected values:
 
 # Known Issues
 
-### Grammar
+### Compiler warning 
 
 Since the unit test matches any grammar rule, there are 5 reduce/reduce-conflicts. These will however not arise, when 
 the testing mode isn't specified, because the parser can only match the unit-test grammar rule when a dedicated global 
 variable is set (which can't happen due to user input).
-
-### Assembly Integration tests
-
-Currently some of the assembly integration tests fail, as well as all "regular" integration tets, since we haven't
-implement some mC features yet.
-
-### Other stuff
-
-- In the `mcc` app, we currently ignore the return value (not implemented yet), thus the compiler warns during
-  compilation
-
-- Some TODO's in the code base are still in progress.
