@@ -30,3 +30,13 @@ A stub for the mC compiler is provided to ease infrastructure development.
 It can already be used with the integration test runner.
 
     $ MCC=../scripts/mcc_stub ../scripts/run_integration_tests
+
+## Checking error execution paths
+
+The script `mallocfail.sh` in "scripts/" provides a gdb wrapper, that runs a given program repeatedly and systematically 
+lets one `malloc` after the other fail. 
+Requires the installation of [mallocfail](https://github.com/ralight/mallocfail) to "/usr/local/lib/mallocfail.so", 
+and compilation with debug option.
+See usage info for how to run it (`mallocfail.sh -h`), when encoutering a segfaulting program, gdb will halt and ask if
+you want to quit. Press "n" and continue debugging in gdb.
+
