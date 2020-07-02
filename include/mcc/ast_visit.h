@@ -1,19 +1,14 @@
 // AST Visitor Infrastructure
 //
-// This module defines a visitor utility for traversing the AST.
+// This module defines a depth-first visitor utility for traversing the AST.
 //
-// Instantiate the `mcc_ast_visitor` struct with the desired configuration and
-// callbacks. Use this instance with the functions declared below. Each
-// callback is optional, just set it to NULL.
+// Instantiate the `mcc_ast_visitor` struct with the desired configuration and callbacks.
+// Use this instance with the functions declared below. Each callback is optional, just set it to NULL.
 
 #ifndef MCC_AST_VISIT_H
 #define MCC_AST_VISIT_H
 
 #include "mcc/ast.h"
-
-enum mcc_ast_visit_traversal {
-	MCC_AST_VISIT_DEPTH_FIRST,
-};
 
 enum mcc_ast_visit_order {
 	MCC_AST_VISIT_PRE_ORDER,
@@ -35,7 +30,6 @@ typedef void (*mcc_ast_visit_arguments_cb)(struct mcc_ast_arguments *, void *use
 typedef void (*mcc_ast_visit_function_definition_cb)(struct mcc_ast_function_definition *, void *userdata);
 
 struct mcc_ast_visitor {
-	enum mcc_ast_visit_traversal traversal;
 	enum mcc_ast_visit_order order;
 
 	// This will be passed to every callback along with the corresponding AST

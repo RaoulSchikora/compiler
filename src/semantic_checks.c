@@ -693,7 +693,6 @@ static void cb_return_value(struct mcc_ast_statement *statement, void *r_v_userd
 static struct mcc_ast_visitor return_value_visitor(struct return_value_userdata *r_v_userdata)
 {
 	return (struct mcc_ast_visitor){
-	    .traversal = MCC_AST_VISIT_DEPTH_FIRST,
 	    .order = MCC_AST_VISIT_PRE_ORDER,
 
 	    .userdata = r_v_userdata,
@@ -865,7 +864,6 @@ static void cb_type_check_expression_stmt(struct mcc_ast_statement *statement, v
 static struct mcc_ast_visitor type_checking_visitor(struct type_checking_userdata *userdata)
 {
 	return (struct mcc_ast_visitor){
-	    .traversal = MCC_AST_VISIT_DEPTH_FIRST,
 	    .order = MCC_AST_VISIT_PRE_ORDER,
 
 	    .userdata = userdata,
@@ -1258,7 +1256,6 @@ static void cb_function_arguments_expression_function_call(struct mcc_ast_expres
 static struct mcc_ast_visitor function_arguments_visitor(struct function_arguments_userdata *data)
 {
 	return (struct mcc_ast_visitor){
-	    .traversal = MCC_AST_VISIT_DEPTH_FIRST,
 	    .order = MCC_AST_VISIT_POST_ORDER,
 
 	    .userdata = data,

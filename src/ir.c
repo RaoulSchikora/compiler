@@ -3,8 +3,8 @@
 #include <assert.h>
 #include <math.h>
 #include <stdbool.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "mcc/ast_visit.h"
 
@@ -1114,7 +1114,6 @@ static void cb_rename_ident(struct mcc_ast_identifier *ident, void *data)
 static struct mcc_ast_visitor rename_ident_visitor(struct renaming_userdata *data)
 {
 	return (struct mcc_ast_visitor){
-	    .traversal = MCC_AST_VISIT_DEPTH_FIRST,
 	    .order = MCC_AST_VISIT_PRE_ORDER,
 
 	    .userdata = data,
@@ -1232,7 +1231,6 @@ static void cb_add_return(struct mcc_ast_function_definition *def, void *data)
 static struct mcc_ast_visitor modifying_visitor(struct renaming_userdata *data)
 {
 	return (struct mcc_ast_visitor){
-	    .traversal = MCC_AST_VISIT_DEPTH_FIRST,
 	    .order = MCC_AST_VISIT_POST_ORDER,
 
 	    .userdata = data,

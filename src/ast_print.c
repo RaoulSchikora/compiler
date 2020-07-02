@@ -530,7 +530,6 @@ static struct mcc_ast_visitor print_dot_visitor(FILE *out)
 	assert(out);
 
 	return (struct mcc_ast_visitor){
-	    .traversal = MCC_AST_VISIT_DEPTH_FIRST,
 	    .order = MCC_AST_VISIT_PRE_ORDER,
 
 	    .userdata = out,
