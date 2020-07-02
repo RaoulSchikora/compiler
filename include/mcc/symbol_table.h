@@ -1,7 +1,7 @@
 // Symbol Table
 //
-// Here the data structure for the symbol table is defined. The symbol table is
-// a tree of tables, where sub-scopes are children. Each node represents a scope.
+// This module defines the  data structure for the symbol table. 
+// The symbol table is a tree of tables, where sub-scopes are children. Each node represents a scope.
 // Within a scope, linked lists represent entries in the symbol table.
 
 #ifndef MCC_SYMBOL_TABLE_H

@@ -1,6 +1,6 @@
 // Assembly Code generation
 //
-// Here we define the data structures and functions used to generate the assembly code
+// This module defines the data structures and functions used to generate the assembly code.
 // It is targeting an x86 system and written in AT&T syntax.
 
 #ifndef MCC_ASM_H

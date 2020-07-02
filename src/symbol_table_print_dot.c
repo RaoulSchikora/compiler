@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "mcc/ast.h"
+
 // forward declaration
 static void print_dot_symbol_table_scope(struct mcc_symbol_table_scope *scope, const char *leading_spaces, FILE *out);
 

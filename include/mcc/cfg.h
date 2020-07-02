@@ -1,8 +1,8 @@
 // Control Flow Graph (CFG)
 //
-// Here we define the CFG data structure.
+// This module defines the CFG data structure.
 // It corresponds to a directed cyclic binary graph. Obtaining a CFG means obtaining the basic block that is at the root
-// of the graph. 
+// of the graph.
 // In order to make traversing easier, each node also contains a pointer to the next basic block, inferred from the
 // order they appear in the IR. This essentially enables traversing the CFG as if it was a linked list.
 
@@ -25,7 +25,7 @@ struct mcc_basic_block {
 // Gives the cfg as directed tree
 struct mcc_basic_block *mcc_cfg_generate(struct mcc_ir_row *ir);
 
-// Restrict the CFG to just one function. Makes use of the linked list wrapper
+// Restrict the CFG to just one function
 struct mcc_basic_block *mcc_cfg_limit_to_function(char *function_identifier, struct mcc_basic_block *cfg);
 
 //---------------------------------------------------------------------------------------- Functions: Set up datastructs

@@ -1,14 +1,11 @@
 // Abstract Syntax Tree (AST)
 //
-// Here we define the AST data structure of the compiler. It mainly consists of
+// This module defines the AST data structure. It mainly consists of
 // *tagged unions* for node types and enums for operators.
 //
 // In addition to the node type specific members, each node features a common
 // member `mmc_ast_node` which serves as a *base-class*. It holds data
 // independent from the actual node type, like the source location.
-//
-// Also note that this makes excessive use of C11's *anonymous structs and
-// unions* feature.
 
 #ifndef MCC_AST_H
 #define MCC_AST_H

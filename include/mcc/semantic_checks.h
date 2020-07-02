@@ -1,6 +1,6 @@
 // Semantic Checks
 //
-// Here, infrastructure for the semantic checks is provided.
+// This module defines infrastructure for the semantic checks.
 // Semantic checks can be run individually or composed in a single function.
 
 #ifndef PROJECT_SEMANTIC_CHECKS_H

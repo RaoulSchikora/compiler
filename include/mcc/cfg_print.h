@@ -1,7 +1,7 @@
 // CFG Print Infrastructure
 //
 // This module provides basic printing infrastructure for the CFG data
-// structure. The DOT printer enables easy visualisation of an CFG.
+// structure. The DOT printer enables easy visualisation of a CFG.
 
 #ifndef MCC_CFG_PRINT_H
 #define MCC_CFG_PRINT_H

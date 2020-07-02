@@ -1,4 +1,6 @@
-// This module provides basic printing infrastructure for the symbol_table
+// Symbol Table Printer 
+//
+// This module provides basic printing infrastructure for the symbol table.
 
 #ifndef MCC_SYMBOL_TABLE_PRINT_H
 #define MCC_SYMBOL_TABLE_PRINT_H
