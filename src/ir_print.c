@@ -32,7 +32,7 @@ void mcc_ir_print_ir(FILE *out, struct mcc_ir_row *head, bool escape_quotes)
 
 	while (head) {
 		mcc_ir_print_ir_row(out, head, escape_quotes);
-	fprintf(out, "\n");
+		fprintf(out, "\n");
 		head = head->next_row;
 	}
 
@@ -133,14 +133,17 @@ static void print_type(FILE *out, struct mcc_ir_row_type *type)
 		fprintf(out, "(string");
 		break;
 	}
+
+	bool is_array = false;
 	if (type->array_size > -1) {
+		is_array = true;
 		fprintf(out, "[%d]", type->array_size);
 	}
-	if (type->type == MCC_IR_ROW_STRING) {
-		fprintf(out, ")");
-	} else {
-		fprintf(out, ")\t");
-	}
+	fprintf(out, ")");
+	// Fix alignment
+	if (type->type != MCC_IR_ROW_STRING)
+		if (!is_array)
+			fprintf(out, "\t");
 }
 
 char *instr_to_string(enum mcc_ir_instruction instr)
