@@ -353,6 +353,8 @@ static void generate_ir_arguments(struct mcc_ast_arguments *arguments, struct ir
 			append_row(row2, data);
 		} else {
 			struct mcc_ir_arg *arg_push = generate_ir_expression(arguments->expression, data);
+			if (!arg_push)
+				return;
 			struct mcc_ir_row_type *type = get_type_of_row(arg_push, arguments->expression, data);
 			// recursive call of generate_ir_arguments in order to have all push-instructions following each
 			// other without othre instructions in between
@@ -376,6 +378,8 @@ static struct mcc_ir_arg *generate_ir_expression_func_call(struct mcc_ast_expres
 	generate_ir_arguments(expression->arguments, data);
 
 	struct mcc_ir_arg *arg = mcc_ir_new_arg(expression->function_identifier, data);
+	if(!arg)
+		return NULL;
 	struct mcc_ir_row_type *type = get_type_of_row(arg, expression, data);
 	struct mcc_ir_row *row = new_row(arg, NULL, MCC_IR_INSTR_CALL, type, data);
 	append_row(row, data);
@@ -513,6 +517,8 @@ static void generate_ir_statememt_if_else_stmt(struct mcc_ast_statement *stmt, s
 
 	// Jumpfalse L1
 	struct mcc_ir_arg *l1 = new_arg_label(data);
+	if (!l1)
+		return;
 	struct mcc_ir_row *jumpfalse = new_row(cond, l1, MCC_IR_INSTR_JUMPFALSE, typeless(data), data);
 	append_row(jumpfalse, data);
 
@@ -770,10 +776,10 @@ static void append_row(struct mcc_ir_row *row, struct ir_generation_userdata *da
 {
 	assert(data);
 
+	struct ir_generation_userdata *userdata = data;
 	if (data->has_failed)
 		return;
 
-	struct ir_generation_userdata *userdata = data;
 	if (!row) {
 		userdata->has_failed = true;
 		return;
