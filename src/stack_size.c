@@ -98,13 +98,10 @@ static int get_argument_size(struct mcc_ir_arg *arg, struct mcc_ir_row *ir)
 
 	switch (arg->type) {
 	case MCC_IR_TYPE_LIT_STRING:
-		return STACK_SIZE_STRING;
 	case MCC_IR_TYPE_LIT_INT:
-		return STACK_SIZE_INT;
 	case MCC_IR_TYPE_LIT_FLOAT:
-		return STACK_SIZE_FLOAT;
 	case MCC_IR_TYPE_LIT_BOOL:
-		return STACK_SIZE_BOOL;
+		return DWORD_SIZE;
 	case MCC_IR_TYPE_IDENTIFIER:
 		ref = find_first_occurence(arg->ident, ir);
 		if (!ref || ref->instr != MCC_IR_INSTR_ASSIGN)
@@ -152,18 +149,9 @@ static int get_row_size(struct mcc_ir_row *ir)
 {
 	assert(ir);
 
-	switch (ir->type->type) {
-	case MCC_IR_ROW_BOOL:
-		return STACK_SIZE_BOOL;
-	case MCC_IR_ROW_INT:
-		return STACK_SIZE_BOOL;
-	case MCC_IR_ROW_STRING:
-		return STACK_SIZE_STRING;
-	case MCC_IR_ROW_FLOAT:
-		return STACK_SIZE_FLOAT;
-	default:
-		return 0;
-	}
+	if (ir->type->type != MCC_IR_ROW_TYPELESS)
+		return DWORD_SIZE;
+	return 0;
 }
 
 static int get_stack_frame_size(struct mcc_ir_row *ir)
@@ -193,7 +181,7 @@ static int get_stack_frame_size(struct mcc_ir_row *ir)
 	case MCC_IR_INSTR_NOT:
 	case MCC_IR_INSTR_SMALLER:
 	case MCC_IR_INSTR_SMALLEREQ:
-		return STACK_SIZE_BOOL;
+		return DWORD_SIZE;
 
 	case MCC_IR_INSTR_CALL:
 		return get_row_size(ir);
@@ -358,14 +346,14 @@ static void add_stack_positions(struct mcc_annotated_ir *head)
 	head->stack_size = get_frame_size_of_function(head);
 	head = head->next;
 	int current_position = 0;
-	int pop_counter = STACK_SIZE_FLOAT;
+	int pop_counter = DWORD_SIZE;
 
 	while (head) {
 		// Function label
 		if (head->row->instr == MCC_IR_INSTR_FUNC_LABEL) {
 			head->stack_size = get_frame_size_of_function(head);
 			current_position = 0;
-			pop_counter = STACK_SIZE_FLOAT;
+			pop_counter = DWORD_SIZE;
 			func = head;
 			head = head->next;
 			continue;

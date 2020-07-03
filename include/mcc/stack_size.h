@@ -11,10 +11,7 @@
 
 #include "mcc/ir.h"
 
-#define STACK_SIZE_BOOL 4
-#define STACK_SIZE_FLOAT 4
-#define STACK_SIZE_STRING 4
-#define STACK_SIZE_INT 4
+#define DWORD_SIZE 4
 
 // --------------------------------------------------------------------------------------- Data structure
 

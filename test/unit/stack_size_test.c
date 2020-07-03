@@ -21,7 +21,7 @@ void test_int(CuTest *tc)
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 	struct mcc_semantic_check *checks = mcc_semantic_check_run_all((&parser_result)->program, table);
 	CuAssertIntEquals(tc, checks->status, MCC_SEMANTIC_CHECK_OK);
-	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program );
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program);
 	CuAssertPtrNotNull(tc, ir);
 
 	struct mcc_annotated_ir *an_ir = mcc_annotate_ir(ir);
@@ -29,7 +29,7 @@ void test_int(CuTest *tc)
 
 	// an_ir
 	CuAssertPtrNotNull(tc, an_ir);
-	CuAssertIntEquals(tc, STACK_SIZE_INT, an_ir->stack_size);
+	CuAssertIntEquals(tc, DWORD_SIZE, an_ir->stack_size);
 
 	// Cleanup
 	mcc_ir_delete_ir(ir);
@@ -49,7 +49,7 @@ void test_ints(CuTest *tc)
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 	struct mcc_semantic_check *checks = mcc_semantic_check_run_all((&parser_result)->program, table);
 	CuAssertIntEquals(tc, checks->status, MCC_SEMANTIC_CHECK_OK);
-	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program );
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program);
 	CuAssertPtrNotNull(tc, ir);
 
 	struct mcc_annotated_ir *an_ir = mcc_annotate_ir(ir);
@@ -60,10 +60,10 @@ void test_ints(CuTest *tc)
 	CuAssertIntEquals(tc, 8, an_ir->stack_size);
 
 	// Stack position of a
-	CuAssertIntEquals(tc, -STACK_SIZE_INT, an_ir->next->stack_position);
+	CuAssertIntEquals(tc, -DWORD_SIZE, an_ir->next->stack_position);
 
 	// Stack position of b
-	CuAssertIntEquals(tc, -2 * STACK_SIZE_INT, an_ir->next->next->stack_position);
+	CuAssertIntEquals(tc, -2 * DWORD_SIZE, an_ir->next->next->stack_position);
 
 	// Cleanup
 	mcc_ir_delete_ir(ir);
@@ -83,7 +83,7 @@ void test_int_temporaries(CuTest *tc)
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 	struct mcc_semantic_check *checks = mcc_semantic_check_run_all((&parser_result)->program, table);
 	CuAssertIntEquals(tc, checks->status, MCC_SEMANTIC_CHECK_OK);
-	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program );
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program);
 	CuAssertPtrNotNull(tc, ir);
 
 	struct mcc_annotated_ir *an_ir = mcc_annotate_ir(ir);
@@ -91,10 +91,10 @@ void test_int_temporaries(CuTest *tc)
 
 	// an_ir
 	CuAssertPtrNotNull(tc, an_ir);
-	CuAssertIntEquals(tc, 3 * STACK_SIZE_INT, an_ir->stack_size);
-	CuAssertIntEquals(tc, -1 * STACK_SIZE_INT, an_ir->next->stack_position);
-	CuAssertIntEquals(tc, -2 * STACK_SIZE_INT, an_ir->next->next->stack_position);
-	CuAssertIntEquals(tc, -3 * STACK_SIZE_INT, an_ir->next->next->next->stack_position);
+	CuAssertIntEquals(tc, 3 * DWORD_SIZE, an_ir->stack_size);
+	CuAssertIntEquals(tc, -1 * DWORD_SIZE, an_ir->next->stack_position);
+	CuAssertIntEquals(tc, -2 * DWORD_SIZE, an_ir->next->next->stack_position);
+	CuAssertIntEquals(tc, -3 * DWORD_SIZE, an_ir->next->next->next->stack_position);
 
 	// Cleanup
 	mcc_ir_delete_ir(ir);
@@ -114,7 +114,7 @@ void test_int_array(CuTest *tc)
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 	struct mcc_semantic_check *checks = mcc_semantic_check_run_all((&parser_result)->program, table);
 	CuAssertIntEquals(tc, checks->status, MCC_SEMANTIC_CHECK_OK);
-	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program );
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program);
 	CuAssertPtrNotNull(tc, ir);
 
 	struct mcc_annotated_ir *an_ir = mcc_annotate_ir(ir);
@@ -123,16 +123,15 @@ void test_int_array(CuTest *tc)
 	// an_ir
 	CuAssertPtrNotNull(tc, an_ir);
 	// Function
-	CuAssertIntEquals(tc, 42 * STACK_SIZE_INT, an_ir->stack_size);
+	CuAssertIntEquals(tc, 42 * DWORD_SIZE, an_ir->stack_size);
 	// Array
-	CuAssertIntEquals(tc, -42 * STACK_SIZE_INT + 0 * STACK_SIZE_INT, an_ir->next->stack_position);
+	CuAssertIntEquals(tc, -42 * DWORD_SIZE + 0 * DWORD_SIZE, an_ir->next->stack_position);
 	// a[0]
-	CuAssertIntEquals(tc, -42 * STACK_SIZE_INT + 0 * STACK_SIZE_INT, an_ir->next->next->stack_position);
+	CuAssertIntEquals(tc, -42 * DWORD_SIZE + 0 * DWORD_SIZE, an_ir->next->next->stack_position);
 	// a[2]
-	CuAssertIntEquals(tc, -42 * STACK_SIZE_INT + 2 * STACK_SIZE_INT, an_ir->next->next->next->stack_position);
+	CuAssertIntEquals(tc, -42 * DWORD_SIZE + 2 * DWORD_SIZE, an_ir->next->next->next->stack_position);
 	// a[41]
-	CuAssertIntEquals(tc, -42 * STACK_SIZE_INT + 41 * STACK_SIZE_INT,
-	                  an_ir->next->next->next->next->stack_position);
+	CuAssertIntEquals(tc, -42 * DWORD_SIZE + 41 * DWORD_SIZE, an_ir->next->next->next->next->stack_position);
 
 	// Cleanup
 	mcc_ir_delete_ir(ir);
@@ -152,7 +151,7 @@ void test_int_multiple_references(CuTest *tc)
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 	struct mcc_semantic_check *checks = mcc_semantic_check_run_all((&parser_result)->program, table);
 	CuAssertIntEquals(tc, checks->status, MCC_SEMANTIC_CHECK_OK);
-	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program );
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program);
 	CuAssertPtrNotNull(tc, ir);
 
 	struct mcc_annotated_ir *an_ir = mcc_annotate_ir(ir);
@@ -161,25 +160,25 @@ void test_int_multiple_references(CuTest *tc)
 	// an_ir
 	CuAssertPtrNotNull(tc, an_ir);
 	// Func label "main"
-	CuAssertIntEquals(tc, 3 * STACK_SIZE_INT, an_ir->stack_size);
+	CuAssertIntEquals(tc, 3 * DWORD_SIZE, an_ir->stack_size);
 	// "a = 1"
 	an_ir = an_ir->next;
-	CuAssertIntEquals(tc, -STACK_SIZE_INT, an_ir->stack_position);
+	CuAssertIntEquals(tc, -DWORD_SIZE, an_ir->stack_position);
 	// "b = 1"
 	an_ir = an_ir->next;
-	CuAssertIntEquals(tc, -2 * STACK_SIZE_INT, an_ir->stack_position);
+	CuAssertIntEquals(tc, -2 * DWORD_SIZE, an_ir->stack_position);
 	// "a = 2"
 	an_ir = an_ir->next;
-	CuAssertIntEquals(tc, -STACK_SIZE_INT, an_ir->stack_position);
+	CuAssertIntEquals(tc, -DWORD_SIZE, an_ir->stack_position);
 	// "c = 0"
 	an_ir = an_ir->next;
-	CuAssertIntEquals(tc, -3 * STACK_SIZE_INT, an_ir->stack_position);
+	CuAssertIntEquals(tc, -3 * DWORD_SIZE, an_ir->stack_position);
 	// "b = 1"
 	an_ir = an_ir->next;
-	CuAssertIntEquals(tc, -2 * STACK_SIZE_INT, an_ir->stack_position);
+	CuAssertIntEquals(tc, -2 * DWORD_SIZE, an_ir->stack_position);
 	// "c = 2"
 	an_ir = an_ir->next;
-	CuAssertIntEquals(tc, -3 * STACK_SIZE_INT, an_ir->stack_position);
+	CuAssertIntEquals(tc, -3 * DWORD_SIZE, an_ir->stack_position);
 
 	// Cleanup
 	mcc_ir_delete_ir(ir);
@@ -199,7 +198,7 @@ void test_bool_int(CuTest *tc)
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 	struct mcc_semantic_check *checks = mcc_semantic_check_run_all((&parser_result)->program, table);
 	CuAssertIntEquals(tc, checks->status, MCC_SEMANTIC_CHECK_OK);
-	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program );
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program);
 	CuAssertPtrNotNull(tc, ir);
 
 	struct mcc_annotated_ir *an_ir = mcc_annotate_ir(ir);
@@ -207,9 +206,9 @@ void test_bool_int(CuTest *tc)
 
 	// an_ir
 	CuAssertPtrNotNull(tc, an_ir);
-	CuAssertIntEquals(tc, STACK_SIZE_INT + STACK_SIZE_BOOL, an_ir->stack_size);
-	CuAssertIntEquals(tc, -STACK_SIZE_INT, an_ir->next->stack_position);
-	CuAssertIntEquals(tc, -(STACK_SIZE_INT + STACK_SIZE_BOOL), an_ir->next->next->stack_position);
+	CuAssertIntEquals(tc, DWORD_SIZE + DWORD_SIZE, an_ir->stack_size);
+	CuAssertIntEquals(tc, -DWORD_SIZE, an_ir->next->stack_position);
+	CuAssertIntEquals(tc, -(DWORD_SIZE + DWORD_SIZE), an_ir->next->next->stack_position);
 
 	// Cleanup
 	mcc_ir_delete_ir(ir);
@@ -229,22 +228,22 @@ void test_strings(CuTest *tc)
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 	struct mcc_semantic_check *checks = mcc_semantic_check_run_all((&parser_result)->program, table);
 	CuAssertIntEquals(tc, checks->status, MCC_SEMANTIC_CHECK_OK);
-	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program );
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program);
 	CuAssertPtrNotNull(tc, ir);
 
 	struct mcc_annotated_ir *an_ir = mcc_annotate_ir(ir);
 	struct mcc_annotated_ir *first = an_ir;
 
 	CuAssertPtrNotNull(tc, an_ir);
-	CuAssertIntEquals(tc, 2 * STACK_SIZE_STRING, an_ir->stack_size);
+	CuAssertIntEquals(tc, 2 * DWORD_SIZE, an_ir->stack_size);
 
 	an_ir = an_ir->next;
-	CuAssertIntEquals(tc, STACK_SIZE_STRING, an_ir->stack_size);
-	CuAssertIntEquals(tc, -STACK_SIZE_STRING, an_ir->stack_position);
+	CuAssertIntEquals(tc, DWORD_SIZE, an_ir->stack_size);
+	CuAssertIntEquals(tc, -DWORD_SIZE, an_ir->stack_position);
 
 	an_ir = an_ir->next;
-	CuAssertIntEquals(tc, STACK_SIZE_STRING, an_ir->stack_size);
-	CuAssertIntEquals(tc, -2 * STACK_SIZE_STRING, an_ir->stack_position);
+	CuAssertIntEquals(tc, DWORD_SIZE, an_ir->stack_size);
+	CuAssertIntEquals(tc, -2 * DWORD_SIZE, an_ir->stack_position);
 
 	// Cleanup
 	mcc_ir_delete_ir(ir);
@@ -264,7 +263,7 @@ void test_string_array(CuTest *tc)
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 	struct mcc_semantic_check *checks = mcc_semantic_check_run_all((&parser_result)->program, table);
 	CuAssertIntEquals(tc, checks->status, MCC_SEMANTIC_CHECK_OK);
-	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program );
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program);
 	CuAssertPtrNotNull(tc, ir);
 
 	struct mcc_annotated_ir *an_ir = mcc_annotate_ir(ir);
@@ -272,23 +271,23 @@ void test_string_array(CuTest *tc)
 
 	// an_ir (Func_label)
 	CuAssertPtrNotNull(tc, an_ir);
-	CuAssertIntEquals(tc, 12 * STACK_SIZE_STRING, an_ir->stack_size);
+	CuAssertIntEquals(tc, 12 * DWORD_SIZE, an_ir->stack_size);
 
 	// a = array
 	an_ir = an_ir->next;
-	CuAssertIntEquals(tc, 12 * STACK_SIZE_STRING, an_ir->stack_size);
+	CuAssertIntEquals(tc, 12 * DWORD_SIZE, an_ir->stack_size);
 
 	// a[0]
 	an_ir = an_ir->next;
-	CuAssertIntEquals(tc, -12 * STACK_SIZE_STRING, an_ir->stack_position);
+	CuAssertIntEquals(tc, -12 * DWORD_SIZE, an_ir->stack_position);
 
 	// a[2]
 	an_ir = an_ir->next;
-	CuAssertIntEquals(tc, -12 * STACK_SIZE_STRING + 2 * STACK_SIZE_STRING, an_ir->stack_position);
+	CuAssertIntEquals(tc, -12 * DWORD_SIZE + 2 * DWORD_SIZE, an_ir->stack_position);
 
 	// a[11]
 	an_ir = an_ir->next;
-	CuAssertIntEquals(tc, -12 * STACK_SIZE_STRING + 11 * STACK_SIZE_STRING, an_ir->stack_position);
+	CuAssertIntEquals(tc, -12 * DWORD_SIZE + 11 * DWORD_SIZE, an_ir->stack_position);
 
 	// Cleanup
 	mcc_ir_delete_ir(ir);
@@ -307,7 +306,7 @@ void test_string_array(CuTest *tc)
 	TEST(test_int_array) \
 	TEST(test_int_multiple_references) \
 	TEST(test_strings) \
-	TEST(test_string_array)  \
+	TEST(test_string_array)
 
 // clang-format on
 
