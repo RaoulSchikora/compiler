@@ -359,16 +359,14 @@ static void add_stack_positions(struct mcc_annotated_ir *head)
 	head->stack_size = get_frame_size_of_function(head);
 	head = head->next;
 	int current_position = 0;
-	// TODO: Hardcoding abklären. Evtl überall nötig, da wir ja immer die "l"-Version der Opcodes verwenden,
-	// vielleicht wars dann unnötig, dass ich die makros STACK_SIZE_* definiert hab (Oli)
-	int pop_counter = 4;
+	int pop_counter = STACK_SIZE_FLOAT;
 
 	while (head) {
 		// Function label
 		if (head->row->instr == MCC_IR_INSTR_FUNC_LABEL) {
 			head->stack_size = get_frame_size_of_function(head);
 			current_position = 0;
-			pop_counter = 4;
+			pop_counter = STACK_SIZE_FLOAT;
 			func = head;
 			head = head->next;
 			continue;

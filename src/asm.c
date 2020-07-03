@@ -721,7 +721,6 @@ arg_to_op(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg, struct mcc_asm
 		operand = mcc_asm_new_literal_operand(arg->lit_int, data);
 		break;
 	case MCC_IR_TYPE_LIT_BOOL:
-		// TODO: is the implicit casting from bool to int here intentional?
 		operand = mcc_asm_new_literal_operand(arg->lit_bool, data);
 		break;
 	case MCC_IR_TYPE_ROW:
