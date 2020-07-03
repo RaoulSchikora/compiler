@@ -97,7 +97,6 @@ static int get_argument_size(struct mcc_ir_arg *arg, struct mcc_ir_row *ir)
 	struct mcc_ir_row *ref = NULL;
 
 	switch (arg->type) {
-	// Not on the stack
 	case MCC_IR_TYPE_LIT_STRING:
 		return STACK_SIZE_STRING;
 	case MCC_IR_TYPE_LIT_INT:
