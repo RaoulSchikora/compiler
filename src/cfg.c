@@ -2,8 +2,8 @@
 
 #include <assert.h>
 #include <stdbool.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 //---------------------------------------------------------------------------------------- Annotate IR with leaders
 
@@ -316,25 +316,25 @@ struct mcc_basic_block *mcc_cfg_limit_to_function(char *function_identifier, str
 {
 	assert(function_identifier);
 	assert(cfg_first);
-	struct mcc_basic_block *first = cfg_first;
-	while (cfg_first) {
-		if (cfg_first->leader->arg1) {
-			if (cfg_first->leader->arg1->type == MCC_IR_TYPE_FUNC_LABEL) {
+	struct mcc_basic_block *head = cfg_first;
+	while (head) {
+		if (head->leader->arg1) {
+			if (head->leader->arg1->type == MCC_IR_TYPE_FUNC_LABEL) {
 				// Right function
-				if (strcmp(cfg_first->leader->arg1->func_label, function_identifier) == 0) {
-					remove_all_bbs_above(first, cfg_first);
-					remove_cfg_after_next_function_label(cfg_first);
+				if (strcmp(head->leader->arg1->func_label, function_identifier) == 0) {
+					remove_all_bbs_above(cfg_first, head);
+					remove_cfg_after_next_function_label(head);
 					break;
 				}
 			}
 		}
-		cfg_first = cfg_first->next;
+		head = head->next;
 	}
-	if (!cfg_first) {
-		mcc_delete_cfg_and_ir(first);
+	if (!head) {
+		mcc_delete_cfg_and_ir(cfg_first);
 		return NULL;
 	}
-	return cfg_first;
+	return head;
 }
 
 //---------------------------------------------------------------------------------------- Functions: Set up
