@@ -335,6 +335,8 @@ static void generate_ir_arguments(struct mcc_ast_arguments *arguments, struct ir
 			snprintf(tmp, size, "$tmp%d", data->tmp_counter);
 			data->tmp_counter += 1;
 			struct mcc_ir_arg *lit = generate_ir_expression(arguments->expression, data);
+			if (!lit)
+				return;
 			struct mcc_ir_row_type *type1 = get_type_of_row(lit, arguments->expression, data);
 			struct mcc_ir_row_type *type2 = get_type_of_row(lit, arguments->expression, data);
 			struct mcc_ir_arg *ident1 = new_arg_identifier_from_string(tmp, data);
