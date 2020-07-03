@@ -315,26 +315,26 @@ static void remove_cfg_after_next_function_label(struct mcc_basic_block *head)
 struct mcc_basic_block *mcc_cfg_limit_to_function(char *function_identifier, struct mcc_basic_block *cfg_first)
 {
 	assert(function_identifier);
-	assert(cfg);
-	struct mcc_basic_block *first = cfg;
-	while (cfg) {
-		if (cfg->leader->arg1) {
-			if (cfg->leader->arg1->type == MCC_IR_TYPE_FUNC_LABEL) {
+	assert(cfg_first);
+	struct mcc_basic_block *first = cfg_first;
+	while (cfg_first) {
+		if (cfg_first->leader->arg1) {
+			if (cfg_first->leader->arg1->type == MCC_IR_TYPE_FUNC_LABEL) {
 				// Right function
-				if (strcmp(cfg->leader->arg1->func_label, function_identifier) == 0) {
-					remove_all_bbs_above(first, cfg);
-					remove_cfg_after_next_function_label(cfg);
+				if (strcmp(cfg_first->leader->arg1->func_label, function_identifier) == 0) {
+					remove_all_bbs_above(first, cfg_first);
+					remove_cfg_after_next_function_label(cfg_first);
 					break;
 				}
 			}
 		}
-		cfg = cfg->next;
+		cfg_first = cfg_first->next;
 	}
-	if (!cfg) {
+	if (!cfg_first) {
 		mcc_delete_cfg_and_ir(first);
 		return NULL;
 	}
-	return cfg;
+	return cfg_first;
 }
 
 //---------------------------------------------------------------------------------------- Functions: Set up
