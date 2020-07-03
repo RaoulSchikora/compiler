@@ -247,31 +247,6 @@ static int get_frame_size_of_function(struct mcc_annotated_ir *head)
 	return frame_size;
 }
 
-int mcc_get_array_base_size(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg)
-{
-	assert(arg);
-	assert(an_ir);
-	assert(an_ir->row->arg1 == arg || an_ir->row->arg2 == arg);
-
-	an_ir = mcc_get_function_label(an_ir);
-
-	while (an_ir) {
-		if (an_ir->row->instr == MCC_IR_INSTR_ARRAY) {
-			if (strcmp(an_ir->row->arg1->ident, arg->arr_ident) == 0) {
-				return get_row_size(an_ir->row);
-			}
-		}
-		if (an_ir->row->instr == MCC_IR_INSTR_ASSIGN) {
-			if (an_ir->prev->row->instr == MCC_IR_INSTR_POP &&
-			    strcmp(an_ir->row->arg1->ident, arg->arr_ident) == 0) {
-				return get_row_size(an_ir->row);
-			}
-		}
-		an_ir = an_ir->next;
-	}
-	return 0;
-}
-
 int mcc_get_array_base_stack_loc(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg)
 {
 	assert(arg);

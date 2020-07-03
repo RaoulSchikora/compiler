@@ -610,11 +610,10 @@ get_array_element_operand(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg
 
 	if (is_reference) {
 		mcc_asm_new_line(MCC_ASM_MOVL, ebp(offset, data), ecx(data), data);
-		return mcc_asm_new_computed_offset_operand(0, MCC_ASM_ECX, MCC_ASM_EBX,
-		                                           mcc_get_array_base_size(an_ir, arg), data);
+		return mcc_asm_new_computed_offset_operand(0, MCC_ASM_ECX, MCC_ASM_EBX, DWORD_SIZE, data);
 	} else {
 		return mcc_asm_new_computed_offset_operand(mcc_get_array_base_stack_loc(an_ir, arg), MCC_ASM_EBP,
-		                                           MCC_ASM_EBX, mcc_get_array_base_size(an_ir, arg), data);
+		                                           MCC_ASM_EBX, DWORD_SIZE, data);
 	}
 }
 
