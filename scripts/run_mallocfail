@@ -2,7 +2,7 @@
 
 function print_usage(){
 		echo ""
-		echo "Usage: ./mallocfail <repetitions> <program> <argument to program>..."
+		echo "Usage: ./run_mallocfail <repetitions> <program> <argument to program>..."
 		echo ""
 		echo "Test <program> for error handling capabilities, by repeatedly running gdb <repetitions> times and 
 letting individual mallocs fail systematically."
@@ -32,7 +32,7 @@ x=$1
 while [[ $x -ge 0 ]]
 do 
 	gdb -ex run -ex quit --args env LD_PRELOAD=/usr/local/lib/mallocfail.so $2 $3;
-	echo $x
+	echo " --------------------------------------------------------------- $x runs left"
 	x=$(( $x - 1 ))
 done
 
