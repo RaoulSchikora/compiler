@@ -4,7 +4,7 @@ function print_usage(){
 		echo ""
 		echo "Usage: ./run_mallocfail <repetitions> <program> <argument to program>..."
 		echo ""
-		echo "Test <program> for error handling capabilities, by repeatedly running gdb <repetitions> times and 
+		echo "Test <program> for error handling capabilities, by running gdb <repetitions> times and 
 letting individual mallocs fail systematically."
 		echo "If an error arises, gdb will ask if you want to quit. Hit 'n' and have a look at the call stack."
 		echo "If no SIGSEV or similar errors arise, gdb will quit and try again."
@@ -12,13 +12,25 @@ letting individual mallocs fail systematically."
 		echo "Makes use of the mallocfail library: https://github.com/ralight/mallocfail."
 		echo "Assumes that the library is installed at /usr/local/lib/mallocfail.so"
 		echo ""
-		echo "Note: <program> should be compiled with the debug option for gdb."
+		echo "<program> should be compiled with the debug option for gdb."
 		exit
 }
 
-if [[ "$1" == "-h" ]]
+if [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]] || [[ $# -lt 2 ]]
 	then
 		print_usage
+fi
+
+if ! [[ -x $2 ]]
+	then 
+		echo "File does not exist or is not executable"
+		exit 1
+fi
+
+if ! [[ 0 -lt $1 ]]
+	then 
+		echo "<repetitions> must be at least 1. See run_mallocfail -h for usage info."
+		exit 1
 fi
 
 # Clear previous run
