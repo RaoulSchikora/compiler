@@ -41,11 +41,11 @@ fi
 
 x=$1
 # Execute gdb
-while [[ $x -ge 0 ]]
+while [[ $x -gt 0 ]]
 do 
-	gdb -ex run -ex quit --args env LD_PRELOAD=/usr/local/lib/mallocfail.so $2 $3;
-	echo " --------------------------------------------------------------- $x runs left"
+	gdb -q -ex run -ex quit --args env LD_PRELOAD=/usr/local/lib/mallocfail.so $2 $3;
 	x=$(( $x - 1 ))
+	echo " --------------------------------------------------------------- $x runs left"
 done
 
 # Remove the list of hashes to clear the state for the next run
