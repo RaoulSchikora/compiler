@@ -41,7 +41,6 @@ void mcc_delete_annotated_ir(struct mcc_annotated_ir *head)
 
 static struct mcc_ir_row *first_line_of_function(struct mcc_ir_row *ir);
 static int get_row_size(struct mcc_ir_row *ir);
-static int get_argument_size(struct mcc_ir_arg *arg, struct mcc_ir_row *ir);
 
 // --------------------------------------------------------------------------------------- Calc stack size and position
 
@@ -71,54 +70,6 @@ static bool assignment_is_first_occurence(struct mcc_ir_row *first, struct mcc_i
 	return true;
 }
 
-// Finds first occurence of variable (not array element) in a function
-static struct mcc_ir_row *find_first_occurence(char *identifier, struct mcc_ir_row *ir)
-{
-	ir = first_line_of_function(ir);
-	ir = ir->next_row;
-	while (ir && (ir->instr != MCC_IR_INSTR_FUNC_LABEL)) {
-		if (ir->instr == MCC_IR_INSTR_ASSIGN || ir->instr == MCC_IR_INSTR_ARRAY) {
-			if (strcmp(identifier, ir->arg1->ident) == 0) {
-				return ir;
-			}
-		}
-		ir = ir->next_row;
-	}
-
-	return NULL;
-}
-
-// This function returns the size of an argument in the IR line.
-// Since semantic consistency is guaranteed, we can infer the required size of an IR line
-// by knowing the size of one of its arguments
-static int get_argument_size(struct mcc_ir_arg *arg, struct mcc_ir_row *ir)
-{
-	assert(arg);
-	struct mcc_ir_row *ref = NULL;
-
-	switch (arg->type) {
-	case MCC_IR_TYPE_LIT_STRING:
-	case MCC_IR_TYPE_LIT_INT:
-	case MCC_IR_TYPE_LIT_FLOAT:
-	case MCC_IR_TYPE_LIT_BOOL:
-		return DWORD_SIZE;
-	case MCC_IR_TYPE_IDENTIFIER:
-		ref = find_first_occurence(arg->ident, ir);
-		if (!ref || ref->instr != MCC_IR_INSTR_ASSIGN)
-			return 0;
-		return get_argument_size(ref->arg2, ir);
-	case MCC_IR_TYPE_ARR_ELEM:
-		ref = find_first_occurence(arg->arr_ident, ir);
-		if (!ref || ref->instr != MCC_IR_INSTR_ARRAY)
-			return 0;
-		return get_row_size(ref) * ref->type->array_size;
-	case MCC_IR_TYPE_ROW:
-		return get_row_size(arg->row);
-	default:
-		return 0;
-	}
-}
-
 static int get_var_size(struct mcc_ir_row *ir)
 {
 	assert(ir);
@@ -129,8 +80,9 @@ static int get_var_size(struct mcc_ir_row *ir)
 	if (!assignment_is_first_occurence(first, ir)) {
 		return 0;
 	}
-	// "a = x" -> find size of x
-	return get_argument_size(ir->arg2, ir);
+	if (ir->type->type != MCC_IR_ROW_TYPELESS)
+		return DWORD_SIZE;
+	return 0;
 }
 
 static struct mcc_ir_row *first_line_of_function(struct mcc_ir_row *ir)
