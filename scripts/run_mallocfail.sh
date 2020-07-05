@@ -68,15 +68,16 @@ parse_options_and_check_args(){
 	fi
 }
 
-check_mallocfail_lib(){
-	if ! [[ -x $MALLOCFAIL_LIB_DIR ]]
+check_if_executable(){
+	if ! [[ -x $1 ]]
 		then 
-			echo "Mallocfail library not found. Place mallocfail.so in /usr/local/lib/ or use -l"
+			echo "$1 is not executable or does not exist."
 			exit 1
 	fi
 }
 
 run_gdb(){
+	check_if_executable $1
 	gdb -q -ex run -ex quit --args env LD_PRELOAD="$MALLOCFAIL_LIB_DIR" $@
 }
 
@@ -108,7 +109,7 @@ cleanup_if_not(){
 # ------------------------------------------------------------ main
 
 parse_options_and_check_args "$@"
-check_mallocfail_lib
+check_if_executable $MALLOCFAIL_LIB_DIR
 cleanup_if_not "$options_continue"
 loop_gdb "$options_repetitions" "$options_arguments"
 cleanup_if_not "$options_keep_hashes"
