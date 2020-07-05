@@ -378,7 +378,7 @@ static struct mcc_ir_arg *generate_ir_expression_func_call(struct mcc_ast_expres
 	generate_ir_arguments(expression->arguments, data);
 
 	struct mcc_ir_arg *arg = mcc_ir_new_arg(expression->function_identifier, data);
-	if(!arg)
+	if (!arg)
 		return NULL;
 	struct mcc_ir_row_type *type = get_type_of_row(arg, expression, data);
 	struct mcc_ir_row *row = new_row(arg, NULL, MCC_IR_INSTR_CALL, type, data);
@@ -526,6 +526,8 @@ static void generate_ir_statememt_if_else_stmt(struct mcc_ast_statement *stmt, s
 	generate_ir_statement(stmt->if_else_on_true, data);
 
 	struct mcc_ir_arg *l2 = new_arg_label(data);
+	if (!l2)
+		return;
 	bool if_ends_on_return = false;
 	if (data->current->instr != MCC_IR_INSTR_RETURN) {
 		// Jump L2
@@ -558,6 +560,8 @@ static void generate_ir_statememt_if_stmt(struct mcc_ast_statement *stmt, struct
 		return;
 	struct mcc_ir_arg *cond = generate_ir_expression(stmt->if_condition, data);
 	struct mcc_ir_arg *label = new_arg_label(data);
+	if (!label)
+		return;
 	struct mcc_ir_row *jumpfalse = new_row(cond, label, MCC_IR_INSTR_JUMPFALSE, typeless(data), data);
 	append_row(jumpfalse, data);
 	generate_ir_statement(stmt->if_on_true, data);
@@ -579,6 +583,8 @@ static void generate_ir_statement_return(struct mcc_ast_statement *stmt, struct 
 
 	if (stmt->return_value) {
 		struct mcc_ir_arg *exp = generate_ir_expression(stmt->return_value, data);
+		if(!exp)
+			return;
 		struct mcc_ir_row_type *type = get_type_of_row(exp, stmt->return_value, data);
 		struct mcc_ir_row *row = new_row(exp, NULL, MCC_IR_INSTR_RETURN, type, data);
 		append_row(row, data);
@@ -759,6 +765,8 @@ static struct mcc_ir_arg *generate_arg_lit(struct mcc_ast_literal *literal, stru
 		break;
 	case MCC_AST_LITERAL_TYPE_FLOAT:
 		row = new_ir_row_float_tmp(literal->f_value, data);
+		if (!row)
+			return NULL;
 		arg = new_arg_identifier_from_string(row->arg1->ident, data);
 		break;
 	case MCC_AST_LITERAL_TYPE_BOOL:
@@ -1105,6 +1113,8 @@ static struct mcc_ir_row *new_ir_row_float_tmp(double f_value, struct ir_generat
 	struct mcc_ir_row_type *type = new_ir_row_type(MCC_IR_ROW_FLOAT, -1, data);
 	struct mcc_ir_row *row = new_row(arg1, arg2, MCC_IR_INSTR_ASSIGN, type, data);
 	append_row(row, data);
+	if (!arg1 || !arg2 || !row || !type)
+		data->has_failed = true;
 	return row;
 }
 
