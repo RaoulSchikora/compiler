@@ -12,13 +12,14 @@ MALLOCFAIL_LIB_DIR="/usr/local/lib/mallocfail.so"
 
 print_usage(){
 		echo ""
-		echo "Usage: run_mallocfail.sh [-r repetitions] [-k] [-c] [-l /path/to/mallocfail.so] <program> <program argument>"
+		echo "Usage: run_mallocfail.sh [-r repetitions] [-k] [-c] [-l /path/to/mallocfail.so] <program> <program arg>..."
 		echo ""
 		echo "Options:"
 		echo "    -r: Number of repetitions. Defaults to 30."
 		echo "    -k: Keep current state of which mallocs were failed already. Defaults to false."
-		echo "    -c: Continue from previous run and skip already tested mallocs. Defaults to false"
-		echo "    -h: Print usage info"
+		echo "    -c: Continue from previous run and skip already tested mallocs. Defaults to false."
+		echo "    -l: Path to mallocfail.so. Defaults to /usr/local/lib/mallocfail.so."
+		echo "    -h: Print usage info."
 		echo ""
 		echo "Test <program> for error handling capabilities, by running gdb <repetitions> times and 
 letting individual mallocs fail systematically."
@@ -67,8 +68,8 @@ parse_options_and_check_args(){
 	fi
 }
 
-check_executable(){
-	if ! [[ -x $1 ]]
+check_mallocfail_lib(){
+	if ! [[ -x $MALLOCFAIL_LIB_DIR ]]
 		then 
 			echo "Mallocfail library not found. Place mallocfail.so in /usr/local/lib/ or use -l"
 			exit 1
@@ -76,14 +77,15 @@ check_executable(){
 }
 
 run_gdb(){
-	gdb -q -ex run -ex quit --args env LD_PRELOAD=$MALLOCFAIL_LIB_DIR $1 $2
+	gdb -q -ex run -ex quit --args env LD_PRELOAD="$MALLOCFAIL_LIB_DIR" $@
 }
 
 loop_gdb(){
 	x=$1
+	shift
 	while [[ $x -gt 0 ]]
 	do 
-		run_gdb $2 $3 		
+		run_gdb "$@" 		
 		x=$(( $x - 1 ))
 		echo " --------------------------------------------------------------- $x runs left"
 	done
@@ -96,7 +98,7 @@ clear_stored_hashes(){
 	fi
 }
 
-cleanup(){
+cleanup_if_not(){
 	if [[ $1 == "false" ]]
 		then
 			clear_stored_hashes
@@ -106,8 +108,8 @@ cleanup(){
 # ------------------------------------------------------------ main
 
 parse_options_and_check_args "$@"
-check_executable $MALLOCFAIL_LIB_DIR
-cleanup $options_continue
+check_mallocfail_lib
+cleanup_if_not "$options_continue"
 loop_gdb "$options_repetitions" "$options_arguments"
-cleanup $options_keep_hashes
+cleanup_if_not "$options_keep_hashes"
 exit 0
