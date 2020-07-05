@@ -76,9 +76,10 @@ check_if_executable(){
 	fi
 }
 
+# Credit: https://stackoverflow.com/a/8657833
 run_gdb(){
 	check_if_executable $1
-	gdb -q -ex run -ex quit --args env LD_PRELOAD="$MALLOCFAIL_LIB_DIR" $@
+	gdb -q -ex='set confirm on' -ex run -ex quit --args env LD_PRELOAD="$MALLOCFAIL_LIB_DIR" $@
 }
 
 loop_gdb(){
