@@ -1314,6 +1314,8 @@ static char *get_tmp_ident(char *id)
 {
 	memmove(id, id + 1, strlen(id));
 	char *new = malloc(sizeof(char) * strlen(id) + 1);
+	if (!new)
+		return NULL;
 	snprintf(new, strlen(id) + 1, "%s", id);
 	return new;
 }
@@ -1327,6 +1329,8 @@ static char *rename_identifier(char *id, int counter)
 		int extra_length = 2 + length_of_int(counter);
 		int new_length = strlen(id) + extra_length;
 		char *new = malloc(sizeof(char) * new_length);
+		if (!new)
+			return NULL;
 		snprintf(new, new_length, "%s_%d", id, counter);
 		counter++;
 		return new;
