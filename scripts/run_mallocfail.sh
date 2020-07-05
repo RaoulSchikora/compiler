@@ -4,7 +4,6 @@
 
 options_keep_hashes=false
 options_repetitions=30
-options_quiet=false
 options_continue=false
 options_arguments=""
 MALLOCFAIL_LIB_DIR="/usr/local/lib/mallocfail.so"
@@ -13,13 +12,12 @@ MALLOCFAIL_LIB_DIR="/usr/local/lib/mallocfail.so"
 
 print_usage(){
 		echo ""
-		echo "Usage: run_mallocfail.sh [-r repetitions] [-k] [-c] [-q] [-l /path/to/mallocfail.so] <program> <program argument>"
+		echo "Usage: run_mallocfail.sh [-r repetitions] [-k] [-c] [-l /path/to/mallocfail.so] <program> <program argument>"
 		echo ""
 		echo "Options:"
 		echo "    -r: Number of repetitions. Defaults to 30."
 		echo "    -k: Keep current state of which mallocs were failed already. Defaults to false."
 		echo "    -c: Continue from previous run and skip already tested mallocs. Defaults to false"
-		echo "    -q: Quiet mode. Cheap hack making use of what we expect gdb to output. Experimental."
 		echo "    -h: Print usage info"
 		echo ""
 		echo "Test <program> for error handling capabilities, by running gdb <repetitions> times and 
@@ -35,7 +33,7 @@ letting individual mallocs fail systematically."
 }
 
 parse_options_and_check_args(){
-	while getopts "kcqhr:l:" opt; do
+	while getopts "kchr:l:" opt; do
 		case ${opt} in
 			h ) 
 				print_usage
@@ -46,9 +44,6 @@ parse_options_and_check_args(){
 				;;
 			r ) 
 				options_repetitions=$OPTARG
-				;;
-			q ) 
-				options_quiet=true
 				;;
 			c ) 
 				options_continue=true
@@ -81,17 +76,7 @@ check_executable(){
 }
 
 run_gdb(){
-	if [[ $options_quiet == "false" ]]
-		then
-			gdb -q -ex run -ex quit --args env LD_PRELOAD=$MALLOCFAIL_LIB_DIR $1 $2
-		else
-			gdb -q -ex run -ex quit --args env LD_PRELOAD=$MALLOCFAIL_LIB_DIR $1 $2 \
-			| grep -v "Starting program" \
-			| grep -v "Reading symbols" \
-			| grep -v "is executing new program" \
-			| grep -v "Inferior"
-
-	fi
+	gdb -q -ex run -ex quit --args env LD_PRELOAD=$MALLOCFAIL_LIB_DIR $1 $2
 }
 
 loop_gdb(){
