@@ -306,6 +306,7 @@ program             : function_defs { $$ = $1;                                  
 
 #include "scanner.h"
 #include "utils/unused.h"
+#include "utils/length_of_int.h"
 #include "mcc/parser.h"
 
 struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_parser_entry_point entry_point)
@@ -423,7 +424,7 @@ void mcc_parser_error(struct MCC_PARSER_LTYPE *yylloc,
                       struct mcc_parser_result *result,
                       const char *msg)
 {
-	int size = strlen(msg) + 50 + strlen(result->filename);
+	int size = strlen(msg) + length_of_int(yylloc->first_line) + length_of_int(yylloc->first_column) + strlen(result->filename) + 6;
 	result->error_buffer = (char *)malloc(sizeof(char) * size);
 	if (!result->error_buffer)
 		return;

@@ -10,6 +10,7 @@
 #include "mcc/asm.h"
 #include "utils/print_string.h"
 #include "utils/unused.h"
+#include "utils/length_of_int.h"
 
 //---------------------------------------------------------------------------------------- Functions: Print ASM
 

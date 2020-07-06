@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include "mcc/ast_visit.h"
+#include "utils/length_of_int.h"
 
 // clang-format off
 
@@ -29,15 +30,6 @@ struct ir_generation_userdata {
 	unsigned label_counter;
 	unsigned tmp_counter;
 };
-
-int length_of_int(int num)
-{
-	if (num == 0)
-		return 1;
-	if (num <= 0)
-		return floor(log10((-1) * num)) + 2;
-	return floor(log10(num)) + 1;
-}
 
 bool is_binary_instr(struct mcc_ir_row *row)
 {
