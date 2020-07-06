@@ -15,7 +15,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-char *filename; /* current filename here for the lexer */
+/* next 30 lines taken from p. 202 http://web.iitd.ac.in/~sumeet/flex__bison.pdf */
 
 typedef struct MCC_PARSER_LTYPE {
 	int first_line;
@@ -42,7 +42,7 @@ do                                                        \
         YYRHSLOC(Rhs, 0).last_line;                       \
       (Cur).first_column = (Cur).last_column =            \
         YYRHSLOC(Rhs, 0).last_column;                     \
-      (Cur).filename     = NULL;                          \
+      (Cur).filename     = result->filename;              \
     }                                                     \
 while (0)
 }
@@ -57,12 +57,12 @@ void mcc_parser_error();
 		do_loc(ast_node,ast_sloc,ast_sloc_last); \
 	} \
 
-#define do_loc(ast_node, ast_sloc, ast_sloc_last) 			      \
+#define do_loc(ast_node, ast_sloc, ast_sloc_last) 			        \
 	(ast_node)->node.sloc.start_col = (ast_sloc).first_column;    \
 	(ast_node)->node.sloc.start_line = (ast_sloc).first_line;     \
 	(ast_node)->node.sloc.end_col = (ast_sloc_last).last_column;  \
 	(ast_node)->node.sloc.end_line = (ast_sloc_last).last_line;   \
-	(ast_node)->node.sloc.filename = filename;          \
+	(ast_node)->node.sloc.filename = result->filename;            \
 
 int start_token;
 
@@ -351,18 +351,18 @@ struct mcc_parser_result mcc_parse_file(FILE *input, enum mcc_parser_entry_point
 	}
 	mcc_parser_set_in(input, scanner);
 
-	if (entry_point != MCC_PARSER_ENTRY_POINT_PROGRAM) {
-		filename = "<test_suite>";
-		start_token = 1;
-	} else {
-		filename = name;
-		start_token = 2;
-	}
-
 	struct mcc_parser_result result = {
 	    .status = MCC_PARSER_STATUS_OK,
 	    .error_buffer = NULL,
 	};
+
+	if (entry_point != MCC_PARSER_ENTRY_POINT_PROGRAM) {
+		result.filename = "<test_suite>";
+		start_token = 1;
+	} else {
+		result.filename = name;
+		start_token = 2;
+	}
 
 	if (yyparse(scanner, &result) != 0) {
 		result.status = MCC_PARSER_STATUS_UNKNOWN_ERROR;
@@ -423,11 +423,11 @@ void mcc_parser_error(struct MCC_PARSER_LTYPE *yylloc,
                       struct mcc_parser_result *result,
                       const char *msg)
 {
-	int size = strlen(msg) + 50 + strlen(yylloc->filename);
+	int size = strlen(msg) + 50 + strlen(result->filename);
 	result->error_buffer = (char *)malloc(sizeof(char) * size);
 	if (!result->error_buffer)
 		return;
-	snprintf(result->error_buffer, size, "%s:%d:%d: %s\n", yylloc->filename, yylloc->first_line, yylloc->first_column, msg);
+	snprintf(result->error_buffer, size, "%s:%d:%d: %s\n", result->filename, yylloc->first_line, yylloc->first_column, msg);
 	// scanner needed to get meaningfull msg
 	UNUSED(scanner);
 }

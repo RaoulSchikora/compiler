@@ -36,6 +36,7 @@ struct mcc_parser_result {
 	enum mcc_parser_entry_point entry_point;
 
 	char *error_buffer;
+	char *filename;
 
 	union {
 		// MCC_PARSER_ENTRY_POINT_EXPRESSION

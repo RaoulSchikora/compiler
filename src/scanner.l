@@ -19,7 +19,6 @@
 #define YYLTYPE MCC_PARSER_LTYPE
 
 #define YY_USER_ACTION \
-    yylloc->filename = filename; \
 	yylloc->first_column = yylloc->last_column; \
 	yylloc->last_column += yyleng; \
 	yylloc->first_line = yylloc->last_line;
@@ -114,6 +113,6 @@ string_literal \"[^"]*\"
 <COMMENT>"*/"     { BEGIN INITIAL; /* get back to normal mode */ }
 
 
-<<EOF>>           { yylloc->filename = filename; return TK_END; }
+<<EOF>>           { return TK_END; }
 
 .                 { fprintf(stderr, "invalid character '%c'. I'll ignore it and continue.\n", yytext[0]); }
