@@ -78,13 +78,13 @@ check_if_executable(){
 
 # Credit: https://stackoverflow.com/a/8657833
 run_gdb(){
-	check_if_executable $1
 	gdb -q -ex='set confirm on' -ex run -ex quit --args env LD_PRELOAD="$MALLOCFAIL_LIB_DIR" $@
 }
 
-loop_gdb(){
+gdb_loop(){
 	x=$1
 	shift
+	check_if_executable $1
 	while [[ $x -gt 0 ]]
 	do 
 		run_gdb "$@" 		
@@ -112,6 +112,6 @@ cleanup_if_not(){
 parse_options_and_check_args "$@"
 check_if_executable $MALLOCFAIL_LIB_DIR
 cleanup_if_not "$options_continue"
-loop_gdb "$options_repetitions" "$options_arguments"
+gdb_loop "$options_repetitions" "$options_arguments"
 cleanup_if_not "$options_keep_hashes"
 exit 0
