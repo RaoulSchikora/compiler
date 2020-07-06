@@ -308,8 +308,6 @@ program             : function_defs { $$ = $1;                                  
 #include "utils/unused.h"
 #include "mcc/parser.h"
 
-    char *buffer;
-
 struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_parser_entry_point entry_point)
 {
 	assert(input_string);
@@ -368,14 +366,10 @@ struct mcc_parser_result mcc_parse_file(FILE *input, enum mcc_parser_entry_point
 
 	if (yyparse(scanner, &result) != 0) {
 		result.status = MCC_PARSER_STATUS_UNKNOWN_ERROR;
-		result.error_buffer = (char *)malloc(sizeof(char) * strlen(buffer) + 1);
 		if (!result.error_buffer) {
-			free(buffer);
 			mcc_parser_lex_destroy(scanner);
 			return result;
 		}
-		strcpy(result.error_buffer, buffer);
-		free(buffer);
 	}
 
 	mcc_parser_lex_destroy(scanner);
@@ -425,27 +419,16 @@ void mcc_ast_delete_result(struct mcc_parser_result *result)
 
 // Writes error message to a variable "buffer" that is allocated on the heap
 void mcc_parser_error(struct MCC_PARSER_LTYPE *yylloc,
-                      struct mcc_parser_result *result,
                       yyscan_t *scanner,
+                      struct mcc_parser_result *result,
                       const char *msg)
 {
 	int size = strlen(msg) + 50 + strlen(yylloc->filename);
-	char *str = (char *)malloc(sizeof(char) * size);
-	if (!str)
+	result->error_buffer = (char *)malloc(sizeof(char) * size);
+	if (!result->error_buffer)
 		return;
-	snprintf(str, size, "%s:%d:%d: %s\n", yylloc->filename, yylloc->first_line, yylloc->first_column, msg);
-
-	buffer = (char *)malloc(sizeof(char) * strlen(str) + 1);
-	if (!buffer) {
-		free(str);
-		return;
-	}
-	strcpy(buffer, str);
-
-	free(str);
-
+	snprintf(result->error_buffer, size, "%s:%d:%d: %s\n", yylloc->filename, yylloc->first_line, yylloc->first_column, msg);
 	// scanner needed to get meaningfull msg
 	UNUSED(scanner);
-	UNUSED(result);
 }
 
