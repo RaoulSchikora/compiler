@@ -22,7 +22,6 @@ typedef struct MCC_PARSER_LTYPE {
 	int first_column;
 	int last_line;
 	int last_column;
-	char *filename;
 } MCC_PARSER_LTYPE;
 
 # define MCC_PARSER_LTYPE_IS_DECLARED 1 /* alert the parser that we have our own definition */
@@ -34,7 +33,6 @@ do                                                        \
       (Cur).first_column = YYRHSLOC(Rhs, 1).first_column; \
       (Cur).last_line    = YYRHSLOC(Rhs, N).last_line;    \
       (Cur).last_column  = YYRHSLOC(Rhs, N).last_column;  \
-      (Cur).filename     = YYRHSLOC(Rhs, 1).filename;     \
     }                                                     \
   else                                                    \
     {                                                     \
@@ -42,7 +40,6 @@ do                                                        \
         YYRHSLOC(Rhs, 0).last_line;                       \
       (Cur).first_column = (Cur).last_column =            \
         YYRHSLOC(Rhs, 0).last_column;                     \
-      (Cur).filename     = result->filename;              \
     }                                                     \
 while (0)
 }
