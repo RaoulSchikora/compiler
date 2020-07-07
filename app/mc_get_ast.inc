@@ -33,7 +33,6 @@ struct mcc_parser_result get_ast_from_files(struct mc_cl_parser_command_line_par
 			// Free all other returned ASTs
 			for (int j = 0; j < i; j++) {
 				mcc_ast_delete_result(parse_results + j);
-				free(parse_results + j);
 			}
 			return parse_results[i];
 		}
@@ -63,11 +62,12 @@ struct mcc_parser_result parse_file(char *filename)
 		struct mcc_parser_result result = {
 		    .status = MCC_PARSER_STATUS_UNKNOWN_ERROR,
 		};
-		char *string = malloc(sizeof(char) * (1 + strlen("unable to open file\n")));
+		unsigned size = 1 + strlen("unable to open file\n");
+		char *string = malloc(sizeof(char) * (size));
 		if (!string) {
 			result.error_buffer = NULL;
 		} else {
-			strcpy(string, "unable to open file\n");
+			strncpy(string, "unable to open file\n", size);
 			result.error_buffer = string;
 		}
 		return result;
