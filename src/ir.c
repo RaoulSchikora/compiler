@@ -206,11 +206,12 @@ static struct mcc_ir_arg *generate_ir_expression_binary_op(struct mcc_ast_expres
 	assert(expression->lhs);
 	assert(expression->rhs);
 	assert(data);
-	if (data->has_failed)
-		return NULL;
 
 	struct mcc_ir_arg *lhs = generate_ir_expression(expression->lhs, data);
 	struct mcc_ir_arg *rhs = generate_ir_expression(expression->rhs, data);
+	
+	if (data->has_failed)
+		return NULL;
 
 	enum mcc_ir_instruction instr = MCC_IR_INSTR_UNKNOWN;
 	struct mcc_ir_row_type *type = NULL;
@@ -277,12 +278,13 @@ static struct mcc_ir_arg *generate_ir_expression_unary_op(struct mcc_ast_express
 {
 	assert(expression->child);
 	assert(data);
-	if (data->has_failed)
-		return NULL;
 
 	struct mcc_ir_arg *child = generate_ir_expression(expression->child, data);
 	enum mcc_ir_instruction instr = MCC_IR_INSTR_UNKNOWN;
 	struct mcc_ir_row_type *type = NULL;
+	if (data->has_failed)
+		return NULL;
+
 	switch (expression->u_op) {
 	case MCC_AST_UNARY_OP_NEGATIV:
 		instr = MCC_IR_INSTR_NEGATIV;
@@ -814,11 +816,11 @@ static struct mcc_ir_arg *copy_label_arg(struct mcc_ir_arg *arg, struct ir_gener
 
 static struct mcc_ir_arg *copy_arg(struct mcc_ir_arg *arg, struct ir_generation_userdata *data)
 {
-	assert(arg);
-	assert(data);
-
 	if (data->has_failed)
 		return NULL;
+		
+	assert(arg);
+	assert(data);
 
 	switch (arg->type) {
 	case MCC_IR_TYPE_LIT_INT:
