@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
 	struct mcc_ir_row *ir = mcc_ir_generate((&result)->program );
 	if (!ir) {
 		if (!command_line->options->quiet) {
-			fprintf(stderr, "IR generation failed. Unknwon error\n");
+			fprintf(stderr, "IR generation failed. Unknwon error.\n");
 		}
 		return EXIT_FAILURE;
 	}

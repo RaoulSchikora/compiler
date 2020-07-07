@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
 		if (result.error_buffer) {
 			fprintf(stderr, "%s", result.error_buffer);
 		} else {
-			fprintf(stderr, "Unknown error from parser. Error buffer is NULL.\n");
+			fprintf(stderr, "Parsing failed. Unknwon error.\n");
 		}
 		return EXIT_FAILURE;
 	}

@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
 		if (result.error_buffer) {
 			fprintf(stderr, "%s", result.error_buffer);
 		} else {
-			fprintf(stderr, "Unknown error from parser. Error buffer is NULL.\n");
+			fprintf(stderr, "Parsing failed. Unknwon error.\n");
 		}
 		return EXIT_FAILURE;
 	}
@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
 
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&result)->program);
 	if (!table) {
-		fprintf(stderr, "mcc_symbol_table_create: returned NULL pointer\n");
+		fprintf(stderr, "Symbol table generation failed. Unknown error.\n");
 		return EXIT_FAILURE;
 	}
 	register_cleanup(table);
@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
 
 	struct mcc_semantic_check *semantic_check = mcc_semantic_check_run_all((&result)->program, table);
 	if (!semantic_check) {
-		fprintf(stderr, "library error: mcc_semantic_check_run_all returned with NULL\n");
+		fprintf(stderr, "Process of semantic checks failed. Unknwon error.\n");
 		return EXIT_FAILURE;
 	}
 	register_cleanup(semantic_check);
@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
 
 	struct mcc_ir_row *ir = mcc_ir_generate((&result)->program );
 	if (!ir) {
-		fprintf(stderr, "IR generation failed\n");
+		fprintf(stderr, "IR generation failed. Unknwon error.\n");
 		return EXIT_FAILURE;
 	}
 	register_cleanup(ir);

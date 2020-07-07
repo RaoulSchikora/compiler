@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
 		if (result.error_buffer) {
 			fprintf(stderr, "%s", result.error_buffer);
 		} else {
-			fprintf(stderr, "Unknown error from parser. Error buffer is NULL.\n");
+			fprintf(stderr, "Parsing failed. Unknwon error.\n");
 		}
 		return EXIT_FAILURE;
 	}
@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
 
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&result)->program);
 	if (!table) {
-		fprintf(stderr, "mcc_symbol_table_create: returned NULL pointer\n");
+		fprintf(stderr, "Symbol table generation failed. Unknown error.\n");
 		return EXIT_FAILURE;
 	}
 	register_cleanup(table);

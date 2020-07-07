@@ -197,7 +197,7 @@ char *mc_cl_parser_stdin_to_string(bool quiet)
 	char *content = malloc(sizeof(char) * BUF_SIZE);
 	if (!content) {
 		if (!quiet) {
-			perror("mc_cl_stdin_to_string:Failed to allocate content");
+			perror("mc_cl_stdin_to_string: Failed to allocate content");
 		}
 		return NULL;
 	}
@@ -208,7 +208,7 @@ char *mc_cl_parser_stdin_to_string(bool quiet)
 		content = realloc(content, contentSize);
 		if (!content) {
 			if (!quiet) {
-				perror("mc_cl_stdin_to_string:Failed to reallocate content");
+				perror("mc_cl_stdin_to_string: Failed to reallocate content");
 			}
 			free(old);
 			return NULL;
@@ -302,7 +302,7 @@ static struct mc_cl_parser_program_arguments *parse_arguments(int argc, char *ar
 
 	struct mc_cl_parser_program_arguments *arguments = malloc(sizeof(*arguments));
 	if (!arguments) {
-		perror("parse_arguments: malloc");
+		perror("parse_arguments: malloc failed");
 		return NULL;
 	}
 
@@ -314,7 +314,7 @@ static struct mc_cl_parser_program_arguments *parse_arguments(int argc, char *ar
 
 	char **args = malloc(sizeof(char *) * (argc - optind));
 	if (!args) {
-		perror("parse_arguments: malloc");
+		perror("parse_arguments: malloc failed");
 		free(arguments);
 		return NULL;
 	}
@@ -339,7 +339,7 @@ static struct mc_cl_parser_command_line_parser *parse_command_line(int argc, cha
 	struct mc_cl_parser_command_line_parser *parser = malloc(sizeof(*parser));
 	if (!parser) {
 		if (!options->quiet) {
-			perror("parse_command_line: malloc");
+			perror("parse_command_line: malloc failed");
 		}
 		return NULL;
 	}
