@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
 			}
 		} else {
 			if (!command_line->options->quiet) {
-				fprintf(stderr, "Unknown error from parser. Error buffer is NULL.\n");
+				fprintf(stderr, "Parsing failed. Unknwon error.\n");
 			}
 		}
 		return EXIT_FAILURE;
@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&result)->program);
 	if (!table) {
 		if (!command_line->options->quiet) {
-			fprintf(stderr, "mcc_symbol_table_create: returned NULL pointer\n");
+			fprintf(stderr, "Symbol table generation failed. Unknown error.\n");
 		}
 		return EXIT_FAILURE;
 	}
@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 	struct mcc_semantic_check *semantic_check = mcc_semantic_check_run_all((&result)->program, table);
 	if (!semantic_check) {
 		if (!command_line->options->quiet) {
-			fprintf(stderr, "library error: mcc_semantic_check_run_all returned with NULL\n");
+			fprintf(stderr, "Process of semantic checks failed. Unknwon error.\n");
 		}
 		return EXIT_FAILURE;
 	}
@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
 	struct mcc_ir_row *ir = mcc_ir_generate((&result)->program );
 	if (!ir) {
 		if (!command_line->options->quiet) {
-			fprintf(stderr, "IR generation failed\n");
+			fprintf(stderr, "IR generation failed. Unknwon error\n");
 		}
 		return EXIT_FAILURE;
 	}
@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
 	struct mcc_asm *code = mcc_asm_generate(ir);
 	if (!code) {
 		if (!command_line->options->quiet) {
-			fprintf(stderr, "Assembly code generation failed\n");
+			fprintf(stderr, "Assembly code generation failed. Unknown error.\n");
 		}
 		return EXIT_FAILURE;
 	}
