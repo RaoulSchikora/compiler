@@ -34,7 +34,7 @@ err_to_check_with_sloc(struct mcc_semantic_check *check, struct mcc_ast_node nod
 	if (!buffer) {
 		return MCC_SEMANTIC_CHECK_ERROR_MALLOC_FAILED;
 	}
-	if (0 > snprintf(buffer, size, "%s:%d:%d: %s\n", node.sloc.filename, node.sloc.start_line, node.sloc.start_col,
+	if (0 > snprintf(buffer, size, "%s:%d:%d: %s", node.sloc.filename, node.sloc.start_line, node.sloc.start_col,
 	                 string)) {
 		free(buffer);
 		return MCC_SEMANTIC_CHECK_ERROR_SNPRINTF_FAILED;
