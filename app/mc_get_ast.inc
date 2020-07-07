@@ -18,6 +18,29 @@ struct mcc_parser_result get_ast_from_files(struct mc_cl_parser_command_line_par
 
 struct mcc_parser_result get_ast_from_stdin(bool quiet);
 
+struct mcc_parser_result parse_file(char *filename)
+{
+	FILE *f = fopen(filename, "rt");
+	if (!f) {
+		struct mcc_parser_result result = {
+		    .status = MCC_PARSER_STATUS_UNKNOWN_ERROR,
+		};
+		unsigned size = 1 + strlen("unable to open file\n");
+		char *string = malloc(sizeof(char) * (size));
+		if (!string) {
+			result.error_buffer = NULL;
+		} else {
+			strncpy(string, "unable to open file\n", size);
+			result.error_buffer = string;
+		}
+		return result;
+	}
+	struct mcc_parser_result return_value;
+	return_value = mcc_parse_file(f, MCC_PARSER_ENTRY_POINT_PROGRAM, filename);
+	fclose(f);
+	return return_value;
+}
+
 struct mcc_parser_result get_ast_from_files(struct mc_cl_parser_command_line_parser *command_line)
 {
 
@@ -53,29 +76,6 @@ struct mcc_parser_result get_ast_from_stdin(bool quiet)
 	result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
 	free(input);
 	return result;
-}
-
-struct mcc_parser_result parse_file(char *filename)
-{
-	FILE *f = fopen(filename, "rt");
-	if (!f) {
-		struct mcc_parser_result result = {
-		    .status = MCC_PARSER_STATUS_UNKNOWN_ERROR,
-		};
-		unsigned size = 1 + strlen("unable to open file\n");
-		char *string = malloc(sizeof(char) * (size));
-		if (!string) {
-			result.error_buffer = NULL;
-		} else {
-			strncpy(string, "unable to open file\n", size);
-			result.error_buffer = string;
-		}
-		return result;
-	}
-	struct mcc_parser_result return_value;
-	return_value = mcc_parse_file(f, MCC_PARSER_ENTRY_POINT_PROGRAM, filename);
-	fclose(f);
-	return return_value;
 }
 
 #endif // MC_GET_AST_INC

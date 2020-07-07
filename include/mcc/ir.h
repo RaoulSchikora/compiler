@@ -1,8 +1,8 @@
 // Intermediate Representation (IR)
 //
 // This module provides infrastructure for the Intermediate Representation.
-// It is implemented as Three Address Code in the form of triples. 
-// The result of an instruction that takes two or less arguments is assigned to one variable (either temporary or a 
+// It is implemented as Three Address Code in the form of triples.
+// The result of an instruction that takes two or less arguments is assigned to one variable (either temporary or a
 // variable from the original code).
 
 #ifndef MCC_IR_H
@@ -99,10 +99,6 @@ struct mcc_ir_row {
 	struct mcc_ir_row *next_row;
 };
 
-// --------------------------------------------------------------------------------------- Helpers
-
-bool is_binary_instr(struct mcc_ir_row *row);
-
 //---------------------------------------------------------------------------------------- Generate IR datastructures
 
 // Returns NULL if something along the genration process failed
@@ -110,12 +106,12 @@ struct mcc_ir_row *mcc_ir_generate(struct mcc_ast_program *ast);
 
 //---------------------------------------------------------------------------------------- Cleanup
 
-void mcc_ir_delete_ir(struct mcc_ir_row *head);
+void mcc_ir_delete_ir_arg(struct mcc_ir_arg *arg);
 
 void mcc_ir_delete_ir_row_type(struct mcc_ir_row_type *type);
 
 void mcc_ir_delete_ir_row(struct mcc_ir_row *row);
 
-void mcc_ir_delete_ir_arg(struct mcc_ir_arg *arg);
+void mcc_ir_delete_ir(struct mcc_ir_row *head);
 
 #endif

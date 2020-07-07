@@ -82,6 +82,9 @@ void mcc_ast_visit_expression(struct mcc_ast_expression *expression, struct mcc_
 
 void mcc_ast_visit_statement(struct mcc_ast_statement *statement, struct mcc_ast_visitor *visitor);
 
+void mcc_ast_visit_compound_statement(struct mcc_ast_compound_statement *compound_statement,
+                                      struct mcc_ast_visitor *visitor);
+
 void mcc_ast_visit_literal(struct mcc_ast_literal *literal, struct mcc_ast_visitor *visitor);
 
 void mcc_ast_visit_declaration(struct mcc_ast_declaration *declaration, struct mcc_ast_visitor *visitor);
@@ -91,9 +94,6 @@ void mcc_ast_visit_assignment(struct mcc_ast_assignment *assignment, struct mcc_
 void mcc_ast_visit_type(struct mcc_ast_type *type, struct mcc_ast_visitor *visitor);
 
 void mcc_ast_visit_identifier(struct mcc_ast_identifier *identifier, struct mcc_ast_visitor *visitor);
-
-void mcc_ast_visit_compound_statement(struct mcc_ast_compound_statement *compound_statement,
-                                      struct mcc_ast_visitor *visitor);
 
 void mcc_ast_visit_function_definition(struct mcc_ast_function_definition *function_definition,
                                        struct mcc_ast_visitor *visitor);

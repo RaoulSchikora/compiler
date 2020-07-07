@@ -127,6 +127,45 @@ mc_cl_parser_parse(int argc, char *argv[], char *usage_string, enum mc_apps app)
 	return command_line;
 }
 
+// from: https://stackoverflow.com/questions/2496668
+char *mc_cl_parser_stdin_to_string(bool quiet)
+{
+	char buffer[BUF_SIZE];
+	size_t contentSize = 1; // includes NULL
+	/* Preallocate space. */
+	char *content = malloc(sizeof(char) * BUF_SIZE);
+	if (!content) {
+		if (!quiet) {
+			perror("mc_cl_stdin_to_string: Failed to allocate content");
+		}
+		return NULL;
+	}
+	content[0] = '\0'; // make null-terminated
+	while (fgets(buffer, BUF_SIZE, stdin)) {
+		char *old = content;
+		contentSize += strlen(buffer);
+		content = realloc(content, contentSize);
+		if (!content) {
+			if (!quiet) {
+				perror("mc_cl_stdin_to_string: Failed to reallocate content");
+			}
+			free(old);
+			return NULL;
+		}
+		strcat(content, buffer);
+	}
+
+	if (ferror(stdin)) {
+		if (!quiet) {
+			perror("Error reading from stdin.");
+		}
+		free(content);
+		return NULL;
+	}
+
+	return content;
+}
+
 void mc_cl_parser_delete_command_line_parser(struct mc_cl_parser_command_line_parser *command_line)
 {
 	if (!command_line) {
@@ -186,45 +225,6 @@ static void print_usage(enum mc_apps app, const char *usage_string)
 		fprintf(stderr,
 		        "  -f, --function <name>     print the CFG of the given function (defaults to 'main')\n");
 	}
-}
-
-// from: https://stackoverflow.com/questions/2496668
-char *mc_cl_parser_stdin_to_string(bool quiet)
-{
-	char buffer[BUF_SIZE];
-	size_t contentSize = 1; // includes NULL
-	/* Preallocate space. */
-	char *content = malloc(sizeof(char) * BUF_SIZE);
-	if (!content) {
-		if (!quiet) {
-			perror("mc_cl_stdin_to_string: Failed to allocate content");
-		}
-		return NULL;
-	}
-	content[0] = '\0'; // make null-terminated
-	while (fgets(buffer, BUF_SIZE, stdin)) {
-		char *old = content;
-		contentSize += strlen(buffer);
-		content = realloc(content, contentSize);
-		if (!content) {
-			if (!quiet) {
-				perror("mc_cl_stdin_to_string: Failed to reallocate content");
-			}
-			free(old);
-			return NULL;
-		}
-		strcat(content, buffer);
-	}
-
-	if (ferror(stdin)) {
-		if (!quiet) {
-			perror("Error reading from stdin.");
-		}
-		free(content);
-		return NULL;
-	}
-
-	return content;
 }
 
 static struct mc_cl_parser_options *parse_options(int argc, char *argv[], enum mc_apps app)

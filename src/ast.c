@@ -167,11 +167,6 @@ void mcc_ast_delete_expression(struct mcc_ast_expression *expression)
 
 // ------------------------------------------------------------------ Types
 
-void mcc_ast_delete_type(struct mcc_ast_type *type)
-{
-	free(type);
-}
-
 struct mcc_ast_type *mcc_ast_new_type(enum mcc_ast_types type)
 {
 	struct mcc_ast_type *newtype = malloc(sizeof(*newtype));
@@ -180,6 +175,11 @@ struct mcc_ast_type *mcc_ast_new_type(enum mcc_ast_types type)
 	}
 	newtype->type_value = type;
 	return newtype;
+}
+
+void mcc_ast_delete_type(struct mcc_ast_type *type)
+{
+	free(type);
 }
 
 // ------------------------------------------------------------------

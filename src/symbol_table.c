@@ -292,7 +292,7 @@ void mcc_symbol_table_insert_scope(struct mcc_symbol_table *table, struct mcc_sy
 }
 
 // insert a new scope to the given table. Returns 0 on success
-int mcc_symbol_table_insert_new_scope(struct mcc_symbol_table *table)
+int insert_new_scope(struct mcc_symbol_table *table)
 {
 	assert(table);
 
@@ -621,7 +621,7 @@ static int create_row_function_definition(struct mcc_ast_function_definition *fu
 	assert(table);
 
 	if (!table->head) {
-		if (mcc_symbol_table_insert_new_scope(table)) {
+		if (insert_new_scope(table)) {
 			return 1;
 		}
 	}

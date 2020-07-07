@@ -146,8 +146,9 @@ struct mcc_asm_operand {
 
 //------------------------------------------------------------------------------------ Functions: Create data structures
 
-struct mcc_asm *
-mcc_asm_new_asm(struct mcc_asm_data_section *data_section, struct mcc_asm_text_section *text, struct mcc_asm_data *data);
+struct mcc_asm *mcc_asm_new_asm(struct mcc_asm_data_section *data_section,
+                                struct mcc_asm_text_section *text,
+                                struct mcc_asm_data *data);
 
 struct mcc_asm_data_section *mcc_asm_new_data_section(struct mcc_asm_declaration *head, struct mcc_asm_data *data);
 
@@ -172,6 +173,8 @@ void mcc_asm_new_line(enum mcc_asm_opcode opcode,
                       struct mcc_asm_data *data);
 
 void mcc_asm_new_label(enum mcc_asm_opcode opcode, unsigned label, struct mcc_asm_data *data);
+
+struct mcc_asm_operand *mcc_asm_new_function_operand(char *function_name, struct mcc_asm_data *data);
 
 struct mcc_asm_operand *mcc_asm_new_literal_operand(int literal, struct mcc_asm_data *data);
 
@@ -209,8 +212,22 @@ void mcc_asm_delete_operand(struct mcc_asm_operand *operand);
 
 //---------------------------------------------------------------------------------------- Functions: ASM generation
 
-struct mcc_asm *mcc_asm_generate(struct mcc_ir_row *ir);
+void mcc_asm_generate_asm_from_ir(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data);
+
+void mcc_asm_generate_function_body(struct mcc_asm_function *function,
+                                           struct mcc_annotated_ir *an_ir,
+                                           struct mcc_asm_data *data);
 
 struct mcc_asm_function *mcc_asm_generate_function(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data);
+
+void mcc_asm_generate_text_section(struct mcc_asm_text_section *text_section,
+                                          struct mcc_annotated_ir *an_ir,
+                                          struct mcc_asm_data *data);
+
+void mcc_asm_generate_data_section(struct mcc_asm_data_section *data_section,
+                                          struct mcc_annotated_ir *an_ir,
+                                          struct mcc_asm_data *data);
+
+struct mcc_asm *mcc_asm_generate(struct mcc_ir_row *ir);
 
 #endif // MCC_ASM_H

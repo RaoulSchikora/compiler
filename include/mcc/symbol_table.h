@@ -96,8 +96,6 @@ struct mcc_symbol_table_row *mcc_symbol_table_check_upwards_for_declaration(cons
                                                                             struct mcc_symbol_table_row *row);
 struct mcc_symbol_table_row *mcc_symbol_table_check_for_function_declaration(const char *name,
                                                                              struct mcc_symbol_table_row *row);
-struct mcc_symbol_table *mcc_symbol_table_entry_point(struct mcc_parser_result *result,
-                                                      enum mcc_parser_entry_point entry_point);
 struct mcc_symbol_table *mcc_symbol_table_create(struct mcc_ast_program *program);
 
 #endif // MCC_SYMBOL_TABLE_H

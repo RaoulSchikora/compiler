@@ -15,17 +15,6 @@ void mcc_cfg_print_dot_end(FILE *out)
 	fprintf(out, "%s", "}\n");
 }
 
-void mcc_cfg_print_dot_cfg(FILE *out, struct mcc_basic_block *head)
-{
-	mcc_cfg_print_dot_begin(out);
-	while (head) {
-
-		mcc_cfg_print_dot_bb(out, head);
-		head = head->next;
-	}
-	mcc_cfg_print_dot_end(out);
-}
-
 void mcc_cfg_print_dot_bb(FILE *out, struct mcc_basic_block *block)
 {
 	fprintf(out, "\"%p\" [shape=record label=\"{\n", (void *)block);
@@ -55,4 +44,15 @@ void mcc_cfg_print_dot_ir(FILE *out, struct mcc_ir_row *leader)
 		mcc_cfg_print_dot_ir_row(out, leader);
 		leader = leader->next_row;
 	}
+}
+
+void mcc_cfg_print_dot_cfg(FILE *out, struct mcc_basic_block *head)
+{
+	mcc_cfg_print_dot_begin(out);
+	while (head) {
+
+		mcc_cfg_print_dot_bb(out, head);
+		head = head->next;
+	}
+	mcc_cfg_print_dot_end(out);
 }

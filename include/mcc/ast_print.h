@@ -16,11 +16,11 @@ void mcc_ast_print_dot_expression(FILE *out, struct mcc_ast_expression *expressi
 
 void mcc_ast_print_dot_statement(FILE *out, struct mcc_ast_statement *statement);
 
-void mcc_ast_print_dot_literal(FILE *out, struct mcc_ast_literal *literal);
-
 void mcc_ast_print_dot_declaration(FILE *out, struct mcc_ast_declaration *declaration);
 
 void mcc_ast_print_dot_assignment(FILE *out, struct mcc_ast_assignment *assignment);
+
+void mcc_ast_print_dot_literal(FILE *out, struct mcc_ast_literal *literal);
 
 void mcc_ast_print_dot_type(FILE *out, struct mcc_ast_type *type);
 

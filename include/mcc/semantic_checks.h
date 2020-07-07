@@ -81,14 +81,6 @@ struct type_checking_userdata {
 	enum mcc_semantic_check_error_code error;
 };
 
-// Check and get type functions
-struct mcc_semantic_check_data_type *check_and_get_type_expression(struct mcc_ast_expression *expression,
-                                                                   struct mcc_semantic_check *check);
-struct mcc_semantic_check_data_type *check_and_get_type_identifier(struct mcc_ast_identifier *identifier,
-                                                                   struct mcc_semantic_check *check,
-                                                                   struct mcc_symbol_table_row *row);
-struct mcc_semantic_check_data_type *check_and_get_type_literal(struct mcc_ast_literal *literal, void *placeholder);
-
 // No Type conversions in expressions
 enum mcc_semantic_check_error_code mcc_semantic_check_run_type_check(struct mcc_ast_program *ast,
                                                                      struct mcc_symbol_table *symbol_table,

@@ -25,6 +25,9 @@ struct mcc_annotated_ir {
 	struct mcc_ir_row *row;
 };
 
+// Rewind to first IR line of
+struct mcc_annotated_ir *mcc_get_function_label(struct mcc_annotated_ir *an_ir);
+
 struct mcc_annotated_ir *mcc_new_annotated_ir(struct mcc_ir_row *row, int stack_size);
 
 void mcc_delete_annotated_ir(struct mcc_annotated_ir *head);
@@ -32,11 +35,8 @@ void mcc_delete_annotated_ir(struct mcc_annotated_ir *head);
 // Annotate IR to determine stack size of each IR line
 struct mcc_annotated_ir *mcc_annotate_ir(struct mcc_ir_row *ir);
 
-int mcc_get_array_element_stack_loc(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg);
-
 int mcc_get_array_base_stack_loc(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg);
 
-// Rewind to first IR line of
-struct mcc_annotated_ir *mcc_get_function_label(struct mcc_annotated_ir *an_ir);
+int mcc_get_array_element_stack_loc(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg);
 
 #endif

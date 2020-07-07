@@ -11,6 +11,18 @@
 
 #define not_zero(x) (x > 0 ? x : 1)
 
+// ------------------------------------------------------------- Forward declaration
+
+// Check and get type functions
+struct mcc_semantic_check_data_type *check_and_get_type_expression(struct mcc_ast_expression *expression,
+                                                                   struct mcc_semantic_check *check);
+
+struct mcc_semantic_check_data_type *check_and_get_type_identifier(struct mcc_ast_identifier *identifier,
+                                                                   struct mcc_semantic_check *check,
+                                                                   struct mcc_symbol_table_row *row);
+
+struct mcc_semantic_check_data_type *check_and_get_type_literal(struct mcc_ast_literal *literal, void *placeholder);
+
 // ------------------------------------------------------------- Functions: Error handling
 
 // Compute string length of source code location
