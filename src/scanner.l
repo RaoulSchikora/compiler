@@ -7,6 +7,7 @@
 %option nounput
 %option noyywrap
 %option reentrant
+%option extra-type="int"
 %option yylineno
 
 /* define exclusive state for comments */
@@ -22,7 +23,6 @@
 	yylloc->first_column = yylloc->last_column; \
 	yylloc->last_column += yyleng; \
 	yylloc->first_line = yylloc->last_line;
-    int start_token;
 
 %}
 
@@ -35,10 +35,10 @@ string_literal \"[^"]*\"
 %%
 
 %{
-    if(start_token)
+    if(yyextra)
         {
-            int t = start_token;
-            start_token = 0;
+            int t = yyextra;
+            yyextra = 0;
 
             // tell scanner that we start counting from 1 and not from 0
             yylloc->last_line = 1;

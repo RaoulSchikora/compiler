@@ -61,8 +61,6 @@ void mcc_parser_error();
 	(ast_node)->node.sloc.end_line = (ast_sloc_last).last_line;   \
 	(ast_node)->node.sloc.filename = result->filename;            \
 
-int start_token;
-
 %}
 
 %define api.value.type union
@@ -356,10 +354,10 @@ struct mcc_parser_result mcc_parse_file(FILE *input, enum mcc_parser_entry_point
 
 	if (entry_point != MCC_PARSER_ENTRY_POINT_PROGRAM) {
 		result.filename = "<test_suite>";
-		start_token = 1;
+		mcc_parser_set_extra(1, scanner);
 	} else {
 		result.filename = name;
-		start_token = 2;
+		mcc_parser_set_extra(2, scanner);
 	}
 
 	if (yyparse(scanner, &result) != 0) {
