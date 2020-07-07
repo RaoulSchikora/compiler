@@ -308,9 +308,8 @@ struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_par
 {
 	assert(input_string);
 
-	char *input;
+	char *input = strdup(input_string);
 
-	input = strdup(input_string);
 	if (!input) {
 		return (struct mcc_parser_result){
 		    .status = MCC_PARSER_STATUS_UNKNOWN_ERROR,
