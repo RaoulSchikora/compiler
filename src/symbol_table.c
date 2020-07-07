@@ -44,12 +44,11 @@ mcc_symbol_table_new_row_variable(char *name, enum mcc_symbol_table_row_type typ
 	row->row_structure = MCC_SYMBOL_TABLE_ROW_STRUCTURE_VARIABLE;
 	row->array_size = -1;
 	row->row_type = type;
-	row->name = malloc(sizeof(char) * strlen(name) + 1);
+	row->name = strdup(name);
 	if (!row->name) {
 		free(row);
 		return NULL;
 	}
-	strcpy(row->name, name);
 	row->node = node;
 	row->prev_row = NULL;
 	row->next_row = NULL;
@@ -70,12 +69,11 @@ mcc_symbol_table_new_row_function(char *name, enum mcc_symbol_table_row_type typ
 	row->row_structure = MCC_SYMBOL_TABLE_ROW_STRUCTURE_FUNCTION;
 	row->array_size = -1;
 	row->row_type = type;
-	row->name = malloc(sizeof(char) * strlen(name) + 1);
+	row->name = strdup(name);
 	if (!row->name) {
 		free(row);
 		return NULL;
 	}
-	strcpy(row->name, name);
 	row->node = node;
 	row->prev_row = NULL;
 	row->next_row = NULL;
@@ -98,12 +96,11 @@ struct mcc_symbol_table_row *mcc_symbol_table_new_row_array(char *name,
 	row->row_structure = MCC_SYMBOL_TABLE_ROW_STRUCTURE_ARRAY;
 	row->array_size = array_size;
 	row->row_type = type;
-	row->name = malloc(sizeof(char) * strlen(name) + 1);
+	row->name = strdup(name);
 	if (!row->name) {
 		free(row);
 		return NULL;
 	}
-	strcpy(row->name, name);
 	row->node = node;
 	row->prev_row = NULL;
 	row->next_row = NULL;

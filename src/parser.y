@@ -310,13 +310,12 @@ struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_par
 
 	char *input;
 
-	input = (char *)malloc((strlen(input_string) + 1) * sizeof(char));
+	input = strdup(input_string);
 	if (!input) {
 		return (struct mcc_parser_result){
 		    .status = MCC_PARSER_STATUS_UNKNOWN_ERROR,
 		};
 	}
-	strcpy(input, input_string);
 
 	FILE *in = fmemopen((void *)input, strlen(input), "r");
 	if (!in) {

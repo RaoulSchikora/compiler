@@ -209,7 +209,7 @@ static struct mcc_ir_arg *generate_ir_expression_binary_op(struct mcc_ast_expres
 
 	struct mcc_ir_arg *lhs = generate_ir_expression(expression->lhs, data);
 	struct mcc_ir_arg *rhs = generate_ir_expression(expression->rhs, data);
-	
+
 	if (data->has_failed)
 		return NULL;
 
@@ -577,7 +577,7 @@ static void generate_ir_statement_return(struct mcc_ast_statement *stmt, struct 
 
 	if (stmt->return_value) {
 		struct mcc_ir_arg *exp = generate_ir_expression(stmt->return_value, data);
-		if(!exp)
+		if (!exp)
 			return;
 		struct mcc_ir_row_type *type = get_type_of_row(exp, stmt->return_value, data);
 		struct mcc_ir_row *row = new_row(exp, NULL, MCC_IR_INSTR_RETURN, type, data);
@@ -818,7 +818,7 @@ static struct mcc_ir_arg *copy_arg(struct mcc_ir_arg *arg, struct ir_generation_
 {
 	if (data->has_failed)
 		return NULL;
-		
+
 	assert(arg);
 	assert(data);
 
@@ -949,14 +949,13 @@ static struct mcc_ir_arg *new_arg_string(char *lit, struct ir_generation_userdat
 	if (data->has_failed)
 		return NULL;
 	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
-	char *string = malloc(sizeof(char) * (strlen(lit) + 1));
+	char *string = strdup(lit);
 	if (!arg || !string) {
 		data->has_failed = true;
 		free(arg);
 		free(string);
 		return NULL;
 	}
-	strcpy(string, lit);
 	arg->type = MCC_IR_TYPE_LIT_STRING;
 	arg->lit_string = string;
 	return arg;
@@ -984,14 +983,13 @@ static struct mcc_ir_arg *new_arg_identifier(struct mcc_ast_identifier *ident, s
 	if (data->has_failed)
 		return NULL;
 	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
-	char *str = malloc(sizeof(char) * (strlen(ident->identifier_name) + 1));
+	char *str = strdup(ident->identifier_name);
 	if (!arg || !str) {
 		data->has_failed = true;
 		free(arg);
 		free(str);
 		return NULL;
 	}
-	strcpy(str, ident->identifier_name);
 	arg->type = MCC_IR_TYPE_IDENTIFIER;
 	arg->ident = str;
 	return arg;
@@ -1022,14 +1020,13 @@ new_arg_arr_elem(struct mcc_ast_identifier *ident, struct mcc_ir_arg *index, str
 	if (data->has_failed)
 		return NULL;
 	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
-	char *str = malloc(sizeof(char) * (strlen(ident->identifier_name) + 1));
+	char *str = strdup(ident->identifier_name);
 	if (!arg || !str) {
 		data->has_failed = true;
 		free(arg);
 		free(str);
 		return NULL;
 	}
-	strcpy(str, ident->identifier_name);
 	arg->type = MCC_IR_TYPE_ARR_ELEM;
 	arg->arr_ident = str;
 	if (index->type == MCC_IR_TYPE_ARR_ELEM) {

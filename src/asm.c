@@ -153,16 +153,14 @@ struct mcc_asm_declaration *mcc_asm_new_float_declaration(char *identifier,
 {
 	if (data->has_failed || !identifier)
 		return NULL;
-	int size = strlen(identifier) + 1;
 	struct mcc_asm_declaration *new = malloc(sizeof(*new));
-	char *id_new = malloc(sizeof(char) * size);
+	char *id_new = strdup(identifier);
 	if (!new || !id_new) {
 		data->has_failed = true;
 		free(new);
 		free(id_new);
 		return NULL;
 	}
-	strcpy(id_new, identifier);
 	new->identifier = id_new;
 	new->float_value = float_value;
 	new->next = next;
@@ -177,16 +175,14 @@ struct mcc_asm_declaration *mcc_asm_new_string_declaration(char *identifier,
 {
 	if (data->has_failed || !identifier)
 		return NULL;
-	int size = strlen(identifier) + 1;
 	struct mcc_asm_declaration *new = malloc(sizeof(*new));
-	char *id_new = malloc(sizeof(char) * size);
+	char *id_new = strdup(identifier);
 	if (!new || !id_new) {
 		data->has_failed = true;
 		free(new);
 		free(id_new);
 		return NULL;
 	}
-	strcpy(id_new, identifier);
 	new->identifier = id_new;
 	new->string_value = string_value;
 	new->next = next;
@@ -199,16 +195,14 @@ mcc_asm_new_function(char *label, struct mcc_asm_line *head, struct mcc_asm_func
 {
 	if (data->has_failed)
 		return NULL;
-	int size = strlen(label) + 1;
 	struct mcc_asm_function *new = malloc(sizeof(*new));
-	char *lab_new = malloc(sizeof(char) * size);
+	char *lab_new = strdup(label);
 	if (!new || !lab_new) {
 		free(new);
 		free(lab_new);
 		data->has_failed = true;
 		return NULL;
 	}
-	strcpy(lab_new, label);
 	new->head = head;
 	new->label = lab_new;
 	new->next = next;
@@ -259,16 +253,14 @@ void mcc_asm_new_label(enum mcc_asm_opcode opcode, unsigned label, struct mcc_as
 
 struct mcc_asm_operand *mcc_asm_new_function_operand(char *function_name, struct mcc_asm_data *data)
 {
-	int size = strlen(function_name) + 1;
 	struct mcc_asm_operand *new = malloc(sizeof(*new));
-	char *func_name_new = malloc(sizeof(char) * size);
+	char *func_name_new = strdup(function_name);
 	if (!new || !func_name_new) {
 		free(new);
 		free(func_name_new);
 		data->has_failed = true;
 		return NULL;
 	}
-	strcpy(func_name_new, function_name);
 	new->type = MCC_ASM_OPERAND_FUNCTION;
 	new->func_name = func_name_new;
 	new->offset = 0;
