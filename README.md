@@ -42,6 +42,10 @@ Use the generated `mcc` app to compile mC-programs as follows:
 
     $ ./mcc test.mc
 
+On successful compilation `mcc` will generate an executable from test.mc named `a.out`, execute it like this:
+
+    $ ./a.out
+
 See `mcc -h` for more info about command line arguments.
 For intermediate stages of the compilation pipeline printers are provided, see [development
 notes](docs/development_notes.md) for more details.
