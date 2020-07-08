@@ -881,19 +881,20 @@ void mcc_ast_delete_arguments(struct mcc_ast_arguments *arguments)
 
 // ------------------------------------------------------------------- Add and remove built_ins
 
-int mcc_ast_add_built_ins(struct mcc_ast_program *program)
+bool mcc_ast_add_built_ins(struct mcc_ast_program *program)
 {
 	assert(program);
 
-	const char input[] = "void print(string str){} 	  \
-						  void print_nl(){} 		  \
-						  void print_int(int a){} 	  \
-						  void print_float(float b){} \
-						  int read_int(){return 0;}   \
-						  float read_float(){return 0.0;}";
-	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_EXPRESSION);
+	const char input[] = "void print(string str){} \
+						void print_nl(){} \
+						void print_int(int a){} \
+						void print_float(float b){} \
+						int read_int(){return 0;} \
+						float read_float(){return 0.0;}";
+
+	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
 	if (result.status != MCC_PARSER_STATUS_OK) {
-		return 1;
+		return false;
 	}
 
 	if (!program->function) {
@@ -916,7 +917,7 @@ int mcc_ast_add_built_ins(struct mcc_ast_program *program)
 		(&result)->program = NULL;
 	}
 
-	return 0;
+	return true;
 }
 
 static void remove_function(struct mcc_ast_program *program, struct mcc_ast_program *previous)

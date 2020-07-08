@@ -756,7 +756,8 @@ struct mcc_symbol_table *mcc_symbol_table_create(struct mcc_ast_program *program
 {
 	assert(program);
 
-	if (mcc_ast_add_built_ins(program)) {
+	// Add builtin functions before creating symbol table
+	if (!mcc_ast_add_built_ins(program)) {
 		return NULL;
 	}
 	struct mcc_symbol_table *table = mcc_symbol_table_new_table();

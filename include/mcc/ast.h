@@ -440,7 +440,7 @@ void mcc_ast_delete_arguments(struct mcc_ast_arguments *arguments);
 
 // ------------------------------------------------------------------- Add built_ins
 
-int mcc_ast_add_built_ins(struct mcc_ast_program *program);
+bool mcc_ast_add_built_ins(struct mcc_ast_program *program);
 
 struct mcc_ast_program *mcc_ast_remove_built_ins(struct mcc_ast_program *program);
 
