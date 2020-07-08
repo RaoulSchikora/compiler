@@ -20,7 +20,7 @@
 // register datastructures with register_cleanup and they will be deleted on exit
 #include "mc_cleanup.inc"
 
-bool assemble_and_link(char *binary_filename);
+bool assemble_and_link(char *binary_filename, bool quiet);
 
 int main(int argc, char *argv[])
 {
@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
 
 	// ---------------------------------------------------------------------- Generate IR
 
-	struct mcc_ir_row *ir = mcc_ir_generate((&result)->program );
+	struct mcc_ir_row *ir = mcc_ir_generate((&result)->program);
 	if (!ir) {
 		if (!command_line->options->quiet) {
 			fprintf(stderr, "IR generation failed. Unknwon error.\n");
@@ -141,9 +141,9 @@ int main(int argc, char *argv[])
 
 	bool success = true;
 	if (command_line->options->write_to_file) {
-		success = assemble_and_link(command_line->options->output_file);
+		success = assemble_and_link(command_line->options->output_file, command_line->options->quiet);
 	} else {
-		success = assemble_and_link("a.out");
+		success = assemble_and_link("a.out", command_line->options->quiet);
 	}
 	if (!success) {
 		if (!command_line->options->quiet) {
@@ -157,7 +157,7 @@ int main(int argc, char *argv[])
 	return EXIT_SUCCESS;
 }
 
-bool assemble_and_link(char *binary_filename)
+bool assemble_and_link(char *binary_filename, bool quiet)
 {
 	// Create string of command
 	char *cc = NULL;
@@ -169,9 +169,16 @@ bool assemble_and_link(char *binary_filename)
 	} else {
 		cc = env_cc;
 	}
-	int length = strlen(cc) + strlen(" -m32 -o ") + strlen(binary_filename) + strlen(" a.s ") + strlen(builtins);
+	int length =
+	    strlen(cc) + strlen(" -m32 -o ") + strlen(binary_filename) + strlen(" a.s ") + strlen(builtins) + 1;
+	if (quiet)
+		length += strlen(" &>/dev/null");
 	char callstring[length];
-	snprintf(callstring, length, "%s -m32 -o %s a.s %s", cc, binary_filename, builtins);
+	if (quiet) {
+		snprintf(callstring, length, "%s -m32 -o %s a.s %s &>/dev/null", cc, binary_filename, builtins);
+	} else {
+		snprintf(callstring, length, "%s -m32 -o %s a.s %s", cc, binary_filename, builtins);
+	}
 
 	// Call backend compiler
 	int wstatus = system(callstring);
