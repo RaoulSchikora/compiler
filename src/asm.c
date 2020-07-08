@@ -1237,7 +1237,6 @@ void mcc_asm_generate_text_section(struct mcc_asm_text_section *text_section,
 
 static char *get_tmp_ident(char *id)
 {
-	// TODO: Check if memmove necessary. Shouldn't it be sizeof(char) * (strlen(id) +1). (Bracket nesting)
 	memmove(id, id + 1, strlen(id));
 	char *new = malloc(sizeof(char) * strlen(id) + 1);
 	if (!new)
