@@ -17,10 +17,15 @@
 //---------------------------------------------------------------------------------------- IR generation
 
 struct ir_generation_userdata {
+	// First row of IR
 	struct mcc_ir_row *head;
+	// Current (last) row of IR, set during execution
 	struct mcc_ir_row *current;
+	// Flag for indicating errors
 	bool has_failed;
+	// Counts number of (non-function) labels
 	unsigned label_counter;
+	// Counts float temporaries
 	unsigned tmp_counter;
 };
 
@@ -110,19 +115,7 @@ struct mcc_ir_row {
 	struct mcc_ir_row *next_row;
 };
 
-//---------------------------------------------------------------------------------------- Cleanup
-
-void mcc_ir_delete_ir_arg(struct mcc_ir_arg *arg);
-
-void mcc_ir_delete_ir_row_type(struct mcc_ir_row_type *type);
-
-void mcc_ir_delete_ir_row(struct mcc_ir_row *row);
-
-void mcc_ir_delete_ir(struct mcc_ir_row *head);
-
 //---------------------------------------------------------------------------------------- Generate IR datastructures
-
-struct mcc_ir_arg *mcc_ir_generate_arg_lit(struct mcc_ast_literal *literal, struct ir_generation_userdata *data);
 
 void mcc_ir_generate_arguments(struct mcc_ast_arguments *arguments, struct ir_generation_userdata *data);
 
@@ -146,7 +139,7 @@ void mcc_ir_generate_program(struct mcc_ast_program *program, struct ir_generati
 
 void mcc_ir_generate_function_definition(struct mcc_ast_function_definition *def, struct ir_generation_userdata *data);
 
-struct mcc_ir_row *mcc_ir_generate(struct mcc_ast_program *ast);
+struct mcc_ir_arg *mcc_ir_generate_arg_lit(struct mcc_ast_literal *literal, struct ir_generation_userdata *data);
 
 struct mcc_ir_arg *mcc_ir_generate_expression_binary_op(struct mcc_ast_expression *expression,
                                                         struct ir_generation_userdata *data);
@@ -166,5 +159,15 @@ struct mcc_ir_arg *mcc_ir_generate_expression(struct mcc_ast_expression *express
 //---------------------------------------------------------------------------------------- Generate IR
 
 struct mcc_ir_row *mcc_ir_generate(struct mcc_ast_program *ast);
+
+//---------------------------------------------------------------------------------------- Cleanup
+
+void mcc_ir_delete_ir_arg(struct mcc_ir_arg *arg);
+
+void mcc_ir_delete_ir_row_type(struct mcc_ir_row_type *type);
+
+void mcc_ir_delete_ir_row(struct mcc_ir_row *row);
+
+void mcc_ir_delete_ir(struct mcc_ir_row *head);
 
 #endif

@@ -38,8 +38,9 @@ match the expected values:
 
 # Known Issues
 
-### Compiler warning 
+## Compiler warning 
 
 Since the unit test matches any grammar rule, there are 5 reduce/reduce-conflicts. These will however not arise, when 
 the testing mode isn't specified, because the parser can only match the unit-test grammar rule when a dedicated global 
 variable is set (which can't happen due to user input).
+
