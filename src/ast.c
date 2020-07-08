@@ -759,7 +759,7 @@ struct mcc_ast_program *mcc_ast_new_program(struct mcc_ast_function_definition *
 	return program;
 }
 
-struct mcc_ast_program *mcc_ast_new_empty_program()
+struct mcc_ast_program *mcc_ast_new_empty_program(char *name)
 {
 	struct mcc_ast_program *program = malloc(sizeof(*program));
 	if (!program)
@@ -768,6 +768,11 @@ struct mcc_ast_program *mcc_ast_new_empty_program()
 	program->function = NULL;
 	program->has_next_function = false;
 	program->next_function = NULL;
+	program->node.sloc.start_line = 0;
+	program->node.sloc.start_col = 0;
+	program->node.sloc.end_line = 0;
+	program->node.sloc.end_col = 0;
+	program->node.sloc.filename = name;
 
 	return program;
 }
@@ -892,7 +897,8 @@ bool mcc_ast_add_built_ins(struct mcc_ast_program *program)
 						int read_int(){return 0;} \
 						float read_float(){return 0.0;}";
 
-	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, program->node.sloc.filename);
+	struct mcc_parser_result result =
+	    mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, program->node.sloc.filename);
 	if (result.status != MCC_PARSER_STATUS_OK) {
 		return false;
 	}
