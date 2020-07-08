@@ -114,22 +114,4 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_function_arguments(str
 // Delete single checks
 void mcc_semantic_check_delete_single_check(struct mcc_semantic_check *check);
 
-// ------------------------------------------------------------- Generic for check_and_get_type
-
-// clang-format off
-
-#define check_and_get_type(x, ...) _Generic((x), \
-		struct mcc_ast_expression *:          check_and_get_type_expression, \
-		struct mcc_ast_identifier *:          check_and_get_type_identifier, \
-		struct mcc_ast_declaration *:         get_data_type_declaration, \
-		struct mcc_ast_literal *:             check_and_get_type_literal \
-		)(x, __VA_ARGS__)
-
-#define mcc_semantic_check_raise_error(x,y,...) _Generic((y), \
-        int :                                 raise_type_error, \
-        struct mcc_semantic_check *:          raise_non_type_error \
-	)(x,y,__VA_ARGS__)
-
-// clang-format on
-
 #endif // PROJECT_SEMANTIC_CHECKS_H
