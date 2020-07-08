@@ -1,5 +1,0 @@
-int test1(){
-return a;
-int a;
-a = 1;
-}
