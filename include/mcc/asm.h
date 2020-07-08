@@ -2,6 +2,8 @@
 //
 // This module defines the data structures and functions used to generate the assembly code.
 // It is targeting an x86 system and written in AT&T syntax.
+// Assembly lines are generated "on-the-fly" and automatically appended to the line "current" that is passed in via the mcc_asm_data
+// struct.
 
 #ifndef MCC_ASM_H
 #define MCC_ASM_H
@@ -9,6 +11,7 @@
 #include "mcc/ir.h"
 #include "mcc/stack_size.h"
 
+// Used for the generation process
 struct mcc_asm_data {
 	bool has_failed;
 	struct mcc_asm_data_section *data_section;
@@ -215,18 +218,18 @@ void mcc_asm_delete_operand(struct mcc_asm_operand *operand);
 void mcc_asm_generate_asm_from_ir(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data);
 
 void mcc_asm_generate_function_body(struct mcc_asm_function *function,
-                                           struct mcc_annotated_ir *an_ir,
-                                           struct mcc_asm_data *data);
+                                    struct mcc_annotated_ir *an_ir,
+                                    struct mcc_asm_data *data);
 
 struct mcc_asm_function *mcc_asm_generate_function(struct mcc_annotated_ir *an_ir, struct mcc_asm_data *data);
 
 void mcc_asm_generate_text_section(struct mcc_asm_text_section *text_section,
-                                          struct mcc_annotated_ir *an_ir,
-                                          struct mcc_asm_data *data);
+                                   struct mcc_annotated_ir *an_ir,
+                                   struct mcc_asm_data *data);
 
 void mcc_asm_generate_data_section(struct mcc_asm_data_section *data_section,
-                                          struct mcc_annotated_ir *an_ir,
-                                          struct mcc_asm_data *data);
+                                   struct mcc_annotated_ir *an_ir,
+                                   struct mcc_asm_data *data);
 
 struct mcc_asm *mcc_asm_generate(struct mcc_ir_row *ir);
 

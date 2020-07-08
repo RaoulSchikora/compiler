@@ -101,7 +101,6 @@ struct mcc_ir_row {
 
 //---------------------------------------------------------------------------------------- Generate IR datastructures
 
-// Returns NULL if something along the genration process failed
 struct mcc_ir_row *mcc_ir_generate(struct mcc_ast_program *ast);
 
 //---------------------------------------------------------------------------------------- Cleanup
