@@ -28,18 +28,18 @@ pgen = generator(bison,
 mcc_inc = include_directories('include')
 
 mcc_src = [ 'src/utils/print_string.c' ,
-	        'src/utils/length_of_int.c',
+            'src/utils/length_of_int.c',
             'src/ast.c',
             'src/ast_print.c',
             'src/ast_visit.c',
             'src/semantic_checks.c',
-	        'src/ir.c',
-	        'src/ir_print.c',
+            'src/ir.c',
+            'src/ir_print.c',
             'src/cfg.c',
             'src/cfg_print.c',
-	        'src/asm.c',
-	        'src/asm_print.c',
-	        'src/stack_size.c',
+            'src/asm.c',
+            'src/asm_print.c',
+            'src/stack_size.c',
             lgen.process('src/scanner.l'),
             pgen.process('src/parser.y'),
             'src/symbol_table.c',
@@ -48,12 +48,12 @@ mcc_src = [ 'src/utils/print_string.c' ,
 
 mcc_lib = library('mcc', mcc_src,
                   c_args: '-D_POSIX_C_SOURCE=200809L',
-		  link_args: '-lm',
+                  link_args: '-lm',
                   include_directories: [mcc_inc, include_directories('src')])
 
 mc_builtins = configure_file(input : 'resources/mc_builtins.c',
-			     output : 'mc_builtins.c',
-			     copy : true)
+                             output : 'mc_builtins.c',
+                             copy : true)
 
 # ---------------------------------------------------------------- Applications
 
