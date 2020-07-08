@@ -10,6 +10,7 @@
 - `bison` for generating the parser
 - A compiler supporting C11 — typically GCC or Clang
 - glibc version 2.20 or higher
+- For execution of `mcc`, gcc multi-lib support must be available for the compiler backend.
 
 ## Build Instructions
 
