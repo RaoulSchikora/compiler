@@ -992,6 +992,7 @@ void DanglingElse(CuTest *tc)
 }
 
 #define TESTS \
+	TEST(ArrayAssignment) \
 	TEST(BinaryOp_1) \
 	TEST(BinaryOp_2) \
 	TEST(BinaryOp_3) \

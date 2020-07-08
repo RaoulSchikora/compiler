@@ -300,6 +300,7 @@ void test_string_array(CuTest *tc)
 // clang-format off
 
 #define TESTS \
+	TEST(test_bool_int) \
 	TEST(test_int) \
 	TEST(test_ints) \
 	TEST(test_int_temporaries) \
