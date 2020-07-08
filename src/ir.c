@@ -23,14 +23,6 @@
 
 // clang-format on
 
-struct ir_generation_userdata {
-	struct mcc_ir_row *head;
-	struct mcc_ir_row *current;
-	bool has_failed;
-	unsigned label_counter;
-	unsigned tmp_counter;
-};
-
 bool is_binary_instr(struct mcc_ir_row *row)
 {
 	assert(row);
@@ -53,14 +45,6 @@ bool is_binary_instr(struct mcc_ir_row *row)
 		return false;
 	}
 }
-
-//------------------------------------------------------------------------------ Forward declarations: IR generation
-
-static void generate_ir_statement(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data);
-static void generate_ir_function_definition(struct mcc_ast_function_definition *def,
-                                            struct ir_generation_userdata *data);
-static struct mcc_ir_arg *generate_ir_expression(struct mcc_ast_expression *expression,
-                                                 struct ir_generation_userdata *data);
 
 //---------------------------------------------------------------------------------------- IR datastructures
 
@@ -402,7 +386,7 @@ static struct mcc_ir_arg *arg_from_declaration(struct mcc_ast_declaration *decl,
 	}
 }
 
-static struct mcc_ir_arg *generate_arg_lit(struct mcc_ast_literal *literal, struct ir_generation_userdata *data)
+struct mcc_ir_arg *mcc_ir_generate_arg_lit(struct mcc_ast_literal *literal, struct ir_generation_userdata *data)
 {
 	assert(literal);
 
@@ -574,15 +558,15 @@ get_type_of_row(struct mcc_ir_arg *arg, struct mcc_ast_expression *exp, struct i
 	return NULL;
 }
 
-static struct mcc_ir_arg *generate_ir_expression_binary_op(struct mcc_ast_expression *expression,
-                                                           struct ir_generation_userdata *data)
+struct mcc_ir_arg *mcc_ir_generate_expression_binary_op(struct mcc_ast_expression *expression,
+                                                        struct ir_generation_userdata *data)
 {
 	assert(expression->lhs);
 	assert(expression->rhs);
 	assert(data);
 
-	struct mcc_ir_arg *lhs = generate_ir_expression(expression->lhs, data);
-	struct mcc_ir_arg *rhs = generate_ir_expression(expression->rhs, data);
+	struct mcc_ir_arg *lhs = mcc_ir_generate_expression(expression->lhs, data);
+	struct mcc_ir_arg *rhs = mcc_ir_generate_expression(expression->rhs, data);
 
 	if (data->has_failed)
 		return NULL;
@@ -647,13 +631,13 @@ static struct mcc_ir_arg *generate_ir_expression_binary_op(struct mcc_ast_expres
 	return arg;
 }
 
-static struct mcc_ir_arg *generate_ir_expression_unary_op(struct mcc_ast_expression *expression,
-                                                          struct ir_generation_userdata *data)
+struct mcc_ir_arg *mcc_ir_generate_expression_unary_op(struct mcc_ast_expression *expression,
+                                                       struct ir_generation_userdata *data)
 {
 	assert(expression->child);
 	assert(data);
 
-	struct mcc_ir_arg *child = generate_ir_expression(expression->child, data);
+	struct mcc_ir_arg *child = mcc_ir_generate_expression(expression->child, data);
 	enum mcc_ir_instruction instr = MCC_IR_INSTR_UNKNOWN;
 	struct mcc_ir_row_type *type = NULL;
 	if (data->has_failed)
@@ -676,8 +660,8 @@ static struct mcc_ir_arg *generate_ir_expression_unary_op(struct mcc_ast_express
 	return arg;
 }
 
-static struct mcc_ir_arg *generate_ir_expression_var(struct mcc_ast_expression *expression,
-                                                     struct ir_generation_userdata *data)
+struct mcc_ir_arg *mcc_ir_generate_expression_var(struct mcc_ast_expression *expression,
+                                                  struct ir_generation_userdata *data)
 {
 	assert(expression->identifier);
 	assert(data);
@@ -688,7 +672,7 @@ static struct mcc_ir_arg *generate_ir_expression_var(struct mcc_ast_expression *
 	return arg;
 }
 
-static void generate_ir_arguments(struct mcc_ast_arguments *arguments, struct ir_generation_userdata *data)
+void mcc_ir_generate_arguments(struct mcc_ast_arguments *arguments, struct ir_generation_userdata *data)
 {
 	assert(data);
 	assert(arguments);
@@ -702,7 +686,7 @@ static void generate_ir_arguments(struct mcc_ast_arguments *arguments, struct ir
 			char tmp[size];
 			snprintf(tmp, size, "$tmp%d", data->tmp_counter);
 			data->tmp_counter += 1;
-			struct mcc_ir_arg *lit = generate_ir_expression(arguments->expression, data);
+			struct mcc_ir_arg *lit = mcc_ir_generate_expression(arguments->expression, data);
 			if (!lit)
 				return;
 			struct mcc_ir_row_type *type1 = get_type_of_row(lit, arguments->expression, data);
@@ -712,22 +696,22 @@ static void generate_ir_arguments(struct mcc_ast_arguments *arguments, struct ir
 			struct mcc_ir_row *row1 = NULL, *row2 = NULL;
 			row1 = new_row(ident1, lit, MCC_IR_INSTR_ASSIGN, type1, data);
 			append_row(row1, data);
-			// recursive call of generate_ir_arguments in order to have all push-instructions following each
-			// other without othre instructions in between
+			// recursive call of mcc_ir_generate_arguments in order to have all push-instructions following
+			// each other without othre instructions in between
 			if (arguments->next_arguments) {
-				generate_ir_arguments(arguments->next_arguments, data);
+				mcc_ir_generate_arguments(arguments->next_arguments, data);
 			}
 			row2 = new_row(ident2, NULL, MCC_IR_INSTR_PUSH, type2, data);
 			append_row(row2, data);
 		} else {
-			struct mcc_ir_arg *arg_push = generate_ir_expression(arguments->expression, data);
+			struct mcc_ir_arg *arg_push = mcc_ir_generate_expression(arguments->expression, data);
 			if (!arg_push)
 				return;
 			struct mcc_ir_row_type *type = get_type_of_row(arg_push, arguments->expression, data);
-			// recursive call of generate_ir_arguments in order to have all push-instructions following each
-			// other without othre instructions in between
+			// recursive call of mcc_ir_generate_arguments in order to have all push-instructions following
+			// each other without othre instructions in between
 			if (arguments->next_arguments) {
-				generate_ir_arguments(arguments->next_arguments, data);
+				mcc_ir_generate_arguments(arguments->next_arguments, data);
 			}
 			struct mcc_ir_row *row = new_row(arg_push, NULL, MCC_IR_INSTR_PUSH, type, data);
 			append_row(row, data);
@@ -735,15 +719,15 @@ static void generate_ir_arguments(struct mcc_ast_arguments *arguments, struct ir
 	}
 }
 
-static struct mcc_ir_arg *generate_ir_expression_func_call(struct mcc_ast_expression *expression,
-                                                           struct ir_generation_userdata *data)
+struct mcc_ir_arg *mcc_ir_generate_expression_func_call(struct mcc_ast_expression *expression,
+                                                        struct ir_generation_userdata *data)
 {
 	assert(expression->function_identifier);
 	assert(data);
 	if (data->has_failed)
 		return NULL;
 
-	generate_ir_arguments(expression->arguments, data);
+	mcc_ir_generate_arguments(expression->arguments, data);
 
 	struct mcc_ir_arg *arg = mcc_ir_new_arg(expression->function_identifier, data);
 	if (!arg)
@@ -754,8 +738,8 @@ static struct mcc_ir_arg *generate_ir_expression_func_call(struct mcc_ast_expres
 	return mcc_ir_new_arg(row, data);
 }
 
-static struct mcc_ir_arg *generate_ir_expression(struct mcc_ast_expression *expression,
-                                                 struct ir_generation_userdata *data)
+struct mcc_ir_arg *mcc_ir_generate_expression(struct mcc_ast_expression *expression,
+                                              struct ir_generation_userdata *data)
 {
 	assert(expression);
 	assert(data);
@@ -766,44 +750,44 @@ static struct mcc_ir_arg *generate_ir_expression(struct mcc_ast_expression *expr
 
 	switch (expression->type) {
 	case MCC_AST_EXPRESSION_TYPE_LITERAL:
-		arg = generate_arg_lit(expression->literal, data);
+		arg = mcc_ir_generate_arg_lit(expression->literal, data);
 		break;
 	case MCC_AST_EXPRESSION_TYPE_BINARY_OP:
-		arg = generate_ir_expression_binary_op(expression, data);
+		arg = mcc_ir_generate_expression_binary_op(expression, data);
 		break;
 	case MCC_AST_EXPRESSION_TYPE_PARENTH:
-		arg = generate_ir_expression(expression->expression, data);
+		arg = mcc_ir_generate_expression(expression->expression, data);
 		break;
 	case MCC_AST_EXPRESSION_TYPE_UNARY_OP:
-		arg = generate_ir_expression_unary_op(expression, data);
+		arg = mcc_ir_generate_expression_unary_op(expression, data);
 		break;
 	case MCC_AST_EXPRESSION_TYPE_VARIABLE:
-		arg = generate_ir_expression_var(expression, data);
+		arg = mcc_ir_generate_expression_var(expression, data);
 		break;
 	case MCC_AST_EXPRESSION_TYPE_ARRAY_ELEMENT:
-		arg = new_arg_arr_elem(expression->array_identifier, generate_ir_expression(expression->index, data),
-		                       data);
+		arg = new_arg_arr_elem(expression->array_identifier,
+		                       mcc_ir_generate_expression(expression->index, data), data);
 		break;
 	case MCC_AST_EXPRESSION_TYPE_FUNCTION_CALL:
-		arg = generate_ir_expression_func_call(expression, data);
+		arg = mcc_ir_generate_expression_func_call(expression, data);
 		break;
 	}
 	return arg;
 }
 
-static void generate_ir_comp_statement(struct mcc_ast_compound_statement *cmp_stmt, struct ir_generation_userdata *data)
+void mcc_ir_generate_comp_statement(struct mcc_ast_compound_statement *cmp_stmt, struct ir_generation_userdata *data)
 {
 	if (data->has_failed)
 		return;
 
 	while (cmp_stmt) {
 		if (!cmp_stmt->is_empty)
-			generate_ir_statement(cmp_stmt->statement, data);
+			mcc_ir_generate_statement(cmp_stmt->statement, data);
 		cmp_stmt = cmp_stmt->next_compound_statement;
 	}
 }
 
-static void generate_ir_assignment(struct mcc_ast_assignment *asgn, struct ir_generation_userdata *data)
+void mcc_ir_generate_assignment(struct mcc_ast_assignment *asgn, struct ir_generation_userdata *data)
 {
 	assert(asgn);
 	assert(data);
@@ -824,28 +808,28 @@ static void generate_ir_assignment(struct mcc_ast_assignment *asgn, struct ir_ge
 		    asgn->variable_assigned_value->literal->type == MCC_AST_LITERAL_TYPE_FLOAT) {
 			exp = new_arg_float(asgn->variable_assigned_value->literal->f_value, data);
 		} else {
-			exp = generate_ir_expression(asgn->variable_assigned_value, data);
+			exp = mcc_ir_generate_expression(asgn->variable_assigned_value, data);
 		}
 		row = new_row(identifier, exp, MCC_IR_INSTR_ASSIGN, type, data);
 	} else {
 		st_row =
 		    mcc_symbol_table_check_upwards_for_declaration(asgn->array_identifier->identifier_name, asgn->row);
 		type = st_row_to_ir_type(st_row, -1, data);
-		struct mcc_ir_arg *index = generate_ir_expression(asgn->array_index, data);
+		struct mcc_ir_arg *index = mcc_ir_generate_expression(asgn->array_index, data);
 		identifier = new_arg_arr_elem(asgn->array_identifier, index, data);
 		// if float literal do not generate expression, because it will generate unneseccary extra line
 		if (asgn->array_assigned_value->type == MCC_AST_EXPRESSION_TYPE_LITERAL &&
 		    asgn->array_assigned_value->literal->type == MCC_AST_LITERAL_TYPE_FLOAT) {
 			exp = new_arg_float(asgn->array_assigned_value->literal->f_value, data);
 		} else {
-			exp = generate_ir_expression(asgn->array_assigned_value, data);
+			exp = mcc_ir_generate_expression(asgn->array_assigned_value, data);
 		}
 		row = new_row(identifier, exp, MCC_IR_INSTR_ASSIGN, type, data);
 	}
 	append_row(row, data);
 }
 
-static void generate_ir_statememt_while_stmt(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data)
+void mcc_ir_generate_statememt_while_stmt(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data)
 {
 	if (data->has_failed)
 		return;
@@ -856,7 +840,7 @@ static void generate_ir_statememt_while_stmt(struct mcc_ast_statement *stmt, str
 	append_row(label_row, data);
 
 	// Condition
-	struct mcc_ir_arg *cond = generate_ir_expression(stmt->if_condition, data);
+	struct mcc_ir_arg *cond = mcc_ir_generate_expression(stmt->if_condition, data);
 
 	// Jumpfalse L1
 	struct mcc_ir_arg *l1 = new_arg_label(data);
@@ -864,7 +848,7 @@ static void generate_ir_statememt_while_stmt(struct mcc_ast_statement *stmt, str
 	append_row(jumpfalse, data);
 
 	// On true
-	generate_ir_statement(stmt->while_on_true, data);
+	mcc_ir_generate_statement(stmt->while_on_true, data);
 
 	// Jump L0
 	struct mcc_ir_row *jump_row = new_row(copy_arg(l0, data), NULL, MCC_IR_INSTR_JUMP, typeless(data), data);
@@ -875,13 +859,13 @@ static void generate_ir_statememt_while_stmt(struct mcc_ast_statement *stmt, str
 	append_row(label_row_2, data);
 }
 
-static void generate_ir_statememt_if_else_stmt(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data)
+void mcc_ir_generate_statememt_if_else_stmt(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data)
 {
 	if (data->has_failed)
 		return;
 
 	// Condition
-	struct mcc_ir_arg *cond = generate_ir_expression(stmt->if_condition, data);
+	struct mcc_ir_arg *cond = mcc_ir_generate_expression(stmt->if_condition, data);
 
 	// Jumpfalse L1
 	struct mcc_ir_arg *l1 = new_arg_label(data);
@@ -891,7 +875,7 @@ static void generate_ir_statememt_if_else_stmt(struct mcc_ast_statement *stmt, s
 	append_row(jumpfalse, data);
 
 	// If true
-	generate_ir_statement(stmt->if_else_on_true, data);
+	mcc_ir_generate_statement(stmt->if_else_on_true, data);
 
 	struct mcc_ir_arg *l2 = new_arg_label(data);
 	if (!l2)
@@ -910,7 +894,7 @@ static void generate_ir_statememt_if_else_stmt(struct mcc_ast_statement *stmt, s
 	append_row(label_row, data);
 
 	// If false
-	generate_ir_statement(stmt->if_else_on_false, data);
+	mcc_ir_generate_statement(stmt->if_else_on_false, data);
 
 	if (data->current->instr != MCC_IR_INSTR_RETURN || !if_ends_on_return) {
 		// Label L2
@@ -922,22 +906,22 @@ static void generate_ir_statememt_if_else_stmt(struct mcc_ast_statement *stmt, s
 	}
 }
 
-static void generate_ir_statememt_if_stmt(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data)
+void mcc_ir_generate_statememt_if_stmt(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data)
 {
 	if (data->has_failed)
 		return;
-	struct mcc_ir_arg *cond = generate_ir_expression(stmt->if_condition, data);
+	struct mcc_ir_arg *cond = mcc_ir_generate_expression(stmt->if_condition, data);
 	struct mcc_ir_arg *label = new_arg_label(data);
 	if (!label)
 		return;
 	struct mcc_ir_row *jumpfalse = new_row(cond, label, MCC_IR_INSTR_JUMPFALSE, typeless(data), data);
 	append_row(jumpfalse, data);
-	generate_ir_statement(stmt->if_on_true, data);
+	mcc_ir_generate_statement(stmt->if_on_true, data);
 	struct mcc_ir_row *label_row = new_row(copy_arg(label, data), NULL, MCC_IR_INSTR_LABEL, typeless(data), data);
 	append_row(label_row, data);
 }
 
-static void generate_ir_statement_return(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data)
+void mcc_ir_generate_statement_return(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data)
 {
 	assert(stmt);
 	assert(data);
@@ -950,7 +934,7 @@ static void generate_ir_statement_return(struct mcc_ast_statement *stmt, struct 
 	}
 
 	if (stmt->return_value) {
-		struct mcc_ir_arg *exp = generate_ir_expression(stmt->return_value, data);
+		struct mcc_ir_arg *exp = mcc_ir_generate_expression(stmt->return_value, data);
 		if (!exp)
 			return;
 		struct mcc_ir_row_type *type = get_type_of_row(exp, stmt->return_value, data);
@@ -962,7 +946,7 @@ static void generate_ir_statement_return(struct mcc_ast_statement *stmt, struct 
 	}
 }
 
-static void generate_ir_declaration(struct mcc_ast_declaration *decl, struct ir_generation_userdata *data)
+void mcc_ir_generate_declaration(struct mcc_ast_declaration *decl, struct ir_generation_userdata *data)
 {
 	assert(decl);
 	assert(data);
@@ -982,7 +966,7 @@ static void generate_ir_declaration(struct mcc_ast_declaration *decl, struct ir_
 		row = new_row(arg1, arg2, MCC_IR_INSTR_ASSIGN, new_ir_row_type(MCC_IR_ROW_FLOAT, -1, data), data);
 	} else {
 		arg1 = mcc_ir_new_arg(decl->array_identifier, data);
-		arg2 = generate_arg_lit(decl->array_size, data);
+		arg2 = mcc_ir_generate_arg_lit(decl->array_size, data);
 
 		struct mcc_ir_row_type *type = st_row_to_ir_type(decl->row, (int)decl->array_size->i_value, data);
 		switch (decl->array_type->type_value) {
@@ -1017,35 +1001,35 @@ static void generate_ir_declaration(struct mcc_ast_declaration *decl, struct ir_
 	append_row(row, data);
 }
 
-static void generate_ir_statement(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data)
+void mcc_ir_generate_statement(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data)
 {
 	if (data->has_failed)
 		return;
 	struct mcc_ir_arg *arg = NULL;
 	switch (stmt->type) {
 	case MCC_AST_STATEMENT_TYPE_EXPRESSION:
-		arg = generate_ir_expression(stmt->stmt_expression, data);
+		arg = mcc_ir_generate_expression(stmt->stmt_expression, data);
 		break;
 	case MCC_AST_STATEMENT_TYPE_COMPOUND_STMT:
-		generate_ir_comp_statement(stmt->compound_statement, data);
+		mcc_ir_generate_comp_statement(stmt->compound_statement, data);
 		break;
 	case MCC_AST_STATEMENT_TYPE_ASSIGNMENT:
-		generate_ir_assignment(stmt->assignment, data);
+		mcc_ir_generate_assignment(stmt->assignment, data);
 		break;
 	case MCC_AST_STATEMENT_TYPE_DECLARATION:
-		generate_ir_declaration(stmt->declaration, data);
+		mcc_ir_generate_declaration(stmt->declaration, data);
 		break;
 	case MCC_AST_STATEMENT_TYPE_IF_ELSE_STMT:
-		generate_ir_statememt_if_else_stmt(stmt, data);
+		mcc_ir_generate_statememt_if_else_stmt(stmt, data);
 		break;
 	case MCC_AST_STATEMENT_TYPE_IF_STMT:
-		generate_ir_statememt_if_stmt(stmt, data);
+		mcc_ir_generate_statememt_if_stmt(stmt, data);
 		break;
 	case MCC_AST_STATEMENT_TYPE_RETURN:
-		generate_ir_statement_return(stmt, data);
+		mcc_ir_generate_statement_return(stmt, data);
 		break;
 	case MCC_AST_STATEMENT_TYPE_WHILE:
-		generate_ir_statememt_while_stmt(stmt, data);
+		mcc_ir_generate_statememt_while_stmt(stmt, data);
 		break;
 	default:
 		break;
@@ -1053,18 +1037,17 @@ static void generate_ir_statement(struct mcc_ast_statement *stmt, struct ir_gene
 	mcc_ir_delete_ir_arg(arg);
 }
 
-static void generate_ir_program(struct mcc_ast_program *program, struct ir_generation_userdata *data)
+void mcc_ir_generate_program(struct mcc_ast_program *program, struct ir_generation_userdata *data)
 {
 	assert(program);
 	assert(data);
 
 	if (data->has_failed)
 		return;
-	generate_ir_function_definition(program->function, data);
+	mcc_ir_generate_function_definition(program->function, data);
 }
 
-static void generate_ir_function_definition(struct mcc_ast_function_definition *def,
-                                            struct ir_generation_userdata *data)
+void mcc_ir_generate_function_definition(struct mcc_ast_function_definition *def, struct ir_generation_userdata *data)
 {
 	if (data->has_failed)
 		return;
@@ -1097,7 +1080,7 @@ static void generate_ir_function_definition(struct mcc_ast_function_definition *
 	}
 
 	// Function body
-	generate_ir_comp_statement(def->compound_stmt, data);
+	mcc_ir_generate_comp_statement(def->compound_stmt, data);
 }
 
 // --------------------------------------------------------------------------------------- Variable shadowing
@@ -1322,7 +1305,7 @@ struct mcc_ir_row *mcc_ir_generate(struct mcc_ast_program *ast)
 	}
 
 	while (ast) {
-		generate_ir_program(ast, data);
+		mcc_ir_generate_program(ast, data);
 		ast = ast->next_function;
 	}
 

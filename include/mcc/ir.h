@@ -13,6 +13,17 @@
 #include "mcc/ast.h"
 #include "mcc/symbol_table.h"
 
+//---------------------------------------------------------------------------------------- Data structure: Helper for
+//---------------------------------------------------------------------------------------- IR generation
+
+struct ir_generation_userdata {
+	struct mcc_ir_row *head;
+	struct mcc_ir_row *current;
+	bool has_failed;
+	unsigned label_counter;
+	unsigned tmp_counter;
+};
+
 //---------------------------------------------------------------------------------------- Data structure: IR
 
 enum mcc_ir_instruction {
@@ -99,10 +110,6 @@ struct mcc_ir_row {
 	struct mcc_ir_row *next_row;
 };
 
-//---------------------------------------------------------------------------------------- Generate IR datastructures
-
-struct mcc_ir_row *mcc_ir_generate(struct mcc_ast_program *ast);
-
 //---------------------------------------------------------------------------------------- Cleanup
 
 void mcc_ir_delete_ir_arg(struct mcc_ir_arg *arg);
@@ -112,5 +119,52 @@ void mcc_ir_delete_ir_row_type(struct mcc_ir_row_type *type);
 void mcc_ir_delete_ir_row(struct mcc_ir_row *row);
 
 void mcc_ir_delete_ir(struct mcc_ir_row *head);
+
+//---------------------------------------------------------------------------------------- Generate IR datastructures
+
+struct mcc_ir_arg *mcc_ir_generate_arg_lit(struct mcc_ast_literal *literal, struct ir_generation_userdata *data);
+
+void mcc_ir_generate_arguments(struct mcc_ast_arguments *arguments, struct ir_generation_userdata *data);
+
+void mcc_ir_generate_comp_statement(struct mcc_ast_compound_statement *cmp_stmt, struct ir_generation_userdata *data);
+
+void mcc_ir_generate_assignment(struct mcc_ast_assignment *asgn, struct ir_generation_userdata *data);
+
+void mcc_ir_generate_statememt_while_stmt(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data);
+
+void mcc_ir_generate_statememt_if_else_stmt(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data);
+
+void mcc_ir_generate_statememt_if_stmt(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data);
+
+void mcc_ir_generate_statement_return(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data);
+
+void mcc_ir_generate_declaration(struct mcc_ast_declaration *decl, struct ir_generation_userdata *data);
+
+void mcc_ir_generate_statement(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data);
+
+void mcc_ir_generate_program(struct mcc_ast_program *program, struct ir_generation_userdata *data);
+
+void mcc_ir_generate_function_definition(struct mcc_ast_function_definition *def, struct ir_generation_userdata *data);
+
+struct mcc_ir_row *mcc_ir_generate(struct mcc_ast_program *ast);
+
+struct mcc_ir_arg *mcc_ir_generate_expression_binary_op(struct mcc_ast_expression *expression,
+                                                        struct ir_generation_userdata *data);
+
+struct mcc_ir_arg *mcc_ir_generate_expression_unary_op(struct mcc_ast_expression *expression,
+                                                       struct ir_generation_userdata *data);
+
+struct mcc_ir_arg *mcc_ir_generate_expression_var(struct mcc_ast_expression *expression,
+                                                  struct ir_generation_userdata *data);
+
+struct mcc_ir_arg *mcc_ir_generate_expression_func_call(struct mcc_ast_expression *expression,
+                                                        struct ir_generation_userdata *data);
+
+struct mcc_ir_arg *mcc_ir_generate_expression(struct mcc_ast_expression *expression,
+                                              struct ir_generation_userdata *data);
+
+//---------------------------------------------------------------------------------------- Generate IR
+
+struct mcc_ir_row *mcc_ir_generate(struct mcc_ast_program *ast);
 
 #endif
