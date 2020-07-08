@@ -54,56 +54,430 @@ bool is_binary_instr(struct mcc_ir_row *row)
 	}
 }
 
-//------------------------------------------------------------------------------ Forward declarations: IR datastructures
-
-static struct mcc_ir_arg *arg_from_declaration(struct mcc_ast_declaration *decl, struct ir_generation_userdata *data);
-static struct mcc_ir_row_type *
-new_ir_row_type(enum mcc_ir_row_types row_type, signed size, struct ir_generation_userdata *data);
-static struct mcc_ir_row_type *typeless(struct ir_generation_userdata *data);
-static struct mcc_ir_arg *new_arg_func_label(struct mcc_ast_function_definition *def,
-                                             struct ir_generation_userdata *data);
-static struct mcc_ir_row *new_row(struct mcc_ir_arg *arg1,
-                                  struct mcc_ir_arg *arg2,
-                                  enum mcc_ir_instruction instr,
-                                  struct mcc_ir_row_type *type,
-                                  struct ir_generation_userdata *data);
-static struct mcc_ir_row *new_ir_row_array_tmp(struct mcc_ir_arg *index, struct ir_generation_userdata *data);
-static struct mcc_ir_row *new_ir_row_float_tmp(double f_value, struct ir_generation_userdata *data);
-static struct mcc_ir_arg *copy_arg(struct mcc_ir_arg *arg, struct ir_generation_userdata *data);
-static struct mcc_ir_arg *new_arg_int(long lit, struct ir_generation_userdata *data);
-static struct mcc_ir_arg *new_arg_float(double lit, struct ir_generation_userdata *data);
-static struct mcc_ir_arg *new_arg_bool(bool lit, struct ir_generation_userdata *data);
-static struct mcc_ir_arg *new_arg_string(char *lit, struct ir_generation_userdata *data);
-static struct mcc_ir_arg *new_arg_row(struct mcc_ir_row *row, struct ir_generation_userdata *data);
-static struct mcc_ir_arg *new_arg_label(struct ir_generation_userdata *data);
-static struct mcc_ir_arg *new_arg_identifier(struct mcc_ast_identifier *ident, struct ir_generation_userdata *data);
-static struct mcc_ir_arg *new_arg_identifier_from_string(char *ident, struct ir_generation_userdata *data);
-static struct mcc_ir_arg *
-new_arg_arr_elem(struct mcc_ast_identifier *ident, struct mcc_ir_arg *elem, struct ir_generation_userdata *data);
-static void append_row(struct mcc_ir_row *row, struct ir_generation_userdata *data);
-static struct mcc_ir_arg *generate_arg_lit(struct mcc_ast_literal *literal, struct ir_generation_userdata *data);
-
 //------------------------------------------------------------------------------ Forward declarations: IR generation
 
-static void generate_ir_comp_statement(struct mcc_ast_compound_statement *cmp_stmt,
-                                       struct ir_generation_userdata *data);
 static void generate_ir_statement(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data);
-static void generate_ir_assignment(struct mcc_ast_assignment *asgn, struct ir_generation_userdata *data);
-static void generate_ir_statememt_while_stmt(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data);
-static void generate_ir_statememt_if_stmt(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data);
-static void generate_ir_statememt_if_else_stmt(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data);
-static void generate_ir_statement_return(struct mcc_ast_statement *stmt, struct ir_generation_userdata *data);
-static void generate_ir_program(struct mcc_ast_program *program, struct ir_generation_userdata *data);
 static void generate_ir_function_definition(struct mcc_ast_function_definition *def,
                                             struct ir_generation_userdata *data);
 static struct mcc_ir_arg *generate_ir_expression(struct mcc_ast_expression *expression,
                                                  struct ir_generation_userdata *data);
-static struct mcc_ir_arg *generate_ir_expression_var(struct mcc_ast_expression *expression,
-                                                     struct ir_generation_userdata *data);
-static struct mcc_ir_arg *generate_ir_expression_unary_op(struct mcc_ast_expression *expression,
-                                                          struct ir_generation_userdata *data);
-static struct mcc_ir_arg *generate_ir_expression_binary_op(struct mcc_ast_expression *expression,
-                                                           struct ir_generation_userdata *data);
+
+//---------------------------------------------------------------------------------------- IR datastructures
+
+static void append_row(struct mcc_ir_row *row, struct ir_generation_userdata *data)
+{
+	assert(data);
+
+	struct ir_generation_userdata *userdata = data;
+	if (data->has_failed)
+		return;
+
+	if (!row) {
+		userdata->has_failed = true;
+		return;
+	}
+	if (!data->head) {
+		data->head = row;
+		data->current = row;
+		return;
+	}
+	data->current->next_row = row;
+	row->prev_row = data->current;
+	data->current = row;
+}
+
+static struct mcc_ir_row_type *
+new_ir_row_type(enum mcc_ir_row_types row_type, signed size, struct ir_generation_userdata *data)
+{
+	assert(data);
+
+	if (data->has_failed)
+		return NULL;
+
+	struct mcc_ir_row_type *type = malloc(sizeof(*type));
+	if (!type) {
+		data->has_failed = true;
+		return NULL;
+	}
+	type->type = row_type;
+	type->array_size = size;
+	return type;
+}
+
+static struct mcc_ir_row_type *typeless(struct ir_generation_userdata *data)
+{
+	assert(data);
+	if (data->has_failed)
+		return NULL;
+
+	return new_ir_row_type(MCC_IR_ROW_TYPELESS, -1, data);
+}
+
+static struct mcc_ir_arg *new_arg_func_label(struct mcc_ast_function_definition *def,
+                                             struct ir_generation_userdata *data)
+{
+	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
+	if (!arg) {
+		data->has_failed = true;
+		return NULL;
+	}
+	arg->type = MCC_IR_TYPE_FUNC_LABEL;
+	arg->func_label = strdup(def->identifier->identifier_name);
+	return arg;
+}
+
+static struct mcc_ir_arg *new_arg_row(struct mcc_ir_row *row, struct ir_generation_userdata *data)
+{
+	assert(data);
+	if (data->has_failed)
+		return NULL;
+
+	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
+	if (!arg) {
+		data->has_failed = true;
+		return NULL;
+	}
+	arg->type = MCC_IR_TYPE_ROW;
+	arg->row = row;
+	return arg;
+}
+
+static struct mcc_ir_arg *new_arg_int(long lit, struct ir_generation_userdata *data)
+{
+	assert(data);
+	if (data->has_failed)
+		return NULL;
+	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
+	if (!arg) {
+		data->has_failed = true;
+		return NULL;
+	}
+	arg->type = MCC_IR_TYPE_LIT_INT;
+	arg->lit_int = lit;
+	return arg;
+}
+
+static struct mcc_ir_arg *new_arg_float(double lit, struct ir_generation_userdata *data)
+{
+	assert(data);
+	if (data->has_failed)
+		return NULL;
+	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
+	if (!arg) {
+		data->has_failed = true;
+		return NULL;
+	}
+	arg->type = MCC_IR_TYPE_LIT_FLOAT;
+	arg->lit_float = lit;
+	return arg;
+}
+
+static struct mcc_ir_arg *new_arg_bool(bool lit, struct ir_generation_userdata *data)
+{
+	assert(data);
+	if (data->has_failed)
+		return NULL;
+	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
+	if (!arg) {
+		data->has_failed = true;
+		return NULL;
+	}
+	arg->type = MCC_IR_TYPE_LIT_BOOL;
+	arg->lit_bool = lit;
+	return arg;
+}
+
+static struct mcc_ir_arg *new_arg_string(char *lit, struct ir_generation_userdata *data)
+{
+	assert(data);
+	if (data->has_failed)
+		return NULL;
+	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
+	char *string = strdup(lit);
+	if (!arg || !string) {
+		data->has_failed = true;
+		free(arg);
+		free(string);
+		return NULL;
+	}
+	arg->type = MCC_IR_TYPE_LIT_STRING;
+	arg->lit_string = string;
+	return arg;
+}
+
+static struct mcc_ir_arg *new_arg_label(struct ir_generation_userdata *data)
+{
+	assert(data);
+	if (data->has_failed)
+		return NULL;
+	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
+	if (!arg) {
+		data->has_failed = true;
+		return NULL;
+	}
+	arg->type = MCC_IR_TYPE_LABEL;
+	arg->label = data->label_counter;
+	data->label_counter = data->label_counter + 1;
+	return arg;
+}
+
+static struct mcc_ir_arg *new_arg_identifier(struct mcc_ast_identifier *ident, struct ir_generation_userdata *data)
+{
+	assert(data);
+	if (data->has_failed)
+		return NULL;
+	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
+	char *str = strdup(ident->identifier_name);
+	if (!arg || !str) {
+		data->has_failed = true;
+		free(arg);
+		free(str);
+		return NULL;
+	}
+	arg->type = MCC_IR_TYPE_IDENTIFIER;
+	arg->ident = str;
+	return arg;
+}
+
+static struct mcc_ir_arg *new_arg_identifier_from_string(char *ident, struct ir_generation_userdata *data)
+{
+	assert(data);
+	if (data->has_failed)
+		return NULL;
+	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
+	char *str = strdup(ident);
+	if (!arg || !str) {
+		data->has_failed = true;
+		free(arg);
+		free(str);
+		return NULL;
+	}
+	arg->type = MCC_IR_TYPE_IDENTIFIER;
+	arg->ident = str;
+	return arg;
+}
+
+static struct mcc_ir_row *new_row(struct mcc_ir_arg *arg1,
+                                  struct mcc_ir_arg *arg2,
+                                  enum mcc_ir_instruction instr,
+                                  struct mcc_ir_row_type *type,
+                                  struct ir_generation_userdata *data)
+{
+	assert(data);
+	if (data->has_failed)
+		return NULL;
+	struct mcc_ir_row *row = malloc(sizeof(*row));
+	if (!row) {
+		data->has_failed = true;
+		return NULL;
+	}
+	row->row_no = 0;
+	row->arg1 = arg1;
+	row->arg2 = arg2;
+	row->instr = instr;
+	row->type = type;
+	row->next_row = NULL;
+	row->prev_row = NULL;
+	return row;
+}
+
+static struct mcc_ir_row *new_ir_row_array_tmp(struct mcc_ir_arg *index, struct ir_generation_userdata *data)
+{
+	assert(data);
+	if (data->has_failed)
+		return NULL;
+	unsigned size = 4 + length_of_int(data->tmp_counter) + 1;
+	char *ident = malloc(sizeof(char) * size);
+	if (!ident) {
+		data->has_failed = true;
+		return NULL;
+	}
+	snprintf(ident, size, "$tmp%d", data->tmp_counter);
+	data->tmp_counter++;
+	struct mcc_ir_arg *arg1 = new_arg_identifier_from_string(ident, data);
+	free(ident);
+	struct mcc_ir_arg *arg2 = index;
+	// is always of type int because it is only used when index of array element is again array element
+	struct mcc_ir_row_type *type = new_ir_row_type(MCC_IR_ROW_INT, -1, data);
+	struct mcc_ir_row *row = new_row(arg1, arg2, MCC_IR_INSTR_ASSIGN, type, data);
+	append_row(row, data);
+	return row;
+}
+
+static struct mcc_ir_arg *
+new_arg_arr_elem(struct mcc_ast_identifier *ident, struct mcc_ir_arg *index, struct ir_generation_userdata *data)
+{
+	assert(data);
+	if (data->has_failed)
+		return NULL;
+	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
+	char *str = strdup(ident->identifier_name);
+	if (!arg || !str) {
+		data->has_failed = true;
+		free(arg);
+		free(str);
+		return NULL;
+	}
+	arg->type = MCC_IR_TYPE_ARR_ELEM;
+	arg->arr_ident = str;
+	if (index->type == MCC_IR_TYPE_ARR_ELEM) {
+		struct mcc_ir_row *row = new_ir_row_array_tmp(index, data);
+		arg->index = new_arg_identifier_from_string(row->arg1->ident, data);
+	} else {
+		arg->index = index;
+	}
+	return arg;
+}
+
+static struct mcc_ir_row *new_ir_row_float_tmp(double f_value, struct ir_generation_userdata *data)
+{
+	assert(data);
+	if (data->has_failed)
+		return NULL;
+	unsigned size = 4 + length_of_int(data->tmp_counter) + 1;
+	char *ident = malloc(sizeof(char) * size);
+	if (!ident) {
+		data->has_failed = true;
+		return NULL;
+	}
+	snprintf(ident, size, "$tmp%d", data->tmp_counter);
+	data->tmp_counter++;
+	struct mcc_ir_arg *arg1 = new_arg_identifier_from_string(ident, data);
+	free(ident);
+	struct mcc_ir_arg *arg2 = new_arg_float(f_value, data);
+	struct mcc_ir_row_type *type = new_ir_row_type(MCC_IR_ROW_FLOAT, -1, data);
+	struct mcc_ir_row *row = new_row(arg1, arg2, MCC_IR_INSTR_ASSIGN, type, data);
+	append_row(row, data);
+	if (!arg1 || !arg2 || !row || !type)
+		data->has_failed = true;
+	return row;
+}
+
+static void number_rows(struct mcc_ir_row *head)
+{
+	if (!head)
+		return;
+	int i = 0;
+	do {
+		switch (head->instr) {
+		case MCC_IR_INSTR_AND:
+		case MCC_IR_INSTR_OR:
+		case MCC_IR_INSTR_PLUS:
+		case MCC_IR_INSTR_DIVIDE:
+		case MCC_IR_INSTR_MINUS:
+		case MCC_IR_INSTR_NEGATIV:
+		case MCC_IR_INSTR_GREATER:
+		case MCC_IR_INSTR_MULTIPLY:
+		case MCC_IR_INSTR_SMALLER:
+		case MCC_IR_INSTR_SMALLEREQ:
+		case MCC_IR_INSTR_GREATEREQ:
+		case MCC_IR_INSTR_EQUALS:
+		case MCC_IR_INSTR_NOTEQUALS:
+		case MCC_IR_INSTR_NOT:
+		case MCC_IR_INSTR_CALL:
+		case MCC_IR_INSTR_POP:
+
+			head->row_no = i;
+			i = i + 1;
+			break;
+		default:
+			break;
+		}
+		head = head->next_row;
+	} while (head);
+}
+
+static struct mcc_ir_arg *arg_from_declaration(struct mcc_ast_declaration *decl, struct ir_generation_userdata *data)
+{
+	assert(decl);
+	if (data->has_failed)
+		return NULL;
+	switch (decl->declaration_type) {
+	case MCC_AST_DECLARATION_TYPE_ARRAY:
+		return new_arg_identifier(decl->array_identifier, data);
+	case MCC_AST_DECLARATION_TYPE_VARIABLE:
+		return new_arg_identifier(decl->variable_identifier, data);
+	default:
+		return NULL;
+	}
+}
+
+static struct mcc_ir_arg *generate_arg_lit(struct mcc_ast_literal *literal, struct ir_generation_userdata *data)
+{
+	assert(literal);
+
+	if (data->has_failed)
+		return NULL;
+
+	struct mcc_ir_arg *arg = NULL;
+	struct mcc_ir_row *row = NULL;
+
+	switch (literal->type) {
+	case MCC_AST_LITERAL_TYPE_INT:
+		arg = mcc_ir_new_arg(literal->i_value, data);
+		break;
+	case MCC_AST_LITERAL_TYPE_FLOAT:
+		row = new_ir_row_float_tmp(literal->f_value, data);
+		if (!row)
+			return NULL;
+		arg = new_arg_identifier_from_string(row->arg1->ident, data);
+		break;
+	case MCC_AST_LITERAL_TYPE_BOOL:
+		arg = mcc_ir_new_arg(literal->bool_value, data);
+		break;
+	case MCC_AST_LITERAL_TYPE_STRING:
+		arg = mcc_ir_new_arg(literal->string_value, data);
+		break;
+	}
+
+	return arg;
+}
+
+static struct mcc_ir_arg *copy_label_arg(struct mcc_ir_arg *arg, struct ir_generation_userdata *data)
+{
+	assert(arg);
+	assert(data);
+
+	if (data->has_failed)
+		return NULL;
+
+	struct mcc_ir_arg *new = malloc(sizeof(*new));
+	if (!new) {
+		data->has_failed = true;
+		return NULL;
+	}
+	new->type = MCC_IR_TYPE_LABEL;
+	new->label = arg->label;
+	return new;
+}
+
+static struct mcc_ir_arg *copy_arg(struct mcc_ir_arg *arg, struct ir_generation_userdata *data)
+{
+	if (data->has_failed)
+		return NULL;
+
+	assert(arg);
+	assert(data);
+
+	switch (arg->type) {
+	case MCC_IR_TYPE_LIT_INT:
+		return new_arg_int(arg->lit_int, data);
+	case MCC_IR_TYPE_LIT_BOOL:
+		return new_arg_bool(arg->lit_bool, data);
+	case MCC_IR_TYPE_LIT_FLOAT:
+		return new_arg_float(arg->lit_float, data);
+	case MCC_IR_TYPE_LIT_STRING:
+		return new_arg_string(arg->lit_string, data);
+	case MCC_IR_TYPE_IDENTIFIER:
+		return new_arg_identifier_from_string(arg->ident, data);
+	case MCC_IR_TYPE_LABEL:
+		return copy_label_arg(arg, data);
+	case MCC_IR_TYPE_ROW:
+		return new_arg_row(arg->row, data);
+	default:
+		return NULL;
+	}
+}
 
 //------------------------------------------------------------------------------ IR generation
 
@@ -724,423 +1098,6 @@ static void generate_ir_function_definition(struct mcc_ast_function_definition *
 
 	// Function body
 	generate_ir_comp_statement(def->compound_stmt, data);
-}
-
-//---------------------------------------------------------------------------------------- IR datastructures
-
-static struct mcc_ir_arg *arg_from_declaration(struct mcc_ast_declaration *decl, struct ir_generation_userdata *data)
-{
-	assert(decl);
-	if (data->has_failed)
-		return NULL;
-	switch (decl->declaration_type) {
-	case MCC_AST_DECLARATION_TYPE_ARRAY:
-		return new_arg_identifier(decl->array_identifier, data);
-	case MCC_AST_DECLARATION_TYPE_VARIABLE:
-		return new_arg_identifier(decl->variable_identifier, data);
-	default:
-		return NULL;
-	}
-}
-
-static struct mcc_ir_arg *generate_arg_lit(struct mcc_ast_literal *literal, struct ir_generation_userdata *data)
-{
-	assert(literal);
-
-	if (data->has_failed)
-		return NULL;
-
-	struct mcc_ir_arg *arg = NULL;
-	struct mcc_ir_row *row = NULL;
-
-	switch (literal->type) {
-	case MCC_AST_LITERAL_TYPE_INT:
-		arg = mcc_ir_new_arg(literal->i_value, data);
-		break;
-	case MCC_AST_LITERAL_TYPE_FLOAT:
-		row = new_ir_row_float_tmp(literal->f_value, data);
-		if (!row)
-			return NULL;
-		arg = new_arg_identifier_from_string(row->arg1->ident, data);
-		break;
-	case MCC_AST_LITERAL_TYPE_BOOL:
-		arg = mcc_ir_new_arg(literal->bool_value, data);
-		break;
-	case MCC_AST_LITERAL_TYPE_STRING:
-		arg = mcc_ir_new_arg(literal->string_value, data);
-		break;
-	}
-
-	return arg;
-}
-
-static void append_row(struct mcc_ir_row *row, struct ir_generation_userdata *data)
-{
-	assert(data);
-
-	struct ir_generation_userdata *userdata = data;
-	if (data->has_failed)
-		return;
-
-	if (!row) {
-		userdata->has_failed = true;
-		return;
-	}
-	if (!data->head) {
-		data->head = row;
-		data->current = row;
-		return;
-	}
-	data->current->next_row = row;
-	row->prev_row = data->current;
-	data->current = row;
-}
-
-static struct mcc_ir_arg *copy_label_arg(struct mcc_ir_arg *arg, struct ir_generation_userdata *data)
-{
-	assert(arg);
-	assert(data);
-
-	if (data->has_failed)
-		return NULL;
-
-	struct mcc_ir_arg *new = malloc(sizeof(*new));
-	if (!new) {
-		data->has_failed = true;
-		return NULL;
-	}
-	new->type = MCC_IR_TYPE_LABEL;
-	new->label = arg->label;
-	return new;
-}
-
-static struct mcc_ir_arg *copy_arg(struct mcc_ir_arg *arg, struct ir_generation_userdata *data)
-{
-	if (data->has_failed)
-		return NULL;
-
-	assert(arg);
-	assert(data);
-
-	switch (arg->type) {
-	case MCC_IR_TYPE_LIT_INT:
-		return new_arg_int(arg->lit_int, data);
-	case MCC_IR_TYPE_LIT_BOOL:
-		return new_arg_bool(arg->lit_bool, data);
-	case MCC_IR_TYPE_LIT_FLOAT:
-		return new_arg_float(arg->lit_float, data);
-	case MCC_IR_TYPE_LIT_STRING:
-		return new_arg_string(arg->lit_string, data);
-	case MCC_IR_TYPE_IDENTIFIER:
-		return new_arg_identifier_from_string(arg->ident, data);
-	case MCC_IR_TYPE_LABEL:
-		return copy_label_arg(arg, data);
-	case MCC_IR_TYPE_ROW:
-		return new_arg_row(arg->row, data);
-	default:
-		return NULL;
-	}
-}
-
-static struct mcc_ir_row_type *
-new_ir_row_type(enum mcc_ir_row_types row_type, signed size, struct ir_generation_userdata *data)
-{
-	assert(data);
-
-	if (data->has_failed)
-		return NULL;
-
-	struct mcc_ir_row_type *type = malloc(sizeof(*type));
-	if (!type) {
-		data->has_failed = true;
-		return NULL;
-	}
-	type->type = row_type;
-	type->array_size = size;
-	return type;
-}
-
-static struct mcc_ir_row_type *typeless(struct ir_generation_userdata *data)
-{
-	assert(data);
-	if (data->has_failed)
-		return NULL;
-
-	return new_ir_row_type(MCC_IR_ROW_TYPELESS, -1, data);
-}
-
-static struct mcc_ir_arg *new_arg_func_label(struct mcc_ast_function_definition *def,
-                                             struct ir_generation_userdata *data)
-{
-	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
-	if (!arg) {
-		data->has_failed = true;
-		return NULL;
-	}
-	arg->type = MCC_IR_TYPE_FUNC_LABEL;
-	arg->func_label = strdup(def->identifier->identifier_name);
-	return arg;
-}
-
-static struct mcc_ir_arg *new_arg_row(struct mcc_ir_row *row, struct ir_generation_userdata *data)
-{
-	assert(data);
-	if (data->has_failed)
-		return NULL;
-
-	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
-	if (!arg) {
-		data->has_failed = true;
-		return NULL;
-	}
-	arg->type = MCC_IR_TYPE_ROW;
-	arg->row = row;
-	return arg;
-}
-
-static struct mcc_ir_arg *new_arg_int(long lit, struct ir_generation_userdata *data)
-{
-	assert(data);
-	if (data->has_failed)
-		return NULL;
-	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
-	if (!arg) {
-		data->has_failed = true;
-		return NULL;
-	}
-	arg->type = MCC_IR_TYPE_LIT_INT;
-	arg->lit_int = lit;
-	return arg;
-}
-
-static struct mcc_ir_arg *new_arg_float(double lit, struct ir_generation_userdata *data)
-{
-	assert(data);
-	if (data->has_failed)
-		return NULL;
-	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
-	if (!arg) {
-		data->has_failed = true;
-		return NULL;
-	}
-	arg->type = MCC_IR_TYPE_LIT_FLOAT;
-	arg->lit_float = lit;
-	return arg;
-}
-
-static struct mcc_ir_arg *new_arg_bool(bool lit, struct ir_generation_userdata *data)
-{
-	assert(data);
-	if (data->has_failed)
-		return NULL;
-	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
-	if (!arg) {
-		data->has_failed = true;
-		return NULL;
-	}
-	arg->type = MCC_IR_TYPE_LIT_BOOL;
-	arg->lit_bool = lit;
-	return arg;
-}
-
-static struct mcc_ir_arg *new_arg_string(char *lit, struct ir_generation_userdata *data)
-{
-	assert(data);
-	if (data->has_failed)
-		return NULL;
-	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
-	char *string = strdup(lit);
-	if (!arg || !string) {
-		data->has_failed = true;
-		free(arg);
-		free(string);
-		return NULL;
-	}
-	arg->type = MCC_IR_TYPE_LIT_STRING;
-	arg->lit_string = string;
-	return arg;
-}
-
-static struct mcc_ir_arg *new_arg_label(struct ir_generation_userdata *data)
-{
-	assert(data);
-	if (data->has_failed)
-		return NULL;
-	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
-	if (!arg) {
-		data->has_failed = true;
-		return NULL;
-	}
-	arg->type = MCC_IR_TYPE_LABEL;
-	arg->label = data->label_counter;
-	data->label_counter = data->label_counter + 1;
-	return arg;
-}
-
-static struct mcc_ir_arg *new_arg_identifier(struct mcc_ast_identifier *ident, struct ir_generation_userdata *data)
-{
-	assert(data);
-	if (data->has_failed)
-		return NULL;
-	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
-	char *str = strdup(ident->identifier_name);
-	if (!arg || !str) {
-		data->has_failed = true;
-		free(arg);
-		free(str);
-		return NULL;
-	}
-	arg->type = MCC_IR_TYPE_IDENTIFIER;
-	arg->ident = str;
-	return arg;
-}
-
-static struct mcc_ir_arg *new_arg_identifier_from_string(char *ident, struct ir_generation_userdata *data)
-{
-	assert(data);
-	if (data->has_failed)
-		return NULL;
-	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
-	char *str = strdup(ident);
-	if (!arg || !str) {
-		data->has_failed = true;
-		free(arg);
-		free(str);
-		return NULL;
-	}
-	arg->type = MCC_IR_TYPE_IDENTIFIER;
-	arg->ident = str;
-	return arg;
-}
-
-static struct mcc_ir_arg *
-new_arg_arr_elem(struct mcc_ast_identifier *ident, struct mcc_ir_arg *index, struct ir_generation_userdata *data)
-{
-	assert(data);
-	if (data->has_failed)
-		return NULL;
-	struct mcc_ir_arg *arg = malloc(sizeof(*arg));
-	char *str = strdup(ident->identifier_name);
-	if (!arg || !str) {
-		data->has_failed = true;
-		free(arg);
-		free(str);
-		return NULL;
-	}
-	arg->type = MCC_IR_TYPE_ARR_ELEM;
-	arg->arr_ident = str;
-	if (index->type == MCC_IR_TYPE_ARR_ELEM) {
-		struct mcc_ir_row *row = new_ir_row_array_tmp(index, data);
-		arg->index = new_arg_identifier_from_string(row->arg1->ident, data);
-	} else {
-		arg->index = index;
-	}
-	return arg;
-}
-
-static struct mcc_ir_row *new_row(struct mcc_ir_arg *arg1,
-                                  struct mcc_ir_arg *arg2,
-                                  enum mcc_ir_instruction instr,
-                                  struct mcc_ir_row_type *type,
-                                  struct ir_generation_userdata *data)
-{
-	assert(data);
-	if (data->has_failed)
-		return NULL;
-	struct mcc_ir_row *row = malloc(sizeof(*row));
-	if (!row) {
-		data->has_failed = true;
-		return NULL;
-	}
-	row->row_no = 0;
-	row->arg1 = arg1;
-	row->arg2 = arg2;
-	row->instr = instr;
-	row->type = type;
-	row->next_row = NULL;
-	row->prev_row = NULL;
-	return row;
-}
-
-static struct mcc_ir_row *new_ir_row_array_tmp(struct mcc_ir_arg *index, struct ir_generation_userdata *data)
-{
-	assert(data);
-	if (data->has_failed)
-		return NULL;
-	unsigned size = 4 + length_of_int(data->tmp_counter) + 1;
-	char *ident = malloc(sizeof(char) * size);
-	if (!ident) {
-		data->has_failed = true;
-		return NULL;
-	}
-	snprintf(ident, size, "$tmp%d", data->tmp_counter);
-	data->tmp_counter++;
-	struct mcc_ir_arg *arg1 = new_arg_identifier_from_string(ident, data);
-	free(ident);
-	struct mcc_ir_arg *arg2 = index;
-	// is always of type int because it is only used when index of array element is again array element
-	struct mcc_ir_row_type *type = new_ir_row_type(MCC_IR_ROW_INT, -1, data);
-	struct mcc_ir_row *row = new_row(arg1, arg2, MCC_IR_INSTR_ASSIGN, type, data);
-	append_row(row, data);
-	return row;
-}
-
-static struct mcc_ir_row *new_ir_row_float_tmp(double f_value, struct ir_generation_userdata *data)
-{
-	assert(data);
-	if (data->has_failed)
-		return NULL;
-	unsigned size = 4 + length_of_int(data->tmp_counter) + 1;
-	char *ident = malloc(sizeof(char) * size);
-	if (!ident) {
-		data->has_failed = true;
-		return NULL;
-	}
-	snprintf(ident, size, "$tmp%d", data->tmp_counter);
-	data->tmp_counter++;
-	struct mcc_ir_arg *arg1 = new_arg_identifier_from_string(ident, data);
-	free(ident);
-	struct mcc_ir_arg *arg2 = new_arg_float(f_value, data);
-	struct mcc_ir_row_type *type = new_ir_row_type(MCC_IR_ROW_FLOAT, -1, data);
-	struct mcc_ir_row *row = new_row(arg1, arg2, MCC_IR_INSTR_ASSIGN, type, data);
-	append_row(row, data);
-	if (!arg1 || !arg2 || !row || !type)
-		data->has_failed = true;
-	return row;
-}
-
-static void number_rows(struct mcc_ir_row *head)
-{
-	if (!head)
-		return;
-	int i = 0;
-	do {
-		switch (head->instr) {
-		case MCC_IR_INSTR_AND:
-		case MCC_IR_INSTR_OR:
-		case MCC_IR_INSTR_PLUS:
-		case MCC_IR_INSTR_DIVIDE:
-		case MCC_IR_INSTR_MINUS:
-		case MCC_IR_INSTR_NEGATIV:
-		case MCC_IR_INSTR_GREATER:
-		case MCC_IR_INSTR_MULTIPLY:
-		case MCC_IR_INSTR_SMALLER:
-		case MCC_IR_INSTR_SMALLEREQ:
-		case MCC_IR_INSTR_GREATEREQ:
-		case MCC_IR_INSTR_EQUALS:
-		case MCC_IR_INSTR_NOTEQUALS:
-		case MCC_IR_INSTR_NOT:
-		case MCC_IR_INSTR_CALL:
-		case MCC_IR_INSTR_POP:
-
-			head->row_no = i;
-			i = i + 1;
-			break;
-		default:
-			break;
-		}
-		head = head->next_row;
-	} while (head);
 }
 
 // --------------------------------------------------------------------------------------- Variable shadowing
