@@ -359,13 +359,14 @@ struct mcc_ast_identifier *mcc_ast_new_identifier(char *identifier)
 
 void mcc_ast_delete_identifier(struct mcc_ast_identifier *identifier)
 {
+	if (!identifier)
+		return;
 	if (identifier->identifier_name)
 		free(identifier->identifier_name);
 	free(identifier);
 }
 
-// -------------------------------------------------------------------
-// Statements
+// -------------------------------------------------------------------  Statements
 
 struct mcc_ast_statement *mcc_ast_new_statement_if_stmt(struct mcc_ast_expression *condition,
                                                         struct mcc_ast_statement *on_true)
