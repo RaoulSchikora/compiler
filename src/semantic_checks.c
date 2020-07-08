@@ -181,11 +181,6 @@ struct mcc_semantic_check *mcc_semantic_check_initialize_check()
 	return check;
 }
 
-// Define function pointer to a single sematic check
-enum mcc_semantic_check_error_code (*fctptr)(struct mcc_ast_program *ast,
-                                             struct mcc_symbol_table *table,
-                                             struct mcc_semantic_check *check);
-
 // Wrapper for running one of the checks with 2 early aborts:
 // Error code of the previous check is not OK: Error code is handed back immediately
 // Status code of the previous check is not OK: Abort with error code OK, but don't change check
