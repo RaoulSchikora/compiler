@@ -32,3 +32,4 @@ void mcc_print_string_literal(FILE *out, const char *string, bool doubly_escaped
 		i++;
 	}
 }
+

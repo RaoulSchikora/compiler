@@ -1321,3 +1321,4 @@ void mcc_semantic_check_delete_single_check(struct mcc_semantic_check *check)
 	free(check->error_buffer);
 	free(check);
 }
+

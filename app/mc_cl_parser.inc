@@ -393,3 +393,4 @@ static enum mc_cl_parser_argument_status check_args(struct mc_cl_parser_command_
 }
 
 #endif // MC_CL_PARSER_INC
+

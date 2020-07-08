@@ -9,3 +9,4 @@ int length_of_int(int num)
 		return floor(log10((-1) * num)) + 2;
 	return floor(log10(num)) + 1;
 }
+

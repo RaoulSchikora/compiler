@@ -383,3 +383,4 @@ void strings2(CuTest *tc)
 
 #include "main_stub.inc"
 #undef TESTS
+

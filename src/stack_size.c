@@ -334,3 +334,4 @@ struct mcc_annotated_ir *mcc_annotate_ir(struct mcc_ir_row *ir)
 	add_stack_positions(an_head);
 	return an_head;
 }
+

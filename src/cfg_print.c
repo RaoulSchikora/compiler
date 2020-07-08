@@ -56,3 +56,4 @@ void mcc_cfg_print_dot_cfg(FILE *out, struct mcc_basic_block *head)
 	}
 	mcc_cfg_print_dot_end(out);
 }
+

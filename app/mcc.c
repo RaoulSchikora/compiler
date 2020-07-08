@@ -192,3 +192,4 @@ bool assemble_and_link(char *binary_filename, bool quiet)
 
 	return false;
 }
+

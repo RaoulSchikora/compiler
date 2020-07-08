@@ -38,3 +38,4 @@ struct mcc_basic_block *mcc_cfg_new_basic_block(struct mcc_ir_row *leader,
 void mcc_delete_cfg_and_ir(struct mcc_basic_block *head);
 
 #endif // MCC_CFG_H
+

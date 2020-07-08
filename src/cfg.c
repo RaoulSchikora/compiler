@@ -363,3 +363,4 @@ void mcc_delete_cfg_and_ir(struct mcc_basic_block *head)
 	mcc_ir_delete_ir(head->leader);
 	free(head);
 }
+

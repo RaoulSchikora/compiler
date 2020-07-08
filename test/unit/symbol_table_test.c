@@ -909,3 +909,4 @@ void built_ins(CuTest *tc)
 	TEST(built_ins)
 #include "main_stub.inc"
 #undef TESTS
+

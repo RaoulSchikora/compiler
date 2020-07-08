@@ -115,3 +115,4 @@ cleanup_if_not "$options_continue"
 gdb_loop "$options_repetitions" "$options_arguments"
 cleanup_if_not "$options_keep_hashes"
 exit 0
+

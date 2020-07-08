@@ -769,3 +769,4 @@ struct mcc_symbol_table *mcc_symbol_table_create(struct mcc_ast_program *program
 
 	return table;
 }
+

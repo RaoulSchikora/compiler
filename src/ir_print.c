@@ -261,3 +261,5 @@ static void print_arg(FILE *out, struct mcc_ir_arg *arg, bool escape_quotes, boo
 		fprintf(out, "\"");
 	}
 }
+
+

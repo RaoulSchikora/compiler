@@ -24,3 +24,4 @@ void mcc_asm_print_asm(FILE *out, struct mcc_asm *head);
 void mcc_asm_print_end(FILE *out);
 
 #endif // MCC_ASM_PRINT_H
+

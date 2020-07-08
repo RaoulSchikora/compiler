@@ -152,3 +152,4 @@ if [ $success -eq 0  ]
 	then
 		echo "All leak checks were successfull"
 fi
+

@@ -9,3 +9,4 @@
 void mcc_print_string_literal(FILE *out, const char *string, bool doubly_escaped);
 
 #endif // MCC_UTILS_PRINT_STRING_H
+

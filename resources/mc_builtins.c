@@ -40,3 +40,4 @@ float read_float(void)
 	scanf("%f", &ret);
 	return ret;
 }
+

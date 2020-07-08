@@ -40,3 +40,4 @@ int mcc_get_array_base_stack_loc(struct mcc_annotated_ir *an_ir, struct mcc_ir_a
 int mcc_get_array_element_stack_loc(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *array_element);
 
 #endif
+

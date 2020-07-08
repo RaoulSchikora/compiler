@@ -1455,3 +1455,4 @@ void empty(CuTest *tc)
 	TEST(empty)
 #include "main_stub.inc"
 #undef TESTS
+

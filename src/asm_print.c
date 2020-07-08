@@ -297,3 +297,4 @@ void mcc_asm_print_asm(FILE *out, struct mcc_asm *head)
 	}
 	fprintf(out, "\n");
 }
+

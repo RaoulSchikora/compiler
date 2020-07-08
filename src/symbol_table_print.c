@@ -150,3 +150,4 @@ void mcc_symbol_table_print(struct mcc_symbol_table *table, void *data)
 		mcc_symbol_table_print_end(out);
 	}
 }
+

@@ -757,3 +757,4 @@ void mcc_ast_print_dot_arguments(FILE *out, struct mcc_ast_arguments *arguments)
 	mcc_ast_visit(arguments, &visitor);
 	print_dot_end(out);
 }
+

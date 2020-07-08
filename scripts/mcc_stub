@@ -20,3 +20,4 @@ readonly output=$2
 "$SCRIPTS_DIR/mc_to_c" "$input" > "$output.c"
 
 gcc -m32 -I"$SCRIPTS_DIR/../resources" -o "$output" "$output.c"
+

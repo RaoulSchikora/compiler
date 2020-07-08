@@ -124,3 +124,4 @@ void mcc_ast_visit_program(struct mcc_ast_program *program, struct mcc_ast_visit
 // clang-format on
 
 #endif // MCC_AST_VISIT_H
+

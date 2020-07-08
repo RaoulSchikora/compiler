@@ -472,3 +472,4 @@ struct mcc_parser_result *mcc_ast_merge_results(struct mcc_parser_result *array,
 // clang-format on
 
 #endif // MCC_AST_H
+

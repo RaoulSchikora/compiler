@@ -1027,3 +1027,4 @@ void DanglingElse(CuTest *tc)
 
 #include "main_stub.inc"
 #undef TESTS
+

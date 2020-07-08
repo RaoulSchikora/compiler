@@ -115,3 +115,4 @@ enum mcc_semantic_check_error_code mcc_semantic_check_run_function_arguments(str
 void mcc_semantic_check_delete_single_check(struct mcc_semantic_check *check);
 
 #endif // PROJECT_SEMANTIC_CHECKS_H
+

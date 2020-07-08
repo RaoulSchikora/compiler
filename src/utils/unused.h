@@ -5,3 +5,4 @@
 #define UNUSED(x) (void)(x)
 
 #endif // MCC_UTILS_UNUSED_H
+

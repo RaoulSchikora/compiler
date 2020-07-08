@@ -110,3 +110,4 @@ struct mcc_symbol_table_row *mcc_symbol_table_check_for_function_declaration(con
 struct mcc_symbol_table *mcc_symbol_table_create(struct mcc_ast_program *program);
 
 #endif // MCC_SYMBOL_TABLE_H
+

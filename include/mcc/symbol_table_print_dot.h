@@ -26,3 +26,4 @@ void mcc_symbol_table_print_dot_scope(struct mcc_symbol_table_scope *scope, cons
 void mcc_symbol_table_print_dot(struct mcc_symbol_table *table, FILE *out);
 
 #endif // MCC_SYMBOL_TABLE_PRINT_DOT_H
+

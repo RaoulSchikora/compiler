@@ -313,3 +313,4 @@ void test_string_array(CuTest *tc)
 
 #include "main_stub.inc"
 #undef TESTS
+

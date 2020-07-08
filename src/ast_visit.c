@@ -291,3 +291,4 @@ void mcc_ast_visit_program(struct mcc_ast_program *program, struct mcc_ast_visit
 	}
 	visit_if_post_order(program, visitor->program, visitor);
 }
+

@@ -23,3 +23,4 @@ void mcc_symbol_table_print_begin(struct mcc_symbol_table_scope *scope, FILE *ou
 void mcc_symbol_table_print_end(FILE *out);
 
 #endif // MCC_SYMBOL_TABLE_PRINT_H
+

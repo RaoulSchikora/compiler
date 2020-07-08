@@ -58,3 +58,4 @@ void mcc_ast_print_dot_arguments(FILE *out, struct mcc_ast_arguments *arguments)
 // clang-format on
 
 #endif // MCC_AST_PRINT_H
+

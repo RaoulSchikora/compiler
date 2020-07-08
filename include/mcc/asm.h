@@ -234,3 +234,4 @@ void mcc_asm_generate_data_section(struct mcc_asm_data_section *data_section,
 struct mcc_asm *mcc_asm_generate(struct mcc_ir_row *ir);
 
 #endif // MCC_ASM_H
+

@@ -180,3 +180,4 @@ void mcc_symbol_table_print_dot(struct mcc_symbol_table *table, FILE *out)
 		mcc_symbol_table_print_dot_end(out);
 	}
 }
+

@@ -1095,3 +1095,4 @@ struct mcc_parser_result *mcc_ast_merge_results(struct mcc_parser_result *array,
 
 	return array;
 }
+

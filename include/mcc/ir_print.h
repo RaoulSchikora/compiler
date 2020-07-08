@@ -22,3 +22,4 @@ void mcc_ir_print_ir(FILE *out, struct mcc_ir_row *head, bool escape_quotes, boo
 void mcc_ir_print_ir_row(FILE *out, struct mcc_ir_row *row, bool escape_quotes, bool doubly_escaped);
 
 #endif
+

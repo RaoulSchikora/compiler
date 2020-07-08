@@ -730,3 +730,4 @@ void type_array_test(CuTest *tc)
 
 #include "main_stub.inc"
 #undef TESTS
+

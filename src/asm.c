@@ -1349,3 +1349,4 @@ struct mcc_asm *mcc_asm_generate(struct mcc_ir_row *ir)
 
 	return assembly;
 }
+

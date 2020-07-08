@@ -79,3 +79,4 @@ struct mcc_parser_result get_ast_from_stdin(bool quiet)
 }
 
 #endif // MC_GET_AST_INC
+

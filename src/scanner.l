@@ -116,3 +116,4 @@ string_literal \"[^"]*\"
 <<EOF>>           { return TK_END; }
 
 .                 { fprintf(stderr, "invalid character '%c'. I'll ignore it and continue.\n", yytext[0]); }
+

@@ -14,3 +14,4 @@ echo 'typedef const char* string;'
 
 # Translate custom array syntax
 sed -r 's/(int|float|bool|string)(\[[[:digit:]]+\])\s+(\w+)/\1 \3\2/g' "$@"
+
