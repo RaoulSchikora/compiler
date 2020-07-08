@@ -21,7 +21,7 @@ void test1(CuTest *tc)
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 	struct mcc_semantic_check *checks = mcc_semantic_check_run_all((&parser_result)->program, table);
 	CuAssertIntEquals(tc, checks->status, MCC_SEMANTIC_CHECK_OK);
-	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program );
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program);
 	CuAssertPtrNotNull(tc, ir);
 
 	struct mcc_asm *code = mcc_asm_generate(ir);
@@ -74,7 +74,7 @@ void stack_frame_size_int(CuTest *tc)
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 	struct mcc_semantic_check *checks = mcc_semantic_check_run_all((&parser_result)->program, table);
 	CuAssertIntEquals(tc, checks->status, MCC_SEMANTIC_CHECK_OK);
-	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program );
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program);
 	CuAssertPtrNotNull(tc, ir);
 
 	struct mcc_asm *code = mcc_asm_generate(ir);
@@ -102,7 +102,7 @@ void addition_lit(CuTest *tc)
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 	struct mcc_semantic_check *checks = mcc_semantic_check_run_all((&parser_result)->program, table);
 	CuAssertIntEquals(tc, checks->status, MCC_SEMANTIC_CHECK_OK);
-	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program );
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program);
 	CuAssertPtrNotNull(tc, ir);
 
 	struct mcc_asm *code = mcc_asm_generate(ir);
@@ -173,7 +173,7 @@ void div_int(CuTest *tc)
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 	struct mcc_semantic_check *checks = mcc_semantic_check_run_all((&parser_result)->program, table);
 	CuAssertIntEquals(tc, checks->status, MCC_SEMANTIC_CHECK_OK);
-	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program );
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program);
 	CuAssertPtrNotNull(tc, ir);
 
 	struct mcc_asm *code = mcc_asm_generate(ir);
@@ -236,7 +236,7 @@ void strings(CuTest *tc)
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 	struct mcc_semantic_check *checks = mcc_semantic_check_run_all((&parser_result)->program, table);
 	CuAssertIntEquals(tc, checks->status, MCC_SEMANTIC_CHECK_OK);
-	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program );
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program);
 	CuAssertPtrNotNull(tc, ir);
 
 	struct mcc_asm *code = mcc_asm_generate(ir);
@@ -308,7 +308,7 @@ void strings2(CuTest *tc)
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 	struct mcc_semantic_check *checks = mcc_semantic_check_run_all((&parser_result)->program, table);
 	CuAssertIntEquals(tc, checks->status, MCC_SEMANTIC_CHECK_OK);
-	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program );
+	struct mcc_ir_row *ir = mcc_ir_generate((&parser_result)->program);
 	CuAssertPtrNotNull(tc, ir);
 
 	struct mcc_asm *code = mcc_asm_generate(ir);

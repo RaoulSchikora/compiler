@@ -1,6 +1,6 @@
 // Symbol Table
 //
-// This module defines the  data structure for the symbol table. 
+// This module defines the  data structure for the symbol table.
 // The symbol table is a tree of tables, where sub-scopes are children. Each node represents a scope.
 // Within a scope, linked lists represent entries in the symbol table.
 
@@ -106,7 +106,7 @@ struct mcc_symbol_table_row *mcc_symbol_table_check_upwards_for_declaration(cons
 
 struct mcc_symbol_table_row *mcc_symbol_table_check_for_function_declaration(const char *name,
                                                                              struct mcc_symbol_table_row *row);
-																			 
+
 struct mcc_symbol_table *mcc_symbol_table_create(struct mcc_ast_program *program);
 
 #endif // MCC_SYMBOL_TABLE_H

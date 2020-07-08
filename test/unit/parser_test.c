@@ -6,7 +6,6 @@
 #include "mcc/ast.h"
 #include "mcc/parser.h"
 
-
 // Threshold for floating point comparisions.
 static const double EPS = 1e-3;
 

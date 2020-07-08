@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 
 	// ---------------------------------------------------------------------- Generate IR
 
-	struct mcc_ir_row *ir = mcc_ir_generate((&result)->program );
+	struct mcc_ir_row *ir = mcc_ir_generate((&result)->program);
 	if (!ir) {
 		fprintf(stderr, "IR generation failed. Unknwon error.\n");
 		return EXIT_FAILURE;

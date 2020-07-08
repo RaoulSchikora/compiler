@@ -2,8 +2,8 @@
 //
 // This module defines the data structures and functions used to generate the assembly code.
 // It is targeting an x86 system and written in AT&T syntax.
-// Assembly lines are generated "on-the-fly" and automatically appended to the line "current" that is passed in via the mcc_asm_data
-// struct.
+// Assembly lines are generated "on-the-fly" and automatically appended to the line "current" that is passed in via the
+// mcc_asm_data struct.
 
 #ifndef MCC_ASM_H
 #define MCC_ASM_H
