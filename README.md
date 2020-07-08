@@ -36,11 +36,21 @@ match the expected values:
 
     $ ../scripts/run_asm_test.sh
 
-# Known Issues
+## Usage
 
-## Compiler warning 
+Use the generated `mcc` app to compile mC-programs as follows:
+
+    $ ./mcc test.mc
+
+See `mcc -h` for more info about command line arguments.
+For intermediate stages of the compilation pipeline printers are provided, see [development
+notes](docs/development_notes.md) for more details.
+
+## Known Issues
+
+### Compiler warning 
 
 Since the unit test matches any grammar rule, there are 5 reduce/reduce-conflicts. These will however not arise, when 
-the testing mode isn't specified, because the parser can only match the unit-test grammar rule when a dedicated global 
-variable is set (which can't happen due to user input).
+the testing mode isn't specified, because the parser can only match the unit-test grammar rule when a dedicated variable
+is set (which can only happen when the function is called via the library API, not when parsing input from `mcc`).
 
