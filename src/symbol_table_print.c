@@ -94,6 +94,8 @@ static void print_symbol_table_row(struct mcc_symbol_table_row *row, const char 
 
 	int size = strlen(leading_spaces) + 8;
 	char *new_leading_spaces = (char *)malloc(sizeof(char) * size);
+	if(!new_leading_spaces)
+		return;
 	snprintf(new_leading_spaces, size, "    %s", leading_spaces);
 
 	while (child_scope && child_scope->head && child_scope->head->row_type != MCC_SYMBOL_TABLE_ROW_TYPE_PSEUDO) {
