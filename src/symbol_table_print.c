@@ -7,11 +7,13 @@
 
 // ------------------------------------------------------------- Forward declaration
 
-static void print_symbol_table_scope(struct mcc_symbol_table_scope *scope, const char *leading_spaces, FILE *out);
+void mcc_symbol_table_print_symbol_table_scope(struct mcc_symbol_table_scope *scope,
+                                               const char *leading_spaces,
+                                               FILE *out);
 
 // ------------------------------------------------------------- Implementation
 
-static void print_symbol_table_begin(struct mcc_symbol_table_scope *scope, FILE *out)
+void mcc_symbol_table_print_begin(struct mcc_symbol_table_scope *scope, FILE *out)
 {
 	assert(scope);
 	assert(out);
@@ -30,7 +32,7 @@ static void print_symbol_table_begin(struct mcc_symbol_table_scope *scope, FILE 
 	}
 }
 
-static void print_symbol_table_end(FILE *out)
+void mcc_symbol_table_print_end(FILE *out)
 {
 	assert(out);
 
@@ -77,7 +79,7 @@ static void print_row(struct mcc_symbol_table_row *row, const char *leading_spac
 	}
 }
 
-static void print_symbol_table_row(struct mcc_symbol_table_row *row, const char *leading_spaces, FILE *out)
+void mcc_symbol_table_print_row(struct mcc_symbol_table_row *row, const char *leading_spaces, FILE *out)
 {
 	assert(row);
 	assert(leading_spaces);
@@ -94,19 +96,19 @@ static void print_symbol_table_row(struct mcc_symbol_table_row *row, const char 
 
 	int size = strlen(leading_spaces) + 8;
 	char *new_leading_spaces = (char *)malloc(sizeof(char) * size);
-	if(!new_leading_spaces)
+	if (!new_leading_spaces)
 		return;
 	snprintf(new_leading_spaces, size, "    %s", leading_spaces);
 
 	while (child_scope && child_scope->head && child_scope->head->row_type != MCC_SYMBOL_TABLE_ROW_TYPE_PSEUDO) {
-		print_symbol_table_scope(child_scope, new_leading_spaces, out);
+		mcc_symbol_table_print_scope(child_scope, new_leading_spaces, out);
 		child_scope = child_scope->next_scope;
 	}
 
 	free(new_leading_spaces);
 }
 
-static void print_symbol_table_scope(struct mcc_symbol_table_scope *scope, const char *leading_spaces, FILE *out)
+void mcc_symbol_table_print_scope(struct mcc_symbol_table_scope *scope, const char *leading_spaces, FILE *out)
 {
 	assert(scope);
 	assert(leading_spaces);
@@ -119,7 +121,7 @@ static void print_symbol_table_scope(struct mcc_symbol_table_scope *scope, const
 		struct mcc_symbol_table_row *row = scope->head;
 
 		while (row) {
-			print_symbol_table_row(row, leading_spaces, out);
+			mcc_symbol_table_print_row(row, leading_spaces, out);
 			row = row->next_row;
 		}
 	}
@@ -138,13 +140,13 @@ void mcc_symbol_table_print(struct mcc_symbol_table *table, void *data)
 
 		struct mcc_symbol_table_scope *scope = table->head;
 
-		print_symbol_table_begin(scope, out);
+		mcc_symbol_table_print_begin(scope, out);
 
 		while (scope) {
-			print_symbol_table_scope(scope, "", out);
+			mcc_symbol_table_print_scope(scope, "", out);
 			scope = scope->next_scope;
 		}
 
-		print_symbol_table_end(out);
+		mcc_symbol_table_print_end(out);
 	}
 }
