@@ -8,21 +8,11 @@
 #include <string.h>
 
 #include "mcc/asm.h"
+#include "utils/length_of_int.h"
 #include "utils/print_string.h"
 #include "utils/unused.h"
-#include "utils/length_of_int.h"
 
 //---------------------------------------------------------------------------------------- Functions: Print ASM
-
-static void asm_print_begin(FILE *out)
-{
-	UNUSED(out);
-}
-
-static void asm_print_end(FILE *out)
-{
-	fprintf(out, "\n");
-}
 
 static char *opcode_to_string(enum mcc_asm_opcode op)
 {
@@ -251,7 +241,7 @@ static void asm_print_line(FILE *out, struct mcc_asm_line *line)
 	}
 }
 
-static void asm_print_func(FILE *out, struct mcc_asm_function *func)
+void mcc_asm_print_func(FILE *out, struct mcc_asm_function *func)
 {
 	fprintf(out, "\n        .globl %s\n", func->label);
 	fprintf(out, "%s:\n", func->label);
@@ -262,8 +252,7 @@ static void asm_print_func(FILE *out, struct mcc_asm_function *func)
 	}
 }
 
-
-static void asm_print_decl(FILE *out, struct mcc_asm_declaration *decl)
+void mcc_asm_print_decl(FILE *out, struct mcc_asm_declaration *decl)
 {
 	fprintf(out, "\t%s:", decl->identifier);
 	switch (decl->type) {
@@ -272,7 +261,7 @@ static void asm_print_decl(FILE *out, struct mcc_asm_declaration *decl)
 		break;
 	case MCC_ASM_DECLARATION_TYPE_STRING:
 		fprintf(out, "       .string \"");
-		mcc_print_string_literal(out, decl->string_value,false);
+		mcc_print_string_literal(out, decl->string_value, false);
 		fprintf(out, "\"\n");
 		break;
 	default:
@@ -280,32 +269,31 @@ static void asm_print_decl(FILE *out, struct mcc_asm_declaration *decl)
 	}
 }
 
-static void asm_print_text_sec(FILE *out, struct mcc_asm_text_section *text)
+void mcc_asm_print_text_sec(FILE *out, struct mcc_asm_text_section *text)
 {
 	fprintf(out, ".text\n");
 	struct mcc_asm_function *func = text->function;
 	while (func) {
-		asm_print_func(out, func);
+		mcc_asm_print_func(out, func);
 		func = func->next;
 	}
 }
 
-static void asm_print_data_sec(FILE *out, struct mcc_asm_data_section *data)
+void mcc_asm_print_data_sec(FILE *out, struct mcc_asm_data_section *data)
 {
 	fprintf(out, "\n.data\n");
 	struct mcc_asm_declaration *decl = data->head;
 	while (decl) {
-		asm_print_decl(out, decl);
+		mcc_asm_print_decl(out, decl);
 		decl = decl->next;
 	}
 }
 
 void mcc_asm_print_asm(FILE *out, struct mcc_asm *head)
 {
-	asm_print_begin(out);
-	asm_print_text_sec(out, head->text_section);
+	mcc_asm_print_text_sec(out, head->text_section);
 	if (head->data_section) {
-		asm_print_data_sec(out, head->data_section);
+		mcc_asm_print_data_sec(out, head->data_section);
 	}
-	asm_print_end(out);
+	fprintf(out, "\n");
 }
