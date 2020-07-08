@@ -892,7 +892,7 @@ bool mcc_ast_add_built_ins(struct mcc_ast_program *program)
 						int read_int(){return 0;} \
 						float read_float(){return 0.0;}";
 
-	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, program->node.sloc.filename);
 	if (result.status != MCC_PARSER_STATUS_OK) {
 		return false;
 	}

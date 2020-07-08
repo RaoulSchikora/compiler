@@ -55,7 +55,7 @@ struct mcc_parser_result {
 	};
 };
 
-struct mcc_parser_result mcc_parse_string(const char *input, enum mcc_parser_entry_point entry_point);
+struct mcc_parser_result mcc_parse_string(const char *input, enum mcc_parser_entry_point entry_point, char *name);
 
 struct mcc_parser_result mcc_parse_file(FILE *input, enum mcc_parser_entry_point entry_point, char *name);
 

@@ -14,7 +14,7 @@ void test1(CuTest *tc)
 	// Define test input and create symbol table
 	const char input[] = "int main(){return 42;}";
 	struct mcc_parser_result parser_result;
-	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, "test");
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 	struct mcc_semantic_check *checks = mcc_semantic_check_run_all((&parser_result)->program, table);
@@ -50,7 +50,7 @@ void expression(CuTest *tc)
 {
 	const char input[] = "int main(){ 0 + 0 + 1; return 0;}";
 	struct mcc_parser_result parser_result;
-	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, "test");
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 
@@ -85,7 +85,7 @@ void exp_plus_exp(CuTest *tc)
 {
 	const char input[] = "int main(){ (1 + 2) - (3 + 4); return 0;}";
 	struct mcc_parser_result parser_result;
-	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, "test");
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 
@@ -113,7 +113,7 @@ void expression_var(CuTest *tc)
 {
 	const char input[] = "int main(){ int a; a = 3; a + 1; return 0;}";
 	struct mcc_parser_result parser_result;
-	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, "test");
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 
@@ -148,7 +148,7 @@ void expression_arr(CuTest *tc)
 {
 	const char input[] = "int main(){ int[10] arr; arr[4] = 3; return arr[4];}";
 	struct mcc_parser_result parser_result;
-	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, "test");
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 
@@ -192,7 +192,7 @@ void if_stmt(CuTest *tc)
 {
 	const char input[] = "int main(){if(0==1) 1*2+2; return 0;}";
 	struct mcc_parser_result parser_result;
-	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, "test");
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 
@@ -264,7 +264,7 @@ void if_else_stmt(CuTest *tc)
 {
 	const char input[] = "int main(){if(0==1) {1*2;} else {3+4;}; return 0;}";
 	struct mcc_parser_result parser_result;
-	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, "test");
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 
@@ -354,7 +354,7 @@ void while_stmt(CuTest *tc)
 {
 	const char input[] = "int main(){int a; a = 1; while(a<11) {a = a + 1;} return 0;}";
 	struct mcc_parser_result parser_result;
-	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, "test");
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 
@@ -456,7 +456,7 @@ void func_def(CuTest *tc)
 {
 	const char input[] = "int test(int a, float b){return 0;} int main(){return 0;}";
 	struct mcc_parser_result parser_result;
-	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, "test");
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 
@@ -523,7 +523,7 @@ void func_call(CuTest *tc)
 	const char input[] = "int main(){int a; a = 1; float b; b = 2.0; int c; c = test(a,b); return 0;} int test(int "
 	                     "a, float b){return 0;} ";
 	struct mcc_parser_result parser_result;
-	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, "test");
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 
@@ -576,7 +576,7 @@ void variable_shadowing(CuTest *tc)
 	const char input[] = "int main(){int a; a = 42; while (true) { int a;a = 43;if (true) {int a;a = 45;a = a + "
 	                     "2;}a = a + 3;}a = a + 4;return 0;}";
 	struct mcc_parser_result parser_result;
-	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, "test");
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 
@@ -635,7 +635,7 @@ void type_test(CuTest *tc)
 	const char input[] =
 	    "int main(){int i; i = 42; bool b; b = true; float f; f = 3.3; string str; str = \"hallo\"; return i;}";
 	struct mcc_parser_result parser_result;
-	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, "test");
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 
@@ -677,7 +677,7 @@ void type_array_test(CuTest *tc)
 	const char input[] = "int main(){int[42] i; i[14] = 4; bool[42] b; b[1] = true; float[32] f; f[12] = 3.3; "
 	                     "string[12] str; str[2] = \"hallo\"; return i[14];}";
 	struct mcc_parser_result parser_result;
-	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, "test");
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 
@@ -719,7 +719,7 @@ void type_array_test(CuTest *tc)
 	TEST(expression_arr) \
 	TEST(if_stmt) \
 	TEST(while_stmt) \
-    TEST(func_def) \
+	TEST(func_def) \
 	TEST(func_call)\
 	TEST(variable_shadowing) \
 	TEST(type_test) \

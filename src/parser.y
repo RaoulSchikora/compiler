@@ -304,7 +304,7 @@ program             : function_defs { $$ = $1;                                  
 #include "utils/length_of_int.h"
 #include "mcc/parser.h"
 
-struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_parser_entry_point entry_point)
+struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_parser_entry_point entry_point, char *name)
 {
 	assert(input_string);
 
@@ -323,7 +323,7 @@ struct mcc_parser_result mcc_parse_string(const char *input_string, enum mcc_par
 		};
 	}
 
-	struct mcc_parser_result result = mcc_parse_file(in, entry_point, "stdin");
+	struct mcc_parser_result result = mcc_parse_file(in, entry_point, name);
 
 	free(input);
 

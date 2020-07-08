@@ -16,7 +16,7 @@ void test_int(CuTest *tc)
 	// Define test input and create IR
 	const char input[] = "int main(){int a; a = 1;return a;}";
 	struct mcc_parser_result parser_result;
-	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, "test");
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 	struct mcc_semantic_check *checks = mcc_semantic_check_run_all((&parser_result)->program, table);
@@ -44,7 +44,7 @@ void test_ints(CuTest *tc)
 	// Define test input and create IR
 	const char input[] = "int main(){int a; a = 1;int b; b = 0; return a;}";
 	struct mcc_parser_result parser_result;
-	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, "test");
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 	struct mcc_semantic_check *checks = mcc_semantic_check_run_all((&parser_result)->program, table);
@@ -78,7 +78,7 @@ void test_int_temporaries(CuTest *tc)
 	// Define test input and create IR -> produces 2 temporaries
 	const char input[] = "int main(){int a; a = 1 + (2*2); a = 1; return a;}";
 	struct mcc_parser_result parser_result;
-	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, "test");
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 	struct mcc_semantic_check *checks = mcc_semantic_check_run_all((&parser_result)->program, table);
@@ -109,7 +109,7 @@ void test_int_array(CuTest *tc)
 	// Define test input and create IR -> produces 2 temporaries
 	const char input[] = "int main(){int [42]a; a[0]= 9; a[2] = 9; a[41] = 9; return 0;}";
 	struct mcc_parser_result parser_result;
-	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, "test");
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 	struct mcc_semantic_check *checks = mcc_semantic_check_run_all((&parser_result)->program, table);
@@ -146,7 +146,7 @@ void test_int_multiple_references(CuTest *tc)
 	// Define test input and create IR -> produces 2 temporaries
 	const char input[] = "int main(){int a; a = 1;int b; b = 1; a = 2;int c; c = 0; b = 1; c = 2; return 0;}";
 	struct mcc_parser_result parser_result;
-	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, "test");
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 	struct mcc_semantic_check *checks = mcc_semantic_check_run_all((&parser_result)->program, table);
@@ -193,7 +193,7 @@ void test_bool_int(CuTest *tc)
 	// Define test input and create IR -> produces 2 temporaries
 	const char input[] = "int main(){int a; a = 1;bool b; b = true; a = 2; return 0;}";
 	struct mcc_parser_result parser_result;
-	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, "test");
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 	struct mcc_semantic_check *checks = mcc_semantic_check_run_all((&parser_result)->program, table);
@@ -223,7 +223,7 @@ void test_strings(CuTest *tc)
 	// Define test input and create IR -> produces 2 temporaries
 	const char input[] = "int main(){string a; a = \"test\"; string b; b = \"test2\"; return 0;}";
 	struct mcc_parser_result parser_result;
-	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, "test");
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 	struct mcc_semantic_check *checks = mcc_semantic_check_run_all((&parser_result)->program, table);
@@ -258,7 +258,7 @@ void test_string_array(CuTest *tc)
 	// Define test input and create IR -> produces 2 temporaries
 	const char input[] = "int main(){string [12]a; a[0]= \"test\"; a[2] = \"test2\"; a[11] = \"test3\"; return 0;}";
 	struct mcc_parser_result parser_result;
-	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, "test");
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 	struct mcc_semantic_check *checks = mcc_semantic_check_run_all((&parser_result)->program, table);

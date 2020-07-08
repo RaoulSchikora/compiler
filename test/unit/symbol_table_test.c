@@ -8,7 +8,6 @@
 #include "mcc/parser.h"
 #include "mcc/symbol_table.h"
 
-
 void empty_table(CuTest *tc)
 {
 	struct mcc_symbol_table *table = mcc_symbol_table_new_table();
@@ -227,7 +226,7 @@ void get_last(CuTest *tc)
 void function_parameters(CuTest *tc)
 {
 	const char input[] = "int func(bool a, int b){}";
-	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, "test");
 
 	struct mcc_symbol_table *table = mcc_symbol_table_create(result.program);
 
@@ -248,7 +247,7 @@ void function_parameters(CuTest *tc)
 void function_parameters2(CuTest *tc)
 {
 	const char input[] = "int func1(int a, float[10] b, string c, bool d){}";
-	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, "test");
 
 	struct mcc_symbol_table *table = mcc_symbol_table_create(result.program);
 
@@ -281,7 +280,7 @@ void function_parameters2(CuTest *tc)
 void nested_if(CuTest *tc)
 {
 	const char input[] = "int main(){if(true)if(true){int a;int b;}return 0;}";
-	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, "test");
 
 	struct mcc_symbol_table *table = mcc_symbol_table_create(result.program);
 
@@ -297,7 +296,7 @@ void nested_if(CuTest *tc)
 void function_definition(CuTest *tc)
 {
 	const char input[] = "float func1(){} bool func2(){} int main(){} string func3(){}";
-	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, "test");
 
 	struct mcc_symbol_table *table = mcc_symbol_table_create(result.program);
 
@@ -330,7 +329,7 @@ void function_definition(CuTest *tc)
 void function_body(CuTest *tc)
 {
 	const char input[] = "float func(){int n;n=0; while(n<42)n=n+1; int b;}";
-	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, "test");
 
 	struct mcc_symbol_table *table = mcc_symbol_table_create(result.program);
 
@@ -346,7 +345,7 @@ void function_body(CuTest *tc)
 void empty_nested_function_body(CuTest *tc)
 {
 	const char input[] = "float func(){ { { {} } } }";
-	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	struct mcc_parser_result result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, "test");
 
 	struct mcc_symbol_table *table = mcc_symbol_table_create(result.program);
 
@@ -368,7 +367,7 @@ void function_parameters_from_parser(CuTest *tc)
 	// Define test input and create symbol table
 	const char input[] = "int test(int[52] a, bool test){return;}";
 	struct mcc_parser_result parser_result;
-	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, "test");
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 
@@ -420,7 +419,7 @@ void pseudo_row(CuTest *tc)
 	// Define test input and create symbol table
 	const char input[] = "int test(){{int a;}}";
 	struct mcc_parser_result parser_result;
-	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, "test");
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 
@@ -477,7 +476,7 @@ void nested_statement(CuTest *tc)
 	// Define test input and create symbol table
 	const char input[] = "int test(){int a;{int b;int c;}}";
 	struct mcc_parser_result parser_result;
-	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, "test");
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 
@@ -544,7 +543,7 @@ void multiple_functions(CuTest *tc)
 	// Define test input and create symbol table
 	const char input[] = "int test(){return;} void main(int a){a=1;}";
 	struct mcc_parser_result parser_result;
-	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, "test");
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 
@@ -596,7 +595,7 @@ void multiple_functions(CuTest *tc)
 void assignment_linking(CuTest *tc)
 {
 	const char input[] = "int func(){int n;if(true){n=n+1;}}";
-	struct mcc_parser_result parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	struct mcc_parser_result parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, "test");
 
 	struct mcc_symbol_table *table = mcc_symbol_table_create(parser_result.program);
 
@@ -615,7 +614,7 @@ void assignment_linking(CuTest *tc)
 void check_upward(CuTest *tc)
 {
 	const char input[] = "int func(){int a;if(true){a=a+1;int b;}int c;float d;}";
-	struct mcc_parser_result parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	struct mcc_parser_result parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, "test");
 
 	struct mcc_symbol_table *table = mcc_symbol_table_create(parser_result.program);
 
@@ -639,7 +638,7 @@ void check_upward_same_scope(CuTest *tc)
 	// Define test input and create symbol table
 	const char input[] = "int func(){int a; int b; int c; a=a+1;}";
 	struct mcc_parser_result parser_result;
-	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, "test");
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 
@@ -663,7 +662,7 @@ void variable_expression_linking(CuTest *tc)
 	// Define test input and create symbol table
 	const char input[] = "int func(){int a; a=a+1;}";
 	struct mcc_parser_result parser_result;
-	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, "test");
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 
@@ -687,7 +686,7 @@ void if_condition_expression(CuTest *tc)
 	// Define test input and create symbol table
 	const char input[] = "int func(){int a; if(a==6){}}";
 	struct mcc_parser_result parser_result;
-	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, "test");
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 
@@ -711,7 +710,7 @@ void built_ins(CuTest *tc)
 	// Define test input and create symbol table
 	const char input[] = "int test(){return;}";
 	struct mcc_parser_result parser_result;
-	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	parser_result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM, "test");
 	CuAssertIntEquals(tc, parser_result.status, MCC_PARSER_STATUS_OK);
 	struct mcc_symbol_table *table = mcc_symbol_table_create((&parser_result)->program);
 
@@ -910,3 +909,4 @@ void built_ins(CuTest *tc)
 	TEST(built_ins)
 #include "main_stub.inc"
 #undef TESTS
+

@@ -73,7 +73,7 @@ struct mcc_parser_result get_ast_from_stdin(bool quiet)
 		result.error_buffer = NULL;
 		return result;
 	}
-	result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM);
+	result = mcc_parse_string(input, MCC_PARSER_ENTRY_POINT_PROGRAM,"stdin");
 	free(input);
 	return result;
 }
