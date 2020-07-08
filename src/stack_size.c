@@ -199,16 +199,16 @@ static int get_frame_size_of_function(struct mcc_annotated_ir *head)
 	return frame_size;
 }
 
-int mcc_get_array_base_stack_loc(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg)
+int mcc_get_array_base_stack_loc(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *array_base)
 {
-	assert(arg);
+	assert(array_base);
 	assert(an_ir);
-	assert(an_ir->row->arg1 == arg || an_ir->row->arg2 == arg);
+	assert(an_ir->row->arg1 == array_base || an_ir->row->arg2 == array_base);
 
 	an_ir = mcc_get_function_label(an_ir);
 	while (an_ir) {
 		if (an_ir->row->instr == MCC_IR_INSTR_ARRAY) {
-			if (strcmp(an_ir->row->arg1->ident, arg->arr_ident) == 0) {
+			if (strcmp(an_ir->row->arg1->ident, array_base->arr_ident) == 0) {
 				return an_ir->stack_position;
 			}
 		}
@@ -217,23 +217,24 @@ int mcc_get_array_base_stack_loc(struct mcc_annotated_ir *an_ir, struct mcc_ir_a
 	return 0;
 }
 
-int mcc_get_array_element_stack_loc(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *arg)
+int mcc_get_array_element_stack_loc(struct mcc_annotated_ir *an_ir, struct mcc_ir_arg *array_element)
 {
-	assert(arg);
+	assert(array_element);
 	assert(an_ir);
-	assert(an_ir->row->arg1 == arg || an_ir->row->arg2 == arg);
+	assert(an_ir->row->arg1 == array_element || an_ir->row->arg2 == array_element);
 
 	// Array index is not int literal -> computed during runtime
-	if (arg->index->type != MCC_IR_TYPE_LIT_INT) {
+	if (array_element->index->type != MCC_IR_TYPE_LIT_INT) {
 		return 0;
 	}
 
 	an_ir = mcc_get_function_label(an_ir);
 	while (an_ir) {
 		if (an_ir->row->instr == MCC_IR_INSTR_ARRAY) {
-			if (strcmp(an_ir->row->arg1->ident, arg->arr_ident) == 0) {
+			if (strcmp(an_ir->row->arg1->ident, array_element->arr_ident) == 0) {
 				int array_pos = an_ir->stack_position;
-				int element_pos = array_pos + (arg->index->lit_int) * get_row_size(an_ir->row);
+				int element_pos =
+				    array_pos + (array_element->index->lit_int) * get_row_size(an_ir->row);
 				return element_pos;
 			}
 		}

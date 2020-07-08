@@ -11,6 +11,23 @@
 
 #define not_zero(x) (x > 0 ? x : 1)
 
+// clang-format off
+
+// Generics for check and get type
+#define check_and_get_type(x, ...) _Generic((x), \
+		struct mcc_ast_expression *:          check_and_get_type_expression, \
+		struct mcc_ast_identifier *:          check_and_get_type_identifier, \
+		struct mcc_ast_declaration *:         get_data_type_declaration, \
+		struct mcc_ast_literal *:             check_and_get_type_literal \
+		)(x, __VA_ARGS__)
+
+#define mcc_semantic_check_raise_error(x,y,...) _Generic((y), \
+        int :                                 raise_type_error, \
+        struct mcc_semantic_check *:          raise_non_type_error \
+	)(x,y,__VA_ARGS__)
+
+// clang-format on
+
 // ------------------------------------------------------------- Forward declaration
 
 // Check and get type functions
