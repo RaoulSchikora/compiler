@@ -162,9 +162,11 @@ void mcc_parser_error();
 
 %%
 
-toplevel            : START_UNIT unit_test
-                    | START_PROG program
-                      {result->entry_point = MCC_PARSER_ENTRY_POINT_PROGRAM; result->program = $2; }
+toplevel            : START_UNIT unit_test END
+                    | START_PROG program END
+                      { result->entry_point = MCC_PARSER_ENTRY_POINT_PROGRAM; result->program = $2; }
+                    | START_PROG END { result->entry_point = MCC_PARSER_ENTRY_POINT_PROGRAM; 
+                        result->program = mcc_ast_new_empty_program(result->filename); }
                     ;
 
 unit_test           : expression
@@ -242,7 +244,7 @@ declaration         : TYPE identifier { $$ = mcc_ast_new_variable_declaration($1
                       { $$ = mcc_ast_new_array_declaration($1, mcc_ast_new_literal_int($3), $5);   loc($$, @1, @5); }
                     ;
 
-identifier          : IDENTIFIER {$$ = mcc_ast_new_identifier($1);                                 loc($$, @1, @1); }
+identifier          : IDENTIFIER { $$ = mcc_ast_new_identifier($1);                                loc($$, @1, @1); }
                     ;
 
 statement           : IF LPARENTH expression RPARENTH statement %prec NOT_ELSE
@@ -262,7 +264,6 @@ statement           : IF LPARENTH expression RPARENTH statement %prec NOT_ELSE
 statements          : statement statements { $$ = mcc_ast_new_compound_stmt(false, $1, $2);        loc($$, @1, @2); }
                     | statement            { $$ = mcc_ast_new_compound_stmt(false, $1, NULL);      loc($$, @1, @1); }
                     ;
-
 
 compound_statement  : CURL_OPEN statements CURL_CLOSE { $$ = $2;                                   loc($$, @1, @3); }
                     | CURL_OPEN CURL_CLOSE { $$ = mcc_ast_new_compound_stmt(true,NULL,NULL);       loc($$, @1, @2); }
@@ -290,7 +291,6 @@ function_defs       : function_def function_defs  { $$ = mcc_ast_new_program($1,
                     ;
 
 program             : function_defs { $$ = $1;                                                     loc($$, @1, @1); }
-                    | END           { $$ = mcc_ast_new_empty_program();                            loc($$, @1, @1); }
                     ;
 
 %%

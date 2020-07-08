@@ -403,7 +403,7 @@ struct mcc_ast_program {
 struct mcc_ast_program *mcc_ast_new_program(struct mcc_ast_function_definition *function_definition,
                                             struct mcc_ast_program *next_program);
 
-struct mcc_ast_program *mcc_ast_new_empty_program();
+struct mcc_ast_program *mcc_ast_new_empty_program(char *name);
 
 void mcc_ast_delete_program(struct mcc_ast_program *program);
 
